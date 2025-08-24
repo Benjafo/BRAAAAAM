@@ -1,0 +1,59 @@
+ID,Description,Low Estimate HRS,High Estimate HRS
+,Frontend:,,
+,Styling/theming,3,6
+,Authentication,10,20
+,Navigation,2,4
+,Calendar view template layout,8,12
+,Confirmation modal,2,6
+,Client trip scheduling layout,2,4
+,Confirmation email,4,8
+,Appointment creation form,12,24
+,Driver availability layout,2,4
+,Driver search,4,8
+,Driver profile layout,2,4
+,New driver layout,2,4
+,Driver profile form,8,12
+,Client profile layout,2,4
+,New client layout,2,4
+,Client profile form,8,12
+,Dashboard,2,4
+,Signin layout,2,4
+,Data entry layout,2,4
+,Driver reporting form,6,10
+,Reporting layout,2,4
+,Data export,2,6
+,Data export preview (?),0,0
+,Admin page layout,2,4
+,Dispatcher profile page layout,2,4
+,Dispatcher profile form,6,10
+,Role/permissions management,16,24
+,Form configuration layout,2,4
+,Form configuration functionality,20,50
+,Backend:,,
+,Client CRUD,6,16
+,Driver CRUD,6,16
+,Schedule CRUD,10,24
+,Authentication CR (middleware),6,10
+,Form configuration CRUD,24,40
+,Trip CRUD,6,16
+,Permissions CRUD,14,24
+,Roles CRUD,4,6
+,Appointment CRUD,6,16
+,Appoint Driver Availability R,2,4
+,Appointment Driver Suggestions R,2,4
+,Filters CRD,4,10
+,Export CR,6,16
+,Accounts CRUD,2,6
+,Sign-in CR,2,4
+,,,
+,Subtotal,237,476
+,PM (20%),47.4,95.2
+,QA (15%),7.11,71.4
+,Buffer (20%),47.4,95.2
+,TOTAL:,338.91,737.8
+,,,
+,,,
+,Number of weeks,11,
+,Hours per team member per week,9,
+,Number of team members,6,
+,Hours Budget,594,

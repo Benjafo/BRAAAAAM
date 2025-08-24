@@ -1,0 +1,42 @@
+Description,ID#,"Requirement Type (Functional, Technical, Business)","Priority 
+(MVP, Secondary, Low)",Created On,Last Modified On
+Needs to maintain names and profile information for all users,1,Functional,MVP,2/10/2025,2/10/2025
+"Needs to maintain all volunteer names and profile information including address, emergency contact, car information, preferences for driver accommodations",1.1,Functional,MVP,2/10/2025,3/27/2025
+Needs to maintain names and profile information regarding clients,1.2,Functional,MVP,2/10/2025,2/10/2025
+"Must reduce opportunities for human error by using input validation, dropdown boxes, checkboxes, etc",2,Technical,MVP,2/10/2025,2/10/2025
+Must keep data separated between transit agencies,3,Business,MVP,2/10/2025,2/10/2025
+Must have the ability to create dynamic forms and save them,3.1,Technical,MVP,2/10/2025,2/10/2025
+Must maintain all information separately for each transit agency,3.2,Functional,MVP,2/10/2025,3/27/2025
+Must create a system that allows scheduling a ride for a client,4,Functional,MVP,2/10/2025,3/28/2025
+Must provide ability for transit agencies to schedule recurring rides for clients,4.1,Functional,MVP,2/10/2025,3/28/2025
+"Must allow client to specify accessibility information, e.g. requiring a cane or wheelchair",4.2,Functional,MVP,2/10/2025,3/25/2023
+Needs to support providing suggestions to match clients and drivers,5,Functional,MVP,2/10/2025,3/19/2025
+Must create a calendar view of volunteer drivers' availability,5.1,Functional,MVP,2/10/2025,3/19/2025
+Must create a calendar view of clients' rides,5.2,Functional,MVP,2/10/2025,3/19/2025
+"Must store ride status (scheduled, active, cancelled)",5.3,Functional,MVP,3/19/2025,3/19/2025
+Must prevent or warn against drivers being scheduled for multiple rides at the same time,5.4,Functional,MVP,3/19/2025,3/19/2025
+Must warn clients before allowing them to schedule multiple rides at the same time,5.5,Functional,MVP,3/19/2025,3/27/2025
+Must generate confirmation to driver and client when an appointment is made.,6,Functional,Secondary,2/10/2025,2/10/2025
+Must provide ability for generating encrypted confirmation emails to driver and client when an appointment is made,6.1,Technical,MVP,2/10/2025,3/19/2025
+"Must prompt dispatcher to call driver and client when an appointment is made, as well as record when this happens",6.2,Technical,Low,2/10/2025,3/25/2025
+Needs to log time and mileage for completed trips.,7,Business,MVP,2/10/2025,2/10/2025
+Must provide ability for drivers to log time to the quarter hour and mileage to the tenth mile for completed trips.,7.1,Functional,MVP,2/10/2025,2/10/2025
+Must provide ability for dispatchers to log time and mileage for completed trips on behalf of drivers,7.2,Functional,MVP,2/10/2025,2/10/2025
+Must create a form to allow time and mileage reporting,7.3,Technical,MVP,2/10/2025,2/10/2025
+"Must allow drivers to edit ride details including whether the ride was one way, donation amount and method, and adding comments to a ride",7.4,Functional,MVP,3/27/2025,3/27/2025
+Needs to export all data subsets to an Excel/CSV spreadsheet,8,Technical,MVP,2/10/2025,3/27/2025
+Needs to allow for dispatchers to store client information when called (delete this?),9,Technical,MVP,2/10/2025,2/10/2025
+Needs to generate necessary reports for review.,10,Functional,MVP,2/10/2025,2/10/2025
+Must provide mobile support for drivers to enter their completed trip information.,11,Technical,Secondary,2/10/2025,2/10/2025
+Must store records of end users' donations,12,Functional,MVP,2/10/2025,3/19/2025
+"Must support roles and associated permissions for drivers, dispatchers, and administrators.",13,Functional,MVP,2/10/2025,3/28/2025
+Must define a set of all permissions,13.1,Technical,MVP,2/10/2025,2/10/2025
+Must allow permissions for each role to be customizable.,13.2,Technical,MVP,2/10/2025,2/10/2025
+Must allow each transit agency to define the permissions given to each role.,13.3,Technical,Secondary,2/10/2025,2/10/2025
+Needs all personal and health-related information storage and transmission to be secure.,14,Business,MVP,2/10/2025,2/10/2025
+"Must record all user action history including User ID, date, and time",15,Functional,Secondary,3/19/2025,3/19/2025
+Must be able to query and export recorded user action history,15.1,Technical,Secondary,3/27/2025,3/27/2025
+Allow organizations to customize hours of operation,16,Technical,Low,3/19/2025,3/19/2025
+Must support import of existing data,17,Functional,MVP,3/25/2025,3/25/2025
+Must provide documentation and tutorials on how to operate the system,18,Functional,MVP,3/28/2025,3/28/2025
+Provide 2-factor authentication using the users prefered contact method.,19,Technical,Low,4/2/2025,4/2/2025

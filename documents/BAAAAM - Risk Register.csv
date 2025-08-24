@@ -1,0 +1,26 @@
+Risk Description,Impact Description,Impact,Probability,Priority,Mitigation,Owner
+Describe the risk.,What will happen if the risk is not mitigated or eliminated?,"Rate 
+1 (LOW) to 
+5 (HIGH)","Rate 
+1 (LOW) to 
+5 (HIGH)","(IMPACT X PROBABILITY)
+Address the  highest first.",What can be done to lower or eliminate the impact or probability?,Who's responsible?
+Client changes their mind about feature(s),Client will not get the result that they expect.,4,5,20,Team and client meet to discuss possible solutions.,Miles & Ben
+Client Response Delays,"Client response delays can slow project progress, as certain tasks may rely on feedback and approvals in a timely manner.",4,5,20,"Schedule regular meetings with our clients to ensure we align with given deadlines, key deliverables and feedback.",Miles
+Conflict between client wants,Some of the clients may have different wants based on their own needs,4,4,16,"Have custom elements, clearly express what we can and cannot add in discussions with the clients.",Miles
+Client existing data is not compatable with new system,Organization will not have history for their data.,3,5,15,Client gives the team data that is electronic. Team can use this electronic data to parse through and convert to usable data.,Miles
+Package update breaks legacy system,System failure,4,3,12,Use long-term support systems (LTS),Alex T
+Team members are not familiar with our technology stack,Progress on the project slows,3,4,12,Have the team member learn the technology,Ben
+Issues in translation between project developers and the clients,Clients may become confused with the development process or make assumptions that are not true,4,3,12,Host zoom meetings or phone calls to improve communication,Miles
+Documentation is inadequate to train new users,System will gradually become unusable as initial users retire and cannot bring in new users,3,4,12,"Make documentation that adequately explains to a new user, especially one with limited technical proficiency, how to operate the system",Alex K
+Team member conflict,Impacts the project as a whole and causes tension for the team,5,2,10,Try to come to a reasonable solution that all team members agree with. ,Ben
+Untrustworthy user is given privileged access to system,Unprivileged users can see large amounts of confidential information and damage system,5,2,10,Require additional confirmation to give privileged access to trusted users; support system rollback to backups,Alex T
+Unauthorized user gains access to Personal Identifiable Information,"Data could get stolen or deleted, HIPAA regulations may be violated",5,2,10,Security and isolation of data between transit agencies must be prioritized during development,Ben
+"Team member is out for an extended amount of time (sickness, family emergency, etc..)",A certain aspect of the project could suffer if the member who is supposed to work on it is not available.,4,2,8,"Have multiple people available to work on different parts of the project so if someone is missing, another member can pick up the work on that part.",Ben
+Cost to maintain system servers exceeds budget,Old data must be culled (if storage limits are met) or the system must be shut down (if server operation itself exceeds budget),4,2,8,Choose cost-efficient servers and space-efficient database formats to maximize data that can be stored; establish if old data can be culled from the database,Alex K
+GitHub merge conflict,Lost code and or wasted time,1,5,5,"Communicate, use best GitHub practices",Ben
+Server goes down or is attacked,"Data could get stolen, lost, or deleted",5,1,5,Server should be properly configured and secured,Miles
+Client takes leave of absence,Client will not be involved with the development process and will lose information and the ability to voice their needs,5,1,5,We communicate with the other clients instead,Miles
+Browser compatibility,End users are not able to use the system,2,2,4,"Make sure the users are using browsers that are up to date, make sure the code works on all the main browsers.",Miles
+System does not feature accessibility options,Users with disabilities could struggle with using the system (ex. Text too small to read,3,1,3,"Implement ways to have such features (TTS, scalable font sizes)",Alex T
+Volunteer organization does not want to integrate with the new system,They will not use the system,1,3,3,System must be developed to please the most number of users as possible,Miles
