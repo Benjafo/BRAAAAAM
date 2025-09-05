@@ -1,5 +1,7 @@
 # BRAAAAAM
 
+See [CONTRIBUTING.md](https://github.com/Benjafo/BRAAAAAM/blob/master/CONTRIBUTING.md) for branch, commit, and pull request guidelines.
+
 ## Team Members
 
 Ben Foley (btf9895@rit.edu)  
