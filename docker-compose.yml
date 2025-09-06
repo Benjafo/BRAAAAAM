@@ -10,11 +10,15 @@ services:
       - NODE_ENV=development
       - CHOKIDAR_USEPOLLING=true
       - FAST_REFRESH=true
+    profiles: ["development"]
     depends_on:
       - server
 
   server:
-    build: ./server
+    build: 
+      context: ./server
+      dockerfile: Dockerfile
+    restart: always
     ports:
       - "3000:3000"
     volumes:
@@ -23,26 +27,64 @@ services:
     environment:
       - NODE_ENV=development
       - CHOKIDAR_USEPOLLING=true
-      - DATABASE_URL=postgresql://baaaam:password@postgres:5432/baaaam
+      - DATABASE_URL=postgresql://braaaaam:password@postgres:5432/braaaaam
+    profiles: ["development", "staging", "production"]
     depends_on:
       postgres:
         condition: service_healthy
 
   postgres:
     image: postgres:15
+    restart: always
     ports:
       - "5432:5432"
     environment:
-      - POSTGRES_DB=baaaam
-      - POSTGRES_USER=baaaam
+      - POSTGRES_DB=braaaaam
+      - POSTGRES_USER=braaaaam
       - POSTGRES_PASSWORD=password
     volumes:
       - postgres_data:/var/lib/postgresql/data
+    profiles: ["development", "staging", "production"]
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U baaaam -d baaaam"]
+      test: ["CMD-SHELL", "pg_isready -U braaaaam -d braaaaam"]
       interval: 10s
       timeout: 5s
       retries: 5
 
+  pgadmin:
+    container_name: pgadmin4_container
+    image: dpage/pgadmin4
+    restart: unless-stopped
+    environment:
+      PGADMIN_DEFAULT_EMAIL: braaaaam@rit.edu
+      PGADMIN_DEFAULT_PASSWORD: braaaaam
+    ports:
+      - "5050:80"
+    volumes:
+    - pgadmin_data:/var/lib/pgadmin
+    profiles: ["development", "staging"]
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+  caddy:
+    image: caddy:2
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile
+      - caddy_data:/data
+      - caddy_config:/config
+      - caddy_static:/app/staticfiles
+    depends_on:
+      - server
+    profiles: ["production"]
+
 volumes:
   postgres_data:
+  pgadmin_data:
+  caddy_data:
+  caddy_config:
+  caddy_static:
