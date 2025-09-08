@@ -2,6 +2,8 @@
 
 See [CONTRIBUTING.md](https://github.com/Benjafo/BRAAAAAM/blob/master/CONTRIBUTING.md) for branch, commit, and pull request guidelines.
 
+See [DOCKER.md](https://github.com/Benjafo/BRAAAAAM/blob/master/DOCKER.md) for docker commands reference.
+
 ## Team Members
 
 Ben Foley (btf9895@rit.edu)  
