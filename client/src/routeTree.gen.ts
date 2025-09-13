@@ -9,9 +9,51 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as VolunteersRouteImport } from './routes/volunteers'
+import { Route as UpcomingRidesRouteImport } from './routes/upcoming-rides'
+import { Route as SettingsRouteImport } from './routes/settings'
+import { Route as ReportsRouteImport } from './routes/reports'
+import { Route as PastRidesRouteImport } from './routes/past-rides'
+import { Route as DriversRouteImport } from './routes/drivers'
+import { Route as ClientsRouteImport } from './routes/clients'
 import { Route as AuthRouteRouteImport } from './routes/_auth/route'
 import { Route as IndexRouteImport } from './routes/index'
 
+const VolunteersRoute = VolunteersRouteImport.update({
+  id: '/volunteers',
+  path: '/volunteers',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const UpcomingRidesRoute = UpcomingRidesRouteImport.update({
+  id: '/upcoming-rides',
+  path: '/upcoming-rides',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const SettingsRoute = SettingsRouteImport.update({
+  id: '/settings',
+  path: '/settings',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ReportsRoute = ReportsRouteImport.update({
+  id: '/reports',
+  path: '/reports',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PastRidesRoute = PastRidesRouteImport.update({
+  id: '/past-rides',
+  path: '/past-rides',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const DriversRoute = DriversRouteImport.update({
+  id: '/drivers',
+  path: '/drivers',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ClientsRoute = ClientsRouteImport.update({
+  id: '/clients',
+  path: '/clients',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const AuthRouteRoute = AuthRouteRouteImport.update({
   id: '/_auth',
   getParentRoute: () => rootRouteImport,
@@ -24,30 +66,133 @@ const IndexRoute = IndexRouteImport.update({
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/clients': typeof ClientsRoute
+  '/drivers': typeof DriversRoute
+  '/past-rides': typeof PastRidesRoute
+  '/reports': typeof ReportsRoute
+  '/settings': typeof SettingsRoute
+  '/upcoming-rides': typeof UpcomingRidesRoute
+  '/volunteers': typeof VolunteersRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/clients': typeof ClientsRoute
+  '/drivers': typeof DriversRoute
+  '/past-rides': typeof PastRidesRoute
+  '/reports': typeof ReportsRoute
+  '/settings': typeof SettingsRoute
+  '/upcoming-rides': typeof UpcomingRidesRoute
+  '/volunteers': typeof VolunteersRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/_auth': typeof AuthRouteRoute
+  '/clients': typeof ClientsRoute
+  '/drivers': typeof DriversRoute
+  '/past-rides': typeof PastRidesRoute
+  '/reports': typeof ReportsRoute
+  '/settings': typeof SettingsRoute
+  '/upcoming-rides': typeof UpcomingRidesRoute
+  '/volunteers': typeof VolunteersRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/'
+  fullPaths:
+    | '/'
+    | '/clients'
+    | '/drivers'
+    | '/past-rides'
+    | '/reports'
+    | '/settings'
+    | '/upcoming-rides'
+    | '/volunteers'
   fileRoutesByTo: FileRoutesByTo
-  to: '/'
-  id: '__root__' | '/' | '/_auth'
+  to:
+    | '/'
+    | '/clients'
+    | '/drivers'
+    | '/past-rides'
+    | '/reports'
+    | '/settings'
+    | '/upcoming-rides'
+    | '/volunteers'
+  id:
+    | '__root__'
+    | '/'
+    | '/_auth'
+    | '/clients'
+    | '/drivers'
+    | '/past-rides'
+    | '/reports'
+    | '/settings'
+    | '/upcoming-rides'
+    | '/volunteers'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AuthRouteRoute: typeof AuthRouteRoute
+  ClientsRoute: typeof ClientsRoute
+  DriversRoute: typeof DriversRoute
+  PastRidesRoute: typeof PastRidesRoute
+  ReportsRoute: typeof ReportsRoute
+  SettingsRoute: typeof SettingsRoute
+  UpcomingRidesRoute: typeof UpcomingRidesRoute
+  VolunteersRoute: typeof VolunteersRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/volunteers': {
+      id: '/volunteers'
+      path: '/volunteers'
+      fullPath: '/volunteers'
+      preLoaderRoute: typeof VolunteersRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/upcoming-rides': {
+      id: '/upcoming-rides'
+      path: '/upcoming-rides'
+      fullPath: '/upcoming-rides'
+      preLoaderRoute: typeof UpcomingRidesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/settings': {
+      id: '/settings'
+      path: '/settings'
+      fullPath: '/settings'
+      preLoaderRoute: typeof SettingsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/reports': {
+      id: '/reports'
+      path: '/reports'
+      fullPath: '/reports'
+      preLoaderRoute: typeof ReportsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/past-rides': {
+      id: '/past-rides'
+      path: '/past-rides'
+      fullPath: '/past-rides'
+      preLoaderRoute: typeof PastRidesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/drivers': {
+      id: '/drivers'
+      path: '/drivers'
+      fullPath: '/drivers'
+      preLoaderRoute: typeof DriversRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/clients': {
+      id: '/clients'
+      path: '/clients'
+      fullPath: '/clients'
+      preLoaderRoute: typeof ClientsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/_auth': {
       id: '/_auth'
       path: ''
@@ -68,6 +213,13 @@ declare module '@tanstack/react-router' {
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AuthRouteRoute: AuthRouteRoute,
+  ClientsRoute: ClientsRoute,
+  DriversRoute: DriversRoute,
+  PastRidesRoute: PastRidesRoute,
+  ReportsRoute: ReportsRoute,
+  SettingsRoute: SettingsRoute,
+  UpcomingRidesRoute: UpcomingRidesRoute,
+  VolunteersRoute: VolunteersRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
