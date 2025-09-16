@@ -1,9 +1,14 @@
-import { createFileRoute } from '@tanstack/react-router'
+import { createFileRoute } from "@tanstack/react-router"
+import CreateRideModal from "@/components/modals/createRideModal" // adjust case to match your filename
 
-export const Route = createFileRoute('/')({
-  component: RouteComponent,
-})
-
-function RouteComponent() {
-  return <div>Hello "/"!</div>
+function IndexPage() {
+  return (
+    <div className="p-6">
+      <CreateRideModal />
+    </div>
+  )
 }
+
+export const Route = createFileRoute("/")({
+  component: IndexPage,
+})
