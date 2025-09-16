@@ -1,9 +1,9 @@
 import { createFileRoute } from "@tanstack/react-router";
 import CreateRideModal from "@/components/modals/createRideModal";
 import EditRideModal, { type Ride } from "@/components/modals/editRideModal";
+import TempUnavailabilityModal from "@/components/modals/tempUnavailablilityModal";
 
 function IndexPage() {
-  // demo data so the modal has something to show
   const demoRide: Ride = {
     id: "r1",
     clientName: "Client Name (uneditable)",
@@ -18,13 +18,10 @@ function IndexPage() {
   };
 
   return (
-    <div className="p-6 flex gap-3">
+    <div className="p-6 flex gap-3 flex-wrap">
       <CreateRideModal />
-      {/* <- THIS is what was missing */}
-      <EditRideModal
-        ride={demoRide}
-        onSave={(updated) => console.log("EDIT SAVE", updated)}
-      />
+      <EditRideModal ride={demoRide} onSave={(u) => console.log("EDIT SAVE", u)} />
+      <TempUnavailabilityModal onSave={(u) => console.log("UNAVAIL SAVE", u)} />
     </div>
   );
 }
@@ -32,4 +29,3 @@ function IndexPage() {
 export const Route = createFileRoute("/")({
   component: IndexPage,
 });
-
