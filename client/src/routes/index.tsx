@@ -1,7 +1,10 @@
 import { createFileRoute } from "@tanstack/react-router";
+
+// Modals
 import CreateRideModal from "@/components/modals/createRideModal";
 import EditRideModal, { type Ride } from "@/components/modals/editRideModal";
 import TempUnavailabilityModal from "@/components/modals/tempUnavailablilityModal";
+import RecurringUnavailabilityModal from "@/components/modals/recurringUnavailabilityModal";
 
 function IndexPage() {
   const demoRide: Ride = {
@@ -21,7 +24,8 @@ function IndexPage() {
     <div className="p-6 flex gap-3 flex-wrap">
       <CreateRideModal />
       <EditRideModal ride={demoRide} onSave={(u) => console.log("EDIT SAVE", u)} />
-      <TempUnavailabilityModal onSave={(u) => console.log("UNAVAIL SAVE", u)} />
+      <TempUnavailabilityModal onSave={(u) => console.log("UNAVAIL SAVE (temp)", u)} />
+      <RecurringUnavailabilityModal onSave={(u) => console.log("UNAVAIL SAVE (recurring)", u)} />
     </div>
   );
 }
