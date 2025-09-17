@@ -1,10 +1,27 @@
-import { createFileRoute } from "@tanstack/react-router";
-import { SignInPage } from "@/components/SignInPage";
+import { createFileRoute, Link } from "@tanstack/react-router";
+import SignInForm from "@/components/form/SignInForm";
+import { Button } from "@/components/ui/button";
 
 export const Route = createFileRoute("/_login/sign-in")({
-    component: SignInComponent,
+    component: RouteComponent,
 });
 
-function SignInComponent() {
-    return <SignInPage />;
+/**
+ * Show SignInForm with "Forgot Password" link
+ * @returns JSX.Element
+ */
+function RouteComponent() {
+
+    return (
+        <>
+            <h1 className="mb-6 text-center text-xl font-semibold">Sign in</h1>
+            <SignInForm />
+            <Link to={"/forget-password"}>
+                <Button variant="link" className="w-full mt-3">
+                    Forgot Password
+                </Button>
+            </Link>
+        </>
+    )
+
 }
