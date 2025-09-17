@@ -172,7 +172,7 @@ export const MainNavigation = ({
                          * @TODO Add logout functionality here
                          */
 
-                        navigate({to: "/login"});
+                        navigate({to: "/sign-in"});
                     }}
                 >
                     {/**
