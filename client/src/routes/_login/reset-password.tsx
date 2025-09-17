@@ -1,10 +1,16 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { RequestPasswordResetPage } from "@/components/RequestPasswordResetPage";
+import ResetPasswordForm from "@/components/form/ResetPasswordForm";
 
 export const Route = createFileRoute("/_login/reset-password")({
-    component: ResetPasswordComponent,
+    component: RouteComponent,
 });
 
-function ResetPasswordComponent() {
-    return <RequestPasswordResetPage />;
+function RouteComponent() {
+
+    return (
+        <>
+            <h1 className="mb-6 text-center text-xl font-semibold">Create a new password</h1>
+            <ResetPasswordForm />
+        </>
+    )
 }
