@@ -1,29 +1,26 @@
 import { Avatar, AvatarFallback, AvatarImage } from "./ui/avatar";
 import WebsterLogo from "../../public/WebsterBeeLogo.png";
-import { Link, useNavigate } from "@tanstack/react-router";
+import { Link } from "@tanstack/react-router";
 import { Button } from "./ui/button";
 import { PERMISSIONS } from "@/lib/permissions";
 import { LogOut } from "lucide-react";
+import { useAuth } from "../hooks/useAuth";
 
 /**
  * A generic navigation layout component that can be used to create different types of navigation bars.
  */
 interface NavigationLayoutProps {
-    leftNavItems?: React.ReactNode,
-    rightNavItems?:React.ReactNode,
+    leftNavItems?: React.ReactNode;
+    rightNavItems?: React.ReactNode;
 }
 
 /**
  * NavigationLayout Component
  * @param props - leftNavItems: ReactNode to be displayed on the left side of the navigation bar
- *                rightNavItems: ReactNode to be displayed on the right side of the navigation bar 
- * @returns 
+ *                rightNavItems: ReactNode to be displayed on the right side of the navigation bar
+ * @returns
  */
-const NavigationLayout = ({
-    leftNavItems,
-    rightNavItems,
-}: NavigationLayoutProps) => {
-
+const NavigationLayout = ({ leftNavItems, rightNavItems }: NavigationLayoutProps) => {
     return (
         <div className="flex items-center justify-beween p-[10px]">
             <div className="flex flex-row items-center gap-[10px] justify-start w-full">
@@ -33,14 +30,14 @@ const NavigationLayout = ({
                 {rightNavItems}
             </div>
         </div>
-    )
-}
+    );
+};
 
 // Props for logo customization
 type LogoProps = {
     src?: string;
     fallbackText?: string;
-}
+};
 
 // Props for LoginNav component
 interface LoginNavProps {
@@ -51,14 +48,13 @@ interface LoginNavProps {
 /**
  * LoginNavigation Component
  * @param props - logo: LogoProps for customizing the logo (src and fallbackText)
- *                showCancelButton: boolean to conditionally show the Cancel button 
- * @returns 
+ *                showCancelButton: boolean to conditionally show the Cancel button
+ * @returns
  */
 export const LoginNavigation = ({
     logo = { src: WebsterLogo, fallbackText: "RMS" },
     showCancelButton = false,
 }: LoginNavProps) => {
-
     return (
         <NavigationLayout
             leftNavItems={
@@ -67,16 +63,20 @@ export const LoginNavigation = ({
                     <AvatarFallback>{logo.fallbackText}</AvatarFallback>
                 </Avatar>
             }
-            rightNavItems={showCancelButton && (
-                <Link to="/sign-in">
-                    <Button size="sm" variant="link">Cancel</Button>
-                </Link>
-            )}
+            rightNavItems={
+                showCancelButton && (
+                    <Link to="/sign-in">
+                        <Button size="sm" variant="link">
+                            Cancel
+                        </Button>
+                    </Link>
+                )
+            }
         />
-    )
-}
+    );
+};
 
-// Props for MainNav component 
+// Props for MainNav component
 interface MainNavProps {
     logo?: LogoProps;
     navItems?: {
@@ -89,8 +89,8 @@ interface MainNavProps {
 /**
  * MainNavigation Component
  * @param props - logo: LogoProps for customizing the logo (src and fallbackText)
- *                navItems: Array of navigation items with text, link, and optional permission 
- * @returns 
+ *                navItems: Array of navigation items with text, link, and optional permission
+ * @returns
  */
 export const MainNavigation = ({
     logo = { src: WebsterLogo, fallbackText: "RMS" },
@@ -135,13 +135,22 @@ export const MainNavigation = ({
             text: "Help Center",
             link: "/help",
         },
-    ]
+    ],
 }: MainNavProps) => {
-
-    const navigate = useNavigate();
+    const { user, signOut } = useAuth();
     /**
      * @TODO Add useUser() hook to get user information
      */
+
+    const handleSignOut = async () => {
+        try {
+            await signOut();
+            window.location.href = "/sign-in";
+        } catch (error) {
+            console.error("Sign out error:", error);
+            window.location.href = "/sign-in";
+        }
+    };
 
     return (
         <NavigationLayout
@@ -157,38 +166,25 @@ export const MainNavigation = ({
                          * @TODO Add permission check here
                          */
                         <Link key={button.link ?? idx} to={button.link}>
-                            <Button size="sm" className="active:bg-primary/90">{button.text}</Button>
+                            <Button size="sm" className="active:bg-primary/90">
+                                {button.text}
+                            </Button>
                         </Link>
                     ))}
-                    
                 </>
-                
             }
             rightNavItems={
-                <Button 
-                    size="sm"
-                    onClick={() => {
-                        /**
-                         * @TODO Add logout functionality here
-                         */
-
-                        navigate({to: "/sign-in"});
-                    }}
-                >
-                    {/**
-                     * @TODO Replace with dynamic user name from user context 
-                     * */}
-                    Example User 
+                <Button size="sm" onClick={handleSignOut}>
+                    {user?.name || "User"} {/* Dynamic user name */}
                     <LogOut />
                 </Button>
             }
         />
-    )
-}
+    );
+};
 
 export const SecondaryNavigation = () => {
-
     /**
      * @TODO Add secondary navigation implementation here
      */
-}
+};
