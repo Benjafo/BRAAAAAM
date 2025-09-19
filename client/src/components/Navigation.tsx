@@ -1,6 +1,6 @@
 import { Avatar, AvatarFallback, AvatarImage } from "./ui/avatar";
 import WebsterLogo from "../../public/WebsterBeeLogo.png";
-import { Link } from "@tanstack/react-router";
+import { Link, useNavigate } from "@tanstack/react-router";
 import { Button } from "./ui/button";
 import { PERMISSIONS } from "@/lib/permissions";
 import { LogOut } from "lucide-react";
@@ -137,6 +137,7 @@ export const MainNavigation = ({
         },
     ],
 }: MainNavProps) => {
+    const navigate = useNavigate();
     const { user, signOut } = useAuth();
     /**
      * @TODO Add useUser() hook to get user information
@@ -145,10 +146,10 @@ export const MainNavigation = ({
     const handleSignOut = async () => {
         try {
             await signOut();
-            window.location.href = "/sign-in";
+            navigate({ to: "/sign-in" });
         } catch (error) {
             console.error("Sign out error:", error);
-            window.location.href = "/sign-in";
+            navigate({ to: "/sign-in" });
         }
     };
 
