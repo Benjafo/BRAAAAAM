@@ -6,7 +6,7 @@ import z from "zod";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "../ui/form";
 import { Input } from "../ui/input";
 import { Button } from "../ui/button";
-import { useAuth } from "../../hooks/useAuth";
+import { useAuthStore } from "../stores/authStore";
 import { mockAuthService } from "../../services/mockAuthService";
 import { useEffect, useState } from "react";
 
@@ -54,8 +54,13 @@ function SignInForm({
     showDemoAccounts = true, // Flag to show/hide demo accounts feature
 }: SignInFormProps) {
     const navigate = useNavigate();
-    // Authentication context providing sign-in functionality, loading state, and error handling
-    const { signIn, isLoading, error, clearError, user } = useAuth();
+
+    // Get auth state and actions from Zustand store
+    const { user, isAuthenticated } = useAuthStore();
+
+    // Local loading and error state for form submission
+    const [isLoading, setIsLoading] = useState(false);
+    const [error, setError] = useState<string | null>(null);
     const [showDemoAccountsPanel, setShowDemoAccountsPanel] = useState(false);
 
     const form = useForm<SignInFormData>({
@@ -67,23 +72,27 @@ function SignInForm({
         mode: "onBlur",
     });
 
+    // Clear error when form changes
     useEffect(() => {
-        clearError();
-    }, [clearError]);
+        setError(null);
+    }, []);
 
     // Effect: Handle successful authentication by redirecting user
     // Note: Both admin and regular users redirect to "/", we will change this later when we have the routing properly developed
     useEffect(() => {
-        if (user) {
+        if (user && isAuthenticated) {
             const redirectTo = user.role === "admin" ? "/" : "/";
             navigate({ to: redirectTo });
         }
-    }, [user, navigate]);
+    }, [user, isAuthenticated, navigate]);
 
     async function onSubmit(values: SignInFormData) {
         if (import.meta.env.DEV) {
             console.log("SignInForm onSubmit values", values);
         }
+
+        setIsLoading(true);
+        setError(null);
 
         try {
             /**
@@ -91,7 +100,10 @@ function SignInForm({
              * Implement ky fetch to api and handle form data
              * On success, navigate to page dependent by role/permissions returned
              */
-            await signIn(values);
+
+            // Use the mock auth service to sign in (this will update Zustand store)
+            await mockAuthService.signIn(values);
+
             toast.success(`Welcome back!`);
         } catch (error) {
             if (import.meta.env.DEV) {
@@ -100,8 +112,13 @@ function SignInForm({
 
             const errorMessage =
                 error instanceof Error ? error.message : "Failed to sign in. Please try again.";
+
+            // Set local error state
+            setError(errorMessage);
             // Show error toast notification
             toast.error(errorMessage);
+        } finally {
+            setIsLoading(false);
         }
     }
 

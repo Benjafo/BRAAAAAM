@@ -1,6 +1,8 @@
+// api/mockAuth.ts
 import type { User, AuthResponse, SignInRequest } from "../lib/types";
+import { useAuthStore } from "@/components/stores/authStore";
 
-// Mock user database
+// Mock user database (keep this as is)
 const MOCK_USERS: Record<string, { user: User; password: string }> = {
     "admin@gmail.com": {
         user: {
@@ -31,10 +33,6 @@ const MOCK_USERS: Record<string, { user: User; password: string }> = {
     },
 };
 
-const TOKEN_KEY = "auth_token";
-const REFRESH_TOKEN_KEY = "refresh_token";
-const USER_KEY = "user";
-
 /**
  * Simulate API delay
  */
@@ -59,39 +57,8 @@ const generateMockToken = (userId: string): string => {
 };
 
 /**
- * Store authentication tokens
- */
-const setTokens = (token: string, refreshToken: string): void => {
-    localStorage.setItem(TOKEN_KEY, token);
-    localStorage.setItem(REFRESH_TOKEN_KEY, refreshToken);
-};
-
-/**
- * Store authentication token
- */
-const setToken = (token: string): void => {
-    localStorage.setItem(TOKEN_KEY, token);
-};
-
-/**
- * Store user data
- */
-const setUser = (user: User): void => {
-    localStorage.setItem(USER_KEY, JSON.stringify(user));
-};
-
-/**
- * Clear all authentication data
- */
-const clearAuth = (): void => {
-    localStorage.removeItem(TOKEN_KEY);
-    localStorage.removeItem(REFRESH_TOKEN_KEY);
-    localStorage.removeItem(USER_KEY);
-};
-
-/**
  * Mock authentication service that simulates API calls
- * Replace this with real API calls when backend is ready
+ * Now uses Zustand store instead of direct localStorage manipulation
  */
 export const mockAuthService = {
     /**
@@ -109,19 +76,16 @@ export const mockAuthService = {
             throw new Error("Invalid email or password");
         }
 
-        // Generate mock tokens
+        // Generating mock token
         const token = generateMockToken(mockUser.user.id);
-        const refreshToken = generateMockToken(`refresh-${mockUser.user.id}`);
 
         const response: AuthResponse = {
             user: mockUser.user,
             token,
-            refreshToken,
         };
 
-        // Store tokens and user data
-        setTokens(token, refreshToken);
-        setUser(mockUser.user);
+        // Store in Zustand store
+        useAuthStore.getState().setAuth(mockUser.user, token);
 
         return response;
     },
@@ -132,59 +96,30 @@ export const mockAuthService = {
     async signOut(): Promise<void> {
         // Simulate network delay
         await delay(300);
-        clearAuth();
-    },
 
-    /**
-     * Mock token refresh
-     */
-    async refreshToken(): Promise<string> {
-        await delay(500);
-
-        const refreshToken = this.getRefreshToken();
-        if (!refreshToken) {
-            throw new Error("No refresh token available");
-        }
-
-        const user = this.getUser();
-        if (!user) {
-            throw new Error("No user data available");
-        }
-
-        // Generate new token
-        const newToken = generateMockToken(user.id);
-        setToken(newToken);
-
-        return newToken;
+        // Clear auth state (Zustand will handle localStorage cleanup)
+        useAuthStore.getState().clearAuth();
     },
 
     /**
      * Get current authentication token
      */
     getToken(): string | null {
-        return localStorage.getItem(TOKEN_KEY);
-    },
-
-    /**
-     * Get refresh token
-     */
-    getRefreshToken(): string | null {
-        return localStorage.getItem(REFRESH_TOKEN_KEY);
+        return useAuthStore.getState().token;
     },
 
     /**
      * Get current user data
      */
     getUser(): User | null {
-        const userData = localStorage.getItem(USER_KEY);
-        return userData ? JSON.parse(userData) : null;
+        return useAuthStore.getState().user;
     },
 
     /**
      * Check if user is authenticated
      */
     isAuthenticated(): boolean {
-        return !!this.getToken() && !!this.getUser();
+        return useAuthStore.getState().isAuthenticated;
     },
 
     /**

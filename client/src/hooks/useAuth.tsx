@@ -1,83 +1,58 @@
-import { create } from "zustand";
-import { mockAuthService } from "../services/mockAuthService";
-import type { User, SignInRequest } from "../lib/types";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useAuthStore } from "@/components/stores/authStore";
+import { mockAuthService } from "@/services/mockAuthService";
+import { useRouter } from "@tanstack/react-router";
 
-interface AuthState {
-    user: User | null;
-    isAuthenticated: boolean;
-    isLoading: boolean;
-    error: string | null;
-    signIn: (credentials: SignInRequest) => Promise<void>;
-    signOut: () => Promise<void>;
-    initialize: () => void;
-    clearError: () => void;
-}
+export function useAuth() {
+    const { user, token, isAuthenticated, clearAuth } = useAuthStore();
+    const queryClient = useQueryClient();
+    const router = useRouter();
 
-export const useAuth = create<AuthState>((set) => ({
-    user: null,
-    isAuthenticated: false,
-    isLoading: false,
-    error: null,
+    // React Query for getting current user (using Zustand state)
+    const {
+        data: authData,
+        isLoading,
+        error,
+    } = useQuery({
+        queryKey: ["currentUser"],
+        queryFn: async () => {
+            // Return current auth state from Zustand
+            const currentUser = mockAuthService.getUser();
+            const currentToken = mockAuthService.getToken();
+            const isAuth = mockAuthService.isAuthenticated();
 
-    // sign in logic
-    signIn: async (credentials) => {
-        set({ isLoading: true, error: null });
+            return {
+                user: currentUser,
+                token: currentToken,
+                isAuthenticated: isAuth,
+            };
+        },
+        staleTime: 5 * 60 * 1000,
+        initialData: { user, token, isAuthenticated }, // Use Zustand state as initial data
+    });
 
-        try {
-            const response = await mockAuthService.signIn(credentials);
-            set({
-                user: response.user,
-                isAuthenticated: true,
-                isLoading: false,
-                error: null,
-            });
-        } catch (error) {
-            const message = error instanceof Error ? error.message : "Sign in failed";
-            set({
-                user: null,
-                isAuthenticated: false,
-                isLoading: false,
-                error: message,
-            });
-            throw error;
-        }
-    },
-
-    // sign out logic
-    signOut: async () => {
-        set({ isLoading: true });
-
+    const signOut = async () => {
         try {
             await mockAuthService.signOut();
-            set({
-                user: null,
-                isAuthenticated: false,
-                isLoading: false,
-                error: null,
-            });
+            // Clear React Query cache
+            queryClient.removeQueries({ queryKey: ["currentUser"] });
+            // Navigate to sign-in
+            router.navigate({ to: "/sign-in", replace: true });
         } catch (error) {
             console.error("Sign out error:", error);
-            // Clear state anyway
-            set({
-                user: null,
-                isAuthenticated: false,
-                isLoading: false,
-                error: null,
-            });
+            // Force clear even if API fails
+            clearAuth();
+            queryClient.removeQueries({ queryKey: ["currentUser"] });
+            router.navigate({ to: "/sign-in", replace: true });
         }
-    },
+    };
 
-    initialize: () => {
-        const user = mockAuthService.getUser();
-        const isAuthenticated = mockAuthService.isAuthenticated();
-
-        set({
-            user,
-            isAuthenticated,
-            isLoading: false,
-            error: null,
-        });
-    },
-
-    clearError: () => set({ error: null }),
-}));
+    return {
+        user: authData?.user || user,
+        isAuthenticated: authData?.isAuthenticated || isAuthenticated,
+        token: authData?.token || token,
+        isLoading,
+        error,
+        signOut,
+    };
+}
