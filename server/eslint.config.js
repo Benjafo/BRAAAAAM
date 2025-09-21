@@ -1,7 +1,7 @@
 import js from "@eslint/js";
 import typescript from "@typescript-eslint/eslint-plugin";
 import typescriptParser from "@typescript-eslint/parser";
-const globals = require("globals");
+import globals from "globals";
 
 export default [
     js.configs.recommended,
