@@ -45,7 +45,7 @@ const refreshTokenStore = new Map<number, string[]>();
 const passwordResetTokenStore = new Map<number, TokenData>();
 
 export const signIn = async (
-    req: Request<{}, {}, { email?: string; password?: string }>,
+    req: Request<unknown, unknown, { email?: string; password?: string }>,
     res: Response<LoginResponse | ErrorResponse>
 ): Promise<Response> => {
     try {
@@ -121,7 +121,7 @@ export const signOut = async (
 };
 
 export const refreshToken = async (
-    req: Request<{}, {}, { refreshToken?: string }>,
+    req: Request<unknown, unknown, { refreshToken?: string }>,
     res: Response<TokenResponse | ErrorResponse>
 ): Promise<Response> => {
     try {
@@ -162,7 +162,7 @@ export const refreshToken = async (
 };
 
 export const requestPasswordReset = async (
-    req: Request<{}, {}, { email?: string }>,
+    req: Request<unknown, unknown, { email?: string }>,
     res: Response<MessageResponse | ErrorResponse>
 ): Promise<Response> => {
     try {
@@ -205,7 +205,7 @@ export const requestPasswordReset = async (
 };
 
 export const resetPassword = async (
-    req: Request<{}, {}, { newPassword?: string; confirmPassword?: string }>,
+    req: Request<unknown, unknown, { newPassword?: string; confirmPassword?: string }>,
     res: Response<MessageResponse | ErrorResponse>
 ): Promise<Response> => {
     try {
