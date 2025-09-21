@@ -1,19 +1,33 @@
 import { Request } from "express";
 
+export interface Permission {
+    id: number;
+    title?: string;
+    description?: string;
+}
+
 export interface User {
     id: number;
     email: string;
-    name?: string;
-    username?: string;
+    firstName: string;
+    lastName: string;
+    permissions: Permission[];
+}
+
+// For testing with hardcoded users only, remove this once we have database connection
+export interface UserWithPassword extends User {
     password: string;
-    firstName?: string;
-    lastName?: string;
+}
+
+export interface LoginResponse {
+    message?: string;
+    accessToken: string;
+    user: User;
 }
 
 export interface UserPayload {
     id: number;
     email: string;
-    username?: string;
 }
 
 export interface PasswordResetPayload {
@@ -29,19 +43,6 @@ export interface AuthRequest extends Request {
 export interface TokenData {
     token: string;
     createdAt: Date;
-}
-
-export interface LoginResponse {
-    message: string;
-    accessToken: string;
-    refreshToken: string;
-    user: {
-        id: number;
-        email: string;
-        username?: string;
-        firstName?: string;
-        lastName?: string;
-    };
 }
 
 export interface TokenResponse {

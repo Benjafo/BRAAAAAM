@@ -8,6 +8,7 @@ import {
     TokenResponse,
     User,
     UserPayload,
+    UserWithPassword,
 } from "../types/auth.types";
 import {
     generateAccessToken,
@@ -19,23 +20,29 @@ import {
 import { comparePassword, hashPassword } from "../utils/password";
 
 // TODO: remove this shit, use database
-const USERS: User[] = [
+const USERS: UserWithPassword[] = [
     {
         id: 1,
         email: "admin@gmail.com",
-        name: "Admin User",
+        firstName: "Admin",
+        lastName: "User",
+        permissions: [],
         password: "$2b$10$0DwdOLdi0gkCcN81XcdxYuzKcacUYLUwNjvljWlZf84uDyodkPfSW", // password123
     },
     {
         id: 2,
         email: "driver@gmail.com",
-        name: "Driver user",
+        firstName: "Driver",
+        lastName: "User",
+        permissions: [],
         password: "$2b$10$/psMsbxSQ5J03m5xVQdcu.xqZiKvE14D..WTgdNXQTNUFfaK9pCiS", // password1234
     },
     {
         id: 3,
         email: "dispatcher@gmail.com",
-        username: "Dispatcher user",
+        firstName: "Dispatcher",
+        lastName: "User",
+        permissions: [],
         password: "$2b$10$T5Y5pXqefGjzqxHrSfbMEu4L4oebFsSSyyEHBAAI3mF4CQg6UC1yi", // password12345
     },
 ];
@@ -71,7 +78,6 @@ export const signIn = async (
         const userPayload: UserPayload = {
             id: user.id,
             email: user.email,
-            username: user.username,
         };
 
         const accessToken = generateAccessToken(userPayload);
@@ -82,17 +88,18 @@ export const signIn = async (
         userTokens.push(refreshToken);
         refreshTokenStore.set(user.id, userTokens);
 
+        const userObject: User = {
+            id: user.id,
+            email: user.email,
+            firstName: user.firstName,
+            lastName: user.lastName,
+            permissions: user.permissions,
+        };
+
         return res.json({
             message: "Login successful",
             accessToken,
-            refreshToken,
-            user: {
-                id: user.id,
-                email: user.email,
-                username: user.username,
-                firstName: user.firstName,
-                lastName: user.lastName,
-            },
+            user: userObject,
         });
     } catch (error) {
         console.error("Login error:", error);
@@ -147,7 +154,6 @@ export const refreshToken = async (
         const userPayload: UserPayload = {
             id: decoded.id,
             email: decoded.email,
-            username: decoded.username,
         };
         const newAccessToken = generateAccessToken(userPayload);
 
