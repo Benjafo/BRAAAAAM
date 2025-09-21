@@ -121,16 +121,4 @@ export const mockAuthService = {
     isAuthenticated(): boolean {
         return useAuthStore.getState().isAuthenticated;
     },
-
-    /**
-     * Get available demo accounts for testing
-     */
-    getDemoAccounts() {
-        return Object.entries(MOCK_USERS).map(([email, data]) => ({
-            email,
-            password: data.password,
-            role: data.user.role,
-            name: data.user.name,
-        }));
-    },
 };

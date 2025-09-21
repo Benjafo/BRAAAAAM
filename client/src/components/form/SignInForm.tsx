@@ -39,7 +39,6 @@ interface SignInFormProps {
     readonly email?: FieldProps;
     readonly password?: FieldProps;
     readonly submitButtonText?: string;
-    readonly showDemoAccounts?: boolean;
 }
 
 /**
@@ -51,7 +50,6 @@ function SignInForm({
     email = { label: "Email", placeholder: "user@example.com" },
     password = { label: "Password", placeholder: "Password" },
     submitButtonText = "Sign In",
-    showDemoAccounts = true, // Flag to show/hide demo accounts feature
 }: SignInFormProps) {
     const navigate = useNavigate();
 
@@ -60,8 +58,6 @@ function SignInForm({
 
     // Local loading and error state for form submission
     const [isLoading, setIsLoading] = useState(false);
-    const [error, setError] = useState<string | null>(null);
-    const [showDemoAccountsPanel, setShowDemoAccountsPanel] = useState(false);
 
     const form = useForm<SignInFormData>({
         resolver: zodResolver(signInSchema),
@@ -71,11 +67,6 @@ function SignInForm({
         },
         mode: "onBlur",
     });
-
-    // Clear error when form changes
-    useEffect(() => {
-        setError(null);
-    }, []);
 
     // Effect: Handle successful authentication by redirecting user
     // Note: Both admin and regular users redirect to "/", we will change this later when we have the routing properly developed
@@ -92,7 +83,6 @@ function SignInForm({
         }
 
         setIsLoading(true);
-        setError(null);
 
         try {
             /**
@@ -113,8 +103,6 @@ function SignInForm({
             const errorMessage =
                 error instanceof Error ? error.message : "Failed to sign in. Please try again.";
 
-            // Set local error state
-            setError(errorMessage);
             // Show error toast notification
             toast.error(errorMessage);
         } finally {
@@ -122,25 +110,10 @@ function SignInForm({
         }
     }
 
-    function fillDemoAccount(email: string, password: string) {
-        form.setValue("email", email);
-        form.setValue("password", password);
-        setShowDemoAccountsPanel(false);
-        toast.info("Demo account credentials filled in");
-    }
-
-    const demoAccounts = mockAuthService.getDemoAccounts();
-
     return (
         <div className="space-y-6">
             <Form {...form}>
                 <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-                    {error && (
-                        <div className="p-3 text-sm text-red-600 bg-red-50 border border-red-200 rounded-md">
-                            {error}
-                        </div>
-                    )}
-
                     <FormField
                         control={form.control}
                         name="email"
@@ -178,53 +151,6 @@ function SignInForm({
                     </Button>
                 </form>
             </Form>
-
-            {/* Demo Accounts Section */}
-            {showDemoAccounts && (
-                <div className="border-t pt-6">
-                    <Button
-                        type="button"
-                        variant="outline"
-                        className="w-full mb-4"
-                        onClick={() => setShowDemoAccountsPanel(!showDemoAccountsPanel)}
-                    >
-                        {showDemoAccountsPanel ? "Hide" : "Show"} Demo Accounts
-                    </Button>
-
-                    {showDemoAccountsPanel && (
-                        <div className="space-y-3">
-                            <p className="text-sm text-gray-600 mb-3">
-                                Click any demo account to fill in the credentials:
-                            </p>
-
-                            {demoAccounts.map((account) => (
-                                <div
-                                    key={account.email}
-                                    className="p-3 border border-gray-200 rounded-lg hover:bg-gray-50 cursor-pointer transition-colors"
-                                    onClick={() => fillDemoAccount(account.email, account.password)}
-                                >
-                                    <div className="flex justify-between items-center">
-                                        <div>
-                                            <div className="font-medium text-sm">
-                                                {account.name}
-                                            </div>
-                                            <div className="text-xs text-gray-500">
-                                                {account.email}
-                                            </div>
-                                            <div className="text-xs text-blue-600">
-                                                Role: {account.role}
-                                            </div>
-                                        </div>
-                                        <div className="text-xs text-gray-400 font-mono">
-                                            {account.password}
-                                        </div>
-                                    </div>
-                                </div>
-                            ))}
-                        </div>
-                    )}
-                </div>
-            )}
         </div>
     );
 }
