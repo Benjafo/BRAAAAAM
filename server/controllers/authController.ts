@@ -134,7 +134,7 @@ export const refreshToken = async (
         let decoded: UserPayload;
         try {
             decoded = verifyRefreshToken(refreshToken);
-        } catch (error) {
+        } catch (_error) {
             return res.status(401).json({ error: "Invalid or expired refresh token" });
         }
 
@@ -245,7 +245,7 @@ export const resetPassword = async (
 
         try {
             verifyPasswordResetToken(token, user.password);
-        } catch (error) {
+        } catch (_error) {
             return res.status(400).json({ error: "Invalid or expired reset token" });
         }
 
