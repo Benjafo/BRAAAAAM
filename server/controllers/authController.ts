@@ -1,42 +1,42 @@
-import { Request, Response } from 'express';
+import { Request, Response } from "express";
 import {
-    generateAccessToken,
-    generateRefreshToken,
-    generatePasswordResetToken,
-    verifyRefreshToken,
-    verifyPasswordResetToken,
-} from '../utils/jwt';
-import { hashPassword, comparePassword } from '../utils/password';
-import {
+    AuthRequest,
+    ErrorResponse,
+    LoginResponse,
+    MessageResponse,
+    TokenData,
+    TokenResponse,
     User,
     UserPayload,
-    AuthRequest,
-    TokenData,
-    LoginResponse,
-    TokenResponse,
-    MessageResponse,
-    ErrorResponse,
-} from '../types/auth.types';
+} from "../types/auth.types";
+import {
+    generateAccessToken,
+    generatePasswordResetToken,
+    generateRefreshToken,
+    verifyPasswordResetToken,
+    verifyRefreshToken,
+} from "../utils/jwt";
+import { comparePassword, hashPassword } from "../utils/password";
 
 // TODO: remove this shit, use database
 const USERS: User[] = [
     {
         id: 1,
-        email: 'admin@gmail.com',
-        name: 'Admin User',
-        password: '$2b$10$0DwdOLdi0gkCcN81XcdxYuzKcacUYLUwNjvljWlZf84uDyodkPfSW', // password123
+        email: "admin@gmail.com",
+        name: "Admin User",
+        password: "$2b$10$0DwdOLdi0gkCcN81XcdxYuzKcacUYLUwNjvljWlZf84uDyodkPfSW", // password123
     },
     {
         id: 2,
-        email: 'driver@gmail.com',
-        name: 'Driver user',
-        password: '$2b$10$/psMsbxSQ5J03m5xVQdcu.xqZiKvE14D..WTgdNXQTNUFfaK9pCiS', // password1234
+        email: "driver@gmail.com",
+        name: "Driver user",
+        password: "$2b$10$/psMsbxSQ5J03m5xVQdcu.xqZiKvE14D..WTgdNXQTNUFfaK9pCiS", // password1234
     },
     {
         id: 3,
-        email: 'dispatcher@gmail.com',
-        username: 'Dispatcher user',
-        password: '$2b$10$T5Y5pXqefGjzqxHrSfbMEu4L4oebFsSSyyEHBAAI3mF4CQg6UC1yi', // password12345
+        email: "dispatcher@gmail.com",
+        username: "Dispatcher user",
+        password: "$2b$10$T5Y5pXqefGjzqxHrSfbMEu4L4oebFsSSyyEHBAAI3mF4CQg6UC1yi", // password12345
     },
 ];
 
@@ -44,7 +44,7 @@ const USERS: User[] = [
 const refreshTokenStore = new Map<number, string[]>();
 const passwordResetTokenStore = new Map<number, TokenData>();
 
-export const login = async (
+export const signIn = async (
     req: Request<{}, {}, { email?: string; password?: string }>,
     res: Response<LoginResponse | ErrorResponse>
 ): Promise<Response> => {
@@ -52,20 +52,20 @@ export const login = async (
         const { email, password } = req.body;
 
         if (!email || !password) {
-            return res.status(400).json({ error: 'Email and password are required' });
+            return res.status(400).json({ error: "Email and password are required" });
         }
 
         // TODO: replace with database query
-        console.log('Attempting login for:', email);
+        console.log("Attempting login for:", email);
         const user = USERS.find((u) => u.email === email);
 
         if (!user) {
-            return res.status(401).json({ error: 'Invalid credentials' });
+            return res.status(401).json({ error: "Invalid credentials" });
         }
 
         const isValidPassword = await comparePassword(password, user.password);
         if (!isValidPassword) {
-            return res.status(401).json({ error: 'Invalid credentials' });
+            return res.status(401).json({ error: "Invalid credentials" });
         }
 
         const userPayload: UserPayload = {
@@ -83,7 +83,7 @@ export const login = async (
         refreshTokenStore.set(user.id, userTokens);
 
         return res.json({
-            message: 'Login successful',
+            message: "Login successful",
             accessToken,
             refreshToken,
             user: {
@@ -95,28 +95,28 @@ export const login = async (
             },
         });
     } catch (error) {
-        console.error('Login error:', error);
-        return res.status(500).json({ error: 'Internal server error' });
+        console.error("Login error:", error);
+        return res.status(500).json({ error: "Internal server error" });
     }
 };
 
-export const logout = async (
+export const signOut = async (
     req: AuthRequest,
     res: Response<MessageResponse | ErrorResponse>
 ): Promise<Response> => {
     try {
         if (!req.user) {
-            return res.status(401).json({ error: 'Unauthorized' });
+            return res.status(401).json({ error: "Unauthorized" });
         }
         const userId = req.user.id;
 
         // TODO: replace with database query
         refreshTokenStore.delete(userId);
 
-        return res.json({ message: 'Logged out successfully' });
+        return res.json({ message: "Logged out successfully" });
     } catch (error) {
-        console.error('Logout error:', error);
-        return res.status(500).json({ error: 'Internal server error' });
+        console.error("Logout error:", error);
+        return res.status(500).json({ error: "Internal server error" });
     }
 };
 
@@ -128,20 +128,20 @@ export const refreshToken = async (
         const { refreshToken } = req.body;
 
         if (!refreshToken) {
-            return res.status(400).json({ error: 'Refresh token is required' });
+            return res.status(400).json({ error: "Refresh token is required" });
         }
 
         let decoded: UserPayload;
         try {
             decoded = verifyRefreshToken(refreshToken);
         } catch (error) {
-            return res.status(401).json({ error: 'Invalid or expired refresh token' });
+            return res.status(401).json({ error: "Invalid or expired refresh token" });
         }
 
         // TODO: replace with database query
         const userTokens = refreshTokenStore.get(decoded.id) || [];
         if (!userTokens.includes(refreshToken)) {
-            return res.status(401).json({ error: 'Refresh token not found' });
+            return res.status(401).json({ error: "Refresh token not found" });
         }
 
         const userPayload: UserPayload = {
@@ -152,12 +152,12 @@ export const refreshToken = async (
         const newAccessToken = generateAccessToken(userPayload);
 
         return res.json({
-            message: 'Token refreshed successfully',
+            message: "Token refreshed successfully",
             accessToken: newAccessToken,
         });
     } catch (error) {
-        console.error('Refresh token error:', error);
-        return res.status(500).json({ error: 'Internal server error' });
+        console.error("Refresh token error:", error);
+        return res.status(500).json({ error: "Internal server error" });
     }
 };
 
@@ -168,7 +168,7 @@ export const requestPasswordReset = async (
     try {
         const { email } = req.body;
         if (!email) {
-            return res.status(400).json({ error: 'Email is required' });
+            return res.status(400).json({ error: "Email is required" });
         }
 
         // TODO: replace with database query
@@ -176,7 +176,7 @@ export const requestPasswordReset = async (
 
         if (!user) {
             return res.json({
-                message: 'If the email exists, a password reset link has been sent',
+                message: "If the email exists, a password reset link has been sent",
             });
         }
 
@@ -195,29 +195,30 @@ export const requestPasswordReset = async (
         // TODO: send an email here
         console.log(`Password reset token for ${email}: ${resetToken}`);
         return res.json({
-            message: 'If the email exists, a password reset link has been sent',
+            message: "If the email exists, a password reset link has been sent",
             resetToken: resetToken, // TODO: remove, this is for testing
         });
     } catch (error) {
-        console.error('Password reset request error:', error);
-        return res.status(500).json({ error: 'Internal server error' });
+        console.error("Password reset request error:", error);
+        return res.status(500).json({ error: "Internal server error" });
     }
 };
 
 export const resetPassword = async (
-    req: Request<{}, {}, { token?: string; newPassword?: string }>,
+    req: Request<{}, {}, { newPassword?: string; confirmPassword?: string }>,
     res: Response<MessageResponse | ErrorResponse>
 ): Promise<Response> => {
     try {
-        const { token, newPassword } = req.body;
+        const { newPassword, confirmPassword } = req.body;
+        const token = req.query.token as string;
 
-        if (!token || !newPassword) {
-            return res.status(400).json({ error: 'Token and new password are required' });
+        if (!newPassword || !confirmPassword) {
+            return res.status(400).json({ error: "New and confirm password are required" });
         }
 
         // TODO: replace with real validation
         if (newPassword.length < 8) {
-            return res.status(400).json({ error: 'Password must be at least 8 characters long' });
+            return res.status(400).json({ error: "Password must be at least 8 characters long" });
         }
 
         let userId: number | null = null;
@@ -233,19 +234,19 @@ export const resetPassword = async (
         }
 
         if (!userId || !storedTokenData) {
-            return res.status(400).json({ error: 'Invalid or expired reset token' });
+            return res.status(400).json({ error: "Invalid or expired reset token" });
         }
 
         // TODO: replace with database query
         const user = USERS.find((u) => u.id === userId);
         if (!user) {
-            return res.status(400).json({ error: 'User not found' });
+            return res.status(400).json({ error: "User not found" });
         }
 
         try {
             verifyPasswordResetToken(token, user.password);
         } catch (error) {
-            return res.status(400).json({ error: 'Invalid or expired reset token' });
+            return res.status(400).json({ error: "Invalid or expired reset token" });
         }
 
         const hashedPassword = await hashPassword(newPassword);
@@ -257,9 +258,9 @@ export const resetPassword = async (
         }
         passwordResetTokenStore.delete(userId);
         refreshTokenStore.delete(userId);
-        return res.json({ message: 'Password reset successful' });
+        return res.json({ message: "Password reset successful" });
     } catch (error) {
-        console.error('Password reset error:', error);
-        return res.status(500).json({ error: 'Internal server error' });
+        console.error("Password reset error:", error);
+        return res.status(500).json({ error: "Internal server error" });
     }
 };
