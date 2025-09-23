@@ -7,8 +7,10 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "
 import { Input } from "../ui/input";
 import { Button } from "../ui/button";
 import { useAuthStore } from "../stores/authStore";
-import { mockAuthService } from "../../services/mockAuthService";
-import { useEffect, useState } from "react";
+
+import { useEffect } from "react";
+
+import { useSignIn } from "@/services/AuthService";
 
 /**
  * Zod schema for form validation
@@ -54,11 +56,9 @@ function SignInForm({
     const navigate = useNavigate();
 
     // Get auth state and actions from Zustand store
-    const { user, isAuthenticated } = useAuthStore();
+    const { user, isAuthenticated, setAuth } = useAuthStore();
 
-    // Local loading and error state for form submission
-    const [isLoading, setIsLoading] = useState(false);
-
+    const signInMutation = useSignIn();
     const form = useForm<SignInFormData>({
         resolver: zodResolver(signInSchema),
         defaultValues: {
@@ -82,8 +82,6 @@ function SignInForm({
             console.log("SignInForm onSubmit values", values);
         }
 
-        setIsLoading(true);
-
         try {
             /**
              * @TODO
@@ -91,9 +89,13 @@ function SignInForm({
              * On success, navigate to page dependent by role/permissions returned
              */
 
-            // Use the mock auth service to sign in (this will update Zustand store)
-            await mockAuthService.signIn(values);
+            const response = await signInMutation.mutateAsync({
+                email: values.email,
+                password: values.password,
+            });
 
+            // Update auth store with user data and token
+            setAuth(response.user, response.accessToken);
             toast.success(`Welcome back!`);
         } catch (error) {
             if (import.meta.env.DEV) {
@@ -105,8 +107,6 @@ function SignInForm({
 
             // Show error toast notification
             toast.error(errorMessage);
-        } finally {
-            setIsLoading(false);
         }
     }
 
@@ -146,8 +146,8 @@ function SignInForm({
                         )}
                     />
 
-                    <Button type="submit" className="w-full" disabled={isLoading}>
-                        {isLoading ? "Signing In..." : submitButtonText}
+                    <Button type="submit" className="w-full" disabled={signInMutation.isPending}>
+                        {signInMutation.isPending ? "Signing In..." : submitButtonText}
                     </Button>
                 </form>
             </Form>

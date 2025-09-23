@@ -1,68 +1,61 @@
-import { useAuthStore } from '@/components/stores/authStore'
-import ky, { HTTPError } from 'ky'
-import type { RefreshAccessTokenRequest } from './types';
-import { toast } from 'sonner';
-import { useNavigate } from '@tanstack/react-router';
+import { useAuthStore } from "@/components/stores/authStore";
+import ky, { HTTPError } from "ky";
+import type { RefreshAccessTokenRequest } from "./types";
+import { toast } from "sonner";
+import { useNavigate } from "@tanstack/react-router";
 
 const kyWithAuth = ky.create({
-    prefixUrl: 'http://localhost:3000/', /**@TODO make use of .env variable for base api url */
-    credentials: 'include',
+    prefixUrl: "http://localhost:3000/" /**@TODO make use of .env variable for base api url */,
+    credentials: "include",
     hooks: {
         beforeRequest: [
             (request) => {
-                
-                const { isAuthenticated, token } = useAuthStore()
+                const { isAuthenticated, token } = useAuthStore.getState();
 
-                if(!isAuthenticated || !token) return;
-                request.headers.set('Authorization', `Bearer ${token}`);
+                if (!isAuthenticated || !token) return;
+                request.headers.set("Authorization", `Bearer ${token}`);
 
                 /**
-                 * Possibly add a TTL for the refresh token in the response 
+                 * Possibly add a TTL for the refresh token in the response
                  * to let a user know when their session is about to expire
                  */
-
-            }
+            },
         ],
         beforeRetry: [
-            async ({request, options, error}) => {
+            async ({ request, options, error }) => {
+                const { setToken } = useAuthStore();
+                const navigate = useNavigate();
 
-                const { setToken } = useAuthStore()
-                const navigate = useNavigate()
-
-                if(!(error instanceof HTTPError)) return;
+                if (!(error instanceof HTTPError)) return;
 
                 try {
-                    
                     const res = await ky
-                        .post('auth/token-refresh', {...options, retry: 0})
-                        .json<RefreshAccessTokenRequest>()
+                        .post("auth/token-refresh", { ...options, retry: 0 })
+                        .json<RefreshAccessTokenRequest>();
 
-                    setToken(res.accessToken)
-                    
-                    
-                } catch ( error ) {
-
-                    if(import.meta.env.DEV) {
-                        console.error(error)
+                    setToken(res.accessToken);
+                } catch (error) {
+                    if (import.meta.env.DEV) {
+                        console.error(error);
                     }
 
-                    toast.error('Session expired', {
-                        id: 'invalid-session',
-                        description: 'You have been logged out.',
+                    toast.error("Session expired", {
+                        id: "invalid-session",
+                        description: "You have been logged out.",
                         duration: Infinity,
                         cancel: {
-                            label: 'Sign-in',
-                            onClick: () => navigate({to: '/sign-in'}) /**Probably not an issue */
-                        }
-                    })
+                            label: "Sign-in",
+                            onClick: () => navigate({ to: "/sign-in" }) /**Probably not an issue */,
+                        },
+                    });
                 }
-            }
-        ]
+            },
+        ],
     },
     retry: {
         limit: 1,
-        statusCodes: [401, 403, 500, 504]
-    }
-})
+        statusCodes: [401, 403, 500, 504],
+    },
+});
 
-export {kyWithAuth as ky};
+export { kyWithAuth as ky };

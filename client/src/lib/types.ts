@@ -1,13 +1,14 @@
 export interface Permission {
     id: string;
     title?: string;
-    description?: string; 
+    description?: string;
 }
 
 export interface User {
-    id: string;
+    id: number;
     email: string;
-    name: string;
+    firstName: string;
+    lastName: string;
     role: string;
     permissions: Permission[];
 }
@@ -23,6 +24,19 @@ export interface SignInRequest {
 }
 
 export type RefreshAccessTokenRequest = {
-    message?: string,
-    accessToken: string,
-}
+    message?: string;
+    accessToken: string;
+};
+
+export type SignInResponse = {
+    message?: string;
+    accessToken: string;
+    user: {
+        id: number;
+        email: string;
+        firstName: string;
+        lastName: string;
+        role: string;
+        permissions: Permission[];
+    };
+};
