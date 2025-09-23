@@ -1,6 +1,10 @@
 "use client";
 
 import * as React from "react";
+import { z } from "zod";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -10,7 +14,6 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
-import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Checkbox } from "@/components/ui/checkbox";
 import {
@@ -20,7 +23,16 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import {
+  Form,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormControl,
+  FormMessage,
+} from "@/components/ui/form";
 
+/* ----------------------------- Types ------------------------------ */
 export type RecurringUnavailability = {
   day: "Mon" | "Tue" | "Wed" | "Thu" | "Fri" | "Sat" | "Sun" | "";
   allDay: boolean;
@@ -34,32 +46,64 @@ type Props = {
   onSave?: (val: RecurringUnavailability) => void;
 };
 
+/* ----------------------------- Zod Schema ------------------------- */
+const dayList = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"] as const;
+
+const schema = z
+  .object({
+    day: z
+      .string()
+      .min(1, "Select a day of week")
+      .refine((v): v is RecurringUnavailability["day"] => (dayList as readonly string[]).includes(v), {
+        message: "Select a valid day",
+      }),
+    allDay: z.boolean(),
+    startTime: z.string(),
+    endTime: z.string(),
+  })
+  // when not all-day, both times are required
+  .refine((v) => (v.allDay ? true : v.startTime.trim().length > 0), {
+    path: ["startTime"],
+    message: "Pick a start time",
+  })
+  .refine((v) => (v.allDay ? true : v.endTime.trim().length > 0), {
+    path: ["endTime"],
+    message: "Pick an end time",
+  });
+
+type RecurringForm = z.infer<typeof schema>;
+
+/* ----------------------------- Component -------------------------- */
 export default function RecurringUnavailabilityModal({
   trigger,
   initial,
   onSave,
 }: Props) {
   const [open, setOpen] = React.useState(false);
-  const [form, setForm] = React.useState<RecurringUnavailability>({
-    day: "",
-    allDay: false,
-    startTime: "08:00",
-    endTime: "11:00",
-    ...(initial ?? {}),
+
+  const form = useForm<RecurringForm>({
+    resolver: zodResolver(schema),
+    mode: "onBlur",
+    defaultValues: {
+      day: (initial?.day as RecurringUnavailability["day"]) ?? "",
+      allDay: initial?.allDay ?? false,
+      startTime: initial?.startTime ?? "08:00",
+      endTime: initial?.endTime ?? "11:00",
+    },
   });
 
-  const save = () => {
-    if (!form.day) {
-      alert("Please select a day of week.");
-      return;
-    }
-    if (!form.allDay && (!form.startTime || !form.endTime)) {
-      alert("Please fill start and end time or mark as entire day.");
-      return;
-    }
-    onSave?.(form);
+  const allDay = form.watch("allDay");
+
+  async function submit(values: RecurringForm) {
+    const out: RecurringUnavailability = {
+      day: values.day as RecurringUnavailability["day"],
+      allDay: values.allDay,
+      startTime: values.allDay ? "" : values.startTime,
+      endTime: values.allDay ? "" : values.endTime,
+    };
+    onSave?.(out);
     setOpen(false);
-  };
+  }
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
@@ -73,78 +117,91 @@ export default function RecurringUnavailabilityModal({
           <DialogTitle>Schedule Unavailability</DialogTitle>
         </DialogHeader>
 
-        <div className="space-y-5">
-          {/* Day of week */}
-          <div className="space-y-2">
-            <Label>Day of Week</Label>
-            <Select
-              value={form.day}
-              onValueChange={(v: RecurringUnavailability["day"]) =>
-                setForm((s) => ({ ...s, day: v }))
-              }
-            >
-              <SelectTrigger className="h-11">
-                <SelectValue placeholder="select a day" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="Mon">Monday</SelectItem>
-                <SelectItem value="Tue">Tuesday</SelectItem>
-                <SelectItem value="Wed">Wednesday</SelectItem>
-                <SelectItem value="Thu">Thursday</SelectItem>
-                <SelectItem value="Fri">Friday</SelectItem>
-                <SelectItem value="Sat">Saturday</SelectItem>
-                <SelectItem value="Sun">Sunday</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-
-          {/* all-day */}
-          <div className="flex items-center space-x-2">
-            <Checkbox
-              id="allDay"
-              checked={form.allDay}
-              onCheckedChange={(v) =>
-                setForm((s) => ({ ...s, allDay: Boolean(v) }))
-              }
+        <Form {...form}>
+          <form className="space-y-5" onSubmit={form.handleSubmit(submit)}>
+            {/* Day of week */}
+            <FormField
+              control={form.control}
+              name="day"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Day of Week</FormLabel>
+                  <FormControl>
+                    <Select value={field.value} onValueChange={field.onChange}>
+                      <SelectTrigger className="h-11">
+                        <SelectValue placeholder="select a day" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="Mon">Monday</SelectItem>
+                        <SelectItem value="Tue">Tuesday</SelectItem>
+                        <SelectItem value="Wed">Wednesday</SelectItem>
+                        <SelectItem value="Thu">Thursday</SelectItem>
+                        <SelectItem value="Fri">Friday</SelectItem>
+                        <SelectItem value="Sat">Saturday</SelectItem>
+                        <SelectItem value="Sun">Sunday</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
             />
-            <Label htmlFor="allDay" className="font-normal">
-              Check if unavailable for entire day
-            </Label>
-          </div>
 
-          {/* time range */}
-          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-            <div className="space-y-2">
-              <Label>Starting Time</Label>
-              <Input
-                type="time"
-                value={form.startTime}
-                onChange={(e) =>
-                  setForm((s) => ({ ...s, startTime: e.target.value }))
-                }
-                disabled={form.allDay}
+            {/* all-day */}
+            <FormField
+              control={form.control}
+              name="allDay"
+              render={({ field }) => (
+                <FormItem className="flex flex-row items-center space-x-2 space-y-0">
+                  <FormControl>
+                    <Checkbox checked={field.value} onCheckedChange={field.onChange} />
+                  </FormControl>
+                  <FormLabel className="font-normal">
+                    Check if unavailable for entire day
+                  </FormLabel>
+                </FormItem>
+              )}
+            />
+
+            {/* time range */}
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+              <FormField
+                control={form.control}
+                name="startTime"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Starting Time</FormLabel>
+                    <FormControl>
+                      <Input type="time" disabled={allDay} {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name="endTime"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Ending Time</FormLabel>
+                    <FormControl>
+                      <Input type="time" disabled={allDay} {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
               />
             </div>
-            <div className="space-y-2">
-              <Label>Ending Time</Label>
-              <Input
-                type="time"
-                value={form.endTime}
-                onChange={(e) =>
-                  setForm((s) => ({ ...s, endTime: e.target.value }))
-                }
-                disabled={form.allDay}
-              />
-            </div>
-          </div>
-        </div>
 
-        <DialogFooter className="mt-2">
-          <Button variant="outline" onClick={() => setOpen(false)}>
-            Cancel
-          </Button>
-          <Button onClick={save}>Save</Button>
-        </DialogFooter>
+            <DialogFooter className="mt-2">
+              <Button type="button" variant="outline" onClick={() => setOpen(false)}>
+                Cancel
+              </Button>
+              <Button type="submit">Save</Button>
+            </DialogFooter>
+          </form>
+        </Form>
       </DialogContent>
     </Dialog>
   );
