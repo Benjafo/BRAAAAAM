@@ -1,11 +1,14 @@
 "use client";
 
 import * as React from "react";
+import { z } from "zod";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
 import { format } from "date-fns";
 import { CalendarIcon } from "lucide-react";
+import { toast } from "sonner";
 
 import { Button } from "@/components/ui/button";
-import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import {
   Dialog,
@@ -24,45 +27,87 @@ import {
 } from "@/components/ui/select";
 import { Popover, PopoverTrigger, PopoverContent } from "@/components/ui/popover";
 import { Calendar } from "@/components/ui/calendar";
+import { cn } from "@/lib/utils";
+import { Form, FormField, FormItem, FormLabel, FormControl, FormMessage } from "@/components/ui/form";
 
-type FormState = {
-  client: string;
-  purpose: string;
-  tripType: "Round Trip" | "One Way" | "";
-  date: Date | undefined;
-  time: string;
-  additionalRider: "Yes" | "No" | "";
-  addFirst: string;
-  addLast: string;
-  driver: string;
-  relation: string;
-};
+/* ----------------------------- Zod Schema ----------------------------- */
+const schema = z.object({
+  client: z.string().min(1, "Client is required"),
+  purpose: z.string().min(1, "Purpose is required"),
 
+  
+  // Accept empty string from <Select>, then validate value is one of the two
+  tripType: z
+    .string()
+    .min(1, "Select trip type")
+    .refine((v): v is "Round Trip" | "One Way" => v === "Round Trip" || v === "One Way", {
+      message: "Select trip type",
+    }),
+    
+  // Validate we actually got a Date from the calendar
+  date: z.any().refine((v): v is Date => v instanceof Date, { message: "Pick a date" }),
+
+  time: z
+    .string()
+    .min(1, "Pick a time")
+    .regex(/^\d{2}:\d{2}$/, "Time must be HH:MM"),
+
+  // Same trick for Yes/No
+  additionalRider: z
+    .string()
+    .min(1, "Select Yes or No")
+    .refine((v): v is "Yes" | "No" => v === "Yes" || v === "No", { message: "Select Yes or No"}),
+
+  addFirst: z.string().optional(),
+  addLast: z.string().optional(),
+  driver: z.string().min(1, "Driver is required"),
+  relation: z.string().min(1, "Relationship is required"),
+}).refine(
+  (d) => d.additionalRider === "No" || (d.addFirst && d.addLast),
+  { message: "Enter first and last name for additional rider", path: ["addFirst"] }
+);
+
+type CreateRideFormData = z.infer<typeof schema>;
+
+/* ---------------------------- Component ---------------------------- */
 export default function CreateRideModal() {
   const [open, setOpen] = React.useState(false);
-  const [form, setForm] = React.useState<FormState>({
-    client: "",
-    purpose: "",
-    tripType: "",
-    date: undefined,
-    time: "",
-    additionalRider: "",
-    addFirst: "",
-    addLast: "",
-    driver: "",
-    relation: "",
+
+  const form = useForm<CreateRideFormData>({
+    resolver: zodResolver(schema),
+    mode: "onBlur",
+    defaultValues: {
+      client: "",
+      purpose: "",
+      tripType: "",
+      date: undefined,
+      time: "",
+      additionalRider: "",
+      addFirst: "",
+      addLast: "",
+      driver: "",
+      relation: "",
+    },
   });
 
-  const save = () => {
-    // TODO: replace with real submit (API call)
-    console.log("Create Ride →", form);
-    setOpen(false);
-  };
+  const additionalRider = form.watch("additionalRider");
+
+  async function onSubmit(values: CreateRideFormData) {
+    try {
+      // TODO: replace with real API call
+      console.log("Create Ride →", values);
+      toast.success("Ride created");
+      setOpen(false);
+      form.reset();
+    } catch {
+      toast.error("Failed to create ride. Please try again.");
+    }
+  }
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button className="rounded-md">New Ride</Button>
+        <Button variant="outline" className="rounded-md">New Ride</Button>
       </DialogTrigger>
 
       <DialogContent className="max-w-[720px]">
@@ -70,163 +115,203 @@ export default function CreateRideModal() {
           <DialogTitle>New Ride</DialogTitle>
         </DialogHeader>
 
-        {/* Two-column layout like Figma */}
-        <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-          {/* Client */}
-          <div className="space-y-2">
-            <Label>Client</Label>
-            <Select
-              value={form.client}
-              onValueChange={(v) => setForm((s) => ({ ...s, client: v }))}
-            >
-              <SelectTrigger>
-                <SelectValue placeholder="Dropdown here also" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="WASPS">WASPS</SelectItem>
-                <SelectItem value="Joan Albany">Joan Albany</SelectItem>
-                <SelectItem value="Deb Reilley">Deb Reilley</SelectItem>
-                <SelectItem value="Audrey Buck">Audrey Buck</SelectItem>
-                <SelectItem value="Caren">Caren</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-
-          {/* Purpose of trip */}
-          <div className="space-y-2">
-            <Label>Purpose of trip</Label>
-            <Input
-              placeholder="Value"
-              value={form.purpose}
-              onChange={(e) => setForm((s) => ({ ...s, purpose: e.target.value }))}
+        <Form {...form}>
+          <form className="grid grid-cols-1 gap-4 md:grid-cols-2" onSubmit={form.handleSubmit(onSubmit)}>
+            {/* Client */}
+            <FormField
+              control={form.control}
+              name="client"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Client</FormLabel>
+                  <FormControl>
+                    <Select value={field.value} onValueChange={field.onChange}>
+                      <SelectTrigger><SelectValue placeholder="Dropdown here also" /></SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="WASPS">WASPS</SelectItem>
+                        <SelectItem value="Joan Albany">Joan Albany</SelectItem>
+                        <SelectItem value="Deb Reilley">Deb Reilley</SelectItem>
+                        <SelectItem value="Audrey Buck">Audrey Buck</SelectItem>
+                        <SelectItem value="Caren">Caren</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
             />
-          </div>
 
-          {/* Date of Trip */}
-          <div className="space-y-2">
-            <Label>Date of Trip</Label>
-            <Popover>
-              <PopoverTrigger asChild>
-                <Button variant="outline" className="justify-start">
-                  <CalendarIcon className="mr-2 h-4 w-4" />
-                  {form.date ? format(form.date, "PPP") : "Calendar picker here"}
-                </Button>
-              </PopoverTrigger>
-              <PopoverContent className="p-0" side="bottom" align="start">
-                <Calendar
-                  mode="single"
-                  selected={form.date}
-                  onSelect={(d) => setForm((s) => ({ ...s, date: d }))}
-                  initialFocus
+            {/* Purpose */}
+            <FormField
+              control={form.control}
+              name="purpose"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Purpose of trip</FormLabel>
+                  <FormControl><Input placeholder="Value" {...field} /></FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            {/* Date */}
+            <FormField
+              control={form.control}
+              name="date"
+              render={({ field }) => (
+                <FormItem className="flex flex-col">
+                  <FormLabel>Date of Trip</FormLabel>
+                  <Popover>
+                    <PopoverTrigger asChild>
+                      <FormControl>
+                        <Button variant="outline" className={cn("justify-start", !field.value && "text-muted-foreground")}>
+                          <CalendarIcon className="mr-2 h-4 w-4" />
+                          {field.value ? format(field.value, "PPP") : "Calendar picker here"}
+                        </Button>
+                      </FormControl>
+                    </PopoverTrigger>
+                    <PopoverContent className="p-0" side="bottom" align="start">
+                      <Calendar
+                        mode="single"
+                        selected={field.value}
+                        onSelect={(d) => d && field.onChange(d)}
+                        initialFocus
+                      />
+                    </PopoverContent>
+                  </Popover>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            {/* Trip type */}
+            <FormField
+              control={form.control}
+              name="tripType"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Round Trip/One Way</FormLabel>
+                  <FormControl>
+                    <Select value={field.value} onValueChange={field.onChange}>
+                      <SelectTrigger><SelectValue placeholder="Dropdown here" /></SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="Round Trip">Round Trip</SelectItem>
+                        <SelectItem value="One Way">One Way</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            {/* Appointment time */}
+            <FormField
+              control={form.control}
+              name="time"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Appointment Time</FormLabel>
+                  <FormControl><Input type="time" placeholder="Time select element here" {...field} /></FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            {/* Additional rider Yes/No */}
+            <FormField
+              control={form.control}
+              name="additionalRider"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Additional Rider</FormLabel>
+                  <FormControl>
+                    <Select value={field.value} onValueChange={field.onChange}>
+                      <SelectTrigger><SelectValue placeholder="Select" /></SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="Yes">Yes</SelectItem>
+                        <SelectItem value="No">No</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            {/* Additional rider first/last (only when Yes) */}
+            {additionalRider === "Yes" && (
+              <>
+                <FormField
+                  control={form.control}
+                  name="addFirst"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Additional Rider First Name</FormLabel>
+                      <FormControl><Input placeholder="Value" {...field} /></FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
                 />
-              </PopoverContent>
-            </Popover>
-          </div>
+                <FormField
+                  control={form.control}
+                  name="addLast"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Additional Rider Last Name</FormLabel>
+                      <FormControl><Input placeholder="Value" {...field} /></FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </>
+            )}
 
-          {/* Round Trip / One Way */}
-          <div className="space-y-2">
-            <Label>Round Trip/One Way</Label>
-            <Select
-              value={form.tripType}
-              onValueChange={(v: "Round Trip" | "One Way") =>
-                setForm((s) => ({ ...s, tripType: v }))
-              }
-            >
-              <SelectTrigger>
-                <SelectValue placeholder="Dropdown here" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="Round Trip">Round Trip</SelectItem>
-                <SelectItem value="One Way">One Way</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-
-          {/* Appointment Time */}
-          <div className="space-y-2">
-            <Label>Appointment Time</Label>
-            <Input
-              type="time"
-              placeholder="Time select element here"
-              value={form.time}
-              onChange={(e) => setForm((s) => ({ ...s, time: e.target.value }))}
+            {/* Driver */}
+            <FormField
+              control={form.control}
+              name="driver"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Assigned Driver</FormLabel>
+                  <FormControl>
+                    <Select value={field.value} onValueChange={field.onChange}>
+                      <SelectTrigger><SelectValue placeholder="Select a driver" /></SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="Driver A">Driver A</SelectItem>
+                        <SelectItem value="Driver B">Driver B</SelectItem>
+                        <SelectItem value="Driver C">Driver C</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
             />
-          </div>
 
-          {/* Additional Rider */}
-          <div className="space-y-2">
-            <Label>Additional Rider</Label>
-            <Select
-              value={form.additionalRider}
-              onValueChange={(v: "Yes" | "No") =>
-                setForm((s) => ({ ...s, additionalRider: v }))
-              }
-            >
-              <SelectTrigger>
-                <SelectValue placeholder="Select" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="Yes">Yes</SelectItem>
-                <SelectItem value="No">No</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-
-          {/* Additional Rider First Name */}
-          <div className="space-y-2">
-            <Label>Additional Rider First  Name</Label>
-            <Input
-              placeholder="Value"
-              value={form.addFirst}
-              onChange={(e) => setForm((s) => ({ ...s, addFirst: e.target.value }))}
+            {/* Relationship */}
+            <FormField
+              control={form.control}
+              name="relation"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Relationship to Client</FormLabel>
+                  <FormControl><Input placeholder="Value" {...field} /></FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
             />
-          </div>
 
-          {/* Additional Rider Last Name */}
-          <div className="space-y-2">
-            <Label>Additional Rider Last Name</Label>
-            <Input
-              placeholder="Value"
-              value={form.addLast}
-              onChange={(e) => setForm((s) => ({ ...s, addLast: e.target.value }))}
-            />
-          </div>
-
-          {/* Assigned Driver */}
-          <div className="space-y-2">
-            <Label>Assigned Driver</Label>
-            <Select
-              value={form.driver}
-              onValueChange={(v) => setForm((s) => ({ ...s, driver: v }))}
-            >
-              <SelectTrigger>
-                <SelectValue placeholder="Select a driver" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="Driver A">Driver A</SelectItem>
-                <SelectItem value="Driver B">Driver B</SelectItem>
-                <SelectItem value="Driver C">Driver C</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-
-          {/* Relationship to Client */}
-          <div className="space-y-2">
-            <Label>Relationship to Client</Label>
-            <Input
-              placeholder="Value"
-              value={form.relation}
-              onChange={(e) => setForm((s) => ({ ...s, relation: e.target.value }))}
-            />
-          </div>
-        </div>
-
-        <DialogFooter className="mt-4">
-          <Button variant="outline" onClick={() => setOpen(false)}>
-            Cancel
-          </Button>
-          <Button onClick={save}>Save</Button>
-        </DialogFooter>
+            <div className="md:col-span-2">
+              <DialogFooter className="gap-2">
+                <Button type="button" variant="outline" onClick={() => setOpen(false)}>
+                  Cancel
+                </Button>
+                <Button type="submit">Save</Button>
+              </DialogFooter>
+            </div>
+          </form>
+        </Form>
       </DialogContent>
     </Dialog>
   );
