@@ -1,59 +1,145 @@
 "use client";
 
 import * as React from "react";
-import { Button } from "@/components/ui/button";
-import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import { Label } from "@/components/ui/label";
-import { Input } from "@/components/ui/input";
-import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "@/components/ui/select";
+import { z } from "zod";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
 
+import { Button } from "@/components/ui/button";
+import {
+  Dialog,
+  DialogContent,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import {
+  Select,
+  SelectTrigger,
+  SelectValue,
+  SelectContent,
+  SelectItem,
+} from "@/components/ui/select";
+import {
+  Form,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormControl,
+  FormMessage,
+} from "@/components/ui/form";
+
+/* -------------------------- Types ----------------------------- */
 export type Ride = {
   id: string;
   clientName: string;
   driverName: string;
   dispatcherName: string;
-  numClients: number | "";
+  numClients: number;               // default 0
   status: "completed" | "cancelled" | "one-way" | "round-trip" | "scheduled" | "";
-  durationHours: number | "";           // e.g. 0.75
-  distanceMilesTenths: number | "";     // e.g. 25.0
+  durationHours: number;            // default 0
+  distanceMilesTenths: number;      // default 0
   donationType: "Check" | "Cash" | "Card" | "";
-  donationAmount: number | "";          // e.g. 15.00
+  donationAmount: number;           // default 0
 };
 
 type Props = {
-  ride: Ride;
-  onSave?: (updated: Ride) => void; // parent handles persistence
-  trigger?: React.ReactNode;        // optional custom trigger
+  ride: Ride;                          // passed from parent
+  onSave?: (updated: Ride) => void;    // callback to persist changes
+  trigger?: React.ReactNode;           // optional custom trigger button
 };
 
+/* ----------------------------- Zod Schema ----------------------------- */
+/** Number text: require non-empty and numeric */
+const requiredNumberString = z
+  .string()
+  .min(1, "Required")
+  .regex(/^\d+(\.\d+)?$/, "Must be a number");
+
+const schema = z.object({
+  clientName: z.string().min(1, "Client is required"),
+  driverName: z.string().min(1, "Driver is required"),
+  dispatcherName: z.string().min(1, "Dispatcher is required"),
+
+  // required numeric text fields
+  numClients: requiredNumberString,
+  durationHours: requiredNumberString,
+  distanceMilesTenths: requiredNumberString,
+  donationAmount: requiredNumberString,
+
+  // same pattern as CreateRideModal
+  status: z
+    .string()
+    .min(1, "Select a status")
+    .refine(
+      (v): v is Ride["status"] =>
+        ["completed", "cancelled", "one-way", "round-trip", "scheduled"].includes(v as any),
+      { message: "Select a status" }
+    ),
+  donationType: z
+    .string()
+    .min(1, "Select donation type")
+    .refine(
+      (v): v is Ride["donationType"] => ["Check", "Cash", "Card"].includes(v as any),
+      { message: "Select donation type" }
+    ),
+});
+
+type EditRideForm = z.infer<typeof schema>;
+
+/* ---------------------------- helpers ---------------------------- */
+const toNum = (s: string) => Number(s); // form guarantees non-empty & numeric
+
+/* ---------------------------- Component ---------------------------- */
 export default function EditRideModal({ ride, onSave, trigger }: Props) {
   const [open, setOpen] = React.useState(false);
-  const [form, setForm] = React.useState<Ride>(ride);
 
-  // small helpers that coerce numbers but allow empty string (for controlled inputs)
-  const setNum = (key: keyof Ride) => (v: string) =>
-    setForm((s) => ({ ...s, [key]: v === "" ? "" : Number(v) }));
+  // Preload with ride (numbers -> strings for controlled inputs); default 0
+  const form = useForm<EditRideForm>({
+    resolver: zodResolver(schema),
+    mode: "onBlur",
+    defaultValues: {
+      clientName: ride.clientName,
+      driverName: ride.driverName,
+      dispatcherName: ride.dispatcherName,
 
-  const save = () => {
-    // Basic guard (you can tighten validation as needed)
-    if (
-      form.numClients === "" ||
-      form.durationHours === "" ||
-      form.distanceMilesTenths === "" ||
-      form.donationAmount === "" ||
-      form.status === "" ||
-      form.donationType === ""
-    ) {
-      alert("Please fill all required fields.");
-      return;
-    }
-    onSave?.(form);
+      numClients: String(ride.numClients ?? 0),
+      durationHours: String(ride.durationHours ?? 0),
+      distanceMilesTenths: String(ride.distanceMilesTenths ?? 0),
+      donationAmount: String(ride.donationAmount ?? 0),
+
+      status: ride.status || "scheduled",
+      donationType: ride.donationType || "Check",
+    },
+  });
+
+  /* ------------------------- onSubmit ------------------------- */
+  async function onSubmit(values: EditRideForm) {
+    const updated: Ride = {
+      ...ride,
+      clientName: values.clientName,
+      driverName: values.driverName,
+      dispatcherName: values.dispatcherName,
+      status: values.status as Ride["status"],
+      donationType: values.donationType as Ride["donationType"],
+
+      // numbers (non-empty validated)
+      numClients: toNum(values.numClients),
+      durationHours: toNum(values.durationHours),
+      distanceMilesTenths: toNum(values.distanceMilesTenths),
+      donationAmount: toNum(values.donationAmount),
+    };
+
+    onSave?.(updated);
     setOpen(false);
-  };
+  }
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
+        {/* Trigger button */}
         {trigger ?? <Button variant="outline">Edit Ride</Button>}
       </DialogTrigger>
 
@@ -62,114 +148,166 @@ export default function EditRideModal({ ride, onSave, trigger }: Props) {
           <DialogTitle>Edit Ride Details</DialogTitle>
         </DialogHeader>
 
-        <div className="grid grid-cols-1 gap-4">
-          {/* Client Name (uneditable) */}
-          <div className="space-y-2">
-            <Label>Client Name</Label>
-            <Input value={form.clientName} disabled />
-          </div>
-
-          {/* Driver Name (uneditable) */}
-          <div className="space-y-2">
-            <Label>Driver Name</Label>
-            <Input value={form.driverName} disabled />
-          </div>
-
-          {/* Dispatcher Name (uneditable) */}
-          <div className="space-y-2">
-            <Label>Dispatcher Name</Label>
-            <Input value={form.dispatcherName} disabled />
-          </div>
-
-          {/* Number of Clients */}
-          <div className="space-y-2">
-            <Label>Number of Clients</Label>
-            <Input
-              inputMode="numeric"
-              placeholder="(number, including 0)"
-              value={form.numClients}
-              onChange={(e) => setNum("numClients")(e.target.value)}
+        {/* Form wrapper from ShadCN */}
+        <Form {...form}>
+          <form className="grid grid-cols-1 gap-4" onSubmit={form.handleSubmit(onSubmit)}>
+            {/* Client Name (uneditable) */}
+            <FormField
+              control={form.control}
+              name="clientName"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Client Name</FormLabel>
+                  <FormControl><Input {...field} disabled /></FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
             />
-          </div>
 
-          {/* Ride Status */}
-          <div className="space-y-2">
-            <Label>Ride Status</Label>
-            <Select
-              value={form.status}
-              onValueChange={(v: Ride["status"]) => setForm((s) => ({ ...s, status: v }))}
-            >
-              <SelectTrigger>
-                <SelectValue placeholder="(completed, cancelled, one-way, etc.)" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="completed">Completed</SelectItem>
-                <SelectItem value="cancelled">Cancelled</SelectItem>
-                <SelectItem value="one-way">One-way</SelectItem>
-                <SelectItem value="round-trip">Round trip</SelectItem>
-                <SelectItem value="scheduled">Scheduled</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-
-          {/* Trip Duration (hours & quarter-hours) */}
-          <div className="space-y-2">
-            <Label>Trip Duration (hours and quarter-hours)</Label>
-            <Input
-              inputMode="decimal"
-              placeholder="0.75"
-              value={form.durationHours}
-              onChange={(e) => setNum("durationHours")(e.target.value)}
+            {/* Driver Name (uneditable) */}
+            <FormField
+              control={form.control}
+              name="driverName"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Driver Name</FormLabel>
+                  <FormControl><Input {...field} disabled /></FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
             />
-          </div>
 
-          {/* Trip Distance (miles and tenths) */}
-          <div className="space-y-2">
-            <Label>Trip Distance (miles and tenths)</Label>
-            <Input
-              inputMode="decimal"
-              placeholder="25.0"
-              value={form.distanceMilesTenths}
-              onChange={(e) => setNum("distanceMilesTenths")(e.target.value)}
+            {/* Dispatcher Name (uneditable) */}
+            <FormField
+              control={form.control}
+              name="dispatcherName"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Dispatcher Name</FormLabel>
+                  <FormControl><Input {...field} disabled /></FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
             />
-          </div>
 
-          {/* Donation Type */}
-          <div className="space-y-2">
-            <Label>Donation Type</Label>
-            <Select
-              value={form.donationType}
-              onValueChange={(v: Ride["donationType"]) => setForm((s) => ({ ...s, donationType: v }))}
-            >
-              <SelectTrigger>
-                <SelectValue placeholder="Select…" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="Check">Check</SelectItem>
-                <SelectItem value="Cash">Cash</SelectItem>
-                <SelectItem value="Card">Card</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-
-          {/* Donation Amount ($) */}
-          <div className="space-y-2">
-            <Label>Donation Amount ($)</Label>
-            <Input
-              inputMode="decimal"
-              placeholder="15.00"
-              value={form.donationAmount}
-              onChange={(e) => setNum("donationAmount")(e.target.value)}
+            {/* Number of Clients */}
+            <FormField
+              control={form.control}
+              name="numClients"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Number of Clients</FormLabel>
+                  <FormControl>
+                    <Input inputMode="numeric" placeholder="(number, including 0)" {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
             />
-          </div>
-        </div>
 
-        <DialogFooter className="mt-4">
-          <Button variant="outline" onClick={() => setOpen(false)}>
-            Cancel
-          </Button>
-          <Button onClick={save}>Save Changes</Button>
-        </DialogFooter>
+            {/* Ride Status */}
+            <FormField
+              control={form.control}
+              name="status"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Ride Status</FormLabel>
+                  <FormControl>
+                    <Select value={field.value} onValueChange={field.onChange}>
+                      <SelectTrigger>
+                        <SelectValue placeholder="(completed, cancelled, one-way, etc.)" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="completed">Completed</SelectItem>
+                        <SelectItem value="cancelled">Cancelled</SelectItem>
+                        <SelectItem value="one-way">One-way</SelectItem>
+                        <SelectItem value="round-trip">Round trip</SelectItem>
+                        <SelectItem value="scheduled">Scheduled</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            {/* Trip Duration (hours & quarter-hours) */}
+            <FormField
+              control={form.control}
+              name="durationHours"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Trip Duration (hours and quarter-hours)</FormLabel>
+                  <FormControl>
+                    <Input inputMode="decimal" placeholder="0.75" {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            {/* Trip Distance (miles and tenths) */}
+            <FormField
+              control={form.control}
+              name="distanceMilesTenths"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Trip Distance (miles and tenths)</FormLabel>
+                  <FormControl>
+                    <Input inputMode="decimal" placeholder="25.0" {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            {/* Donation Type */}
+            <FormField
+              control={form.control}
+              name="donationType"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Donation Type</FormLabel>
+                  <FormControl>
+                    <Select value={field.value} onValueChange={field.onChange}>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select…" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="Check">Check</SelectItem>
+                        <SelectItem value="Cash">Cash</SelectItem>
+                        <SelectItem value="Card">Card</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            {/* Donation Amount ($) */}
+            <FormField
+              control={form.control}
+              name="donationAmount"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Donation Amount ($)</FormLabel>
+                  <FormControl>
+                    <Input inputMode="decimal" placeholder="15.00" {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <DialogFooter className="mt-2">
+              <Button type="button" variant="outline" onClick={() => setOpen(false)}>
+                Cancel
+              </Button>
+              <Button type="submit">Save Changes</Button>
+            </DialogFooter>
+          </form>
+        </Form>
       </DialogContent>
     </Dialog>
   );
