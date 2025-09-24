@@ -3,9 +3,9 @@ import * as authController from "../controllers/authController";
 import { authenticateToken } from "../middleware/auth";
 import { validateData } from "../middleware/validation";
 import {
-    signInSchema,
-    requestPasswordResetSchema,
     createPasswordSchema,
+    requestPasswordResetSchema,
+    signInSchema,
 } from "../schemas/authSchemas";
 
 const router: Router = express.Router();
