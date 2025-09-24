@@ -7,7 +7,9 @@
         "lint": "eslint . --ext .ts",
         "format": "prettier --write \"**/*.ts\"",
         "format:check": "prettier --check \"**/*.ts\"",
-        "start": "node ./bin/www",
+        "build": "tsc",
+        "start": "node ./dist/bin/www.js",
+        "dev": "ts-node ./bin/www.ts",
         "typecheck": "tsc --noEmit",
         "test": "NODE_ENV=test jest --runInBand --coverage --detectOpenHandles"
     },
@@ -30,6 +32,7 @@
     "devDependencies": {
         "@types/bcrypt": "^6.0.0",
         "@types/cookie-parser": "^1.4.9",
+        "@types/debug": "^4.1.12",
         "@types/express": "^5.0.3",
         "@types/http-errors": "^2.0.5",
         "@types/jsonwebtoken": "^9.0.10",

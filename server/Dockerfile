@@ -4,10 +4,13 @@ WORKDIR /app
 
 COPY package*.json ./
 
-# dev dependencies for nodemon
+# Install all dependencies including dev for TypeScript compilation
 RUN npm install --include=dev
 
 COPY . .
+
+# Build TypeScript to JavaScript
+RUN npm run build
 
 EXPOSE 3000
 

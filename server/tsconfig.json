@@ -22,9 +22,7 @@
         "noFallthroughCasesInSwitch": true,
         "declaration": true,
         "declarationMap": true,
-        "sourceMap": true,
-        "allowImportingTsExtensions": true, //
-        "noEmit": true //
+        "sourceMap": true
     },
     "include": ["**/*.ts", "**/*.tsx"],
     "exclude": ["node_modules", "dist", "**/*.spec.ts", "**/*.test.ts"],
