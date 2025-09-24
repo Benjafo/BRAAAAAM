@@ -16,8 +16,8 @@ import {
     generateRefreshToken,
     verifyPasswordResetToken,
     verifyRefreshToken,
-} from "../utils/jwt";
-import { comparePassword, hashPassword } from "../utils/password";
+} from "../utils/jwt.js";
+import { comparePassword, hashPassword } from "../utils/password.js";
 
 // TODO: remove this shit, use database
 const USERS: UserWithPassword[] = [

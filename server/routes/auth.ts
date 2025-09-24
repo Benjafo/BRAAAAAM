@@ -1,12 +1,12 @@
 import express, { Router } from "express";
-import * as authController from "../controllers/authController";
-import { authenticateToken } from "../middleware/auth";
-import { validateData } from "../middleware/validation";
+import * as authController from "../controllers/authController.js";
+import { authenticateToken } from "../middleware/auth.js";
+import { validateData } from "../middleware/validation.js";
 import {
     createPasswordSchema,
     requestPasswordResetSchema,
     signInSchema,
-} from "../schemas/authSchemas";
+} from "../schemas/authSchemas.js";
 
 const router: Router = express.Router();
 

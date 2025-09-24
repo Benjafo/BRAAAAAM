@@ -4,8 +4,10 @@ import express from "express";
 import createError from "http-errors";
 import logger from "morgan";
 
-import authRouter from "./routes/auth";
-import indexRouter from "./routes/index";
+import authRouter from "./routes/auth.js";
+import indexRouter from "./routes/index.js";
+
+import { NextFunction, Request, Response } from "express";
 
 const app = express();
 
@@ -31,7 +33,7 @@ app.use(function (_req, _res, next) {
 });
 
 // error handler
-app.use(function (err, req, res, _next) {
+app.use(function (err: any, req: Request, res: Response, _next: NextFunction) {
     // set locals, only providing error in development
     res.locals.message = err.message;
     res.locals.error = req.app.get("env") === "development" ? err : {};

@@ -1,6 +1,6 @@
 import crypto from "crypto";
 import jwt from "jsonwebtoken";
-import { PasswordResetPayload, UserPayload } from "../types/auth.types";
+import { PasswordResetPayload, UserPayload } from "../types/auth.types.js";
 
 const ACCESS_TOKEN_SECRET: string =
     process.env.ACCESS_TOKEN_SECRET || crypto.randomBytes(64).toString("hex");
