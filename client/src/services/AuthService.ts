@@ -18,30 +18,31 @@ export const useSignIn = () =>
     });
 
 // Commenting out resetPassword and forgotPassword, don't know how to properly implement them
-// const resetPassword = async (
-//     newPassword: string,
-//     confirmPassword: string,
-//     token: string
-// ): Promise<SignInResponse> =>
-//     await ky
-//         .post("auth/reset-password", {
-//             json: {
-//                 newPassword,
-//                 confirmPassword,
-//                 token,
-//             },
-//         })
-//         .json<SignInResponse>();
 
-// export const useResetPassword = () =>
-//     useMutation<
-//         SignInResponse,
-//         Error,
-//         { newPassword: string; confirmPassword: string; token: string }
-//     >({
-//         mutationFn: ({ newPassword, confirmPassword, token }) =>
-//             resetPassword(newPassword, confirmPassword, token),
-//     });
+const resetPassword = async (
+    newPassword: string,
+    confirmPassword: string,
+    token: string
+): Promise<SignInResponse> =>
+    await ky
+        .post("auth/reset-password", {
+            json: {
+                newPassword,
+                confirmPassword,
+                token,
+            },
+        })
+        .json<SignInResponse>();
+
+export const useResetPassword = () =>
+    useMutation<
+        SignInResponse,
+        Error,
+        { newPassword: string; confirmPassword: string; token: string }
+    >({
+        mutationFn: ({ newPassword, confirmPassword, token }) =>
+            resetPassword(newPassword, confirmPassword, token),
+    });
 
 // const forgotPassword = async (email: string): Promise<{ message: string }> =>
 //     await ky
