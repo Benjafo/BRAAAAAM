@@ -4,13 +4,14 @@ import { Link, useNavigate } from "@tanstack/react-router";
 import { Button } from "./ui/button";
 import { PERMISSIONS } from "@/lib/permissions";
 import { LogOut } from "lucide-react";
+import { Tabs, TabsList, TabsTrigger } from "./ui/tabs"
 
 /**
  * A generic navigation layout component that can be used to create different types of navigation bars.
  */
 interface NavigationLayoutProps {
     leftNavItems?: React.ReactNode,
-    rightNavItems?:React.ReactNode,
+    rightNavItems?: React.ReactNode,
 }
 
 /**
@@ -160,25 +161,25 @@ export const MainNavigation = ({
                             <Button size="sm" className="active:bg-primary/90">{button.text}</Button>
                         </Link>
                     ))}
-                    
+
                 </>
-                
+
             }
             rightNavItems={
-                <Button 
+                <Button
                     size="sm"
                     onClick={() => {
                         /**
                          * @TODO Add logout functionality here
                          */
 
-                        navigate({to: "/sign-in"});
+                        navigate({ to: "/sign-in" });
                     }}
                 >
                     {/**
                      * @TODO Replace with dynamic user name from user context 
                      * */}
-                    Example User 
+                    Example User
                     <LogOut />
                 </Button>
             }
@@ -186,9 +187,124 @@ export const MainNavigation = ({
     )
 }
 
-export const SecondaryNavigation = () => {
+// Copied from ShadCN's date picker example page; modified to remove label and wrapper <div>.
+import * as React from "react"
+import { CalendarIcon } from "lucide-react"
+import { Calendar } from "@/components/ui/calendar"
+import { Input } from "@/components/ui/input"
+import {
+    Popover,
+    PopoverContent,
+    PopoverTrigger,
+} from "@/components/ui/popover"
+function formatDate(date: Date | undefined) {
+    if (!date) {
+        return ""
+    }
+    return date.toLocaleDateString("en-US", {
+        day: "2-digit",
+        month: "long",
+        year: "numeric",
+    })
+}
+function isValidDate(date: Date | undefined) {
+    if (!date) {
+        return false
+    }
+    return !isNaN(date.getTime())
+}
+export function Calendar28() {
+    const [open, setOpen] = React.useState(false)
+    const [date, setDate] = React.useState<Date | undefined>(
+        new Date("2025-06-01")
+    )
+    const [month, setMonth] = React.useState<Date | undefined>(date)
+    const [value, setValue] = React.useState(formatDate(date))
+    return (
+        <div className="relative flex gap-2">
+            <Input
+                id="date"
+                value={value}
+                placeholder="June 01, 2025"
+                className="bg-background pr-10"
+                onChange={(e) => {
+                    const date = new Date(e.target.value)
+                    setValue(e.target.value)
+                    if (isValidDate(date)) {
+                        setDate(date)
+                        setMonth(date)
+                    }
+                }}
+                onKeyDown={(e) => {
+                    if (e.key === "ArrowDown") {
+                        e.preventDefault()
+                        setOpen(true)
+                    }
+                }}
+            />
+            <Popover open={open} onOpenChange={setOpen}>
+                <PopoverTrigger asChild>
+                    <Button
+                        id="date-picker"
+                        variant="ghost"
+                        className="absolute top-1/2 right-2 size-6 -translate-y-1/2"
+                    >
+                        <CalendarIcon className="size-3.5" />
+                        <span className="sr-only">Select date</span>
+                    </Button>
+                </PopoverTrigger>
+                <PopoverContent
+                    className="w-auto overflow-hidden p-0"
+                    align="end"
+                    alignOffset={-8}
+                    sideOffset={10}
+                >
+                    <Calendar
+                        mode="single"
+                        selected={date}
+                        captionLayout="dropdown"
+                        month={month}
+                        onMonthChange={setMonth}
+                        onSelect={(date) => {
+                            setDate(date)
+                            setValue(formatDate(date))
+                            setOpen(false)
+                        }}
+                    />
+                </PopoverContent>
+            </Popover>
+        </div>
+    )
+}
+// End of copied code from ShadCN.
 
+export const SecondaryNavigation = () => {
+    return <div>
+        <Calendar28 />
+        <Tabs defaultValue="optionOne" className="w-[400px]">
+            <TabsList>
+                <TabsTrigger value="optionOne">Option One</TabsTrigger>
+                <TabsTrigger value="optionTwo">Option Two</TabsTrigger>
+                <TabsTrigger value="optionThree">Option Three</TabsTrigger>
+            </TabsList>
+        </Tabs>
+        <Tabs defaultValue="optionOne" className="w-[400px]">
+            <TabsList>
+                <TabsTrigger value="optionOne">Option One</TabsTrigger>
+                <TabsTrigger value="optionTwo">Option Two</TabsTrigger>
+                <TabsTrigger value="optionThree">Option Three</TabsTrigger>
+            </TabsList>
+        </Tabs>
+        <Button size="sm" variant="secondary" className="active:bg-primary/90">Button One</Button>
+        <Button size="sm" variant="secondary" className="active:bg-primary/90">Button Two</Button>
+        <Button size="sm" variant="secondary" className="active:bg-primary/90">Button Three</Button>
+        <Button size="sm" variant="secondary" className="active:bg-primary/90">Previous</Button>
+        <Button size="sm" variant="secondary" className="active:bg-primary/90">Next</Button>
+        <Button size="sm" className="active:bg-primary/90">Primary Action</Button>
+    </div>
     /**
      * @TODO Add secondary navigation implementation here
+     * 9/24/25 8pm: added elements to navigation, need to move them into proper layout
+     * Using the NavigationLayout...?
      */
 }
