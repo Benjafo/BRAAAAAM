@@ -17,8 +17,6 @@ export const useSignIn = () =>
         mutationFn: ({ email, password }) => signIn(email, password),
     });
 
-// Commenting out resetPassword and forgotPassword, don't know how to properly implement them
-
 const resetPassword = async (
     newPassword: string,
     confirmPassword: string,
@@ -44,11 +42,16 @@ export const useResetPassword = () =>
             resetPassword(newPassword, confirmPassword, token),
     });
 
-// const forgotPassword = async (email: string): Promise<{ message: string }> =>
-//     await ky
-//         .post("auth/request-password-reset", {
-//             json: {
-//                 email,
-//             },
-//         })
-//         .json<{ message: string }>();
+const forgotPassword = async (email: string): Promise<{ message: string }> =>
+    await ky
+        .post("auth/request-password-reset", {
+            json: {
+                email,
+            },
+        })
+        .json<{ message: string }>();
+
+export const useForgotPassword = () =>
+    useMutation<{ message: string }, Error, { email: string }>({
+        mutationFn: ({ email }) => forgotPassword(email),
+    });
