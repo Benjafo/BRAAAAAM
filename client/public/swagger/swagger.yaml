@@ -93,6 +93,14 @@ components:
       properties:
         message: { type: string }
 
+  responses:
+    Unauthorized:
+      description: Unauthorized
+      content:
+        application/json:
+          schema: { $ref: '#/components/schemas/Error' }
+
+
 paths:
   /sign-in:
     post:
@@ -124,6 +132,7 @@ paths:
     post:
       tags: [Auth]
       summary: Sign out (revoke refresh token / session)
+      security: [ { bearerAuth: [] }]
       responses:
         '204': { description: Signed out }
 
@@ -137,6 +146,7 @@ paths:
           application/json:
             schema:
               type: object
+              required: [refresh_token]
               properties:
                 refresh_token: { type: string }
       responses:
@@ -204,14 +214,30 @@ paths:
       tags: [Users]
       summary: List users
       parameters: [ { $ref: '#/components/parameters/OrgId' } ]
+      security: [ { bearerAuth: [] } ]
       responses:
         '200': { description: OK }
+        '401': { $ref: '#/components/responses/Unauthorized' }
     post:
       tags: [Users]
       summary: Create user
       parameters: [ { $ref: '#/components/parameters/OrgId' } ]
+      security: [ { bearerAuth: [] } ]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [firstName, lastName, Email, Phone]
+              properties:
+                firstName: { type: string }
+                lastName:  { type: string }
+                Email:     { type: string }
+                Phone:     { type: string }
       responses:
         '201': { description: Created }
+        '401': { $ref: '#/components/responses/Unauthorized' }
 
   /o/{orgId}/users/{userId}:
     get:
@@ -229,6 +255,21 @@ paths:
       parameters:
         - $ref: '#/components/parameters/OrgId'
         - $ref: '#/components/parameters/UserId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [contactPreference]
+              properties:
+                firstName:         { type: string }
+                lastName:          { type: string }
+                Email:             { type: string }
+                Phone:             { type: string }
+                contactPreference: { type: string }
+                Notes:             { type: string }
+                IsActive:          { type: boolean }
       responses:
         '200': { description: Updated }
     delete:
@@ -247,6 +288,18 @@ paths:
       parameters:
         - $ref: '#/components/parameters/OrgId'
         - $ref: '#/components/parameters/UserId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [startDate, endDate]
+              properties:
+                startDate: { type: string }
+                startTime: { type: string }
+                endDate:   { type: string }
+                endTime:   { type: string }
       responses:
         '201': { description: Created }
     get:
@@ -290,9 +343,37 @@ paths:
       tags: [Clients]
       summary: Create client
       parameters: [ { $ref: '#/components/parameters/OrgId' } ]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [firstName, lastName, contactPreference, vehiclePreferenceType, Notes, Gender]
+              properties:
+                firstName: { type: string }
+                lastName:  { type: string }
+                Email:     { type: string }
+                Phone:     { type: string }
+                contactPreference:     { type: string }
+                Addresses:
+                  type: array
+                  items:
+                    type: object
+                    required: [Address Line 1, City, State, Zip, Country, Is Primary]
+                    properties:
+                      Address Line 1: { type: string }
+                      Address Line 2: { type: string }
+                      City:           { type: string }
+                      State:          { type: string }
+                      Zip:            { type: string }
+                      Country:        { type: string }
+                      Is Primary:     { type: boolean }
+                      vehiclePreferenceType: { type: string }
+                      Notes: { type: string }
+                      Gender: { type: string, enum: [Male, Female] }
       responses:
         '201': { description: Created }
-
   /o/{orgId}/clients/{clientId}:
     get:
       tags: [Clients]
@@ -309,6 +390,35 @@ paths:
       parameters:
         - $ref: '#/components/parameters/OrgId'
         - $ref: '#/components/parameters/ClientId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [id]
+              properties:
+                id:        { type: string }
+                firstName: { type: string }
+                lastName:  { type: string }
+                Email:     { type: string }
+                Phone:     { type: string }
+                Addresses:
+                  type: array
+                  items:
+                    type: object
+                    required: [id, Address Line 1, City, State, Zip, Country, Is Primary]
+                    properties:
+                      id:             { type: string }
+                      Address Line 1: { type: string }
+                      Address Line 2: { type: string }
+                      City:           { type: string }
+                      State:          { type: string }
+                      Zip:            { type: string }
+                      Country:        { type: string }
+                      Is Primary:     { type: boolean }
+                      Notes: { type: string }
+                      Gender: { type: string, enum: [Male, Female] }
       responses:
         '200': { description: Updated }
     delete:
@@ -332,9 +442,38 @@ paths:
       tags: [Settings]
       summary: Update settings
       parameters: [ { $ref: '#/components/parameters/OrgId' } ]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                hoursOfOperation:
+                  type: array
+                  items:
+                    type: object
+                    required: [Id, dayOfWeek, startTime, endTime]
+                    properties:
+                      Id:        { type: string }
+                      dayOfWeek: { type: integer, description: "0-6" }
+                      startTime: { type: string }
+                      endTime:   { type: string }
+                Name:               { type: string }
+                Logo:               { type: string }
+                Domain:             { type: string }
+                Phone:              { type: string }
+                Email:              { type: string }
+                Street Address 1:   { type: string }
+                Street Address 2:   { type: string }
+                City:               { type: string }
+                State:              { type: string }
+                Zip:                { type: string }
+                Country:            { type: string }
+                postmarkApiKey:     { type: string }
+                googleMapsApiKey:   { type: string }
       responses:
         '200': { description: Updated }
-
   /o/{orgId}/settings/operation-hours:
     get:
       tags: [Settings]
@@ -354,6 +493,26 @@ paths:
       tags: [Settings]
       summary: Create form
       parameters: [ { $ref: '#/components/parameters/OrgId' } ]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [formId, formElements]
+              properties:
+                formId: { type: string }
+                formElements:
+                  type: array
+                  items:
+                    type: object
+                    required: [TypeId, label, dataTarget, position]
+                    properties:
+                      TypeId:            { type: string }
+                      label:             { type: string }
+                      dataTarget:        { type: string, description: "storageTarget" }
+                      position:          { type: integer }
+                      additionalSettings: { type: object, additionalProperties: true }
       responses:
         '201': { description: Created }
 
@@ -373,6 +532,23 @@ paths:
       parameters:
         - $ref: '#/components/parameters/OrgId'
         - $ref: '#/components/parameters/FormId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                formElements:
+                  type: array
+                  items:
+                    type: object
+                    properties:
+                      TypeId:            { type: string }
+                      label:             { type: string }
+                      dataTarget:        { type: string }
+                      position:          { type: integer }
+                      additionalSettings: { type: object, additionalProperties: true }
       responses:
         '200': { description: Updated }
 
@@ -415,6 +591,19 @@ paths:
       tags: [Roles]
       summary: Create role
       parameters: [ { $ref: '#/components/parameters/OrgId' } ]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [roleName, Description, PermissionIds]
+              properties:
+                roleName:     { type: string }
+                Description:  { type: string }
+                PermissionIds:
+                  type: array
+                  items: { type: string }
       responses:
         '201': { description: Created }
 
@@ -434,6 +623,19 @@ paths:
       parameters:
         - $ref: '#/components/parameters/OrgId'
         - $ref: '#/components/parameters/RoleId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [roleName, Description, PermissionIds]
+              properties:
+                roleName:     { type: string }
+                Description:  { type: string }
+                PermissionIds:
+                  type: array
+                  items: { type: string }
       responses:
         '200': { description: Updated }
     delete:
@@ -459,8 +661,28 @@ paths:
       tags: [Locations]
       summary: Create location
       parameters: [ { $ref: '#/components/parameters/OrgId' } ]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [Address, Alias]
+              properties:
+                Address:
+                  type: object
+                  required: [Address Line 1, City, State, Zip, Country]
+                  properties:
+                    Address Line 1: { type: string }
+                    Address Line 2: { type: string }
+                    City:           { type: string }
+                    State:          { type: string }
+                    Zip:            { type: string }
+                    Country:        { type: string }
+                Alias: { type: string }
       responses:
         '201': { description: Created }
+
 
   /o/{orgId}/settings/locations/{locationId}:
     get:
@@ -478,8 +700,28 @@ paths:
       parameters:
         - $ref: '#/components/parameters/OrgId'
         - $ref: '#/components/parameters/LocationId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [Address, Alias]
+              properties:
+                Address:
+                  type: object
+                  required: [Address Line 1, City, State, Zip, Country]
+                  properties:
+                    Address Line 1: { type: string }
+                    Address Line 2: { type: string }
+                    City:           { type: string }
+                    State:          { type: string }
+                    Zip:            { type: string }
+                    Country:        { type: string }
+                Alias: { type: string }
       responses:
         '200': { description: Updated }
+
     delete:
       tags: [Locations]
       summary: Delete location
@@ -501,8 +743,27 @@ paths:
       tags: [Appointments]
       summary: Create appointment
       parameters: [ { $ref: '#/components/parameters/OrgId' } ]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [startDate, startTime, estimatedEndDate, estimatedEndTime, Client, pickupLocaton, dropoffLocation, status]
+              properties:
+                startDate:         { type: string }
+                startTime:         { type: string }
+                estimatedEndDate:  { type: string }
+                estimatedEndTime:  { type: string }
+                Client:
+                  type: array
+                  items: { type: string, description: "@client id(s)" }
+                pickupLocation:     { type: string, description: "@location id" }
+                dropoffLocation:   { type: string, description: "@location id" }
+                status:            { type: string }
       responses:
         '201': { description: Created }
+
 
   /o/{orgId}/appointments/{appointmentId}:
     get:
@@ -520,17 +781,26 @@ paths:
       parameters:
         - $ref: '#/components/parameters/OrgId'
         - $ref: '#/components/parameters/AppointmentId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                startDate:        { type: string }
+                startTime:        { type: string }
+                estimatedEndDate: { type: string }
+                estimatedEndTime: { type: string }
+                Client:
+                  type: array
+                  items: { type: string, description: "@client id(s)" }
+                pickupLocation:   { type: string, description: "@location id" }
+                dropoffLocation:  { type: string, description: "@location id" }
+                status:           { type: string }
       responses:
         '200': { description: Updated }
-    delete:
-      tags: [Appointments]
-      summary: Delete appointment
-      parameters:
-        - $ref: '#/components/parameters/OrgId'
-        - $ref: '#/components/parameters/AppointmentId'
-      responses:
-        '204': { description: Deleted }
-
+        
   /o/{orgId}/appointments/tags:
     get:
       tags: [Appointments]
@@ -542,6 +812,15 @@ paths:
       tags: [Appointments]
       summary: Create tag
       parameters: [ { $ref: '#/components/parameters/OrgId' } ]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [name]
+              properties:
+                name: { type: string }
       responses:
         '201': { description: Created }
 
@@ -552,8 +831,18 @@ paths:
       parameters:
         - $ref: '#/components/parameters/OrgId'
         - $ref: '#/components/parameters/TagId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [name]
+              properties:
+                name: { type: string }
       responses:
         '200': { description: Updated }
+
     delete:
       tags: [Appointments]
       summary: Delete tag
@@ -603,6 +892,16 @@ paths:
       tags: [Reports]
       summary: Create report
       parameters: [ { $ref: '#/components/parameters/OrgId' } ]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [Title, Query]
+              properties:
+                Title: { type: string }
+                Query: { type: string }
       responses:
         '201': { description: Created }
 
