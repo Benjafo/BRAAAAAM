@@ -22,7 +22,7 @@ const kyWithAuth = ky.create({
             },
         ],
         beforeRetry: [
-            async ({ request: _request, options, error }) => {
+            async ({ options, error }) => {
                 const { setToken } = useAuthStore();
                 const navigate = useNavigate();
 

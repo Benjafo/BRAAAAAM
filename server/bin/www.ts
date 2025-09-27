@@ -50,11 +50,15 @@ function normalizePort(val: string): string | number | false {
     return false;
 }
 
+interface SystemError extends Error {
+    code?: string;
+    syscall?: string;
+}
+
 /**
  * Event listener for HTTP server "error" event.
  */
-
-function onError(error: NodeJS.ErrnoException): void {
+function onError(error: SystemError): void {
     if (error.syscall !== "listen") {
         throw error;
     }
