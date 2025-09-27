@@ -1,28 +1,54 @@
-import { create } from "zustand";
-import { persist } from "zustand/middleware";
-import type { User } from "@/lib/types";
+// src/auth/authStore.ts
+import { createStore } from 'zustand/vanilla';
+import { useStore } from 'zustand';
+import { persist, createJSONStorage } from 'zustand/middleware';
+import type { Permission, User } from '@/lib/types';
 
-interface AuthState {
-    user: User | null;
-    token: string | null;
-    isAuthenticated: boolean;
-    setAuth: (user: User, token: string) => void;
-    clearAuth: () => void;
-    setToken: (token: string) => void;
-}
+type AuthState = {
+  user: User | null;
+  role: string | null;
+  permissions: Permission[];
+  accessToken: string | null;
+  refreshToken: string | null;
+};
 
-export const useAuthStore = create<AuthState>()(
-    persist(
-        (set) => ({
-            user: null,
-            token: null,
-            isAuthenticated: false,
-            setAuth: (user: User, token: string) => set({ user, token, isAuthenticated: true }),
-            clearAuth: () => set({ user: null, token: null, isAuthenticated: false }),
-            setToken: (token: string) => set({ token }),
-        }),
-        {
-            name: "auth-storage",
-        }
-    )
+type AuthActions = {
+  setAuth: (data: Partial<AuthState>) => void;
+  clearAuth: () => void;
+};
+
+export type AuthStore = AuthState & AuthActions;
+
+const initialState: AuthState = {
+  user: null,
+  role: null,
+  permissions: [],
+  accessToken: null,
+  refreshToken: null,
+};
+
+export const authStore = createStore<AuthStore>()(
+  persist(
+    (set) => ({
+      ...initialState,
+      setAuth: (data) => set((s) => ({ ...s, ...data })),
+      clearAuth: () => set(initialState),
+    }),
+    {
+      name: 'auth-store',
+      storage: createJSONStorage(() => localStorage),
+      partialize: (s) => ({
+        user: s.user,
+        role: s.role,
+        permissions: s.permissions,
+        accessToken: s.accessToken,
+        refreshToken: s.refreshToken,
+      }),
+    }
+  )
 );
+
+export const useAuthStore = <T,>(selector: (s: AuthStore) => T): T =>
+  useStore(authStore, selector);
+
+export const useIsAuthed = () => useAuthStore((s) => Boolean(s.user && s.accessToken));

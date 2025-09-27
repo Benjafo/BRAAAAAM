@@ -1,58 +1,32 @@
-import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { useAuthStore } from "@/components/stores/authStore";
-import { mockAuthService } from "@/services/mockAuthService";
-import { useRouter } from "@tanstack/react-router";
+import { useMutation } from '@tanstack/react-query';
+import { authStore } from '@/components/stores/authStore';
+import type { LoginResponse } from '@/lib/types';
+import { authService } from '@/services/auth/serviceResolver';
 
-export function useAuth() {
-    const { user, token, isAuthenticated, clearAuth } = useAuthStore();
-    const queryClient = useQueryClient();
-    const router = useRouter();
+export function useLogin() {
+  return useMutation({
+    mutationFn: (vars: { email: string; password: string }) => authService.login(vars),
+    onSuccess: (res: LoginResponse) => {
+      authStore.getState().setAuth({
+        user: res.user,
+        role: res.role,
+        permissions: res.permissions,
+        accessToken: res.accessToken,
+        refreshToken: res.refreshToken ?? null,
+      });
+    },
+  });
+}
 
-    // React Query for getting current user (using Zustand state)
-    const {
-        data: authData,
-        isLoading,
-        error,
-    } = useQuery({
-        queryKey: ["currentUser"],
-        queryFn: async () => {
-            // Return current auth state from Zustand
-            const currentUser = mockAuthService.getUser();
-            const currentToken = mockAuthService.getToken();
-            const isAuth = mockAuthService.isAuthenticated();
-
-            return {
-                user: currentUser,
-                token: currentToken,
-                isAuthenticated: isAuth,
-            };
-        },
-        staleTime: 5 * 60 * 1000,
-        initialData: { user, token, isAuthenticated }, // Use Zustand state as initial data
-    });
-
-    const signOut = async () => {
-        try {
-            await mockAuthService.signOut();
-            // Clear React Query cache
-            queryClient.removeQueries({ queryKey: ["currentUser"] });
-            // Navigate to sign-in
-            router.navigate({ to: "/sign-in", replace: true });
-        } catch (error) {
-            console.error("Sign out error:", error);
-            // Force clear even if API fails
-            clearAuth();
-            queryClient.removeQueries({ queryKey: ["currentUser"] });
-            router.navigate({ to: "/sign-in", replace: true });
-        }
-    };
-
-    return {
-        user: authData?.user || user,
-        isAuthenticated: authData?.isAuthenticated || isAuthenticated,
-        token: authData?.token || token,
-        isLoading,
-        error,
-        signOut,
-    };
+export function useLogout() {
+  return useMutation({
+    mutationFn: () => authService.logout(),
+    onSuccess: () => {
+      authStore.getState().clearAuth();
+    },
+    // Even if server logout fails, you often want to clear local state anyway:
+    onError: () => {
+      authStore.getState().clearAuth();
+    },
+  });
 }
