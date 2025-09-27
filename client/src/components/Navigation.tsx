@@ -26,7 +26,7 @@ const NavigationLayout = ({
 }: NavigationLayoutProps) => {
 
     return (
-        <div className="flex items-center justify-beween p-[10px]">
+        <div className="flex items-center justify-between p-[10px]">
             <div className="flex flex-row items-center gap-[10px] justify-start w-full">
                 {leftNavItems}
             </div>
@@ -226,7 +226,7 @@ export function Calendar28() {
                 id="date"
                 value={value}
                 placeholder="June 01, 2025"
-                className="bg-background pr-10"
+                className="bg-background pr-10 min-w-[150px]"
                 onChange={(e) => {
                     const date = new Date(e.target.value)
                     setValue(e.target.value)
@@ -281,12 +281,12 @@ export function Calendar28() {
 export const SecondaryNavigation = () => {
     return <NavigationLayout
         leftNavItems={<>
-            <Calendar28 /><Tabs defaultValue="optionTwo" className="w-[400px]">
+            <Calendar28 /><Tabs defaultValue="optionTwo">
                 <TabsList>
                     <TabsTrigger value="optionOne">List View</TabsTrigger>
                     <TabsTrigger value="optionTwo">Calendar View</TabsTrigger>
                 </TabsList>
-            </Tabs><Tabs defaultValue="optionTwo" className="w-[400px]">
+            </Tabs><Tabs defaultValue="optionTwo">
                 <TabsList>
                     <TabsTrigger value="optionOne">Day</TabsTrigger>
                     <TabsTrigger value="optionTwo">Week</TabsTrigger>
