@@ -305,7 +305,4 @@ export const SecondaryNavigation = () => {
             </>
         }
     />
-    /**
-     * @TODO Add secondary navigation implementation here
-     */
 }
