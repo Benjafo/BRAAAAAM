@@ -45,7 +45,6 @@ app.use(function (err: HttpError, req: Request, res: Response, _next: NextFuncti
 
     // render the error page
     res.status(err.status || 500);
-    res.render("error");
 });
 
 export default app;
