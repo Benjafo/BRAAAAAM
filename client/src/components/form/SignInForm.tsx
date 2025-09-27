@@ -6,6 +6,11 @@ import z from "zod";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "../ui/form";
 import { Input } from "../ui/input";
 import { Button } from "../ui/button";
+import { useAuthStore } from "../stores/authStore";
+
+import { useEffect } from "react";
+
+import { useSignIn } from "@/services/AuthService";
 
 /**
  * Zod schema for form validation
@@ -15,8 +20,8 @@ const signInSchema = z.object({
     email: z.email("Please enter a valid email address."),
     password: z
         .string()
-        .min(1, "Password is required") // Check if password exists
-        .min(8, "Password must be at least 8 characters long"), // Minimum length validation
+        .min(1, "Password is required")
+        .min(8, "Password must be at least 8 characters long"),
 });
 
 // TypeScript type inferred from the Zod schema
@@ -26,7 +31,7 @@ type SignInFormData = z.infer<typeof signInSchema>;
 type FieldProps = {
     readonly label: string;
     readonly placeholder: string;
-}
+};
 
 /**
  * Props interface for the SignInForm component
@@ -41,18 +46,19 @@ interface SignInFormProps {
 /**
  * SignInForm Component
  * @param props - SignInFormProps object containing optional customizations
- * @returns 
+ * @returns
  */
 function SignInForm({
     email = { label: "Email", placeholder: "user@example.com" },
     password = { label: "Password", placeholder: "Password" },
     submitButtonText = "Sign In",
 }: SignInFormProps) {
+    const navigate = useNavigate();
 
-    // Hook for programmatic navigation after successful sign-in
-    const navigate = useNavigate()
+    // Get auth state and actions from Zustand store
+    const { user, isAuthenticated, setAuth } = useAuthStore();
 
-    // React Hook Form setup with Zod validation
+    const signInMutation = useSignIn();
     const form = useForm<SignInFormData>({
         resolver: zodResolver(signInSchema),
         defaultValues: {
@@ -60,81 +66,93 @@ function SignInForm({
             password: "",
         },
         mode: "onBlur",
-    })
+    });
 
-    /**
-     * Form submission handler
-     * @param values - Form data of type SignInFormData
-     */
+    // Effect: Handle successful authentication by redirecting user
+    // Note: Both admin and regular users redirect to "/", we will change this later when we have the routing properly developed
+    useEffect(() => {
+        if (user && isAuthenticated) {
+            const redirectTo = user.role === "admin" ? "/" : "/";
+            navigate({ to: redirectTo });
+        }
+    }, [user, isAuthenticated, navigate]);
+
     async function onSubmit(values: SignInFormData) {
-
-        // Debug log form values in development mode
-        if(import.meta.env.DEV) {
-            console.log('SignInForm onSubmit values', values);
+        if (import.meta.env.DEV) {
+            console.log("SignInForm onSubmit values", values);
         }
 
         try {
-
             /**
              * @TODO
              * Implement ky fetch to api and handle form data
              * On success, navigate to page dependent by role/permissions returned
-            */
+             */
 
-            navigate({to: '/'})
+            const response = await signInMutation.mutateAsync({
+                email: values.email,
+                password: values.password,
+            });
 
-        } catch( error ) {
-
-            if(import.meta.env.DEV) {
-                console.error('SignInForm onSubmit error', error);
+            // Update auth store with user data and token
+            setAuth(response.user, response.accessToken);
+            toast.success(`Welcome back!`);
+        } catch (error) {
+            if (import.meta.env.DEV) {
+                console.error("SignInForm onSubmit error", error);
             }
 
+            const errorMessage =
+                error instanceof Error ? error.message : "Failed to sign in. Please try again.";
+
             // Show error toast notification
-            toast.error('Failed to sign in. Please try again.')
+            toast.error(errorMessage);
         }
-        
     }
 
     return (
-        <Form {...form}>
-            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-                <FormField
-                    control={form.control}
-                    name="email"
-                    render={({ field }) => (
-                        <FormItem>
-                            <FormLabel>{email.label}</FormLabel>
-                            <FormControl>
-                                <Input 
-                                    placeholder={email.placeholder}
-                                    {...field}
-                                />
-                            </FormControl>
-                            <FormMessage />
-                        </FormItem>
-                    )}
-                />
-                <FormField
-                    control={form.control}
-                    name="password"
-                    render={({ field }) => (
-                        <FormItem>
-                            <FormLabel>{password.label}</FormLabel>
-                            <FormControl>
-                                <Input 
-                                    type="password"
-                                    placeholder={password.placeholder}
-                                    {...field}
-                                />
-                            </FormControl>
-                            <FormMessage />
-                        </FormItem>
-                    )}
-                />
-                <Button type="submit" className="w-full">{submitButtonText}</Button>
-            </form>
-        </Form>
-    )
+        <div className="space-y-6">
+            <Form {...form}>
+                <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+                    <FormField
+                        control={form.control}
+                        name="email"
+                        render={({ field }) => (
+                            <FormItem>
+                                <FormLabel>{email.label}</FormLabel>
+                                <FormControl>
+                                    <Input placeholder={email.placeholder} {...field} />
+                                </FormControl>
+                                <FormMessage />
+                            </FormItem>
+                        )}
+                    />
+
+                    <FormField
+                        control={form.control}
+                        name="password"
+                        render={({ field }) => (
+                            <FormItem>
+                                <FormLabel>{password.label}</FormLabel>
+                                <FormControl>
+                                    <Input
+                                        type="password"
+                                        placeholder={password.placeholder}
+                                        {...field}
+                                    />
+                                </FormControl>
+                                <FormMessage />
+                            </FormItem>
+                        )}
+                    />
+
+                    <Button type="submit" className="w-full" disabled={signInMutation.isPending}>
+                        {signInMutation.isPending ? "Signing In..." : submitButtonText}
+                    </Button>
+                </form>
+            </Form>
+        </div>
+    );
 }
 
 export default SignInForm;

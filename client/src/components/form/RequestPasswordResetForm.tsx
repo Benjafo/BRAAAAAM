@@ -1,11 +1,11 @@
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useNavigate } from "@tanstack/react-router";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import z from "zod";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "../ui/form";
 import { Input } from "../ui/input";
 import { Button } from "../ui/button";
+import { useForgotPassword } from "@/services/AuthService";
 
 /**
  * Zod schema for password reset form validation
@@ -22,7 +22,7 @@ type RequestPasswordResetFormData = z.infer<typeof requestPasswordResetSchema>;
 type FieldProps = {
     readonly label: string;
     readonly placeholder: string;
-}
+};
 
 // Props for individual form fields
 interface RequestPasswordResetFormProps {
@@ -33,15 +33,12 @@ interface RequestPasswordResetFormProps {
 /**
  * RequestPasswordResetForm Component
  * @param props - RequestPasswordResetFormProps object containing optional customizations
- * @returns 
  */
 function RequestPasswordResetForm({
     email = { label: "Email", placeholder: "user@example.com" },
     submitButtonText = "Send Password Reset",
 }: RequestPasswordResetFormProps) {
-
-    const navigate = useNavigate()
-
+    const forgotPasswordMutation = useForgotPassword();
     // React Hook Form setup with Zod validation
     const form = useForm<RequestPasswordResetFormData>({
         resolver: zodResolver(requestPasswordResetSchema),
@@ -53,29 +50,28 @@ function RequestPasswordResetForm({
 
     // Form submission handler
     async function onSubmit(data: RequestPasswordResetFormData) {
-        
         // Log form data in development mode
-        if(import.meta.env.DEV) {
-            console.log('RequestPasswordResetForm onSubmit data', data);
+        if (import.meta.env.DEV) {
+            console.log("RequestPasswordResetForm onSubmit data", data);
         }
 
         try {
-
             /**
              * @TODO
              * Implement ky fetch to api and handle form data
-            */
+             */
 
-            navigate({to: '/sign-in'})
-        } catch ( error ) {
+            const result = await forgotPasswordMutation.mutateAsync({
+                email: data.email,
+            });
 
-            // Log error in development mode
-            if(import.meta.env.DEV) {
-                console.error('RequestPasswordResetForm onSubmit error', error);
+            toast.success(result.message || "Password reset email sent!");
+        } catch (error) {
+            if (import.meta.env.DEV) {
+                console.error("RequestPasswordResetForm onSubmit error", error);
             }
 
-            // may want to handle different response codes differently
-            toast.error('Failed to request password reset. Please try again.')
+            toast.error("Failed to request password reset. Please try again.");
         }
     }
 
@@ -89,19 +85,22 @@ function RequestPasswordResetForm({
                         <FormItem>
                             <FormLabel>{email.label}</FormLabel>
                             <FormControl>
-                                <Input 
-                                    placeholder={email.placeholder}
-                                    {...field}
-                                />
+                                <Input placeholder={email.placeholder} {...field} />
                             </FormControl>
                             <FormMessage />
                         </FormItem>
                     )}
                 />
-                <Button type="submit" className="w-full">{submitButtonText}</Button>
+                <Button
+                    type="submit"
+                    className="w-full"
+                    disabled={forgotPasswordMutation.isPending}
+                >
+                    {forgotPasswordMutation.isPending ? "Sending..." : submitButtonText}
+                </Button>
             </form>
         </Form>
-    )
+    );
 }
 
 export default RequestPasswordResetForm;
