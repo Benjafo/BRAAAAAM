@@ -281,29 +281,27 @@ export function Calendar28() {
 export const SecondaryNavigation = () => {
     return <NavigationLayout
         leftNavItems={<>
-            <Calendar28 /><Tabs defaultValue="optionOne" className="w-[400px]">
+            <Calendar28 /><Tabs defaultValue="optionTwo" className="w-[400px]">
                 <TabsList>
-                    <TabsTrigger value="optionOne">Option One</TabsTrigger>
-                    <TabsTrigger value="optionTwo">Option Two</TabsTrigger>
-                    <TabsTrigger value="optionThree">Option Three</TabsTrigger>
+                    <TabsTrigger value="optionOne">List View</TabsTrigger>
+                    <TabsTrigger value="optionTwo">Calendar View</TabsTrigger>
                 </TabsList>
-            </Tabs><Tabs defaultValue="optionOne" className="w-[400px]">
+            </Tabs><Tabs defaultValue="optionTwo" className="w-[400px]">
                 <TabsList>
-                    <TabsTrigger value="optionOne">Option One</TabsTrigger>
-                    <TabsTrigger value="optionTwo">Option Two</TabsTrigger>
-                    <TabsTrigger value="optionThree">Option Three</TabsTrigger>
+                    <TabsTrigger value="optionOne">Day</TabsTrigger>
+                    <TabsTrigger value="optionTwo">Week</TabsTrigger>
+                    <TabsTrigger value="optionThree">Month</TabsTrigger>
                 </TabsList>
             </Tabs>
-            <Button size="sm" variant="secondary" className="active:bg-primary/90">Button One</Button>
-            <Button size="sm" variant="secondary" className="active:bg-primary/90">Button Two</Button>
-            <Button size="sm" variant="secondary" className="active:bg-primary/90">Button Three</Button>
+            <Button size="sm" variant="secondary" className="active:bg-primary/90">Filters</Button>
+            <Button size="sm" variant="secondary" className="active:bg-primary/90">Print</Button>
         </>
         }
         rightNavItems={
             <>
                 <Button size="sm" variant="secondary" className="active:bg-primary/90">Previous</Button>
                 <Button size="sm" variant="secondary" className="active:bg-primary/90">Next</Button>
-                <Button size="sm" className="active:bg-primary/90">Primary Action</Button>
+                <Button size="sm" className="active:bg-primary/90">New Ride</Button>
             </>
         }
     />
