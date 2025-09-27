@@ -1,8 +1,8 @@
 import { useAuthStore } from "@/components/stores/authStore";
-import ky, { HTTPError } from "ky";
-import type { RefreshAccessTokenRequest } from "./types";
-import { toast } from "sonner";
 import { useNavigate } from "@tanstack/react-router";
+import ky, { HTTPError } from "ky";
+import { toast } from "sonner";
+import type { RefreshAccessTokenRequest } from "./types";
 
 const kyWithAuth = ky.create({
     prefixUrl: "http://localhost:3000/" /**@TODO make use of .env variable for base api url */,
@@ -22,7 +22,7 @@ const kyWithAuth = ky.create({
             },
         ],
         beforeRetry: [
-            async ({ request, options, error }) => {
+            async ({ request: _request, options, error }) => {
                 const { setToken } = useAuthStore();
                 const navigate = useNavigate();
 

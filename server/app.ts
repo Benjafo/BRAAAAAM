@@ -32,8 +32,13 @@ app.use(function (_req, _res, next) {
     next(createError(404));
 });
 
+interface HttpError extends Error {
+    status?: number;
+    statusCode?: number;
+}
+
 // error handler
-app.use(function (err: any, req: Request, res: Response, _next: NextFunction) {
+app.use(function (err: HttpError, req: Request, res: Response, _next: NextFunction) {
     // set locals, only providing error in development
     res.locals.message = err.message;
     res.locals.error = req.app.get("env") === "development" ? err : {};
