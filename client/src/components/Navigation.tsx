@@ -279,32 +279,35 @@ export function Calendar28() {
 // End of copied code from ShadCN.
 
 export const SecondaryNavigation = () => {
-    return <div>
-        <Calendar28 />
-        <Tabs defaultValue="optionOne" className="w-[400px]">
-            <TabsList>
-                <TabsTrigger value="optionOne">Option One</TabsTrigger>
-                <TabsTrigger value="optionTwo">Option Two</TabsTrigger>
-                <TabsTrigger value="optionThree">Option Three</TabsTrigger>
-            </TabsList>
-        </Tabs>
-        <Tabs defaultValue="optionOne" className="w-[400px]">
-            <TabsList>
-                <TabsTrigger value="optionOne">Option One</TabsTrigger>
-                <TabsTrigger value="optionTwo">Option Two</TabsTrigger>
-                <TabsTrigger value="optionThree">Option Three</TabsTrigger>
-            </TabsList>
-        </Tabs>
-        <Button size="sm" variant="secondary" className="active:bg-primary/90">Button One</Button>
-        <Button size="sm" variant="secondary" className="active:bg-primary/90">Button Two</Button>
-        <Button size="sm" variant="secondary" className="active:bg-primary/90">Button Three</Button>
-        <Button size="sm" variant="secondary" className="active:bg-primary/90">Previous</Button>
-        <Button size="sm" variant="secondary" className="active:bg-primary/90">Next</Button>
-        <Button size="sm" className="active:bg-primary/90">Primary Action</Button>
-    </div>
+    return <NavigationLayout
+        leftNavItems={<>
+            <Calendar28 /><Tabs defaultValue="optionOne" className="w-[400px]">
+                <TabsList>
+                    <TabsTrigger value="optionOne">Option One</TabsTrigger>
+                    <TabsTrigger value="optionTwo">Option Two</TabsTrigger>
+                    <TabsTrigger value="optionThree">Option Three</TabsTrigger>
+                </TabsList>
+            </Tabs><Tabs defaultValue="optionOne" className="w-[400px]">
+                <TabsList>
+                    <TabsTrigger value="optionOne">Option One</TabsTrigger>
+                    <TabsTrigger value="optionTwo">Option Two</TabsTrigger>
+                    <TabsTrigger value="optionThree">Option Three</TabsTrigger>
+                </TabsList>
+            </Tabs>
+            <Button size="sm" variant="secondary" className="active:bg-primary/90">Button One</Button>
+            <Button size="sm" variant="secondary" className="active:bg-primary/90">Button Two</Button>
+            <Button size="sm" variant="secondary" className="active:bg-primary/90">Button Three</Button>
+        </>
+        }
+        rightNavItems={
+            <>
+                <Button size="sm" variant="secondary" className="active:bg-primary/90">Previous</Button>
+                <Button size="sm" variant="secondary" className="active:bg-primary/90">Next</Button>
+                <Button size="sm" className="active:bg-primary/90">Primary Action</Button>
+            </>
+        }
+    />
     /**
      * @TODO Add secondary navigation implementation here
-     * 9/24/25 8pm: added elements to navigation, need to move them into proper layout
-     * Using the NavigationLayout...?
      */
 }
