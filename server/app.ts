@@ -18,7 +18,7 @@ const app = express();
 // CORS configuration
 app.use(
     cors({
-        origin: ["http://localhost:5173"], //TODO: use .env for allowed origins
+        origin: ["braaaaam.webdev.gccis.rit.edu", "http://localhost:5173"], //TODO: use .env for allowed origins
         credentials: true,
     })
 );
