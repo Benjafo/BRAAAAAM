@@ -3,6 +3,7 @@ import { Loader } from "@googlemaps/js-api-loader";
 import { Input } from "./input";
 import type { Location } from "@/lib/types";
 import type { LocationSelectorProps } from "@/lib/types";
+import { MapPin } from "lucide-react";
 
 const GoogleLocator: React.FC<LocationSelectorProps> = ({
     onLocationSelect,
@@ -34,7 +35,7 @@ const GoogleLocator: React.FC<LocationSelectorProps> = ({
 
     useEffect(() => {
         if (isLoaded && inputRef.current && !autocompleteRef.current) {
-            // Autocomplete intilization
+            // Autocomplete initialization
             autocompleteRef.current = new google.maps.places.Autocomplete(inputRef.current, {
                 fields: ["place_id", "formatted_address", "geometry.location"],
                 componentRestrictions: { country: "us" },
@@ -75,23 +76,27 @@ const GoogleLocator: React.FC<LocationSelectorProps> = ({
         }
     };
 
-    const handleClear = () => {
-        setInputValue("");
-        onLocationSelect(null);
-        inputRef.current?.focus();
-    };
+    // Could potentially add this for a clear button at the end of input, don't know if we want that or not
+    // const handleClear = () => {
+    //     setInputValue("");
+    //     onLocationSelect(null);
+    //     inputRef.current?.focus();
+    // };
 
     return (
-        <div>
-            <Input
-                ref={inputRef}
-                value={inputValue}
-                onChange={handleInputChange}
-                placeholder={placeholder}
-                autoComplete="off"
-                disabled={!isLoaded}
-            />
-            {inputValue && <button onClick={handleClear}></button>}
+        <div className="relative w-full">
+            <div className="relative">
+                <Input
+                    ref={inputRef}
+                    value={inputValue}
+                    onChange={handleInputChange}
+                    placeholder={placeholder}
+                    autoComplete="off"
+                    disabled={!isLoaded}
+                    className="w-full pr-12 truncate" // padding for icon
+                />
+                <MapPin className="absolute right-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400 pointer-events-none" />
+            </div>
         </div>
     );
 };
