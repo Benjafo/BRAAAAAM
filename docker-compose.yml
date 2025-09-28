@@ -17,7 +17,7 @@ services:
       - server
 
   server:
-    build: 
+    build:
       context: ./server
       dockerfile: Dockerfile
     restart: always
@@ -26,6 +26,7 @@ services:
     volumes:
       - ./server:/app
       - /app/node_modules
+      - /app/dist #changed
     environment:
       - NODE_ENV=development
       - CHOKIDAR_USEPOLLING=true
