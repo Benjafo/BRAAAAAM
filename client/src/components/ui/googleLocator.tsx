@@ -48,7 +48,6 @@ const GoogleLocator: React.FC<LocationSelectorProps> = ({
         initializeGooglePlaces();
     }, []);
 
-    // Memoized place change handler
     const handlePlaceChanged = useCallback(() => {
         const place = autocompleteRef.current?.getPlace();
         if (place && place.place_id && place.geometry?.location) {
@@ -90,7 +89,7 @@ const GoogleLocator: React.FC<LocationSelectorProps> = ({
         if (value === "") onLocationSelect(null);
     };
 
-    // Render error state
+    // handle error
     if (error) {
         return (
             <div className="relative w-full">
