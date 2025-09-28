@@ -370,7 +370,7 @@ export default function ReactBigCalendar() {
     
     .rbc-event {
       border: none !important;
-      border-radius: 4px;
+      border-radius: 10px;
       font-size: 11px;
       font-weight: 500;
       padding: 8px 6px;
