@@ -40,3 +40,18 @@ export type SignInResponse = {
         permissions: Permission[];
     };
 };
+
+export type Location = {
+    placeId: string;
+    address: string;
+    coordinates: {
+        lat: number;
+        lng: number;
+    };
+};
+
+export type LocationSelectorProps = {
+    onLocationSelect: (location: Location | null) => void;
+    placeholder?: string;
+    className?: string;
+};
