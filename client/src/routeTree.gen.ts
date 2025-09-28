@@ -9,6 +9,7 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as CalendarRouteImport } from './routes/calendar'
 import { Route as LoginRouteRouteImport } from './routes/_login/route'
 import { Route as AuthRouteRouteImport } from './routes/_auth/route'
 import { Route as IndexRouteImport } from './routes/index'
@@ -16,6 +17,11 @@ import { Route as LoginSignInRouteImport } from './routes/_login/sign-in'
 import { Route as LoginResetPasswordRouteImport } from './routes/_login/reset-password'
 import { Route as LoginForgetPasswordRouteImport } from './routes/_login/forget-password'
 
+const CalendarRoute = CalendarRouteImport.update({
+  id: '/calendar',
+  path: '/calendar',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const LoginRouteRoute = LoginRouteRouteImport.update({
   id: '/_login',
   getParentRoute: () => rootRouteImport,
@@ -47,12 +53,14 @@ const LoginForgetPasswordRoute = LoginForgetPasswordRouteImport.update({
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/calendar': typeof CalendarRoute
   '/forget-password': typeof LoginForgetPasswordRoute
   '/reset-password': typeof LoginResetPasswordRoute
   '/sign-in': typeof LoginSignInRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/calendar': typeof CalendarRoute
   '/forget-password': typeof LoginForgetPasswordRoute
   '/reset-password': typeof LoginResetPasswordRoute
   '/sign-in': typeof LoginSignInRoute
@@ -62,20 +70,27 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/_auth': typeof AuthRouteRoute
   '/_login': typeof LoginRouteRouteWithChildren
+  '/calendar': typeof CalendarRoute
   '/_login/forget-password': typeof LoginForgetPasswordRoute
   '/_login/reset-password': typeof LoginResetPasswordRoute
   '/_login/sign-in': typeof LoginSignInRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/forget-password' | '/reset-password' | '/sign-in'
+  fullPaths:
+    | '/'
+    | '/calendar'
+    | '/forget-password'
+    | '/reset-password'
+    | '/sign-in'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/forget-password' | '/reset-password' | '/sign-in'
+  to: '/' | '/calendar' | '/forget-password' | '/reset-password' | '/sign-in'
   id:
     | '__root__'
     | '/'
     | '/_auth'
     | '/_login'
+    | '/calendar'
     | '/_login/forget-password'
     | '/_login/reset-password'
     | '/_login/sign-in'
@@ -85,10 +100,18 @@ export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AuthRouteRoute: typeof AuthRouteRoute
   LoginRouteRoute: typeof LoginRouteRouteWithChildren
+  CalendarRoute: typeof CalendarRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/calendar': {
+      id: '/calendar'
+      path: '/calendar'
+      fullPath: '/calendar'
+      preLoaderRoute: typeof CalendarRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/_login': {
       id: '/_login'
       path: ''
@@ -154,6 +177,7 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AuthRouteRoute: AuthRouteRoute,
   LoginRouteRoute: LoginRouteRouteWithChildren,
+  CalendarRoute: CalendarRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
