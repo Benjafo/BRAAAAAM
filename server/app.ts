@@ -44,7 +44,10 @@ app.use(function (err: HttpError, req: Request, res: Response, _next: NextFuncti
     res.locals.error = req.app.get("env") === "development" ? err : {};
 
     // render the error page
-    res.status(err.status || 500);
+    res.status(err.status || 500).json({
+        message: err.message,
+        error: req.app.get("env") === "development" ? err : {},
+    });
 });
 
 export default app;
