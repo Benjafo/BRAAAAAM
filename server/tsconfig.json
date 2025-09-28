@@ -3,7 +3,7 @@
         "target": "ES2022",
         "module": "ESNext",
         "lib": ["ES2022"],
-        "outDir": "./dist",
+        "outDir": "./dist/server",
         "rootDir": "./",
         "strict": true,
         "esModuleInterop": true,
@@ -22,9 +22,10 @@
         "noFallthroughCasesInSwitch": true,
         "declaration": true,
         "declarationMap": true,
-        "sourceMap": true
+        "sourceMap": true,
+        "noEmit": false
     },
-    "include": ["**/*.ts", "**/*.tsx"],
+    "include": ["./**/*.ts", "./**/*.tsx"],
     "exclude": ["node_modules", "dist", "**/*.spec.ts", "**/*.test.ts"],
     "ts-node": {
         //

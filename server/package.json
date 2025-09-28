@@ -7,8 +7,8 @@
         "lint": "eslint . --ext .ts",
         "format": "prettier --write \"**/*.ts\"",
         "format:check": "prettier --check \"**/*.ts\"",
-        "build": "tsc",
-        "start": "node ./dist/bin/www.js",
+        "build": "tsc && npm --prefix ../client run build",
+        "start": "node ./dist/server/bin/www.js",
         "dev": "ts-node ./bin/www.ts",
         "typecheck": "tsc --noEmit",
         "test": "NODE_ENV=test jest --runInBand --coverage --detectOpenHandles"

@@ -18,7 +18,7 @@ const app = express();
 // CORS configuration
 app.use(
     cors({
-        origin: ["https://braaaaam.webdev.gccis.rit.edu", "http://localhost:5173"], //TODO: use .env for allowed origins
+        origin: ["https://braaaaam.webdev.gccis.rit.edu", "http://localhost:5173", "http://localhost:3000"], //TODO: use .env for allowed origins
         credentials: true,
     })
 );
@@ -29,14 +29,14 @@ app.use(express.urlencoded({ extended: false }));
 app.use(cookieParser());
 
 // Serve static files from frontend build
-app.use(express.static(path.join(__dirname, "..", "public", "dist")));
+app.use(express.static(path.join(__dirname, "..", "public")));
 
 // API routes
 app.use("/auth", authRouter);
 
 // Catch-all route - serve React app for any non-API routes
-app.get("*", (_req, res) => {
-    res.sendFile(path.join(__dirname, "..", "public", "dist", "index.html"));
+app.get("/*", (_req, res) => {
+    res.sendFile(path.join(__dirname, "..", "public", "index.html"));
 });
 
 // catch 404 and forward to error handler
