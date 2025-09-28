@@ -32,7 +32,7 @@ app.use(cookieParser());
 app.use(express.static(path.join(__dirname, "..", "public", "dist")));
 
 // API routes
-app.use("/api/auth", authRouter);
+app.use("/auth", authRouter);
 
 // Catch-all route - serve React app for any non-API routes
 app.get("*", (_req, res) => {
