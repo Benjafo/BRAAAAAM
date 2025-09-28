@@ -5,9 +5,13 @@ import createError from "http-errors";
 import logger from "morgan";
 
 import authRouter from "./routes/auth.js";
-import indexRouter from "./routes/index.js";
 
 import { NextFunction, Request, Response } from "express";
+
+import path from "node:path";
+import { fileURLToPath } from "node:url";
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 const app = express();
 
@@ -24,8 +28,16 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 app.use(cookieParser());
 
-app.use("/", indexRouter);
-app.use("/auth", authRouter);
+// Serve static files from frontend build
+app.use(express.static(path.join(__dirname, "..", "public", "dist")));
+
+// API routes
+app.use("/api/auth", authRouter);
+
+// Catch-all route - serve React app for any non-API routes
+app.get("*", (_req, res) => {
+    res.sendFile(path.join(__dirname, "..", "public", "dist", "index.html"));
+});
 
 // catch 404 and forward to error handler
 app.use(function (_req, _res, next) {
