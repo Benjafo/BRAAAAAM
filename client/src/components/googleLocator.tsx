@@ -1,6 +1,6 @@
 import React, { useCallback, useEffect, useRef, useState } from "react";
 import { Loader } from "@googlemaps/js-api-loader";
-import { Input } from "./input";
+import { Input } from "./ui/input";
 import type { Location, LocationSelectorProps } from "@/lib/types";
 import { MapPin, Loader2, AlertCircle } from "lucide-react";
 
