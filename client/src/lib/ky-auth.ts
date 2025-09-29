@@ -5,7 +5,7 @@ import { toast } from "sonner";
 import type { RefreshAccessTokenRequest } from "./types";
 
 const kyWithAuth = ky.create({
-    prefixUrl: "http://localhost:3000/" /**@TODO make use of .env variable for base api url */,
+    prefixUrl: import.meta.env.BASE_URL,
     credentials: "include",
     hooks: {
         beforeRequest: [
