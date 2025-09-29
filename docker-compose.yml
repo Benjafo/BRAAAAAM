@@ -17,25 +17,61 @@ services:
     depends_on:
       - server
 
+  # server:
+  #   build:
+  #     context: ./server
+  #     dockerfile: Dockerfile
+  #   restart: always
+  #   ports:
+  #     - "3000:3000"
+  #   volumes:
+  #     - ./server:/app
+  #     - /app/node_modules
+  #     - /app/dist #changed
+  #   environment:
+  #     - NODE_ENV=development
+  #     - CHOKIDAR_USEPOLLING=true
+  #     - DATABASE_URL=postgresql://braaaaam:password@postgres:5432/braaaaam
+  #   profiles: ["development", "staging", "production"]
+  #   depends_on:
+  #     postgres:
+  #       condition: service_healthy
+
   server:
-    build:
-      context: ./server
-      dockerfile: Dockerfile
-    restart: always
+    image: node:22.17.0-alpine
+    working_dir: /app/server
+    command: sh -c "npm ci && npm run dev"
     ports:
       - "3000:3000"
-    volumes:
-      - ./server:/app
-      - /app/node_modules
-      - /app/dist #changed
     environment:
       - NODE_ENV=development
       - CHOKIDAR_USEPOLLING=true
       - DATABASE_URL=postgresql://braaaaam:password@postgres:5432/braaaaam
-    profiles: ["development", "staging", "production"]
+      - ENABLE_PGADMIN=true
+    volumes:
+      - ./server:/app/server
+      - /app/server/node_modules
     depends_on:
       postgres:
         condition: service_healthy
+    profiles: ["development"]
+
+  # Production/staging: single built image that already includes client build
+  prod-server:
+    build:
+      context: .
+      dockerfile: server/Dockerfile
+      target: runner
+    ports:
+      - "3000:3000"
+    environment:
+      - NODE_ENV=production
+      - DATABASE_URL=postgresql://braaaaam:password@postgres:5432/braaaaam
+      - ENABLE_PGADMIN=${ENABLE_PGADMIN:-false}
+    depends_on:
+      postgres:
+        condition: service_healthy
+    profiles: ["staging", "production"]
 
   postgres:
     image: postgres:15
@@ -61,10 +97,13 @@ services:
     environment:
       PGADMIN_DEFAULT_EMAIL: braaaaam@rit.edu
       PGADMIN_DEFAULT_PASSWORD: braaaaam
+      SCRIPT_NAME: /s/pgadmin
+      PGADMIN_CONFIG_PROXY_X_PREFIX_COUNT: 1
+      PGADMIN_CONFIG_PROXY_X_HOST_COUNT: 1
     ports:
-      - "5050:80"
+      - "80"
     volumes:
-    - pgadmin_data:/var/lib/pgadmin
+      - pgadmin_data:/var/lib/pgadmin
     profiles: ["development", "staging"]
     depends_on:
       postgres:
@@ -82,7 +121,7 @@ services:
       - caddy_config:/config
       - caddy_static:/app/staticfiles
     depends_on:
-      - server
+      - prod-server
     profiles: ["production"]
 
 volumes:

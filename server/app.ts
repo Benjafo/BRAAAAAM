@@ -10,10 +10,33 @@ import { NextFunction, Request, Response } from "express";
 
 import path from "node:path";
 import { fileURLToPath } from "node:url";
+import { createProxyMiddleware } from "http-proxy-middleware";
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 const app = express();
+
+if(process.env.ENABLE_PGADMIN === 'true') {
+
+    const pgadminProxyOptions = createProxyMiddleware({
+        target: 'http://pgadmin:80',
+        changeOrigin: true,
+        pathRewrite: (path) => `/s/pgadmin/${path}`,
+        cookiePathRewrite: { '/': '/s/pgadmin' },
+        logger: console,
+        plugins: [
+            (proxyServer) => {
+                proxyServer.on('proxyReq', (proxyReq, req) => {
+                proxyReq.setHeader('X-Script-Name', '/s/pgadmin')
+                proxyReq.setHeader('X-Forwarded-Proto', 'http')
+                if (req.headers.host) proxyReq.setHeader('X-Forwarded-Host', req.headers.host)
+                })
+            }
+        ]
+    })
+
+    app.use('/s/pgadmin', pgadminProxyOptions)
+}
 
 // CORS configuration
 app.use(
