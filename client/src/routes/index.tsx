@@ -1,7 +1,7 @@
 import { MainNavigation } from "@/components/Navigation";
 import { useAuthStore } from "@/components/stores/authStore";
 import { createFileRoute, redirect } from "@tanstack/react-router";
-import GoogleLocator from "@/components/ui/googleLocator";
+import GoogleLocator from "@/components/googleLocator";
 import type { Location } from "@/lib/types";
 
 export const Route = createFileRoute("/")({
