@@ -278,31 +278,177 @@ export function Calendar28() {
 }
 // End of copied code from ShadCN.
 
+interface NavItemComponents {
+    [key: string]: React.ReactNode;
+}
+
+const navComponents: NavItemComponents = {
+    datePicker: <Calendar28 />,
+    dayWeekMonthTabs:
+        <Tabs defaultValue="week">
+            <TabsList>
+                <TabsTrigger value="day">Day</TabsTrigger>
+                <TabsTrigger value="week">Week</TabsTrigger>
+                <TabsTrigger value="month">Month</TabsTrigger>
+            </TabsList>
+        </Tabs>,
+    calendarViewTabs:
+        <Tabs defaultValue="calendar">
+            <TabsList>
+                <TabsTrigger value="list">List View</TabsTrigger>
+                <TabsTrigger value="calendar">Calendar View</TabsTrigger>
+            </TabsList>
+        </Tabs>,
+    adminSettingsTabs:
+        <Tabs defaultValue="general">
+            <TabsList>
+                <TabsTrigger value="general">General</TabsTrigger>
+                <TabsTrigger value="forms">Forms</TabsTrigger>
+                <TabsTrigger value="roles">Roles</TabsTrigger>
+                <TabsTrigger value="auditLog">Audit Log</TabsTrigger>
+                <TabsTrigger value="locations">Locations</TabsTrigger>
+            </TabsList>
+        </Tabs>,
+    previousButton: <Button size="sm" variant="secondary" className="active:bg-primary/90">Previous</Button>,
+    nextButton: <Button size="sm" variant="secondary" className="active:bg-primary/90">Next</Button>,
+    filtersButton: <Button size="sm" variant="secondary" className="active:bg-primary/90">Filters</Button>,
+    exportButton: <Button size="sm" variant="secondary" className="active:bg-primary/90">Export</Button>,
+    printButton: <Button size="sm" variant="secondary" className="active:bg-primary/90">Print</Button>,
+    cancelButton: <Button size="sm" variant="secondary" className="active:bg-primary/90">Cancel</Button>,
+    columnSelector: null, // todo: import combobox
+    reportTypeSelector: null,
+    reportFormatSelector: null,
+    searchBar: null, // todo: make a search field
+    newOrganizationPButton: <Button size="sm" className="active:bg-primary/90">New Organization</Button>,
+    newRidePButton: <Button size="sm" className="active:bg-primary/90">New Ride</Button>,
+    cancelRidePButton: <Button size="sm" className="active:bg-primary/90">Cancel Ride</Button>,
+    unavailabilityPButton: <Button size="sm" className="active:bg-primary/90">Schedule Unavailability</Button>,
+    newClientPButton: <Button size="sm" className="active:bg-primary/90">New Client</Button>,
+    newUserPButton: <Button size="sm" className="active:bg-primary/90">New User</Button>,
+    editPagePButton: <Button size="sm" className="active:bg-primary/90">Edit Page</Button>,
+    saveChangesPButton: <Button size="sm" className="active:bg-primary/90">Save Changes</Button>,
+    newRolePButton: <Button size="sm" className="active:bg-primary/90">New Role</Button>,
+    saveRolePButton: <Button size="sm" className="active:bg-primary/90">Save Role</Button>,
+    exportPButton: <Button size="sm" className="active:bg-primary/90">Export</Button>,
+    newAliasPButton: <Button size="sm" className="active:bg-primary/90">New Alias</Button>
+}
+
+export const secondaryNavConfigs = {
+    "/organizations": {
+        "superadmin": {
+            leftNavItems: [navComponents.search, navComponents.filtersButton, navComponents.exportButton],
+            rightNavItems: [navComponents.newOrganizationPButton]
+        }
+    },
+    "/schedule-calendarview": {
+        "driver": {
+            leftNavItems: [navComponents.datePicker, navComponents.calendarViewTabs, navComponents.dayWeekMonthTabs, navComponents.filtersButton, navComponents.printButton],
+            rightNavItems: [navComponents.previousButton, navComponents.nextButton, navComponents.cancelRidePButton]
+        },
+        "dispatcher": {
+            leftNavItems: [navComponents.datePicker, navComponents.calendarViewTabs, navComponents.dayWeekMonthTabs, navComponents.filtersButton, navComponents.printButton],
+            rightNavItems: [navComponents.previousButton, navComponents.nextButton, navComponents.newRidePButton]
+        }
+    },
+    "/schedule-listview": {
+        "driver": {
+            leftNavItems: [navComponents.datePicker, navComponents.calendarViewTabs, navComponents.filtersButton, navComponents.printButton],
+            rightNavItems: [navComponents.previousButton, navComponents.nextButton, navComponents.cancelRidePButton]
+        }
+    },
+    "/unassigned-calendarview": {
+        "driver": {
+            leftNavItems: [navComponents.datePicker, navComponents.calendarViewTabs, navComponents.dayWeekMonthTabs, navComponents.filtersButton, navComponents.printButton],
+            rightNavItems: [navComponents.previousButton, navComponents.nextButton]
+        }
+    },
+    "/unassigned-listview": {
+        "driver": {
+            leftNavItems: [navComponents.datePicker, navComponents.calendarViewTabs, navComponents.filtersButton, navComponents.printButton],
+            rightNavItems: [navComponents.previousButton, navComponents.nextButton]
+        }
+    },
+    "/notifications": {
+        "driver": {
+            leftNavItems: [navComponents.datePicker, navComponents.filtersButton, navComponents.printButton],
+            rightNavItems: [navComponents.previousButton, navComponents.nextButton, navComponents.cancelRidePButton]
+        }
+    },
+    "/availability": {
+        "driver": {
+            leftNavItems: [navComponents.datePicker, navComponents.calendarViewTabs, navComponents.dayWeekMonthTabs, navComponents.filtersButton, navComponents.printButton],
+            rightNavItems: [navComponents.previousButton, navComponents.nextButton, navComponents.unavailabilityPButton]
+        }
+    },
+    "/clients": {
+        "dispatcher": {
+            leftNavItems: [navComponents.search, navComponents.filtersButton, navComponents.columnSelector, navComponents.exportButton],
+            rightNavItems: [navComponents.newClientPButton]
+        }
+    },
+    "/users": {
+        "dispatcher": {
+            leftNavItems: [navComponents.search, navComponents.filtersButton, navComponents.columnSelector, navComponents.exportButton],
+            rightNavItems: [navComponents.newUserPButton]
+        },
+        "admin": {
+            leftNavItems: [navComponents.search, navComponents.filtersButton, navComponents.columnSelector, navComponents.exportButton],
+            rightNavItems: [navComponents.newUserPButton]
+        }
+    },
+    "/reports": {
+        "admin": {
+            leftNavItems: [navComponents.datePicker, navComponents.reportTypeSelector, navComponents.reportFormatSelector, navComponents.filtersButton],
+            rightNavItems: [navComponents.exportPButton]
+        }
+    },
+    "/org-settings-general": {
+        "admin": {
+            leftNavItems: [navComponents.adminSettingsTabs],
+            rightNavItems: [navComponents.saveChangesPButton]
+        }
+    },
+    "/org-settings-forms": {
+        "admin": {
+            leftNavItems: [navComponents.adminSettingsTabs],
+            rightNavItems: [navComponents.saveChangesPButton]
+        }
+    },
+    "/org-settings-roles": {
+        "admin": {
+            leftNavItems: [navComponents.searchBar, navComponents.adminSettingsTabs],
+            rightNavItems: [navComponents.newRolePButton]
+        }
+    },
+    "/org-settings-editrole": {
+        "admin": {
+            leftNavItems: [navComponents.searchBar, navComponents.adminSettingsTabs],
+            rightNavItems: [navComponents.saveRolePButton]
+        }
+    },
+    "/org-settings-auditlog": {
+        "admin": {
+            leftNavItems: [navComponents.searchBar, navComponents.adminSettingsTabs, navComponents.filtersButton],
+            rightNavItems: [navComponents.exportPButton]
+        }
+    },
+    "/org-settings-locations": {
+        "admin": {
+            leftNavItems: [navComponents.searchBar, navComponents.adminSettingsTabs],
+            rightNavItems: [navComponents.newAliasPButton]
+        }
+    }
+}
+
 export const SecondaryNavigation = () => {
+    const testRoute = "/organizations";
+    const testRole = "superadmin";
     return <NavigationLayout
-        leftNavItems={<>
-            <Calendar28 /><Tabs defaultValue="optionTwo">
-                <TabsList>
-                    <TabsTrigger value="optionOne">List View</TabsTrigger>
-                    <TabsTrigger value="optionTwo">Calendar View</TabsTrigger>
-                </TabsList>
-            </Tabs><Tabs defaultValue="optionTwo">
-                <TabsList>
-                    <TabsTrigger value="optionOne">Day</TabsTrigger>
-                    <TabsTrigger value="optionTwo">Week</TabsTrigger>
-                    <TabsTrigger value="optionThree">Month</TabsTrigger>
-                </TabsList>
-            </Tabs>
-            <Button size="sm" variant="secondary" className="active:bg-primary/90">Filters</Button>
-            <Button size="sm" variant="secondary" className="active:bg-primary/90">Print</Button>
-        </>
+        leftNavItems={
+            secondaryNavConfigs[testRoute][testRole].leftNavItems.map((Component) => (Component))
         }
         rightNavItems={
-            <>
-                <Button size="sm" variant="secondary" className="active:bg-primary/90">Previous</Button>
-                <Button size="sm" variant="secondary" className="active:bg-primary/90">Next</Button>
-                <Button size="sm" className="active:bg-primary/90">New Ride</Button>
-            </>
+            secondaryNavConfigs[testRoute][testRole].rightNavItems.map((Component) => (Component))
         }
     />
 }
