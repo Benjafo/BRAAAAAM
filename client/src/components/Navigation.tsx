@@ -9,11 +9,10 @@ import * as React from "react"
 import { CalendarIcon } from "lucide-react"
 import { Calendar } from "@/components/ui/calendar"
 import { Input } from "@/components/ui/input"
-import {
-    Popover,
-    PopoverContent,
-    PopoverTrigger,
-} from "@/components/ui/popover"
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
+import { Check, ChevronsUpDown } from "lucide-react"
+import { cn } from "@/lib/utils"
+import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@/components/ui/command"
 
 /**
  * A generic navigation layout component that can be used to create different types of navigation bars.
@@ -278,17 +277,7 @@ export function Calendar28() {
     )
 }
 // Copied from ShadCN's combobox example page.
-import { Check, ChevronsUpDown } from "lucide-react"
 
-import { cn } from "@/lib/utils"
-import {
-    Command,
-    CommandEmpty,
-    CommandGroup,
-    CommandInput,
-    CommandItem,
-    CommandList,
-} from "@/components/ui/command"
 
 const columns = [
     {
@@ -312,7 +301,6 @@ const columns = [
         label: "etc.",
     },
 ]
-
 const formats = [
     {
         value: "formatOne",
@@ -331,7 +319,6 @@ const formats = [
         label: "etc.",
     },
 ]
-
 const reportTypes = [
     {
         value: "typeOne",
@@ -350,7 +337,6 @@ const reportTypes = [
         label: "etc.",
     },
 ]
-
 export function ComboboxColumns() {
     const [open, setOpen] = React.useState(false)
     const [value, setValue] = React.useState("")
@@ -501,8 +487,6 @@ export function ComboboxTypes() {
         </Popover>
     )
 }
-
-
 // End of copied code from ShadCN.
 
 interface NavItemComponents {
