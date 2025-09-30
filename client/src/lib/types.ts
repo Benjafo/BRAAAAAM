@@ -1,10 +1,10 @@
-export interface Permission {
+export type Permission = {
     id: string;
     title?: string;
     description?: string; 
 }
 
-export interface User {
+export type User = {
     id: string;
     email: string;
     name: string;
@@ -12,17 +12,42 @@ export interface User {
     permissions: Permission[];
 }
 
-export interface AuthResponse {
-    user: User;
-    token: string;
-}
+// export interface AuthResponse {
+//     user: User;
+//     token: string;
+// }
 
-export interface SignInRequest {
-    email: string;
-    password: string;
-}
+// export interface SignInRequest {
+//     email: string;
+//     password: string;
+// }
 
-export type RefreshAccessTokenRequest = {
-    message?: string,
-    accessToken: string,
+// export type RefreshAccessTokenRequest = {
+//     message?: string,
+//     accessToken: string,
+// }
+
+
+
+export type Credentials = { email: string; password: string };
+
+// export type Permission = 'read' | 'write' | 'publish' | 'admin';
+
+export type LoginResponse = {
+  user: User;
+  role: string;
+  permissions: Permission[];
+  accessToken: string;
+  refreshToken?: string;
+};
+
+export type RefreshResponse = {
+  accessToken: string;
+  refreshToken?: string;
+};
+
+export interface AuthService {
+  login(creds: Credentials): Promise<LoginResponse>;
+  logout(): Promise<void>;
+  refresh?(refreshToken: string): Promise<RefreshResponse>;
 }

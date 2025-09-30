@@ -6,9 +6,10 @@ import z from "zod";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "../ui/form";
 import { Input } from "../ui/input";
 import { Button } from "../ui/button";
-import { useAuthStore } from "../stores/authStore";
+import { useAuthStore, useIsAuthed } from "../stores/authStore";
 import { mockAuthService } from "../../services/mockAuthService";
 import { useEffect, useState } from "react";
+import { useLogin, useLogout } from "@/hooks/useAuth";
 
 /**
  * Zod schema for form validation
@@ -53,12 +54,8 @@ function SignInForm({
 }: SignInFormProps) {
     const navigate = useNavigate();
 
-    // Get auth state and actions from Zustand store
-    const { user, isAuthenticated } = useAuthStore();
-
-    // Local loading and error state for form submission
-    const [isLoading, setIsLoading] = useState(false);
-
+    const login = useLogin();
+    const isAuthed = useIsAuthed();
     const form = useForm<SignInFormData>({
         resolver: zodResolver(signInSchema),
         defaultValues: {
@@ -68,21 +65,25 @@ function SignInForm({
         mode: "onBlur",
     });
 
-    // Effect: Handle successful authentication by redirecting user
-    // Note: Both admin and regular users redirect to "/", we will change this later when we have the routing properly developed
     useEffect(() => {
-        if (user && isAuthenticated) {
-            const redirectTo = user.role === "admin" ? "/" : "/";
-            navigate({ to: redirectTo });
-        }
-    }, [user, isAuthenticated, navigate]);
+        if(isAuthed) navigate({to: '/'});
+    }, [isAuthed])
 
-    async function onSubmit(values: SignInFormData) {
+    // Effect: Handle successful authentication by redirecting user
+    // // Note: Both admin and regular users redirect to "/", we will change this later when we have the routing properly developed
+    // useEffect(() => {
+    //     if (user && isAuthenticated) {
+    //         const redirectTo = user.role === "admin" ? "/" : "/";
+    //         navigate({ to: redirectTo });
+    //     }
+    // }, [user, isAuthenticated, navigate]);
+
+    async function onSubmit({ email, password }: SignInFormData) {
         if (import.meta.env.DEV) {
-            console.log("SignInForm onSubmit values", values);
+            console.log("SignInForm onSubmit values", email, password);
         }
 
-        setIsLoading(true);
+        
 
         try {
             /**
@@ -90,10 +91,8 @@ function SignInForm({
              * Implement ky fetch to api and handle form data
              * On success, navigate to page dependent by role/permissions returned
              */
-
-            // Use the mock auth service to sign in (this will update Zustand store)
-            await mockAuthService.signIn(values);
-
+            
+            login.mutate({ email, password })
             toast.success(`Welcome back!`);
         } catch (error) {
             if (import.meta.env.DEV) {
@@ -105,8 +104,6 @@ function SignInForm({
 
             // Show error toast notification
             toast.error(errorMessage);
-        } finally {
-            setIsLoading(false);
         }
     }
 
@@ -146,8 +143,8 @@ function SignInForm({
                         )}
                     />
 
-                    <Button type="submit" className="w-full" disabled={isLoading}>
-                        {isLoading ? "Signing In..." : submitButtonText}
+                    <Button type="submit" className="w-full" disabled={login.isPending}>
+                        {login.isPending ? "Signing In..." : submitButtonText}
                     </Button>
                 </form>
             </Form>

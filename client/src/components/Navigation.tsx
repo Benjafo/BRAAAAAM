@@ -4,7 +4,9 @@ import { Link, useNavigate } from "@tanstack/react-router";
 import { Button } from "./ui/button";
 import { PERMISSIONS } from "@/lib/permissions";
 import { LogOut } from "lucide-react";
-import { useAuth } from "../hooks/useAuth";
+import { useAuthStore, useIsAuthed } from "./stores/authStore";
+import { useLogout } from "@/hooks/useAuth";
+// import { useAuth } from "../hooks/useAuth";
 
 /**
  * A generic navigation layout component that can be used to create different types of navigation bars.
@@ -138,18 +140,20 @@ export const MainNavigation = ({
     ],
 }: MainNavProps) => {
     const navigate = useNavigate();
-    const { user, signOut } = useAuth();
+    const user = useAuthStore((s) => s.user)
+    const isAuthed = useIsAuthed()
+    const logout = useLogout()
     /**
      * @TODO Add useUser() hook to get user information
      */
 
     const handleSignOut = async () => {
         try {
-            await signOut();
-            navigate({ to: "/sign-in" });
+            if(isAuthed) logout.mutate()
         } catch (error) {
             console.error("Sign out error:", error);
-            navigate({ to: "/sign-in" });
+        } finally {
+            navigate({to: '/sign-in'})
         }
     };
 
