@@ -5,6 +5,15 @@ import { Button } from "./ui/button";
 import { PERMISSIONS } from "@/lib/permissions";
 import { LogOut } from "lucide-react";
 import { Tabs, TabsList, TabsTrigger } from "./ui/tabs"
+import * as React from "react"
+import { CalendarIcon } from "lucide-react"
+import { Calendar } from "@/components/ui/calendar"
+import { Input } from "@/components/ui/input"
+import {
+    Popover,
+    PopoverContent,
+    PopoverTrigger,
+} from "@/components/ui/popover"
 
 /**
  * A generic navigation layout component that can be used to create different types of navigation bars.
@@ -188,15 +197,7 @@ export const MainNavigation = ({
 }
 
 // Copied from ShadCN's date picker example page; modified to remove label and wrapper <div>.
-import * as React from "react"
-import { CalendarIcon } from "lucide-react"
-import { Calendar } from "@/components/ui/calendar"
-import { Input } from "@/components/ui/input"
-import {
-    Popover,
-    PopoverContent,
-    PopoverTrigger,
-} from "@/components/ui/popover"
+
 function formatDate(date: Date | undefined) {
     if (!date) {
         return ""
@@ -276,6 +277,232 @@ export function Calendar28() {
         </div>
     )
 }
+// Copied from ShadCN's combobox example page.
+import { Check, ChevronsUpDown } from "lucide-react"
+
+import { cn } from "@/lib/utils"
+import {
+    Command,
+    CommandEmpty,
+    CommandGroup,
+    CommandInput,
+    CommandItem,
+    CommandList,
+} from "@/components/ui/command"
+
+const columns = [
+    {
+        value: "rideDate",
+        label: "Ride Date",
+    },
+    {
+        value: "rideTime",
+        label: "Ride Time",
+    },
+    {
+        value: "driverName",
+        label: "Driver Name",
+    },
+    {
+        value: "clientName",
+        label: "Client Name",
+    },
+    {
+        value: "etc",
+        label: "etc.",
+    },
+]
+
+const formats = [
+    {
+        value: "formatOne",
+        label: "Report Format One",
+    },
+    {
+        value: "formatTwo",
+        label: "Report Format Two",
+    },
+    {
+        value: "formatThree",
+        label: "Report Format Three",
+    },
+    {
+        value: "etc",
+        label: "etc.",
+    },
+]
+
+const reportTypes = [
+    {
+        value: "typeOne",
+        label: "Report Type One",
+    },
+    {
+        value: "typeTwo",
+        label: "Report Type Two",
+    },
+    {
+        value: "typeThree",
+        label: "Report Type Three",
+    },
+    {
+        value: "etc",
+        label: "etc.",
+    },
+]
+
+export function ComboboxColumns() {
+    const [open, setOpen] = React.useState(false)
+    const [value, setValue] = React.useState("")
+
+    return (
+        <Popover open={open} onOpenChange={setOpen}>
+            <PopoverTrigger asChild>
+                <Button
+                    variant="outline"
+                    role="combobox"
+                    aria-expanded={open}
+                    className="w-[200px] justify-between"
+                >
+                    {value
+                        ? columns.find((column) => column.value === value)?.label
+                        : "Select column..."}
+                    <ChevronsUpDown className="opacity-50" />
+                </Button>
+            </PopoverTrigger>
+            <PopoverContent className="w-[200px] p-0">
+                <Command>
+                    <CommandInput placeholder="Search column..." className="h-9" />
+                    <CommandList>
+                        <CommandEmpty>No column found.</CommandEmpty>
+                        <CommandGroup>
+                            {columns.map((column) => (
+                                <CommandItem
+                                    key={column.value}
+                                    value={column.value}
+                                    onSelect={(currentValue) => {
+                                        setValue(currentValue === value ? "" : currentValue)
+                                        setOpen(false)
+                                    }}
+                                >
+                                    {column.label}
+                                    <Check
+                                        className={cn(
+                                            "ml-auto",
+                                            value === column.value ? "opacity-100" : "opacity-0"
+                                        )}
+                                    />
+                                </CommandItem>
+                            ))}
+                        </CommandGroup>
+                    </CommandList>
+                </Command>
+            </PopoverContent>
+        </Popover>
+    )
+}
+export function ComboboxFormats() {
+    const [open, setOpen] = React.useState(false)
+    const [value, setValue] = React.useState("")
+
+    return (
+        <Popover open={open} onOpenChange={setOpen}>
+            <PopoverTrigger asChild>
+                <Button
+                    variant="outline"
+                    role="combobox"
+                    aria-expanded={open}
+                    className="w-[200px] justify-between"
+                >
+                    {value
+                        ? formats.find((format) => format.value === value)?.label
+                        : "Select format..."}
+                    <ChevronsUpDown className="opacity-50" />
+                </Button>
+            </PopoverTrigger>
+            <PopoverContent className="w-[200px] p-0">
+                <Command>
+                    <CommandInput placeholder="Search format..." className="h-9" />
+                    <CommandList>
+                        <CommandEmpty>No format found.</CommandEmpty>
+                        <CommandGroup>
+                            {formats.map((format) => (
+                                <CommandItem
+                                    key={format.value}
+                                    value={format.value}
+                                    onSelect={(currentValue) => {
+                                        setValue(currentValue === value ? "" : currentValue)
+                                        setOpen(false)
+                                    }}
+                                >
+                                    {format.label}
+                                    <Check
+                                        className={cn(
+                                            "ml-auto",
+                                            value === format.value ? "opacity-100" : "opacity-0"
+                                        )}
+                                    />
+                                </CommandItem>
+                            ))}
+                        </CommandGroup>
+                    </CommandList>
+                </Command>
+            </PopoverContent>
+        </Popover>
+    )
+}
+export function ComboboxTypes() {
+    const [open, setOpen] = React.useState(false)
+    const [value, setValue] = React.useState("")
+
+    return (
+        <Popover open={open} onOpenChange={setOpen}>
+            <PopoverTrigger asChild>
+                <Button
+                    variant="outline"
+                    role="combobox"
+                    aria-expanded={open}
+                    className="w-[200px] justify-between"
+                >
+                    {value
+                        ? reportTypes.find((type) => type.value === value)?.label
+                        : "Select type..."}
+                    <ChevronsUpDown className="opacity-50" />
+                </Button>
+            </PopoverTrigger>
+            <PopoverContent className="w-[200px] p-0">
+                <Command>
+                    <CommandInput placeholder="Search type..." className="h-9" />
+                    <CommandList>
+                        <CommandEmpty>No type found.</CommandEmpty>
+                        <CommandGroup>
+                            {reportTypes.map((type) => (
+                                <CommandItem
+                                    key={type.value}
+                                    value={type.value}
+                                    onSelect={(currentValue) => {
+                                        setValue(currentValue === value ? "" : currentValue)
+                                        setOpen(false)
+                                    }}
+                                >
+                                    {type.label}
+                                    <Check
+                                        className={cn(
+                                            "ml-auto",
+                                            value === type.value ? "opacity-100" : "opacity-0"
+                                        )}
+                                    />
+                                </CommandItem>
+                            ))}
+                        </CommandGroup>
+                    </CommandList>
+                </Command>
+            </PopoverContent>
+        </Popover>
+    )
+}
+
+
 // End of copied code from ShadCN.
 
 interface NavItemComponents {
@@ -315,9 +542,9 @@ const navComponents: NavItemComponents = {
     exportButton: <Button size="sm" variant="secondary" className="active:bg-primary/90">Export</Button>,
     printButton: <Button size="sm" variant="secondary" className="active:bg-primary/90">Print</Button>,
     cancelButton: <Button size="sm" variant="secondary" className="active:bg-primary/90">Cancel</Button>,
-    columnSelector: null, // todo: import combobox
-    reportTypeSelector: null,
-    reportFormatSelector: null,
+    columnSelector: <ComboboxColumns />,
+    reportTypeSelector: <ComboboxTypes />,
+    reportFormatSelector: <ComboboxFormats />,
     searchBar: null, // todo: make a search field
     newOrganizationPButton: <Button size="sm" className="active:bg-primary/90">New Organization</Button>,
     newRidePButton: <Button size="sm" className="active:bg-primary/90">New Ride</Button>,
