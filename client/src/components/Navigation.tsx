@@ -10,9 +10,9 @@ import { CalendarIcon } from "lucide-react"
 import { Calendar } from "@/components/ui/calendar"
 import { Input } from "@/components/ui/input"
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
-import { Check, ChevronsUpDown } from "lucide-react"
-import { cn } from "@/lib/utils"
-import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@/components/ui/command"
+import { ChevronDown } from "lucide-react"
+import type { DropdownMenuCheckboxItemProps } from "@radix-ui/react-dropdown-menu";
+import { DropdownMenu, DropdownMenuItem, DropdownMenuCheckboxItem, DropdownMenuContent, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger, DropdownMenuRadioGroup, DropdownMenuRadioItem } from "@/components/ui/dropdown-menu"
 
 /**
  * A generic navigation layout component that can be used to create different types of navigation bars.
@@ -276,217 +276,85 @@ export function Calendar28() {
         </div>
     )
 }
-// Copied from ShadCN's combobox example page.
 
+// Copied from ShadCN's dropdown example page.
+type Checked = DropdownMenuCheckboxItemProps["checked"]
 
-const columns = [
-    {
-        value: "rideDate",
-        label: "Ride Date",
-    },
-    {
-        value: "rideTime",
-        label: "Ride Time",
-    },
-    {
-        value: "driverName",
-        label: "Driver Name",
-    },
-    {
-        value: "clientName",
-        label: "Client Name",
-    },
-    {
-        value: "etc",
-        label: "etc.",
-    },
-]
-const formats = [
-    {
-        value: "formatOne",
-        label: "Report Format One",
-    },
-    {
-        value: "formatTwo",
-        label: "Report Format Two",
-    },
-    {
-        value: "formatThree",
-        label: "Report Format Three",
-    },
-    {
-        value: "etc",
-        label: "etc.",
-    },
-]
-const reportTypes = [
-    {
-        value: "typeOne",
-        label: "Report Type One",
-    },
-    {
-        value: "typeTwo",
-        label: "Report Type Two",
-    },
-    {
-        value: "typeThree",
-        label: "Report Type Three",
-    },
-    {
-        value: "etc",
-        label: "etc.",
-    },
-]
-export function ComboboxColumns() {
-    const [open, setOpen] = React.useState(false)
-    const [value, setValue] = React.useState("")
-
+export function DropdownMenuColumns() {
+    const [showColumnOne, setShowColumnOne] = React.useState<Checked>(true)
+    const [showColumnTwo, setShowColumnTwo] = React.useState<Checked>(false)
+    const [showColumnThree, setShowColumnThree] = React.useState<Checked>(false)
     return (
-        <Popover open={open} onOpenChange={setOpen}>
-            <PopoverTrigger asChild>
-                <Button
-                    variant="outline"
-                    role="combobox"
-                    aria-expanded={open}
-                    className="w-[200px] justify-between"
+        <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+                <Button variant="outline">Columns <ChevronDown /></Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent className="w-56">
+                <DropdownMenuLabel>Select columns to display</DropdownMenuLabel>
+                <DropdownMenuSeparator />
+                <DropdownMenuCheckboxItem
+                    checked={showColumnOne}
+                    onCheckedChange={setShowColumnOne}
                 >
-                    {value
-                        ? columns.find((column) => column.value === value)?.label
-                        : "Select column..."}
-                    <ChevronsUpDown className="opacity-50" />
-                </Button>
-            </PopoverTrigger>
-            <PopoverContent className="w-[200px] p-0">
-                <Command>
-                    <CommandInput placeholder="Search column..." className="h-9" />
-                    <CommandList>
-                        <CommandEmpty>No column found.</CommandEmpty>
-                        <CommandGroup>
-                            {columns.map((column) => (
-                                <CommandItem
-                                    key={column.value}
-                                    value={column.value}
-                                    onSelect={(currentValue) => {
-                                        setValue(currentValue === value ? "" : currentValue)
-                                        setOpen(false)
-                                    }}
-                                >
-                                    {column.label}
-                                    <Check
-                                        className={cn(
-                                            "ml-auto",
-                                            value === column.value ? "opacity-100" : "opacity-0"
-                                        )}
-                                    />
-                                </CommandItem>
-                            ))}
-                        </CommandGroup>
-                    </CommandList>
-                </Command>
-            </PopoverContent>
-        </Popover>
+                    Column One
+                </DropdownMenuCheckboxItem>
+                <DropdownMenuCheckboxItem
+                    checked={showColumnTwo}
+                    onCheckedChange={setShowColumnTwo}
+                >
+                    Column Two
+                </DropdownMenuCheckboxItem>
+                <DropdownMenuCheckboxItem
+                    checked={showColumnThree}
+                    onCheckedChange={setShowColumnThree}
+                >
+                    Column Three
+                </DropdownMenuCheckboxItem>
+            </DropdownMenuContent>
+        </DropdownMenu>
     )
 }
-export function ComboboxFormats() {
-    const [open, setOpen] = React.useState(false)
-    const [value, setValue] = React.useState("")
-
+export function DropdownMenuReportTypes() {
+    const [position, setPosition] = React.useState("typeOne")
     return (
-        <Popover open={open} onOpenChange={setOpen}>
-            <PopoverTrigger asChild>
-                <Button
-                    variant="outline"
-                    role="combobox"
-                    aria-expanded={open}
-                    className="w-[200px] justify-between"
-                >
-                    {value
-                        ? formats.find((format) => format.value === value)?.label
-                        : "Select format..."}
-                    <ChevronsUpDown className="opacity-50" />
-                </Button>
-            </PopoverTrigger>
-            <PopoverContent className="w-[200px] p-0">
-                <Command>
-                    <CommandInput placeholder="Search format..." className="h-9" />
-                    <CommandList>
-                        <CommandEmpty>No format found.</CommandEmpty>
-                        <CommandGroup>
-                            {formats.map((format) => (
-                                <CommandItem
-                                    key={format.value}
-                                    value={format.value}
-                                    onSelect={(currentValue) => {
-                                        setValue(currentValue === value ? "" : currentValue)
-                                        setOpen(false)
-                                    }}
-                                >
-                                    {format.label}
-                                    <Check
-                                        className={cn(
-                                            "ml-auto",
-                                            value === format.value ? "opacity-100" : "opacity-0"
-                                        )}
-                                    />
-                                </CommandItem>
-                            ))}
-                        </CommandGroup>
-                    </CommandList>
-                </Command>
-            </PopoverContent>
-        </Popover>
+        <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+                <Button variant="outline">Report Type <ChevronDown /></Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent className="w-56">
+                <DropdownMenuLabel>Select report type</DropdownMenuLabel>
+                <DropdownMenuSeparator />
+                <DropdownMenuRadioGroup value={position} onValueChange={setPosition}>
+                    <DropdownMenuRadioItem value="typeOne">Report Type One</DropdownMenuRadioItem>
+                    <DropdownMenuRadioItem value="typeTwo">Report Type Two</DropdownMenuRadioItem>
+                    <DropdownMenuRadioItem value="typeThree">Report Type Three</DropdownMenuRadioItem>
+                </DropdownMenuRadioGroup>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem>Define new report...</DropdownMenuItem>
+            </DropdownMenuContent>
+        </DropdownMenu>
     )
 }
-export function ComboboxTypes() {
-    const [open, setOpen] = React.useState(false)
-    const [value, setValue] = React.useState("")
-
+export function DropdownMenuReportFormats() {
+    const [position, setPosition] = React.useState("excel")
     return (
-        <Popover open={open} onOpenChange={setOpen}>
-            <PopoverTrigger asChild>
-                <Button
-                    variant="outline"
-                    role="combobox"
-                    aria-expanded={open}
-                    className="w-[200px] justify-between"
-                >
-                    {value
-                        ? reportTypes.find((type) => type.value === value)?.label
-                        : "Select type..."}
-                    <ChevronsUpDown className="opacity-50" />
-                </Button>
-            </PopoverTrigger>
-            <PopoverContent className="w-[200px] p-0">
-                <Command>
-                    <CommandInput placeholder="Search type..." className="h-9" />
-                    <CommandList>
-                        <CommandEmpty>No type found.</CommandEmpty>
-                        <CommandGroup>
-                            {reportTypes.map((type) => (
-                                <CommandItem
-                                    key={type.value}
-                                    value={type.value}
-                                    onSelect={(currentValue) => {
-                                        setValue(currentValue === value ? "" : currentValue)
-                                        setOpen(false)
-                                    }}
-                                >
-                                    {type.label}
-                                    <Check
-                                        className={cn(
-                                            "ml-auto",
-                                            value === type.value ? "opacity-100" : "opacity-0"
-                                        )}
-                                    />
-                                </CommandItem>
-                            ))}
-                        </CommandGroup>
-                    </CommandList>
-                </Command>
-            </PopoverContent>
-        </Popover>
+        <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+                <Button variant="outline">Format <ChevronDown /></Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent className="w-56">
+                <DropdownMenuLabel>Select export format</DropdownMenuLabel>
+                <DropdownMenuSeparator />
+                <DropdownMenuRadioGroup value={position} onValueChange={setPosition}>
+                    <DropdownMenuRadioItem value="excel">Excel</DropdownMenuRadioItem>
+                    <DropdownMenuRadioItem value="csv">CSV</DropdownMenuRadioItem>
+                    <DropdownMenuRadioItem value="pdf">PDF</DropdownMenuRadioItem>
+                </DropdownMenuRadioGroup>
+            </DropdownMenuContent>
+        </DropdownMenu>
     )
 }
+
 // End of copied code from ShadCN.
 
 interface NavItemComponents {
@@ -526,9 +394,9 @@ const navComponents: NavItemComponents = {
     exportButton: <Button size="sm" variant="secondary" className="active:bg-primary/90">Export</Button>,
     printButton: <Button size="sm" variant="secondary" className="active:bg-primary/90">Print</Button>,
     cancelButton: <Button size="sm" variant="secondary" className="active:bg-primary/90">Cancel</Button>,
-    columnSelector: <ComboboxColumns />,
-    reportTypeSelector: <ComboboxTypes />,
-    reportFormatSelector: <ComboboxFormats />,
+    columnSelector: <DropdownMenuColumns />,
+    reportTypeSelector: <DropdownMenuReportTypes />,
+    reportFormatSelector: <DropdownMenuReportFormats />,
     searchBar: null, // todo: make a search field
     newOrganizationPButton: <Button size="sm" className="active:bg-primary/90">New Organization</Button>,
     newRidePButton: <Button size="sm" className="active:bg-primary/90">New Ride</Button>,
