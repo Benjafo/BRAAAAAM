@@ -412,7 +412,7 @@ const navComponents: NavItemComponents = {
     newAliasPButton: <Button size="sm" className="active:bg-primary/90">New Alias</Button>
 }
 
-export const secondaryNavConfigs = {
+const secondaryNavConfigs = {
     "/organizations": {
         "superadmin": {
             leftNavItems: [navComponents.search, navComponents.filtersButton, navComponents.exportButton],
