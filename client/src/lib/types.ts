@@ -7,8 +7,8 @@ export type Permission = {
 export type User = {
     id: string;
     email: string;
-    name: string;
-    role: string;
+    firstName: string;
+    lastName: string;
     permissions: Permission[];
 }
 

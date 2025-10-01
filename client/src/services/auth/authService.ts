@@ -4,13 +4,13 @@ import type { KyInstance } from 'ky';
 
 export const makeAuthService = (http: KyInstance): AuthService => ({
   async login(creds: Credentials): Promise<LoginResponse> {
-    return http.post('auth/login', { json: creds }).json<LoginResponse>();
+    return http.post('auth/sign-in', { json: creds }).json<LoginResponse>();
   },
   async logout(): Promise<void> {
     // If your API doesn't need this, it's fine to noop.
-    await http.post('auth/logout').catch(() => {});
+    await http.post('auth/sign-out').catch(() => {});
   },
   async refresh(refreshToken: string): Promise<RefreshResponse> {
-    return http.post('auth/refresh', { json: { refreshToken } }).json<RefreshResponse>();
+    return http.post('auth/token-refresh', { json: { refreshToken } }).json<RefreshResponse>();
   },
 });

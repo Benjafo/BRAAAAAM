@@ -2,11 +2,14 @@
     "name": "server",
     "version": "0.0.0",
     "private": true,
+    "type": "module",
     "scripts": {
         "lint": "eslint . --ext .ts",
         "format": "prettier --write \"**/*.ts\"",
         "format:check": "prettier --check \"**/*.ts\"",
-        "start": "node ./bin/www",
+        "build": "tsc",
+        "start": "node ./dist/server/bin/www.js",
+        "dev": "tsx watch ./bin/www.ts",
         "typecheck": "tsc --noEmit",
         "test": "NODE_ENV=test jest --runInBand --coverage --detectOpenHandles"
     },
@@ -20,6 +23,7 @@
         "dotenv": "^17.2.2",
         "express": "~4.16.1",
         "http-errors": "~1.6.3",
+        "http-proxy-middleware": "^3.0.5",
         "jade": "~1.11.0",
         "jsonwebtoken": "^9.0.2",
         "morgan": "~1.9.1",
@@ -29,6 +33,7 @@
     "devDependencies": {
         "@types/bcrypt": "^6.0.0",
         "@types/cookie-parser": "^1.4.9",
+        "@types/debug": "^4.1.12",
         "@types/express": "^5.0.3",
         "@types/http-errors": "^2.0.5",
         "@types/jsonwebtoken": "^9.0.10",
@@ -37,6 +42,7 @@
         "eslint": "^9.34.0",
         "nodemon": "^3.1.10",
         "ts-node": "^10.9.2",
+        "tsx": "^4.20.6",
         "typescript": "^5.9.2"
     }
 }

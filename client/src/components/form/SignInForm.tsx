@@ -83,28 +83,14 @@ function SignInForm({
             console.log("SignInForm onSubmit values", email, password);
         }
 
-        
-
-        try {
-            /**
-             * @TODO
-             * Implement ky fetch to api and handle form data
-             * On success, navigate to page dependent by role/permissions returned
-             */
-            
-            login.mutate({ email, password })
-            toast.success(`Welcome back!`);
-        } catch (error) {
-            if (import.meta.env.DEV) {
-                console.error("SignInForm onSubmit error", error);
+        login.mutate({ email, password }, {
+            onSuccess: () => {
+                toast.success('Welcome back!')
+            },
+            onError: (error) => {
+                toast.error(error.message)
             }
-
-            const errorMessage =
-                error instanceof Error ? error.message : "Failed to sign in. Please try again.";
-
-            // Show error toast notification
-            toast.error(errorMessage);
-        }
+        })
     }
 
     return (

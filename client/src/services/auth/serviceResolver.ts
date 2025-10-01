@@ -7,6 +7,7 @@ import { authStore } from "@/components/stores/authStore";
 import { ky } from "@/lib/ky-auth";
 import { makeAuthService } from "./authService";
 import type { AuthService } from "@/lib/types";
+import { createHttpClient } from "@/http/client";
 
 // 👇 Point this import to YOUR mock service file:
 // import { makeMockAuthService } from './mockAuthService'; // you already have this
@@ -19,11 +20,15 @@ let refreshTokenRef: string | null = authStore.getState().refreshToken || null;
 
 // If a 401 happens, decide what to do.
 // Simple version: clear auth (or navigate to /login).
-// let onUnauthorized = async () => {
-//   authStore.getState().clearAuth();
-// };
+let onUnauthorized = async () => {
+  authStore.getState().clearAuth();
+};
 
-const http = ky
+const http = createHttpClient({
+  baseUrl: 'http://localhost:3000/',
+  getAccessToken: () => authStore.getState().accessToken,
+  onUnauthorized: () => onUnauthorized(),
+});
 
 const realService = makeAuthService(http);
 // Swap in your mock when desired

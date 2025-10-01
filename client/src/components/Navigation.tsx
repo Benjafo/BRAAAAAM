@@ -180,7 +180,7 @@ export const MainNavigation = ({
             }
             rightNavItems={
                 <Button size="sm" onClick={handleSignOut}>
-                    {user?.name || "User"} {/* Dynamic user name */}
+                    {`${user?.firstName} ${user?.lastName}` || "User"} {/* Dynamic user name */}
                     <LogOut />
                 </Button>
             }

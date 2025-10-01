@@ -15,6 +15,11 @@ export function useLogin() {
         refreshToken: res.refreshToken ?? null,
       });
     },
+    onError: (error) => {
+      if (import.meta.env.DEV) {
+          console.error("SignInform onSubmit error", error)
+      }
+    }
   });
 }
 
