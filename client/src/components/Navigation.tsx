@@ -4,13 +4,22 @@ import { Link, useNavigate } from "@tanstack/react-router";
 import { Button } from "./ui/button";
 import { PERMISSIONS } from "@/lib/permissions";
 import { LogOut } from "lucide-react";
+import { Tabs, TabsList, TabsTrigger } from "./ui/tabs"
+import * as React from "react"
+import { CalendarIcon } from "lucide-react"
+import { Calendar } from "@/components/ui/calendar"
+import { Input } from "@/components/ui/input"
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
+import { ChevronDown } from "lucide-react"
+import type { DropdownMenuCheckboxItemProps } from "@radix-ui/react-dropdown-menu";
+import { DropdownMenu, DropdownMenuItem, DropdownMenuCheckboxItem, DropdownMenuContent, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger, DropdownMenuRadioGroup, DropdownMenuRadioItem } from "@/components/ui/dropdown-menu"
 
 /**
  * A generic navigation layout component that can be used to create different types of navigation bars.
  */
 interface NavigationLayoutProps {
     leftNavItems?: React.ReactNode,
-    rightNavItems?:React.ReactNode,
+    rightNavItems?: React.ReactNode,
 }
 
 /**
@@ -25,7 +34,7 @@ const NavigationLayout = ({
 }: NavigationLayoutProps) => {
 
     return (
-        <div className="flex items-center justify-beween p-[10px]">
+        <div className="flex items-center justify-between p-[10px]">
             <div className="flex flex-row items-center gap-[10px] justify-start w-full">
                 {leftNavItems}
             </div>
@@ -160,25 +169,25 @@ export const MainNavigation = ({
                             <Button size="sm" className="active:bg-primary/90">{button.text}</Button>
                         </Link>
                     ))}
-                    
+
                 </>
-                
+
             }
             rightNavItems={
-                <Button 
+                <Button
                     size="sm"
                     onClick={() => {
                         /**
                          * @TODO Add logout functionality here
                          */
 
-                        navigate({to: "/sign-in"});
+                        navigate({ to: "/sign-in" });
                     }}
                 >
                     {/**
                      * @TODO Replace with dynamic user name from user context 
                      * */}
-                    Example User 
+                    Example User
                     <LogOut />
                 </Button>
             }
@@ -186,9 +195,339 @@ export const MainNavigation = ({
     )
 }
 
-export const SecondaryNavigation = () => {
+// Copied from ShadCN's date picker example page; modified to remove label and wrapper <div>.
 
-    /**
-     * @TODO Add secondary navigation implementation here
-     */
+function formatDate(date: Date | undefined) {
+    if (!date) {
+        return ""
+    }
+    return date.toLocaleDateString("en-US", {
+        day: "2-digit",
+        month: "long",
+        year: "numeric",
+    })
+}
+function isValidDate(date: Date | undefined) {
+    if (!date) {
+        return false
+    }
+    return !isNaN(date.getTime())
+}
+export function Calendar28() {
+    const [open, setOpen] = React.useState(false)
+    const [date, setDate] = React.useState<Date | undefined>(
+        new Date("2025-06-01")
+    )
+    const [month, setMonth] = React.useState<Date | undefined>(date)
+    const [value, setValue] = React.useState(formatDate(date))
+    return (
+        <div className="relative flex gap-2">
+            <Input
+                id="date"
+                value={value}
+                placeholder="June 01, 2025"
+                className="bg-background pr-10 min-w-[150px]"
+                onChange={(e) => {
+                    const date = new Date(e.target.value)
+                    setValue(e.target.value)
+                    if (isValidDate(date)) {
+                        setDate(date)
+                        setMonth(date)
+                    }
+                }}
+                onKeyDown={(e) => {
+                    if (e.key === "ArrowDown") {
+                        e.preventDefault()
+                        setOpen(true)
+                    }
+                }}
+            />
+            <Popover open={open} onOpenChange={setOpen}>
+                <PopoverTrigger asChild>
+                    <Button
+                        id="date-picker"
+                        variant="ghost"
+                        className="absolute top-1/2 right-2 size-6 -translate-y-1/2"
+                    >
+                        <CalendarIcon className="size-3.5" />
+                        <span className="sr-only">Select date</span>
+                    </Button>
+                </PopoverTrigger>
+                <PopoverContent
+                    className="w-auto overflow-hidden p-0"
+                    align="end"
+                    alignOffset={-8}
+                    sideOffset={10}
+                >
+                    <Calendar
+                        mode="single"
+                        selected={date}
+                        captionLayout="dropdown"
+                        month={month}
+                        onMonthChange={setMonth}
+                        onSelect={(date) => {
+                            setDate(date)
+                            setValue(formatDate(date))
+                            setOpen(false)
+                        }}
+                    />
+                </PopoverContent>
+            </Popover>
+        </div>
+    )
+}
+
+// Copied from ShadCN's dropdown example page.
+type Checked = DropdownMenuCheckboxItemProps["checked"]
+
+export function DropdownMenuColumns() {
+    const [showColumnOne, setShowColumnOne] = React.useState<Checked>(true)
+    const [showColumnTwo, setShowColumnTwo] = React.useState<Checked>(false)
+    const [showColumnThree, setShowColumnThree] = React.useState<Checked>(false)
+    return (
+        <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+                <Button variant="outline">Columns <ChevronDown /></Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent className="w-56">
+                <DropdownMenuLabel>Select columns to display</DropdownMenuLabel>
+                <DropdownMenuSeparator />
+                <DropdownMenuCheckboxItem
+                    checked={showColumnOne}
+                    onCheckedChange={setShowColumnOne}
+                >
+                    Column One
+                </DropdownMenuCheckboxItem>
+                <DropdownMenuCheckboxItem
+                    checked={showColumnTwo}
+                    onCheckedChange={setShowColumnTwo}
+                >
+                    Column Two
+                </DropdownMenuCheckboxItem>
+                <DropdownMenuCheckboxItem
+                    checked={showColumnThree}
+                    onCheckedChange={setShowColumnThree}
+                >
+                    Column Three
+                </DropdownMenuCheckboxItem>
+            </DropdownMenuContent>
+        </DropdownMenu>
+    )
+}
+export function DropdownMenuReportTypes() {
+    const [position, setPosition] = React.useState("typeOne")
+    return (
+        <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+                <Button variant="outline">Report Type <ChevronDown /></Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent className="w-56">
+                <DropdownMenuLabel>Select report type</DropdownMenuLabel>
+                <DropdownMenuSeparator />
+                <DropdownMenuRadioGroup value={position} onValueChange={setPosition}>
+                    <DropdownMenuRadioItem value="typeOne">Report Type One</DropdownMenuRadioItem>
+                    <DropdownMenuRadioItem value="typeTwo">Report Type Two</DropdownMenuRadioItem>
+                    <DropdownMenuRadioItem value="typeThree">Report Type Three</DropdownMenuRadioItem>
+                </DropdownMenuRadioGroup>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem>Define new report...</DropdownMenuItem>
+            </DropdownMenuContent>
+        </DropdownMenu>
+    )
+}
+export function DropdownMenuReportFormats() {
+    const [position, setPosition] = React.useState("excel")
+    return (
+        <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+                <Button variant="outline">Format <ChevronDown /></Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent className="w-56">
+                <DropdownMenuLabel>Select export format</DropdownMenuLabel>
+                <DropdownMenuSeparator />
+                <DropdownMenuRadioGroup value={position} onValueChange={setPosition}>
+                    <DropdownMenuRadioItem value="excel">Excel</DropdownMenuRadioItem>
+                    <DropdownMenuRadioItem value="csv">CSV</DropdownMenuRadioItem>
+                    <DropdownMenuRadioItem value="pdf">PDF</DropdownMenuRadioItem>
+                </DropdownMenuRadioGroup>
+            </DropdownMenuContent>
+        </DropdownMenu>
+    )
+}
+
+// End of copied code from ShadCN.
+
+interface NavItemComponents {
+    [key: string]: React.ReactNode;
+}
+
+const navComponents: NavItemComponents = {
+    datePicker: <Calendar28 />,
+    dayWeekMonthTabs:
+        <Tabs defaultValue="week">
+            <TabsList>
+                <TabsTrigger value="day">Day</TabsTrigger>
+                <TabsTrigger value="week">Week</TabsTrigger>
+                <TabsTrigger value="month">Month</TabsTrigger>
+            </TabsList>
+        </Tabs>,
+    calendarViewTabs:
+        <Tabs defaultValue="calendar">
+            <TabsList>
+                <TabsTrigger value="list">List View</TabsTrigger>
+                <TabsTrigger value="calendar">Calendar View</TabsTrigger>
+            </TabsList>
+        </Tabs>,
+    adminSettingsTabs:
+        <Tabs defaultValue="general">
+            <TabsList>
+                <TabsTrigger value="general">General</TabsTrigger>
+                <TabsTrigger value="forms">Forms</TabsTrigger>
+                <TabsTrigger value="roles">Roles</TabsTrigger>
+                <TabsTrigger value="auditLog">Audit Log</TabsTrigger>
+                <TabsTrigger value="locations">Locations</TabsTrigger>
+            </TabsList>
+        </Tabs>,
+    previousButton: <Button size="sm" variant="secondary" className="active:bg-primary/90">Previous</Button>,
+    nextButton: <Button size="sm" variant="secondary" className="active:bg-primary/90">Next</Button>,
+    filtersButton: <Button size="sm" variant="secondary" className="active:bg-primary/90">Filters</Button>,
+    exportButton: <Button size="sm" variant="secondary" className="active:bg-primary/90">Export</Button>,
+    printButton: <Button size="sm" variant="secondary" className="active:bg-primary/90">Print</Button>,
+    cancelButton: <Button size="sm" variant="secondary" className="active:bg-primary/90">Cancel</Button>,
+    columnSelector: <DropdownMenuColumns />,
+    reportTypeSelector: <DropdownMenuReportTypes />,
+    reportFormatSelector: <DropdownMenuReportFormats />,
+    searchBar: null, // todo: make a search field
+    newOrganizationPButton: <Button size="sm" className="active:bg-primary/90">New Organization</Button>,
+    newRidePButton: <Button size="sm" className="active:bg-primary/90">New Ride</Button>,
+    cancelRidePButton: <Button size="sm" className="active:bg-primary/90">Cancel Ride</Button>,
+    unavailabilityPButton: <Button size="sm" className="active:bg-primary/90">Schedule Unavailability</Button>,
+    newClientPButton: <Button size="sm" className="active:bg-primary/90">New Client</Button>,
+    newUserPButton: <Button size="sm" className="active:bg-primary/90">New User</Button>,
+    editPagePButton: <Button size="sm" className="active:bg-primary/90">Edit Page</Button>,
+    saveChangesPButton: <Button size="sm" className="active:bg-primary/90">Save Changes</Button>,
+    newRolePButton: <Button size="sm" className="active:bg-primary/90">New Role</Button>,
+    saveRolePButton: <Button size="sm" className="active:bg-primary/90">Save Role</Button>,
+    exportPButton: <Button size="sm" className="active:bg-primary/90">Export</Button>,
+    newAliasPButton: <Button size="sm" className="active:bg-primary/90">New Alias</Button>
+}
+
+const secondaryNavConfigs = {
+    "/organizations": {
+        "superadmin": {
+            leftNavItems: [navComponents.search, navComponents.filtersButton, navComponents.exportButton],
+            rightNavItems: [navComponents.newOrganizationPButton]
+        }
+    },
+    "/schedule-calendarview": {
+        "driver": {
+            leftNavItems: [navComponents.datePicker, navComponents.calendarViewTabs, navComponents.dayWeekMonthTabs, navComponents.filtersButton, navComponents.printButton],
+            rightNavItems: [navComponents.previousButton, navComponents.nextButton, navComponents.cancelRidePButton]
+        },
+        "dispatcher": {
+            leftNavItems: [navComponents.datePicker, navComponents.calendarViewTabs, navComponents.dayWeekMonthTabs, navComponents.filtersButton, navComponents.printButton],
+            rightNavItems: [navComponents.previousButton, navComponents.nextButton, navComponents.newRidePButton]
+        }
+    },
+    "/schedule-listview": {
+        "driver": {
+            leftNavItems: [navComponents.datePicker, navComponents.calendarViewTabs, navComponents.filtersButton, navComponents.printButton],
+            rightNavItems: [navComponents.previousButton, navComponents.nextButton, navComponents.cancelRidePButton]
+        }
+    },
+    "/unassigned-calendarview": {
+        "driver": {
+            leftNavItems: [navComponents.datePicker, navComponents.calendarViewTabs, navComponents.dayWeekMonthTabs, navComponents.filtersButton, navComponents.printButton],
+            rightNavItems: [navComponents.previousButton, navComponents.nextButton]
+        }
+    },
+    "/unassigned-listview": {
+        "driver": {
+            leftNavItems: [navComponents.datePicker, navComponents.calendarViewTabs, navComponents.filtersButton, navComponents.printButton],
+            rightNavItems: [navComponents.previousButton, navComponents.nextButton]
+        }
+    },
+    "/notifications": {
+        "driver": {
+            leftNavItems: [navComponents.datePicker, navComponents.filtersButton, navComponents.printButton],
+            rightNavItems: [navComponents.previousButton, navComponents.nextButton, navComponents.cancelRidePButton]
+        }
+    },
+    "/availability": {
+        "driver": {
+            leftNavItems: [navComponents.datePicker, navComponents.calendarViewTabs, navComponents.dayWeekMonthTabs, navComponents.filtersButton, navComponents.printButton],
+            rightNavItems: [navComponents.previousButton, navComponents.nextButton, navComponents.unavailabilityPButton]
+        }
+    },
+    "/clients": {
+        "dispatcher": {
+            leftNavItems: [navComponents.search, navComponents.filtersButton, navComponents.columnSelector, navComponents.exportButton],
+            rightNavItems: [navComponents.newClientPButton]
+        }
+    },
+    "/users": {
+        "dispatcher": {
+            leftNavItems: [navComponents.search, navComponents.filtersButton, navComponents.columnSelector, navComponents.exportButton],
+            rightNavItems: [navComponents.newUserPButton]
+        },
+        "admin": {
+            leftNavItems: [navComponents.search, navComponents.filtersButton, navComponents.columnSelector, navComponents.exportButton],
+            rightNavItems: [navComponents.newUserPButton]
+        }
+    },
+    "/reports": {
+        "admin": {
+            leftNavItems: [navComponents.datePicker, navComponents.reportTypeSelector, navComponents.reportFormatSelector, navComponents.filtersButton],
+            rightNavItems: [navComponents.exportPButton]
+        }
+    },
+    "/org-settings-general": {
+        "admin": {
+            leftNavItems: [navComponents.adminSettingsTabs],
+            rightNavItems: [navComponents.saveChangesPButton]
+        }
+    },
+    "/org-settings-forms": {
+        "admin": {
+            leftNavItems: [navComponents.adminSettingsTabs],
+            rightNavItems: [navComponents.saveChangesPButton]
+        }
+    },
+    "/org-settings-roles": {
+        "admin": {
+            leftNavItems: [navComponents.searchBar, navComponents.adminSettingsTabs],
+            rightNavItems: [navComponents.newRolePButton]
+        }
+    },
+    "/org-settings-editrole": {
+        "admin": {
+            leftNavItems: [navComponents.searchBar, navComponents.adminSettingsTabs],
+            rightNavItems: [navComponents.saveRolePButton]
+        }
+    },
+    "/org-settings-auditlog": {
+        "admin": {
+            leftNavItems: [navComponents.searchBar, navComponents.adminSettingsTabs, navComponents.filtersButton],
+            rightNavItems: [navComponents.exportPButton]
+        }
+    },
+    "/org-settings-locations": {
+        "admin": {
+            leftNavItems: [navComponents.searchBar, navComponents.adminSettingsTabs],
+            rightNavItems: [navComponents.newAliasPButton]
+        }
+    }
+}
+
+export const SecondaryNavigation = () => {
+    const testRoute = "/organizations";
+    const testRole = "superadmin";
+    return <NavigationLayout
+        leftNavItems={
+            secondaryNavConfigs[testRoute][testRole].leftNavItems.map((Component) => (Component))
+        }
+        rightNavItems={
+            secondaryNavConfigs[testRoute][testRole].rightNavItems.map((Component) => (Component))
+        }
+    />
 }
