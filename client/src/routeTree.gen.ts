@@ -9,6 +9,7 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as AdminSettingsRouteImport } from './routes/admin-settings'
 import { Route as LoginRouteRouteImport } from './routes/_login/route'
 import { Route as AuthRouteRouteImport } from './routes/_auth/route'
 import { Route as IndexRouteImport } from './routes/index'
@@ -16,6 +17,11 @@ import { Route as LoginSignInRouteImport } from './routes/_login/sign-in'
 import { Route as LoginResetPasswordRouteImport } from './routes/_login/reset-password'
 import { Route as LoginForgetPasswordRouteImport } from './routes/_login/forget-password'
 
+const AdminSettingsRoute = AdminSettingsRouteImport.update({
+  id: '/admin-settings',
+  path: '/admin-settings',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const LoginRouteRoute = LoginRouteRouteImport.update({
   id: '/_login',
   getParentRoute: () => rootRouteImport,
@@ -47,12 +53,14 @@ const LoginForgetPasswordRoute = LoginForgetPasswordRouteImport.update({
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/admin-settings': typeof AdminSettingsRoute
   '/forget-password': typeof LoginForgetPasswordRoute
   '/reset-password': typeof LoginResetPasswordRoute
   '/sign-in': typeof LoginSignInRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/admin-settings': typeof AdminSettingsRoute
   '/forget-password': typeof LoginForgetPasswordRoute
   '/reset-password': typeof LoginResetPasswordRoute
   '/sign-in': typeof LoginSignInRoute
@@ -62,20 +70,32 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/_auth': typeof AuthRouteRoute
   '/_login': typeof LoginRouteRouteWithChildren
+  '/admin-settings': typeof AdminSettingsRoute
   '/_login/forget-password': typeof LoginForgetPasswordRoute
   '/_login/reset-password': typeof LoginResetPasswordRoute
   '/_login/sign-in': typeof LoginSignInRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/forget-password' | '/reset-password' | '/sign-in'
+  fullPaths:
+    | '/'
+    | '/admin-settings'
+    | '/forget-password'
+    | '/reset-password'
+    | '/sign-in'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/forget-password' | '/reset-password' | '/sign-in'
+  to:
+    | '/'
+    | '/admin-settings'
+    | '/forget-password'
+    | '/reset-password'
+    | '/sign-in'
   id:
     | '__root__'
     | '/'
     | '/_auth'
     | '/_login'
+    | '/admin-settings'
     | '/_login/forget-password'
     | '/_login/reset-password'
     | '/_login/sign-in'
@@ -85,10 +105,18 @@ export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AuthRouteRoute: typeof AuthRouteRoute
   LoginRouteRoute: typeof LoginRouteRouteWithChildren
+  AdminSettingsRoute: typeof AdminSettingsRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/admin-settings': {
+      id: '/admin-settings'
+      path: '/admin-settings'
+      fullPath: '/admin-settings'
+      preLoaderRoute: typeof AdminSettingsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/_login': {
       id: '/_login'
       path: ''
@@ -154,6 +182,7 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AuthRouteRoute: AuthRouteRoute,
   LoginRouteRoute: LoginRouteRouteWithChildren,
+  AdminSettingsRoute: AdminSettingsRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
