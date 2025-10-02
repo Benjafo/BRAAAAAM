@@ -332,12 +332,12 @@ function AdminGeneralForm() {
                                                                     data-empty={!field.value}
                                                                     className="data-[empty=true]:text-muted-foreground w-80 justify-start text-left font-normal"
                                                                 >
-                                                                    <CalendarIcon />
                                                                     {field.value instanceof Date ? (
                                                                         format(field.value, "PPP")
                                                                     ) : (
                                                                         <span>Pick a date</span>
                                                                     )}
+                                                                    <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
                                                                 </Button>
                                                             </PopoverTrigger>
                                                             <PopoverContent className="w-auto p-0">
