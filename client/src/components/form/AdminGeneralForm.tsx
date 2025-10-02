@@ -10,10 +10,14 @@ import {
     FormLabel,
     FormMessage,
 } from "@/components/ui/form";
+import { Calendar } from "@/components/ui/calendar";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
+import { format } from "date-fns";
+import { Calendar as CalendarIcon } from "lucide-react";
 import z from "zod";
 
 /**
@@ -34,6 +38,7 @@ const adminGeneralSchema = z.object({
             /^(?:[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?\.)+[a-z0-9][a-z0-9-]{0,61}[a-z0-9]$/i,
             "Please enter a valid domain (e.g., example.com)"
         ),
+    creationDate: z.date(),
 
     // Organization Contacts
     phone: z
@@ -50,24 +55,17 @@ const adminGeneralSchema = z.object({
         .string()
         .min(1, "Street address is required")
         .max(200, "Street address must not exceed 200 characters"),
-    addressDomain: z
-        .string()
-        .optional()
-        .or(z.literal(""))
-        .refine(
-            (val) =>
-                !val ||
-                /^(?:[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?\.)+[a-z0-9][a-z0-9-]{0,61}[a-z0-9]$/i.test(
-                    val
-                ),
-            "Please enter a valid domain (e.g., example.com)"
-        ),
+
     zip: z
         .string()
         .min(1, "Zip code is required")
         .regex(/^\d{5}(-\d{4})?$/, "Please enter a valid zip code (e.g., 12345 or 12345-6789)"),
     city: z.string().min(1, "City is required").max(100, "City must not exceed 100 characters"),
     state: z.string().min(1, "State is required").max(50, "State must not exceed 50 characters"),
+    country: z
+        .string()
+        .min(1, "Country is required")
+        .max(100, "Country must not exceed 100 characters"),
 
     // API Keys
     postmarkApiKey: z
@@ -88,16 +86,18 @@ type AdminGeneralFormData = z.infer<typeof adminGeneralSchema>;
 function AdminGeneralForm() {
     const [activeTab, setActiveTab] = useState("general");
     const [isEditMode, setIsEditMode] = useState(false);
+    const [isCalendarOpen, setIsCalendarOpen] = useState(false);
     const [serverData, setServerData] = useState<AdminGeneralFormData>({
         name: "corporation name",
         logoUrl: "",
         organizationDomain: "corporation.com",
+        creationDate: new Date("2025-09-10"),
         phone: "(111) 111-1111",
         email: "contact@gmail.com",
         street: "123 Main St",
-        addressDomain: "",
         zip: "12345",
         city: "New York",
+        country: "United States",
         state: "NY",
         postmarkApiKey: "pm_test_1234567890",
         apiDomain: "api.google.com",
@@ -112,16 +112,33 @@ function AdminGeneralForm() {
     });
 
     // Reset edit mode when switching tabs
+    const serverDataRef = useRef(serverData);
     useEffect(() => {
         if (activeTab !== "general" && isEditMode) {
-            form.reset(serverData);
+            form.reset(serverDataRef.current);
             setIsEditMode(false);
             setLogoFile(null);
         }
-    }, [activeTab, isEditMode, form, serverData]);
+    }, [activeTab, isEditMode, form]);
+
+    // Handling logo file change
+    const handleLogoChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0];
+        if (file) {
+            setLogoFile(file);
+        }
+    }, []);
+
+    // Handling cancel
+    const handleCancel = useCallback(() => {
+        // Reset to server data
+        form.reset(serverData);
+        setIsEditMode(false);
+        setLogoFile(null);
+    }, [form, serverData]);
 
     // Handling save data
-    const handleEditOrSave = async () => {
+    const handleEditOrSave = useCallback(async () => {
         if (isEditMode) {
             try {
                 // Validate form
@@ -160,21 +177,7 @@ function AdminGeneralForm() {
             // Enter edit mode
             setIsEditMode(true);
         }
-    };
-
-    const handleCancel = () => {
-        // Reset to server data
-        form.reset(serverData);
-        setIsEditMode(false);
-        setLogoFile(null);
-    };
-
-    const handleLogoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        const file = e.target.files?.[0];
-        if (file) {
-            setLogoFile(file);
-        }
-    };
+    }, [isEditMode, form, logoFile]);
 
     const getButtonText = () => {
         if (activeTab === "general") {
@@ -310,6 +313,60 @@ function AdminGeneralForm() {
                                             </FormItem>
                                         )}
                                     />
+
+                                    <FormField
+                                        control={form.control}
+                                        name="creationDate"
+                                        render={({ field }) => (
+                                            <FormItem className="grid gap-3">
+                                                <FormLabel>Creation Date</FormLabel>
+                                                {isEditMode ? (
+                                                    <FormControl>
+                                                        <Popover
+                                                            open={isCalendarOpen}
+                                                            onOpenChange={setIsCalendarOpen}
+                                                        >
+                                                            <PopoverTrigger asChild>
+                                                                <Button
+                                                                    variant="outline"
+                                                                    data-empty={!field.value}
+                                                                    className="data-[empty=true]:text-muted-foreground w-80 justify-start text-left font-normal"
+                                                                >
+                                                                    <CalendarIcon />
+                                                                    {field.value instanceof Date ? (
+                                                                        format(field.value, "PPP")
+                                                                    ) : (
+                                                                        <span>Pick a date</span>
+                                                                    )}
+                                                                </Button>
+                                                            </PopoverTrigger>
+                                                            <PopoverContent className="w-auto p-0">
+                                                                <Calendar
+                                                                    mode="single"
+                                                                    selected={
+                                                                        field.value instanceof Date
+                                                                            ? field.value
+                                                                            : undefined
+                                                                    }
+                                                                    onSelect={(date) => {
+                                                                        field.onChange(date);
+                                                                        setIsCalendarOpen(false);
+                                                                    }}
+                                                                />
+                                                            </PopoverContent>
+                                                        </Popover>
+                                                    </FormControl>
+                                                ) : (
+                                                    <p className="text-sm">
+                                                        {field.value instanceof Date
+                                                            ? format(field.value, "PPP")
+                                                            : "Empty"}
+                                                    </p>
+                                                )}
+                                                <FormMessage />
+                                            </FormItem>
+                                        )}
+                                    />
                                 </CardContent>
                             </Card>
 
@@ -402,35 +459,6 @@ function AdminGeneralForm() {
 
                                     <FormField
                                         control={form.control}
-                                        name="addressDomain"
-                                        render={({ field }) => (
-                                            <FormItem className="grid gap-3">
-                                                <FormLabel>
-                                                    Address Domain{" "}
-                                                    <span className="text-muted-foreground">
-                                                        (optional)
-                                                    </span>
-                                                </FormLabel>
-                                                {isEditMode ? (
-                                                    <FormControl>
-                                                        <Input
-                                                            placeholder="domain.com"
-                                                            className="w-80"
-                                                            {...field}
-                                                        />
-                                                    </FormControl>
-                                                ) : (
-                                                    <p className="text-sm">
-                                                        {field.value || "Empty"}
-                                                    </p>
-                                                )}
-                                                <FormMessage />
-                                            </FormItem>
-                                        )}
-                                    />
-
-                                    <FormField
-                                        control={form.control}
                                         name="zip"
                                         render={({ field }) => (
                                             <FormItem className="grid gap-3">
@@ -487,6 +515,30 @@ function AdminGeneralForm() {
                                                     <FormControl>
                                                         <Input
                                                             placeholder="NY"
+                                                            className="w-80"
+                                                            {...field}
+                                                        />
+                                                    </FormControl>
+                                                ) : (
+                                                    <p className="text-sm">
+                                                        {field.value || "Empty"}
+                                                    </p>
+                                                )}
+                                                <FormMessage />
+                                            </FormItem>
+                                        )}
+                                    />
+
+                                    <FormField
+                                        control={form.control}
+                                        name="country"
+                                        render={({ field }) => (
+                                            <FormItem className="grid gap-3">
+                                                <FormLabel>Country</FormLabel>
+                                                {isEditMode ? (
+                                                    <FormControl>
+                                                        <Input
+                                                            placeholder="United States"
                                                             className="w-80"
                                                             {...field}
                                                         />
