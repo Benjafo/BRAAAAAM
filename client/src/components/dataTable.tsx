@@ -22,7 +22,7 @@ import {
   SelectValue,
 } from "@/components/ui/select"
 
-export type SimpleColumn<T extends Record<string, any>> = {
+export type SimpleColumn<T extends Record<string, unknown>> = {
   header: React.ReactNode;
   accessorKey?: keyof T | string;
   accessorFn?: (row: T) => unknown;
@@ -33,7 +33,7 @@ export type SimpleColumn<T extends Record<string, any>> = {
   render?: (value: unknown, row: T) => React.ReactNode;
 };
 
-export type DataTableProps<T extends Record<string, any>> = {
+export type DataTableProps<T extends Record<string, unknown>> = {
   data?: T[];
   columns?: SimpleColumn<T>[];
   defaultData?: T[];
@@ -51,15 +51,36 @@ export type DataTableProps<T extends Record<string, any>> = {
   selectable?: boolean;
 };
 
-function getByPath(obj: any, path?: unknown) {
+function isRecord(v: unknown): v is Record<string | number, unknown> {
+  return typeof v === "object" && v !== null;
+}
+
+function getByPath(obj: unknown, path?: unknown): unknown {
   if (path == null || path === "") return undefined;
-  if (typeof path !== "string") return obj?.[path as any];
+  if (typeof path !== "string") {
+    if (!isRecord(obj)) return undefined
+    const key = String(path);
+    return obj[key];
+  }
+
   const parts = path.replace(/\[(\d+)\]/g, ".$1").split(".").filter(Boolean);
-  return parts.reduce((acc: any, seg: string) => {
-    if (acc == null) return undefined;
-    const k: any = /^\d+$/.test(seg) ? Number(seg) : seg;
-    return acc?.[k];
-  }, obj);
+
+  let acc: unknown = obj
+  for (const seg of parts) {
+    if (acc == null) return undefined
+
+    const numeric = /^\d+$/.test(seg)
+    const key = numeric ? Number(seg) : seg
+
+    if (Array.isArray(acc)) {
+      acc = acc[key as number]
+    } else if (isRecord(acc)) {
+      acc = acc[key as keyof typeof acc]
+    } else {
+      return undefined
+    }
+  }
+  return acc
 }
 
 // Convert camelCase variables into nice format - firstName -> First Name
@@ -70,17 +91,17 @@ function prettify(key: string) {
     .replace(/^\w/, (c) => c.toUpperCase());
 }
 
-function inferColumns<T extends Record<string, any>>(sample: T): SimpleColumn<T>[] {
+function inferColumns<T extends Record<string, unknown>>(sample: T): SimpleColumn<T>[] {
   return Object.keys(sample).map((k) => ({
     header: prettify(k),
-    accessorKey: k,
+    accessorKey: k as keyof T,
     sortable: true,
   })) as SimpleColumn<T>[];
 }
 
 type Sort = { index: number; dir: "asc" | "desc" } | null;
 
-export function DataTable<T extends Record<string, any>>({
+export function DataTable<T extends Record<string, unknown>>({
   data,
   columns,
   defaultData,
@@ -124,15 +145,15 @@ export function DataTable<T extends Record<string, any>>({
   const sortedRows = React.useMemo(() => {
     if (!rows.length || !visibleCols.length || !sort) return rows;
     const col = visibleCols[sort.index];
-    const getter = (r: T) =>
-      col.accessorFn ? col.accessorFn(r) : getByPath(r, col.accessorKey as any);
+    const getter = (r: T): unknown =>
+      col.accessorFn ? col.accessorFn(r) : getByPath(r, col.accessorKey as string);
 
     const copy = [...rows];
     copy.sort((a, b) => {
       const va = getter(a);
       const vb = getter(b);
-      const na = va instanceof Date ? va.getTime() : (va as any);
-      const nb = vb instanceof Date ? vb.getTime() : (vb as any);
+      const na = va instanceof Date ? va.getTime() : (va as unknown);
+      const nb = vb instanceof Date ? vb.getTime() : (vb as unknown);
       if (na == null && nb == null) return 0;
       if (na == null) return 1;
       if (nb == null) return -1;
@@ -384,7 +405,7 @@ export function DataTable<T extends Record<string, any>>({
                       {visibleCols.map((col, cIdx) => {
                         const raw = col.accessorFn
                           ? col.accessorFn(row)
-                          : getByPath(row, col.accessorKey as any);
+                          : getByPath(row, col.accessorKey as string);
                         const value = raw ?? emptyValue;
                         const align =
                           col.align === "right"
@@ -399,7 +420,7 @@ export function DataTable<T extends Record<string, any>>({
                             className={`${col.className ?? ""} ${align}`}
                             role="cell"
                           >
-                            {col.render ? col.render(value, row) : (value as any)}
+                            {col.render ? col.render(value, row) : (value as React.ReactNode)}
                           </TableCell>
                         );
                       })}
