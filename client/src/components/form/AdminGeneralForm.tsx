@@ -103,6 +103,11 @@ function AdminGeneralForm() {
         apiDomain: "api.google.com",
     });
     const [logoFile, setLogoFile] = useState<File | null>(null);
+    const [uploadedFileName, setUploadedFileName] = useState<string | null>(null);
+
+    // Refs
+    const serverDataRef = useRef(serverData);
+    const fileInputRef = useRef<HTMLInputElement>(null);
 
     // React Hook Form setup with Zod validation
     const form = useForm<AdminGeneralFormData>({
@@ -111,8 +116,12 @@ function AdminGeneralForm() {
         mode: "onBlur",
     });
 
+    // Keep serverDataRef in sync with serverData
+    useEffect(() => {
+        serverDataRef.current = serverData;
+    }, [serverData]);
+
     // Reset edit mode when switching tabs
-    const serverDataRef = useRef(serverData);
     useEffect(() => {
         if (activeTab !== "general" && isEditMode) {
             form.reset(serverDataRef.current);
@@ -121,21 +130,52 @@ function AdminGeneralForm() {
         }
     }, [activeTab, isEditMode, form]);
 
+    // Cleanup URLs to prevent memory leaks
+    useEffect(() => {
+        return () => {
+            if (serverData.logoUrl && serverData.logoUrl.startsWith("blob:")) {
+                URL.revokeObjectURL(serverData.logoUrl);
+            }
+        };
+    }, [serverData.logoUrl]);
+
     // Handling logo file change
     const handleLogoChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0];
-        if (file) {
-            setLogoFile(file);
+        if (!file) return;
+
+        // Validate file size (2MB max)
+        const MAX_FILE_SIZE = 2 * 1024 * 1024; // 2MB in bytes
+        if (file.size > MAX_FILE_SIZE) {
+            toast.error("File size must be less than 2MB");
+            // Clear the input
+            e.target.value = "";
+            return;
         }
+
+        // Validate file type
+        const allowedTypes = ["image/jpeg", "image/jpg", "image/png", "image/webp"];
+        if (!allowedTypes.includes(file.type)) {
+            toast.error("Please upload a valid image file (JPEG, PNG, or WebP)");
+            e.target.value = "";
+            return;
+        }
+
+        setLogoFile(file);
     }, []);
 
     // Handling cancel
     const handleCancel = useCallback(() => {
-        // Reset to server data
-        form.reset(serverData);
+        // Reset to server data using ref
+        form.reset(serverDataRef.current);
         setIsEditMode(false);
         setLogoFile(null);
-    }, [form, serverData]);
+
+        // Clear file input
+        if (fileInputRef.current) {
+            fileInputRef.current.value = "";
+        }
+    }, [form]);
 
     // Handling save data
     const handleEditOrSave = useCallback(async () => {
@@ -152,10 +192,25 @@ function AdminGeneralForm() {
 
                 // Handle logo file upload if a new file was selected
                 if (logoFile) {
+                    // Revoke previous blob URL if it exists
+                    if (serverData.logoUrl && serverData.logoUrl.startsWith("blob:")) {
+                        URL.revokeObjectURL(serverData.logoUrl);
+                    }
+
+                    // Create a temporary object URL for preview
+                    const tempUrl = URL.createObjectURL(logoFile);
+                    formData.logoUrl = tempUrl;
+
+                    // Store the uploaded file name
+                    setUploadedFileName(logoFile.name);
+
                     // TODO: Implement actual file upload to the backend
                     // const uploadedUrl = await uploadLogo(logoFile);
                     // formData.logoUrl = uploadedUrl;
                     console.log("Logo file to upload:", logoFile);
+                } else {
+                    // Preserve existing logo if no new file was selected
+                    formData.logoUrl = serverData.logoUrl;
                 }
 
                 // API Call to save data
@@ -168,6 +223,11 @@ function AdminGeneralForm() {
                 setIsEditMode(false);
                 setLogoFile(null);
 
+                // Clear file input after successful save
+                if (fileInputRef.current) {
+                    fileInputRef.current.value = "";
+                }
+
                 toast.success("Settings saved successfully.");
             } catch (error) {
                 console.error("Save failed:", error);
@@ -177,7 +237,7 @@ function AdminGeneralForm() {
             // Enter edit mode
             setIsEditMode(true);
         }
-    }, [isEditMode, form, logoFile]);
+    }, [isEditMode, form, logoFile, serverData.logoUrl]);
 
     const getButtonText = () => {
         if (activeTab === "general") {
@@ -270,23 +330,64 @@ function AdminGeneralForm() {
                                     <FormItem className="grid gap-3">
                                         <FormLabel>Logo</FormLabel>
                                         {isEditMode ? (
-                                            <div className="space-y-2">
-                                                <Input
-                                                    type="file"
-                                                    accept="image/jpeg,image/jpg,image/png,image/webp"
-                                                    className="w-80 cursor-pointer"
-                                                    onChange={handleLogoChange}
-                                                />
-                                                {logoFile && (
-                                                    <p className="text-sm text-muted-foreground">
-                                                        Selected: {logoFile.name}
-                                                    </p>
+                                            <div className="space-y-3">
+                                                {serverData.logoUrl && (
+                                                    <div className="space-y-2">
+                                                        <img
+                                                            src={serverData.logoUrl}
+                                                            alt="Organization logo"
+                                                            className="h-16 w-auto object-contain border rounded p-2"
+                                                        />
+                                                        {uploadedFileName && (
+                                                            <p className="text-sm text-muted-foreground">
+                                                                Current file: {uploadedFileName}
+                                                            </p>
+                                                        )}
+                                                    </div>
                                                 )}
+                                                <div className="space-y-2">
+                                                    <Input
+                                                        ref={fileInputRef}
+                                                        type="file"
+                                                        accept="image/jpeg,image/jpg,image/png,image/webp"
+                                                        className="w-80 cursor-pointer"
+                                                        onChange={handleLogoChange}
+                                                    />
+                                                    {logoFile ? (
+                                                        <p className="text-sm text-muted-foreground">
+                                                            New file selected: {logoFile.name}
+                                                        </p>
+                                                    ) : serverData.logoUrl ? (
+                                                        <p className="text-xs text-muted-foreground">
+                                                            Choose a file to replace the current
+                                                            logo
+                                                        </p>
+                                                    ) : (
+                                                        <p className="text-xs text-muted-foreground">
+                                                            Choose a file to upload
+                                                        </p>
+                                                    )}
+                                                </div>
                                             </div>
                                         ) : (
-                                            <p className="text-sm">
-                                                {serverData.logoUrl || "No logo uploaded"}
-                                            </p>
+                                            <div className="space-y-2">
+                                                {serverData.logoUrl ? (
+                                                    <>
+                                                        <img
+                                                            src={serverData.logoUrl}
+                                                            alt="Organization logo"
+                                                            className="h-16 w-auto object-contain border rounded p-2"
+                                                        />
+                                                        {uploadedFileName && (
+                                                            <p className="text-sm text-muted-foreground">
+                                                                Current file: {uploadedFileName}
+                                                            </p>
+                                                        )}
+                                                    </>
+                                                ) : (
+                                                    <p className="text-sm">No logo uploaded</p>
+                                                )}
+                                            </div>
                                         )}
                                     </FormItem>
 
