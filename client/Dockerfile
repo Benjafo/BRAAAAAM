@@ -8,6 +8,7 @@ RUN npm install
 
 COPY . .
 
-CMD ["npm", "run", "dev"]
+# Execute build during runtime
+CMD ["sh", "-c", "npm run build && npm run dev"]
 
 EXPOSE 5173
