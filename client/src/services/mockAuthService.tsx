@@ -6,28 +6,34 @@ import { useAuthStore } from "@/components/stores/authStore";
 const MOCK_USERS: Record<string, { user: User; password: string }> = {
     "admin@gmail.com": {
         user: {
-            id: "1",
+            id: 1,
             email: "admin@gmail.com",
-            name: "Admin User",
+            firstName: "Admin",
+            lastName: "User",
             role: "admin",
+            permissions: [],
         },
         password: "password123",
     },
     "driver@gmail.com": {
         user: {
-            id: "2",
+            id: 2,
             email: "driver@gmail.com",
-            name: "Driver User",
+            firstName: "Driver",
+            lastName: "User",
             role: "user",
+            permissions: [],
         },
         password: "password1234",
     },
     "dispatcher@gmail.com": {
         user: {
-            id: "3",
+            id: 3,
             email: "dispatcher@gmail.com",
-            name: "Dispatcher User",
+            firstName: "Dispatcher",
+            lastName: "User",
             role: "user",
+            permissions: [],
         },
         password: "password1235",
     },
@@ -43,7 +49,7 @@ const delay = (ms: number): Promise<void> => {
 /**
  * Generate mock JWT token
  */
-const generateMockToken = (userId: string): string => {
+const generateMockToken = (userId: number): string => {
     const header = btoa(JSON.stringify({ alg: "HS256", typ: "JWT" }));
     const payload = btoa(
         JSON.stringify({

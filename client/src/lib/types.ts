@@ -1,14 +1,15 @@
 export type Permission = {
     id: string;
     title?: string;
-    description?: string; 
+    description?: string;
 }
 
-export type User = {
-    id: string;
+export interface User {
+    id: number;
     email: string;
     firstName: string;
     lastName: string;
+    role: string;
     permissions: Permission[];
 }
 
