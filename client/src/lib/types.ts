@@ -23,10 +23,10 @@ export interface User {
 //     password: string;
 // }
 
-// export type RefreshAccessTokenRequest = {
-//     message?: string,
-//     accessToken: string,
-// }
+export type RefreshAccessTokenRequest = {
+    message?: string,
+    accessToken: string,
+}
 
 
 

@@ -1,8 +1,11 @@
-import { useAuth } from "@/hooks/useAuth";
+import { useLogout } from "@/hooks/useAuth";
+import { useAuthStore } from "./stores/authStore";
 import { Button } from "./ui/button";
 
 export function UserProfile() {
-    const { user, signOut, isLoading } = useAuth();
+    // const { user, signOut, isLoading } = useAuth();
+    const user = useAuthStore((s) => s.user)
+    const logout = useLogout()
 
     if (!user) return null;
 
@@ -16,8 +19,8 @@ export function UserProfile() {
                 <div className="text-xs text-blue-600">Role: {user.role}</div>
             </div>
 
-            <Button variant="outline" size="sm" onClick={() => signOut()} disabled={isLoading}>
-                {isLoading ? "Signing out..." : "Sign Out"}
+            <Button variant="outline" size="sm" onClick={() => logout.mutate()} disabled={logout.isPending}>
+                {logout.isPending ? "Signing out..." : "Sign Out"}
             </Button>
         </div>
     );

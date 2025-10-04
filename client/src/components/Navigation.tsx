@@ -4,9 +4,8 @@ import { Link, useNavigate } from "@tanstack/react-router";
 import { Button } from "./ui/button";
 import { PERMISSIONS } from "@/lib/permissions";
 import { LogOut } from "lucide-react";
-import { useAuthStore, useIsAuthed } from "./stores/authStore";
+import { useAuthStore } from "./stores/authStore";
 import { useLogout } from "@/hooks/useAuth";
-// import { useAuth } from "../hooks/useAuth";
 
 /**
  * A generic navigation layout component that can be used to create different types of navigation bars.
@@ -140,8 +139,8 @@ export const MainNavigation = ({
     ],
 }: MainNavProps) => {
     const navigate = useNavigate();
-    const user = useAuthStore((s) => s.user)
-    const isAuthed = useIsAuthed()
+    const user = useAuthStore((s) => s.user);
+    //maybe check for isAuthed, possibly not required.
     const logout = useLogout()
     /**
      * @TODO Add useUser() hook to get user information

@@ -1,8 +1,8 @@
 import { ky } from "@/lib/ky-auth";
-import type { SignInResponse } from "@/lib/types";
+import type { LoginResponse } from "@/lib/types";
 import { useMutation } from "@tanstack/react-query";
 
-const signIn = async (email: string, password: string): Promise<SignInResponse> =>
+const signIn = async (email: string, password: string): Promise<LoginResponse> =>
     await ky
         .post("auth/sign-in", {
             json: {
@@ -10,10 +10,10 @@ const signIn = async (email: string, password: string): Promise<SignInResponse> 
                 password,
             },
         })
-        .json<SignInResponse>();
+        .json<LoginResponse>();
 
 export const useSignIn = () =>
-    useMutation<SignInResponse, Error, { email: string; password: string }>({
+    useMutation<LoginResponse, Error, { email: string; password: string }>({
         mutationFn: ({ email, password }) => signIn(email, password),
     });
 
@@ -21,7 +21,7 @@ const resetPassword = async (
     newPassword: string,
     confirmPassword: string,
     token: string
-): Promise<SignInResponse> =>
+): Promise<LoginResponse> =>
     await ky
         .post("auth/reset-password", {
             json: {
@@ -30,11 +30,11 @@ const resetPassword = async (
                 token,
             },
         })
-        .json<SignInResponse>();
+        .json<LoginResponse>();
 
 export const useResetPassword = () =>
     useMutation<
-        SignInResponse,
+        LoginResponse,
         Error,
         { newPassword: string; confirmPassword: string; token: string }
     >({

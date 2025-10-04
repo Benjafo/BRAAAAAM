@@ -2,6 +2,7 @@ import { authStore, useAuthStore, useIsAuthed } from "@/components/stores/authSt
 import { useNavigate } from "@tanstack/react-router";
 import ky, { HTTPError } from "ky";
 import { toast } from "sonner";
+import type { RefreshAccessTokenRequest } from "./types";
 // import type { RefreshAccessTokenRequest } from "./types";
 
 const kyWithAuth = ky.create({

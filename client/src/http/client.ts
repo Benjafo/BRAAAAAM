@@ -14,6 +14,9 @@ export const createHttpClient = (opts: CreateHttpClientOpts = {}): KyInstance =>
 
     const { baseUrl, getAccessToken, onUnauthorized, onRefresh } = opts;
 
+    // This is a temp fix for build for unused variables. @TODO NEED TO AMEND tsconfig.build.json
+    void onRefresh;
+
     return ky.create({
         prefixUrl: baseUrl,
         hooks: {
@@ -26,7 +29,7 @@ export const createHttpClient = (opts: CreateHttpClientOpts = {}): KyInstance =>
                 },
             ],
             beforeRetry: [ //have to rest, this may not be needed.
-                async ({request, options, error, retryCount}) => {
+                async ({ request }) => {
                     const token = getAccessToken?.()
                     if(token) request.headers.set('Authorization', `Bearer ${token}`);
                 }
