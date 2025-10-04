@@ -148,13 +148,20 @@ export const MainNavigation = ({
      */
 
     const handleSignOut = async () => {
-        try {
-            if(isAuthed) logout.mutate()
-        } catch (error) {
-            console.error("Sign out error:", error);
-        } finally {
-            navigate({to: '/sign-in'})
-        }
+
+
+        logout.mutate(undefined, {
+            onSettled: () => {
+                navigate({to: '/sign-in'})
+            }
+        });
+        // try {
+        //     if(isAuthed) logout.mutate()
+        // } catch (error) {
+        //     console.error("Sign out error:", error);
+        // } finally {
+        //     navigate({to: '/sign-in'})
+        // }
     };
 
     return (
@@ -180,7 +187,7 @@ export const MainNavigation = ({
             }
             rightNavItems={
                 <Button size="sm" onClick={handleSignOut}>
-                    {`${user?.firstName} ${user?.lastName}` || "User"} {/* Dynamic user name */}
+                    {user ? (`${user.firstName} ${user.lastName}`) : ("User")}
                     <LogOut />
                 </Button>
             }

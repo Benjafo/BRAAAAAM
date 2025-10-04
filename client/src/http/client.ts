@@ -1,6 +1,8 @@
 import type { KyInstance } from "ky";
 import ky from "ky";
 
+/* eslint-disable */
+
 type CreateHttpClientOpts = {
     baseUrl?: string;
     getAccessToken?: () => string | null;

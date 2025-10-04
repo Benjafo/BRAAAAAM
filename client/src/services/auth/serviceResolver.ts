@@ -4,7 +4,6 @@
 // import { authStore } from './authStore';
 
 import { authStore } from "@/components/stores/authStore";
-import { ky } from "@/lib/ky-auth";
 import { makeAuthService } from "./authService";
 import type { AuthService } from "@/lib/types";
 import { createHttpClient } from "@/http/client";
@@ -16,11 +15,11 @@ import { createHttpClient } from "@/http/client";
 // const API_URL = import.meta.env.VITE_API_URL;
 
 // Keep a ref to the latest refresh token if you want refresh later:
-let refreshTokenRef: string | null = authStore.getState().refreshToken || null;
+// let refreshTokenRef: string | null = authStore.getState().refreshToken || null;
 
 // If a 401 happens, decide what to do.
 // Simple version: clear auth (or navigate to /login).
-let onUnauthorized = async () => {
+const onUnauthorized = async () => {
   authStore.getState().clearAuth();
 };
 

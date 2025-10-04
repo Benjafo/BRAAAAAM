@@ -47,8 +47,21 @@ export type RefreshResponse = {
   refreshToken?: string;
 };
 
+export type ForgotPasswordResponse = {
+  redactedEmail: string;
+  expiresAt: string;
+  message?: string;
+}
+
+export type ResetPasswordCredentials = {
+  newPassword: string;
+  confirmNewPassword: string;
+}
+
 export interface AuthService {
-  login(creds: Credentials): Promise<LoginResponse>;
+  login(form: Credentials): Promise<LoginResponse>;
   logout(): Promise<void>;
+  resetPassword(form: ResetPasswordCredentials & { token: string }): Promise<void>;
+  forgotPassword(form: { email: string }): Promise<ForgotPasswordResponse>
   refresh?(refreshToken: string): Promise<RefreshResponse>;
 }

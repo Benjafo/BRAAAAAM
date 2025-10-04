@@ -5,7 +5,7 @@ import z from "zod";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "../ui/form";
 import { Input } from "../ui/input";
 import { Button } from "../ui/button";
-import { useForgotPassword } from "@/services/AuthService";
+import { useForgotPassword } from "@/hooks/useAuth";
 
 /**
  * Zod schema for password reset form validation
@@ -38,7 +38,9 @@ function RequestPasswordResetForm({
     email = { label: "Email", placeholder: "user@example.com" },
     submitButtonText = "Send Password Reset",
 }: RequestPasswordResetFormProps) {
-    const forgotPasswordMutation = useForgotPassword();
+
+    const forgotPassword = useForgotPassword()
+
     // React Hook Form setup with Zod validation
     const form = useForm<RequestPasswordResetFormData>({
         resolver: zodResolver(requestPasswordResetSchema),
@@ -55,24 +57,21 @@ function RequestPasswordResetForm({
             console.log("RequestPasswordResetForm onSubmit data", data);
         }
 
-        try {
-            /**
-             * @TODO
-             * Implement ky fetch to api and handle form data
-             */
-
-            const result = await forgotPasswordMutation.mutateAsync({
-                email: data.email,
-            });
-
-            toast.success(result.message || "Password reset email sent!");
-        } catch (error) {
-            if (import.meta.env.DEV) {
-                console.error("RequestPasswordResetForm onSubmit error", error);
+        forgotPassword.mutate({ ...data }, {
+            onSuccess: (res, vars) => {
+                const now = new Date();
+                const expiresAt = new Date(res.expiresAt);
+                const diffMs = expiresAt.getTime() - now.getTime();
+                const diffMinutes = Math.max(0, Math.round(diffMs / 60000));
+                toast.success(`A password reset email has been sent to ${vars.email}.`, {
+                    description: `Expires in ${diffMinutes} minute${diffMinutes !== 1 ? "s" : ""}.`
+                })
+            },
+            onError: () => {
+                toast.error('Failed to request password reset. Please try again later.')
             }
+        });
 
-            toast.error("Failed to request password reset. Please try again.");
-        }
     }
 
     return (
@@ -94,9 +93,9 @@ function RequestPasswordResetForm({
                 <Button
                     type="submit"
                     className="w-full"
-                    disabled={forgotPasswordMutation.isPending}
+                    disabled={forgotPassword.isPending}
                 >
-                    {forgotPasswordMutation.isPending ? "Sending..." : submitButtonText}
+                    {forgotPassword.isPending ? "Sending..." : submitButtonText}
                 </Button>
             </form>
         </Form>

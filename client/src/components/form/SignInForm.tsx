@@ -6,10 +6,9 @@ import z from "zod";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "../ui/form";
 import { Input } from "../ui/input";
 import { Button } from "../ui/button";
-import { useAuthStore, useIsAuthed } from "../stores/authStore";
-import { mockAuthService } from "../../services/mockAuthService";
-import { useEffect, useState } from "react";
-import { useLogin, useLogout } from "@/hooks/useAuth";
+import { useEffect } from "react";
+import { useLogin } from "@/hooks/useAuth";
+import { useIsAuthed } from "../stores/authStore";
 
 /**
  * Zod schema for form validation
@@ -67,7 +66,7 @@ function SignInForm({
 
     useEffect(() => {
         if(isAuthed) navigate({to: '/'});
-    }, [isAuthed])
+    }, [isAuthed, navigate])
 
     // Effect: Handle successful authentication by redirecting user
     // // Note: Both admin and regular users redirect to "/", we will change this later when we have the routing properly developed

@@ -1,13 +1,15 @@
+import { authStore } from "@/components/stores/authStore";
 import { createFileRoute, redirect, Outlet } from "@tanstack/react-router";
-import { useAuthStore } from "@/components/stores/authStore";
 
 export const Route = createFileRoute("/_auth")({
     beforeLoad: async ({ location }) => {
         // Get auth state from Zustand store
-        const { isAuthenticated, user } = useAuthStore.getState();
+        const s = authStore.getState();
+        const user = s.user
+        const isAuthed = Boolean(s.user && s.accessToken)
 
         // Check if user is authenticated
-        if (!isAuthenticated || !user) {
+        if (!isAuthed) {
             throw redirect({
                 to: "/sign-in",
                 search: {
@@ -19,7 +21,7 @@ export const Route = createFileRoute("/_auth")({
         // Return user data to be available in route context
         return {
             user,
-            isAuthenticated,
+            isAuthed,
         };
     },
     component: AuthLayout,

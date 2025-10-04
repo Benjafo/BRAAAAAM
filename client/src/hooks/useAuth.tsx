@@ -1,11 +1,11 @@
 import { useMutation } from '@tanstack/react-query';
 import { authStore } from '@/components/stores/authStore';
-import type { LoginResponse } from '@/lib/types';
+import type { Credentials, LoginResponse, ResetPasswordCredentials } from '@/lib/types';
 import { authService } from '@/services/auth/serviceResolver';
 
 export function useLogin() {
   return useMutation({
-    mutationFn: (vars: { email: string; password: string }) => authService.login(vars),
+    mutationFn: (vars: Credentials) => authService.login(vars),
     onSuccess: (res: LoginResponse) => {
       authStore.getState().setAuth({
         user: res.user,
@@ -17,7 +17,7 @@ export function useLogin() {
     },
     onError: (error) => {
       if (import.meta.env.DEV) {
-          console.error("SignInform onSubmit error", error)
+          console.error("useLogin error", error)
       }
     }
   });
@@ -29,9 +29,34 @@ export function useLogout() {
     onSuccess: () => {
       authStore.getState().clearAuth();
     },
-    // Even if server logout fails, you often want to clear local state anyway:
-    onError: () => {
+    // Even if server logout fails, clear local state anyway:
+    onError: (error) => {
+      if (import.meta.env.DEV) {
+          console.error("useLogout error", error)
+      }
       authStore.getState().clearAuth();
     },
   });
+}
+
+export function useForgotPassword() {
+  return useMutation({
+    mutationFn: (vars: { email: string}) => authService.forgotPassword(vars),
+    onError: (error) => {
+      if (import.meta.env.DEV) {
+          console.error("useForgotPassword error", error)
+      }
+    }
+  })
+}
+
+export function useResetPassword() {
+  return useMutation({
+    mutationFn: (vars: ResetPasswordCredentials & { token: string }) => authService.resetPassword(vars),
+    onError: (error) => {
+      if (import.meta.env.DEV) {
+          console.error("useResetPassword error", error)
+      }
+    }
+  })
 }
