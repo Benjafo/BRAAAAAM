@@ -22,6 +22,7 @@ import {
   SelectValue,
 } from "@/components/ui/select"
 
+// Column config type
 export type SimpleColumn<T extends Record<string, unknown>> = {
   header: React.ReactNode;
   accessorKey?: keyof T | string;
@@ -33,6 +34,9 @@ export type SimpleColumn<T extends Record<string, unknown>> = {
   render?: (value: unknown, row: T) => React.ReactNode;
 };
 
+type MatchMode = "includes" | "startsWith" | "equals";
+
+// Component Props
 export type DataTableProps<T extends Record<string, unknown>> = {
   data?: T[];
   columns?: SimpleColumn<T>[];
@@ -46,15 +50,31 @@ export type DataTableProps<T extends Record<string, unknown>> = {
   searchPlaceholder?: string;
   filterKeys?: (keyof T | string)[];
   onRowClick?: (row: T, index: number) => void;
+  onSelect?: (row: T, index: number) => void;
   initialPageSize?: number;
   pageSizes?: number[];
   selectable?: boolean;
+
+  searchQuery?: string
+  onSearchQueryChange?: (q: string) => void
+
+  filterColumn?: string
+  filterValue?: string
+  onFilterChange?: (col: string, value: string) => void
+
+  sortState?: Sort
+  onSortChange?: (s: Sort) => void
+
+  searchMatchMode?: MatchMode
+  filterMatchMode?: MatchMode
 };
 
+// Helper function: isObject/isArray?
 function isRecord(v: unknown): v is Record<string | number, unknown> {
   return typeof v === "object" && v !== null;
 }
 
+// Helper function: Read deep values by "a.b[0].c" or by direct key
 function getByPath(obj: unknown, path?: unknown): unknown {
   if (path == null || path === "") return undefined;
   if (typeof path !== "string") {
@@ -75,7 +95,7 @@ function getByPath(obj: unknown, path?: unknown): unknown {
     if (Array.isArray(acc)) {
       acc = acc[key as number]
     } else if (isRecord(acc)) {
-      acc = acc[key as keyof typeof acc]
+      acc = (acc as Record<string | number, unknown>)[key]
     } else {
       return undefined
     }
@@ -91,6 +111,7 @@ function prettify(key: string) {
     .replace(/^\w/, (c) => c.toUpperCase());
 }
 
+// Makes columns based on first row
 function inferColumns<T extends Record<string, unknown>>(sample: T): SimpleColumn<T>[] {
   return Object.keys(sample).map((k) => ({
     header: prettify(k),
@@ -100,6 +121,26 @@ function inferColumns<T extends Record<string, unknown>>(sample: T): SimpleColum
 }
 
 type Sort = { index: number; dir: "asc" | "desc" } | null;
+
+// Helper function: Basic string matching
+function matchText(
+  input: unknown,
+  needle: string,
+  mode: MatchMode = "includes"
+): boolean {
+  const hay = String(input ?? "").toLowerCase()
+  const ndl = needle.toLowerCase()
+  if (!ndl) return true
+  switch (mode) {
+    case "equals":
+      return hay === ndl
+    case "startsWith":
+      return hay.startsWith(ndl)
+    case "includes":
+    default:
+      return hay.includes(ndl)
+  }
+}
 
 export function DataTable<T extends Record<string, unknown>>({
   data,
@@ -114,9 +155,23 @@ export function DataTable<T extends Record<string, unknown>>({
   searchPlaceholder = "Search…",
   filterKeys,
   onRowClick,
+  onSelect,
   initialPageSize = 10,
   pageSizes = [5, 10, 25, 50],
   selectable = true,
+
+  // Optional controlled inputs
+  searchQuery,
+  onSearchQueryChange,
+  filterColumn,
+  filterValue,
+  onFilterChange,
+  sortState,
+  onSortChange,
+
+  // Defaults to partial match
+  searchMatchMode = "includes",
+  filterMatchMode = "includes",
 }: DataTableProps<T>) {
   // Pick data to render: prefer `data`, else fallback to `defaultData`, else []
   const rows = React.useMemo<T[]>(() => {
@@ -125,7 +180,7 @@ export function DataTable<T extends Record<string, unknown>>({
     return [] as T[];
   }, [data, defaultData]);
 
-  // columns
+  // Use provided columns if provided or infer from first row
   const baseCols = React.useMemo<SimpleColumn<T>[]>(() => {
     const provided = (columns ?? []).slice();
     if (provided.length) return provided;
@@ -133,13 +188,34 @@ export function DataTable<T extends Record<string, unknown>>({
     return [];
   }, [columns, rows]);
 
+  // Hide columns if hidden is set to true
   const visibleCols = React.useMemo(
     () => baseCols.filter((c) => !c.hidden),
     [baseCols]
   )
 
-  // Sorting
-  const [sort, setSort] = React.useState<Sort>(null);
+  // Controlled sorting state
+  const [internalSort, setInternalSort] = React.useState<Sort>(null);
+  const sort = sortState ?? internalSort;
+
+  // Controlled bridge for search
+  const [internalQuery, setInternalQuery] = React.useState("");
+  const qValue = searchQuery ?? internalQuery;
+  const setQ = onSearchQueryChange ?? setInternalQuery;
+
+  // Controlled bridge for column filter
+  const [internalFilterCol, setInternalFilterCol] = React.useState<string>("");
+  const [internalFilterVal, setInternalFilterVal] = React.useState<string>("");
+  const filterColValue = filterColumn ?? internalFilterCol;
+  const filterValValue = filterValue ?? internalFilterVal;
+  const setFilterColValue = (col: string) => {
+    if (onFilterChange) onFilterChange(col, filterValValue);
+    else setInternalFilterCol(col);
+  };
+  const setFilterValValue = (val: string) => {
+    if (onFilterChange) onFilterChange(filterColValue ?? "", val);
+    else setInternalFilterVal(val);
+  };
 
   // Apply sorting when a header is clicked
   const sortedRows = React.useMemo(() => {
@@ -157,10 +233,14 @@ export function DataTable<T extends Record<string, unknown>>({
       if (na == null && nb == null) return 0;
       if (na == null) return 1;
       if (nb == null) return -1;
+
+      // Compare ints
       if (typeof na === "number" && typeof nb === "number")
         return sort.dir === "asc" ? na - nb : nb - na;
       const sa = String(na).toLowerCase();
       const sb = String(nb).toLowerCase();
+
+      // Compare strings
       if (sa < sb) return sort.dir === "asc" ? -1 : 1;
       if (sa > sb) return sort.dir === "asc" ? 1 : -1;
       return 0;
@@ -169,43 +249,39 @@ export function DataTable<T extends Record<string, unknown>>({
     return copy;
   }, [rows, visibleCols, sort]);
 
-  const [filterCol, setFilterCol] = React.useState<string>("");
-  const [filterVal, setFilterVal] = React.useState<string>("");
-
   const primarySearchKey = React.useMemo<string | undefined>(() => {
     if (filterKeys && filterKeys.length) return String(filterKeys[0]);
     const first = visibleCols[0]?.accessorKey;
     return first ? String(first) : undefined;
   }, [filterKeys, visibleCols]);
 
-  const [query, setQuery] = React.useState("");
-
   const filteredRows = React.useMemo(() => {
     let out = sortedRows;
 
-    if (filterCol && filterVal) {
+    // Column filter 
+    if (filterColValue && filterValValue) {
       out = out.filter((row) =>
-        String(getByPath(row, filterCol) ?? "")
-          .toLowerCase()
-          .startsWith(filterVal.toLowerCase())
+        matchText(getByPath(row, filterColValue), filterValValue, filterMatchMode)
       );
     }
 
-    const q = query.trim().toLowerCase();
+    // Global search
+    const q = qValue.trim();
     if (q && primarySearchKey) {
       out = out.filter((row) =>
-        String(getByPath(row, primarySearchKey) ?? "")
-          .toLowerCase()
-          .includes(q)
+        matchText(getByPath(row, primarySearchKey), q, searchMatchMode)
       );
     }
 
     return out;
-  }, [sortedRows, filterCol, filterVal, query, primarySearchKey]);
+  }, [sortedRows, filterColValue, filterValValue, qValue, primarySearchKey, searchMatchMode, filterMatchMode]);
+
 
   // Pagination
   const [pageSize, setPageSize] = React.useState(initialPageSize);
   const [pageIndex, setPageIndex] = React.useState(0);
+
+  // Resets page if data size is changed
   React.useEffect(
     () => setPageIndex(0),
     [filteredRows.length, pageSize, visibleCols.length]
@@ -217,20 +293,32 @@ export function DataTable<T extends Record<string, unknown>>({
   const end = start + pageSize;
   const pagedRows = filteredRows.slice(start, end);
 
+  // Selection
+  const [selected, setSelected] = React.useState<Set<number>>(new Set());
+
   function toggleSort(i: number, enable: boolean) {
     if (!enable) return;
-    setSort((prev) => {
+
+    const updater = (prev: Sort): Sort => {
       if (!prev || prev.index !== i) return { index: i, dir: "asc" };
       if (prev.dir === "asc") return { index: i, dir: "desc" };
       return null;
-    });
+    };
+
+    if (onSortChange) {
+      // If parent controls the sort, compute new value manually
+      onSortChange(updater(sort));
+    } else {
+      // If internal state controls it, use setState normally
+      setInternalSort(updater);
+    }
   }
 
-  // Selection
-  const [selected, setSelected] = React.useState<Set<number>>(new Set());
   const allOnPageSelected = pagedRows.every((_, idx) => selected.has(start + idx));
   const someOnPageSelected =
     !allOnPageSelected && pagedRows.some((_, idx) => selected.has(start + idx));
+
+
   function toggleSelectAllOnPage(checked: boolean) {
     const next = new Set(selected);
     pagedRows.forEach((_, idx) => {
@@ -257,7 +345,7 @@ export function DataTable<T extends Record<string, unknown>>({
           {/* Column filter */}
           {visibleCols.length > 0 && (
             <>
-              <Select value={filterCol} onValueChange={setFilterCol}>
+              <Select value={filterColValue} onValueChange={setFilterColValue}>
                 <SelectTrigger className="w-[180px]">
                   <SelectValue placeholder="Filter column…" />
                 </SelectTrigger>
@@ -273,22 +361,22 @@ export function DataTable<T extends Record<string, unknown>>({
                 </SelectContent>
               </Select>
 
-              {filterCol && (
+              {filterColValue && (
                 <Input
                   className="h-9 w-56"
                   placeholder="Type to filter…"
-                  value={filterVal}
-                  onChange={(e) => setFilterVal(e.target.value)}
+                  value={filterValValue}
+                  onChange={(e) => setFilterValValue(e.target.value)}
                 />
               )}
 
-              {filterCol && (
+              {filterColValue && (
                 <Button
                   variant="outline"
                   size="sm"
                   onClick={() => {
-                    setFilterCol("")
-                    setFilterVal("")
+                    setFilterColValue("");
+                    setFilterValValue("");
                   }}
                 >
                   Clear
@@ -301,8 +389,8 @@ export function DataTable<T extends Record<string, unknown>>({
           <div className="ml-auto">
             {showSearch && primarySearchKey && (
               <Input
-                value={query}
-                onChange={(e) => setQuery(e.target.value)}
+                value={qValue}
+                onChange={(e) => setQ(e.target.value)}
                 placeholder={searchPlaceholder}
                 className="w-64"
               />
@@ -381,14 +469,17 @@ export function DataTable<T extends Record<string, unknown>>({
               ) : (
                 pagedRows.map((row, rIdx) => {
                   const abs = start + rIdx
-                  const clickable = !!onRowClick
+                  const clickable = !!onRowClick || !onSelect;
                   const isSelected = selected.has(abs)
 
                   return (
                     <TableRow
                       key={abs}
                       role="row"
-                      onClick={onRowClick ? () => onRowClick(row, abs) : undefined}
+                      onClick={clickable ? () => {
+                        if (onSelect) onSelect(row, abs);
+                        if (onRowClick) onRowClick(row, abs);
+                      } : undefined}
                       className={clickable ? "cursor-pointer hover:bg-muted/40" : undefined}
                       data-state={isSelected && "selected"}
                     >
@@ -471,6 +562,6 @@ export function DataTable<T extends Record<string, unknown>>({
           </div>
         </div>
       </CardContent>
-    </Card>
+    </Card >
   );
 }
