@@ -1,7 +1,8 @@
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Calendar } from "@/components/ui/calendar";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import {
     Form,
     FormControl,
@@ -10,11 +11,9 @@ import {
     FormLabel,
     FormMessage,
 } from "@/components/ui/form";
-import { Calendar } from "@/components/ui/calendar";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState, forwardRef, useImperativeHandle } from "react";
 import { toast } from "sonner";
 import { format } from "date-fns";
 import { Calendar as CalendarIcon } from "lucide-react";
@@ -55,7 +54,6 @@ const adminGeneralSchema = z.object({
         .string()
         .min(1, "Street address is required")
         .max(200, "Street address must not exceed 200 characters"),
-
     zip: z
         .string()
         .min(1, "Zip code is required")
@@ -83,109 +81,106 @@ const adminGeneralSchema = z.object({
 
 type AdminGeneralFormData = z.infer<typeof adminGeneralSchema>;
 
-function AdminGeneralForm() {
-    const [activeTab, setActiveTab] = useState("general");
-    const [isEditMode, setIsEditMode] = useState(false);
-    const [isCalendarOpen, setIsCalendarOpen] = useState(false);
-    const [serverData, setServerData] = useState<AdminGeneralFormData>({
-        name: "corporation name",
-        logoUrl: "",
-        organizationDomain: "corporation.com",
-        creationDate: new Date("2025-09-10"),
-        phone: "(111) 111-1111",
-        email: "contact@gmail.com",
-        street: "123 Main St",
-        zip: "12345",
-        city: "New York",
-        country: "United States",
-        state: "NY",
-        postmarkApiKey: "pm_test_1234567890",
-        apiDomain: "api.google.com",
-    });
-    const [logoFile, setLogoFile] = useState<File | null>(null);
-    const [uploadedFileName, setUploadedFileName] = useState<string | null>(null);
+const testData: AdminGeneralFormData = {
+    name: "corporation name",
+    logoUrl: "",
+    organizationDomain: "corporation.com",
+    creationDate: new Date("2025-09-10"),
+    phone: "(111) 111-1111",
+    email: "contact@gmail.com",
+    street: "123 Main St",
+    zip: "12345",
+    city: "New York",
+    country: "United States",
+    state: "NY",
+    postmarkApiKey: "pm_test_1234567890",
+    apiDomain: "api.google.com",
+};
 
-    // Refs
-    const serverDataRef = useRef(serverData);
-    const fileInputRef = useRef<HTMLInputElement>(null);
+interface AdminGeneralFormProps {
+    isEditMode?: boolean;
+}
 
-    // React Hook Form setup with Zod validation
-    const form = useForm<AdminGeneralFormData>({
-        resolver: zodResolver(adminGeneralSchema),
-        defaultValues: serverData,
-        mode: "onBlur",
-    });
+export interface AdminGeneralFormRef {
+    handleSave: () => Promise<boolean>;
+    handleCancel: () => void;
+}
 
-    // Keep serverDataRef in sync with serverData
-    useEffect(() => {
-        serverDataRef.current = serverData;
-    }, [serverData]);
+export const AdminGeneralForm = forwardRef<AdminGeneralFormRef, AdminGeneralFormProps>(
+    ({ isEditMode = false }, ref) => {
+        const [isCalendarOpen, setIsCalendarOpen] = useState(false);
+        const [serverData, setServerData] = useState<AdminGeneralFormData>(testData);
+        const [logoFile, setLogoFile] = useState<File | null>(null);
+        const [uploadedFileName, setUploadedFileName] = useState<string | null>(null);
 
-    // Reset edit mode when switching tabs
-    useEffect(() => {
-        if (activeTab !== "general" && isEditMode) {
-            form.reset(serverDataRef.current);
-            setIsEditMode(false);
-            setLogoFile(null);
-        }
-    }, [activeTab, isEditMode, form]);
+        // Refs
+        const serverDataRef = useRef(serverData);
+        const fileInputRef = useRef<HTMLInputElement>(null);
 
-    // Cleanup URLs to prevent memory leaks
-    useEffect(() => {
-        return () => {
-            if (serverData.logoUrl && serverData.logoUrl.startsWith("blob:")) {
-                URL.revokeObjectURL(serverData.logoUrl);
+        // React Hook Form setup with Zod validation
+        const form = useForm<AdminGeneralFormData>({
+            resolver: zodResolver(adminGeneralSchema),
+            defaultValues: serverData,
+            mode: "onBlur",
+        });
+
+        // Keep serverDataRef in sync with serverData
+        useEffect(() => {
+            serverDataRef.current = serverData;
+        }, [serverData]);
+
+        // Cleanup URLs to prevent memory leaks
+        useEffect(() => {
+            return () => {
+                if (serverData.logoUrl && serverData.logoUrl.startsWith("blob:")) {
+                    URL.revokeObjectURL(serverData.logoUrl);
+                }
+            };
+        }, [serverData.logoUrl]);
+
+        // Handling logo file change
+        const handleLogoChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+            const file = e.target.files?.[0];
+            if (!file) return;
+
+            // Validate file size (2MB max)
+            const MAX_FILE_SIZE = 2 * 1024 * 1024;
+            if (file.size > MAX_FILE_SIZE) {
+                toast.error("File size must be less than 2MB");
+                e.target.value = "";
+                return;
             }
-        };
-    }, [serverData.logoUrl]);
 
-    // Handling logo file change
-    const handleLogoChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
-        const file = e.target.files?.[0];
-        if (!file) return;
+            // Validate file type
+            const allowedTypes = ["image/jpeg", "image/jpg", "image/png", "image/webp"];
+            if (!allowedTypes.includes(file.type)) {
+                toast.error("Please upload a valid image file (JPEG, PNG, or WebP)");
+                e.target.value = "";
+                return;
+            }
 
-        // Validate file size (2MB max)
-        const MAX_FILE_SIZE = 2 * 1024 * 1024; // 2MB in bytes
-        if (file.size > MAX_FILE_SIZE) {
-            toast.error("File size must be less than 2MB");
-            // Clear the input
-            e.target.value = "";
-            return;
-        }
+            setLogoFile(file);
+        }, []);
 
-        // Validate file type
-        const allowedTypes = ["image/jpeg", "image/jpg", "image/png", "image/webp"];
-        if (!allowedTypes.includes(file.type)) {
-            toast.error("Please upload a valid image file (JPEG, PNG, or WebP)");
-            e.target.value = "";
-            return;
-        }
+        // Handling cancel
+        const handleCancel = useCallback(() => {
+            // Reset to server data using ref
+            form.reset(serverDataRef.current);
+            setLogoFile(null);
 
-        setLogoFile(file);
-    }, []);
+            if (fileInputRef.current) {
+                fileInputRef.current.value = "";
+            }
+        }, [form]);
 
-    // Handling cancel
-    const handleCancel = useCallback(() => {
-        // Reset to server data using ref
-        form.reset(serverDataRef.current);
-        setIsEditMode(false);
-        setLogoFile(null);
-
-        // Clear file input
-        if (fileInputRef.current) {
-            fileInputRef.current.value = "";
-        }
-    }, [form]);
-
-    // Handling save data
-    const handleEditOrSave = useCallback(async () => {
-        if (isEditMode) {
+        // Handling save data
+        const handleSave = useCallback(async (): Promise<boolean> => {
             try {
                 // Validate form
                 const isValid = await form.trigger();
                 if (!isValid) {
                     toast.error("Please fix the errors in the form before saving.");
-                    return;
+                    return false;
                 }
 
                 const formData = form.getValues();
@@ -214,13 +209,12 @@ function AdminGeneralForm() {
                 }
 
                 // API Call to save data
-                // TODO: Replace with actual API call
-                // await updateAdminSettings(formData);
+                // TODO: Replace with actual API call using ky
+                // await ky.put(...)
                 console.log("Saving data:", formData);
 
                 // Update server data state with saved values
                 setServerData(formData);
-                setIsEditMode(false);
                 setLogoFile(null);
 
                 // Clear file input after successful save
@@ -229,511 +223,428 @@ function AdminGeneralForm() {
                 }
 
                 toast.success("Settings saved successfully.");
+                return true;
             } catch (error) {
                 console.error("Save failed:", error);
                 toast.error("Failed to save settings. Please try again.");
+                return false;
             }
-        } else {
-            // Enter edit mode
-            setIsEditMode(true);
-        }
-    }, [isEditMode, form, logoFile, serverData.logoUrl]);
+        }, [form, logoFile, serverData.logoUrl]);
 
-    const getButtonText = () => {
-        if (activeTab === "general") {
-            return isEditMode ? "Save Changes" : "Edit Page";
-        }
-        switch (activeTab) {
-            case "forms":
-                return "Save Changes";
-            case "roles":
-                return "New Role";
-            case "audit-log":
-                return "Export";
-            case "locations":
-                return "New Alias";
-            default:
-                return "Edit Page";
-        }
-    };
+        // Code for edit button to work in admin settings route
+        useImperativeHandle(
+            ref,
+            () => ({
+                handleSave,
+                handleCancel,
+            }),
+            [handleSave, handleCancel]
+        );
 
-    return (
-        <div className="w-full px-2.5">
-            <Tabs defaultValue="general" className="w-full" onValueChange={setActiveTab}>
-                <div className="flex items-center justify-between mb-6 pt-2.5">
-                    <TabsList>
-                        <TabsTrigger value="general">General</TabsTrigger>
-                        <TabsTrigger value="forms">Forms</TabsTrigger>
-                        <TabsTrigger value="roles">Roles</TabsTrigger>
-                        <TabsTrigger value="audit-log">Audit Log</TabsTrigger>
-                        <TabsTrigger value="locations">Locations</TabsTrigger>
-                    </TabsList>
-                    {activeTab === "general" && (
-                        <div className="flex gap-2">
-                            {isEditMode && (
-                                <Button
-                                    variant="link"
-                                    size="sm"
-                                    onClick={handleCancel}
-                                    disabled={form.formState.isSubmitting}
-                                >
-                                    Cancel
-                                </Button>
-                            )}
-                            <Button
-                                variant="outline"
-                                onClick={handleEditOrSave}
-                                disabled={form.formState.isSubmitting}
-                            >
-                                {form.formState.isSubmitting ? "Saving..." : getButtonText()}
-                            </Button>
-                        </div>
-                    )}
-                    {activeTab !== "general" && (
-                        <Button variant="outline">{getButtonText()}</Button>
-                    )}
-                </div>
-
-                <TabsContent value="general">
-                    <Form {...form}>
-                        <fieldset disabled={form.formState.isSubmitting} className="space-y-2.5">
-                            {/* Organization Card */}
-                            <Card>
-                                <CardHeader>
-                                    <CardTitle>Organization</CardTitle>
-                                </CardHeader>
-                                <CardContent className="grid gap-6">
-                                    <FormField
-                                        control={form.control}
-                                        name="name"
-                                        render={({ field }) => (
-                                            <FormItem className="grid gap-3">
-                                                <FormLabel>Name</FormLabel>
-                                                {isEditMode ? (
-                                                    <FormControl>
-                                                        <Input
-                                                            placeholder="Name"
-                                                            className="w-80"
-                                                            {...field}
-                                                        />
-                                                    </FormControl>
-                                                ) : (
-                                                    <p className="text-sm">
-                                                        {field.value || "Empty"}
-                                                    </p>
-                                                )}
-                                                <FormMessage />
-                                            </FormItem>
-                                        )}
-                                    />
-
-                                    <FormItem className="grid gap-3">
-                                        <FormLabel>Logo</FormLabel>
-                                        {isEditMode ? (
-                                            <div className="space-y-3">
-                                                {serverData.logoUrl && (
-                                                    <div className="space-y-2">
-                                                        <img
-                                                            src={serverData.logoUrl}
-                                                            alt="Organization logo"
-                                                            className="h-16 w-auto object-contain border rounded p-2"
-                                                        />
-                                                        {uploadedFileName && (
-                                                            <p className="text-sm text-muted-foreground">
-                                                                Current file: {uploadedFileName}
-                                                            </p>
-                                                        )}
-                                                    </div>
-                                                )}
-                                                <div className="space-y-2">
+        return (
+            <div>
+                <Form {...form}>
+                    <fieldset disabled={form.formState.isSubmitting} className="space-y-2.5">
+                        {/* Organization Card */}
+                        <Card>
+                            <CardHeader>
+                                <CardTitle>Organization</CardTitle>
+                            </CardHeader>
+                            <CardContent className="grid gap-6">
+                                <FormField
+                                    control={form.control}
+                                    name="name"
+                                    render={({ field }) => (
+                                        <FormItem className="grid gap-3">
+                                            <FormLabel>Name</FormLabel>
+                                            {isEditMode ? (
+                                                <FormControl>
                                                     <Input
-                                                        ref={fileInputRef}
-                                                        type="file"
-                                                        accept="image/jpeg,image/jpg,image/png,image/webp"
-                                                        className="w-80 cursor-pointer"
-                                                        onChange={handleLogoChange}
+                                                        placeholder="Name"
+                                                        className="w-80"
+                                                        {...field}
                                                     />
-                                                    {logoFile ? (
+                                                </FormControl>
+                                            ) : (
+                                                <p className="text-sm">{field.value || "Empty"}</p>
+                                            )}
+                                            <FormMessage />
+                                        </FormItem>
+                                    )}
+                                />
+
+                                <FormItem className="grid gap-3">
+                                    <FormLabel>Logo</FormLabel>
+                                    {isEditMode ? (
+                                        <div className="space-y-3">
+                                            {serverData.logoUrl && (
+                                                <div className="space-y-2">
+                                                    <img
+                                                        src={serverData.logoUrl}
+                                                        alt="Organization logo"
+                                                        className="h-16 w-auto object-contain border rounded p-2"
+                                                    />
+                                                    {uploadedFileName && (
                                                         <p className="text-sm text-muted-foreground">
-                                                            New file selected: {logoFile.name}
-                                                        </p>
-                                                    ) : serverData.logoUrl ? (
-                                                        <p className="text-xs text-muted-foreground">
-                                                            Choose a file to replace the current
-                                                            logo
-                                                        </p>
-                                                    ) : (
-                                                        <p className="text-xs text-muted-foreground">
-                                                            Choose a file to upload
+                                                            Current file: {uploadedFileName}
                                                         </p>
                                                     )}
                                                 </div>
-                                            </div>
-                                        ) : (
+                                            )}
                                             <div className="space-y-2">
-                                                {serverData.logoUrl ? (
-                                                    <>
-                                                        <img
-                                                            src={serverData.logoUrl}
-                                                            alt="Organization logo"
-                                                            className="h-16 w-auto object-contain border rounded p-2"
-                                                        />
-                                                        {uploadedFileName && (
-                                                            <p className="text-sm text-muted-foreground">
-                                                                Current file: {uploadedFileName}
-                                                            </p>
-                                                        )}
-                                                    </>
+                                                <Input
+                                                    ref={fileInputRef}
+                                                    type="file"
+                                                    accept="image/jpeg,image/jpg,image/png,image/webp"
+                                                    className="w-80 cursor-pointer"
+                                                    onChange={handleLogoChange}
+                                                />
+                                                {logoFile ? (
+                                                    <p className="text-sm text-muted-foreground">
+                                                        New file selected: {logoFile.name}
+                                                    </p>
+                                                ) : serverData.logoUrl ? (
+                                                    <p className="text-xs text-muted-foreground">
+                                                        Choose a file to replace the current logo
+                                                    </p>
                                                 ) : (
-                                                    <p className="text-sm">No logo uploaded</p>
+                                                    <p className="text-xs text-muted-foreground">
+                                                        Choose a file to upload
+                                                    </p>
                                                 )}
                                             </div>
-                                        )}
-                                    </FormItem>
+                                        </div>
+                                    ) : (
+                                        <div className="space-y-2">
+                                            {serverData.logoUrl ? (
+                                                <>
+                                                    <img
+                                                        src={serverData.logoUrl}
+                                                        alt="Organization logo"
+                                                        className="h-16 w-auto object-contain border rounded p-2"
+                                                    />
+                                                    {uploadedFileName && (
+                                                        <p className="text-sm text-muted-foreground">
+                                                            Current file: {uploadedFileName}
+                                                        </p>
+                                                    )}
+                                                </>
+                                            ) : (
+                                                <p className="text-sm">No logo uploaded</p>
+                                            )}
+                                        </div>
+                                    )}
+                                </FormItem>
 
-                                    <FormField
-                                        control={form.control}
-                                        name="organizationDomain"
-                                        render={({ field }) => (
-                                            <FormItem className="grid gap-3">
-                                                <FormLabel>Organization Domain</FormLabel>
-                                                {isEditMode ? (
-                                                    <FormControl>
-                                                        <Input
-                                                            placeholder="example.com"
-                                                            className="w-80"
-                                                            {...field}
-                                                        />
-                                                    </FormControl>
-                                                ) : (
-                                                    <p className="text-sm">
-                                                        {field.value || "Empty"}
-                                                    </p>
-                                                )}
-                                                <FormMessage />
-                                            </FormItem>
-                                        )}
-                                    />
+                                <FormField
+                                    control={form.control}
+                                    name="organizationDomain"
+                                    render={({ field }) => (
+                                        <FormItem className="grid gap-3">
+                                            <FormLabel>Organization Domain</FormLabel>
+                                            {isEditMode ? (
+                                                <FormControl>
+                                                    <Input
+                                                        placeholder="example.com"
+                                                        className="w-80"
+                                                        {...field}
+                                                    />
+                                                </FormControl>
+                                            ) : (
+                                                <p className="text-sm">{field.value || "Empty"}</p>
+                                            )}
+                                            <FormMessage />
+                                        </FormItem>
+                                    )}
+                                />
 
-                                    <FormField
-                                        control={form.control}
-                                        name="creationDate"
-                                        render={({ field }) => (
-                                            <FormItem className="grid gap-3">
-                                                <FormLabel>Creation Date</FormLabel>
-                                                {isEditMode ? (
-                                                    <FormControl>
-                                                        <Popover
-                                                            open={isCalendarOpen}
-                                                            onOpenChange={setIsCalendarOpen}
-                                                        >
-                                                            <PopoverTrigger asChild>
-                                                                <Button
-                                                                    variant="outline"
-                                                                    data-empty={!field.value}
-                                                                    className="data-[empty=true]:text-muted-foreground w-80 justify-start text-left font-normal"
-                                                                >
-                                                                    {field.value instanceof Date ? (
-                                                                        format(field.value, "PPP")
-                                                                    ) : (
-                                                                        <span>Pick a date</span>
-                                                                    )}
-                                                                    <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
-                                                                </Button>
-                                                            </PopoverTrigger>
-                                                            <PopoverContent className="w-auto p-0">
-                                                                <Calendar
-                                                                    mode="single"
-                                                                    selected={
-                                                                        field.value instanceof Date
-                                                                            ? field.value
-                                                                            : undefined
-                                                                    }
-                                                                    onSelect={(date) => {
-                                                                        field.onChange(date);
-                                                                        setIsCalendarOpen(false);
-                                                                    }}
-                                                                />
-                                                            </PopoverContent>
-                                                        </Popover>
-                                                    </FormControl>
-                                                ) : (
-                                                    <p className="text-sm">
-                                                        {field.value instanceof Date
-                                                            ? format(field.value, "PPP")
-                                                            : "Empty"}
-                                                    </p>
-                                                )}
-                                                <FormMessage />
-                                            </FormItem>
-                                        )}
-                                    />
-                                </CardContent>
-                            </Card>
+                                <FormField
+                                    control={form.control}
+                                    name="creationDate"
+                                    render={({ field }) => (
+                                        <FormItem className="grid gap-3">
+                                            <FormLabel>Creation Date</FormLabel>
+                                            {isEditMode ? (
+                                                <FormControl>
+                                                    <Popover
+                                                        open={isCalendarOpen}
+                                                        onOpenChange={setIsCalendarOpen}
+                                                    >
+                                                        <PopoverTrigger asChild>
+                                                            <Button
+                                                                variant="outline"
+                                                                data-empty={!field.value}
+                                                                className="data-[empty=true]:text-muted-foreground w-80 justify-start text-left font-normal"
+                                                            >
+                                                                {field.value instanceof Date ? (
+                                                                    format(field.value, "PPP")
+                                                                ) : (
+                                                                    <span>Pick a date</span>
+                                                                )}
+                                                                <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
+                                                            </Button>
+                                                        </PopoverTrigger>
+                                                        <PopoverContent className="w-auto p-0">
+                                                            <Calendar
+                                                                mode="single"
+                                                                selected={
+                                                                    field.value instanceof Date
+                                                                        ? field.value
+                                                                        : undefined
+                                                                }
+                                                                onSelect={(date) => {
+                                                                    field.onChange(date);
+                                                                    setIsCalendarOpen(false);
+                                                                }}
+                                                            />
+                                                        </PopoverContent>
+                                                    </Popover>
+                                                </FormControl>
+                                            ) : (
+                                                <p className="text-sm">
+                                                    {field.value instanceof Date
+                                                        ? format(field.value, "PPP")
+                                                        : "Empty"}
+                                                </p>
+                                            )}
+                                            <FormMessage />
+                                        </FormItem>
+                                    )}
+                                />
+                            </CardContent>
+                        </Card>
 
-                            {/* Organization Contacts Card */}
-                            <Card>
-                                <CardHeader>
-                                    <CardTitle>Organization Contacts</CardTitle>
-                                </CardHeader>
-                                <CardContent className="grid gap-6">
-                                    <FormField
-                                        control={form.control}
-                                        name="phone"
-                                        render={({ field }) => (
-                                            <FormItem className="grid gap-3">
-                                                <FormLabel>Phone</FormLabel>
-                                                {isEditMode ? (
-                                                    <FormControl>
-                                                        <Input
-                                                            placeholder="(111) 111-1111"
-                                                            className="w-80"
-                                                            {...field}
-                                                        />
-                                                    </FormControl>
-                                                ) : (
-                                                    <p className="text-sm">
-                                                        {field.value || "Empty"}
-                                                    </p>
-                                                )}
-                                                <FormMessage />
-                                            </FormItem>
-                                        )}
-                                    />
+                        {/* Organization Contacts Card */}
+                        <Card>
+                            <CardHeader>
+                                <CardTitle>Organization Contacts</CardTitle>
+                            </CardHeader>
+                            <CardContent className="grid gap-6">
+                                <FormField
+                                    control={form.control}
+                                    name="phone"
+                                    render={({ field }) => (
+                                        <FormItem className="grid gap-3">
+                                            <FormLabel>Phone</FormLabel>
+                                            {isEditMode ? (
+                                                <FormControl>
+                                                    <Input
+                                                        placeholder="(111) 111-1111"
+                                                        className="w-80"
+                                                        {...field}
+                                                    />
+                                                </FormControl>
+                                            ) : (
+                                                <p className="text-sm">{field.value || "Empty"}</p>
+                                            )}
+                                            <FormMessage />
+                                        </FormItem>
+                                    )}
+                                />
 
-                                    <FormField
-                                        control={form.control}
-                                        name="email"
-                                        render={({ field }) => (
-                                            <FormItem className="grid gap-3">
-                                                <FormLabel>Email</FormLabel>
-                                                {isEditMode ? (
-                                                    <FormControl>
-                                                        <Input
-                                                            type="email"
-                                                            placeholder="contact@gmail.com"
-                                                            className="w-80"
-                                                            {...field}
-                                                        />
-                                                    </FormControl>
-                                                ) : (
-                                                    <p className="text-sm">
-                                                        {field.value || "Empty"}
-                                                    </p>
-                                                )}
-                                                <FormMessage />
-                                            </FormItem>
-                                        )}
-                                    />
-                                </CardContent>
-                            </Card>
+                                <FormField
+                                    control={form.control}
+                                    name="email"
+                                    render={({ field }) => (
+                                        <FormItem className="grid gap-3">
+                                            <FormLabel>Email</FormLabel>
+                                            {isEditMode ? (
+                                                <FormControl>
+                                                    <Input
+                                                        type="email"
+                                                        placeholder="contact@gmail.com"
+                                                        className="w-80"
+                                                        {...field}
+                                                    />
+                                                </FormControl>
+                                            ) : (
+                                                <p className="text-sm">{field.value || "Empty"}</p>
+                                            )}
+                                            <FormMessage />
+                                        </FormItem>
+                                    )}
+                                />
+                            </CardContent>
+                        </Card>
 
-                            {/* Organization Mailing Address Card */}
-                            <Card>
-                                <CardHeader>
-                                    <CardTitle>Organization Mailing Address</CardTitle>
-                                </CardHeader>
-                                <CardContent className="grid gap-6">
-                                    <FormField
-                                        control={form.control}
-                                        name="street"
-                                        render={({ field }) => (
-                                            <FormItem className="grid gap-3">
-                                                <FormLabel>Street Address</FormLabel>
-                                                {isEditMode ? (
-                                                    <FormControl>
-                                                        <Input
-                                                            placeholder="123 Main St"
-                                                            className="w-80"
-                                                            {...field}
-                                                        />
-                                                    </FormControl>
-                                                ) : (
-                                                    <p className="text-sm">
-                                                        {field.value || "Empty"}
-                                                    </p>
-                                                )}
-                                                <FormMessage />
-                                            </FormItem>
-                                        )}
-                                    />
+                        {/* Organization Mailing Address Card */}
+                        <Card>
+                            <CardHeader>
+                                <CardTitle>Organization Mailing Address</CardTitle>
+                            </CardHeader>
+                            <CardContent className="grid gap-6">
+                                <FormField
+                                    control={form.control}
+                                    name="street"
+                                    render={({ field }) => (
+                                        <FormItem className="grid gap-3">
+                                            <FormLabel>Street Address</FormLabel>
+                                            {isEditMode ? (
+                                                <FormControl>
+                                                    <Input
+                                                        placeholder="123 Main St"
+                                                        className="w-80"
+                                                        {...field}
+                                                    />
+                                                </FormControl>
+                                            ) : (
+                                                <p className="text-sm">{field.value || "Empty"}</p>
+                                            )}
+                                            <FormMessage />
+                                        </FormItem>
+                                    )}
+                                />
 
-                                    <FormField
-                                        control={form.control}
-                                        name="zip"
-                                        render={({ field }) => (
-                                            <FormItem className="grid gap-3">
-                                                <FormLabel>Zip</FormLabel>
-                                                {isEditMode ? (
-                                                    <FormControl>
-                                                        <Input
-                                                            placeholder="12345"
-                                                            className="w-80"
-                                                            {...field}
-                                                        />
-                                                    </FormControl>
-                                                ) : (
-                                                    <p className="text-sm">
-                                                        {field.value || "Empty"}
-                                                    </p>
-                                                )}
-                                                <FormMessage />
-                                            </FormItem>
-                                        )}
-                                    />
+                                <FormField
+                                    control={form.control}
+                                    name="zip"
+                                    render={({ field }) => (
+                                        <FormItem className="grid gap-3">
+                                            <FormLabel>Zip</FormLabel>
+                                            {isEditMode ? (
+                                                <FormControl>
+                                                    <Input
+                                                        placeholder="12345"
+                                                        className="w-80"
+                                                        {...field}
+                                                    />
+                                                </FormControl>
+                                            ) : (
+                                                <p className="text-sm">{field.value || "Empty"}</p>
+                                            )}
+                                            <FormMessage />
+                                        </FormItem>
+                                    )}
+                                />
 
-                                    <FormField
-                                        control={form.control}
-                                        name="city"
-                                        render={({ field }) => (
-                                            <FormItem className="grid gap-3">
-                                                <FormLabel>City</FormLabel>
-                                                {isEditMode ? (
-                                                    <FormControl>
-                                                        <Input
-                                                            placeholder="New York"
-                                                            className="w-80"
-                                                            {...field}
-                                                        />
-                                                    </FormControl>
-                                                ) : (
-                                                    <p className="text-sm">
-                                                        {field.value || "Empty"}
-                                                    </p>
-                                                )}
-                                                <FormMessage />
-                                            </FormItem>
-                                        )}
-                                    />
+                                <FormField
+                                    control={form.control}
+                                    name="city"
+                                    render={({ field }) => (
+                                        <FormItem className="grid gap-3">
+                                            <FormLabel>City</FormLabel>
+                                            {isEditMode ? (
+                                                <FormControl>
+                                                    <Input
+                                                        placeholder="New York"
+                                                        className="w-80"
+                                                        {...field}
+                                                    />
+                                                </FormControl>
+                                            ) : (
+                                                <p className="text-sm">{field.value || "Empty"}</p>
+                                            )}
+                                            <FormMessage />
+                                        </FormItem>
+                                    )}
+                                />
 
-                                    <FormField
-                                        control={form.control}
-                                        name="state"
-                                        render={({ field }) => (
-                                            <FormItem className="grid gap-3">
-                                                <FormLabel>State</FormLabel>
-                                                {isEditMode ? (
-                                                    <FormControl>
-                                                        <Input
-                                                            placeholder="NY"
-                                                            className="w-80"
-                                                            {...field}
-                                                        />
-                                                    </FormControl>
-                                                ) : (
-                                                    <p className="text-sm">
-                                                        {field.value || "Empty"}
-                                                    </p>
-                                                )}
-                                                <FormMessage />
-                                            </FormItem>
-                                        )}
-                                    />
+                                <FormField
+                                    control={form.control}
+                                    name="state"
+                                    render={({ field }) => (
+                                        <FormItem className="grid gap-3">
+                                            <FormLabel>State</FormLabel>
+                                            {isEditMode ? (
+                                                <FormControl>
+                                                    <Input
+                                                        placeholder="NY"
+                                                        className="w-80"
+                                                        {...field}
+                                                    />
+                                                </FormControl>
+                                            ) : (
+                                                <p className="text-sm">{field.value || "Empty"}</p>
+                                            )}
+                                            <FormMessage />
+                                        </FormItem>
+                                    )}
+                                />
 
-                                    <FormField
-                                        control={form.control}
-                                        name="country"
-                                        render={({ field }) => (
-                                            <FormItem className="grid gap-3">
-                                                <FormLabel>Country</FormLabel>
-                                                {isEditMode ? (
-                                                    <FormControl>
-                                                        <Input
-                                                            placeholder="United States"
-                                                            className="w-80"
-                                                            {...field}
-                                                        />
-                                                    </FormControl>
-                                                ) : (
-                                                    <p className="text-sm">
-                                                        {field.value || "Empty"}
-                                                    </p>
-                                                )}
-                                                <FormMessage />
-                                            </FormItem>
-                                        )}
-                                    />
-                                </CardContent>
-                            </Card>
+                                <FormField
+                                    control={form.control}
+                                    name="country"
+                                    render={({ field }) => (
+                                        <FormItem className="grid gap-3">
+                                            <FormLabel>Country</FormLabel>
+                                            {isEditMode ? (
+                                                <FormControl>
+                                                    <Input
+                                                        placeholder="United States"
+                                                        className="w-80"
+                                                        {...field}
+                                                    />
+                                                </FormControl>
+                                            ) : (
+                                                <p className="text-sm">{field.value || "Empty"}</p>
+                                            )}
+                                            <FormMessage />
+                                        </FormItem>
+                                    )}
+                                />
+                            </CardContent>
+                        </Card>
 
-                            {/* API Keys Card */}
-                            <Card className="mb-2.5">
-                                <CardHeader>
-                                    <CardTitle>API Keys</CardTitle>
-                                </CardHeader>
-                                <CardContent className="grid gap-6">
-                                    <FormField
-                                        control={form.control}
-                                        name="postmarkApiKey"
-                                        render={({ field }) => (
-                                            <FormItem className="grid gap-3">
-                                                <FormLabel>Postmark API Key</FormLabel>
-                                                {isEditMode ? (
-                                                    <FormControl>
-                                                        <Input
-                                                            type="password"
-                                                            placeholder="Enter API key"
-                                                            className="w-80"
-                                                            {...field}
-                                                        />
-                                                    </FormControl>
-                                                ) : (
-                                                    <p className="text-sm">
-                                                        {field.value ? "••••••••••••" : "Empty"}
-                                                    </p>
-                                                )}
-                                                <FormMessage />
-                                            </FormItem>
-                                        )}
-                                    />
+                        {/* API Keys Card */}
+                        <Card className="mb-2.5">
+                            <CardHeader>
+                                <CardTitle>API Keys</CardTitle>
+                            </CardHeader>
+                            <CardContent className="grid gap-6">
+                                <FormField
+                                    control={form.control}
+                                    name="postmarkApiKey"
+                                    render={({ field }) => (
+                                        <FormItem className="grid gap-3">
+                                            <FormLabel>Postmark API Key</FormLabel>
+                                            {isEditMode ? (
+                                                <FormControl>
+                                                    <Input
+                                                        type="password"
+                                                        placeholder="Enter API key"
+                                                        className="w-80"
+                                                        {...field}
+                                                    />
+                                                </FormControl>
+                                            ) : (
+                                                <p className="text-sm">
+                                                    {field.value ? "••••••••••••" : "Empty"}
+                                                </p>
+                                            )}
+                                            <FormMessage />
+                                        </FormItem>
+                                    )}
+                                />
 
-                                    <FormField
-                                        control={form.control}
-                                        name="apiDomain"
-                                        render={({ field }) => (
-                                            <FormItem className="grid gap-3">
-                                                <FormLabel>API Domain</FormLabel>
-                                                {isEditMode ? (
-                                                    <FormControl>
-                                                        <Input
-                                                            placeholder="api.example.com"
-                                                            className="w-80"
-                                                            {...field}
-                                                        />
-                                                    </FormControl>
-                                                ) : (
-                                                    <p className="text-sm">
-                                                        {field.value || "Empty"}
-                                                    </p>
-                                                )}
-                                                <FormMessage />
-                                            </FormItem>
-                                        )}
-                                    />
-                                </CardContent>
-                            </Card>
-                        </fieldset>
-                    </Form>
-                </TabsContent>
-
-                <TabsContent value="forms">
-                    <p className="text-muted-foreground">{/* Add forms content  */}</p>
-                </TabsContent>
-
-                <TabsContent value="roles">
-                    <p className="text-muted-foreground">{/* Add roles logic */}</p>
-                </TabsContent>
-
-                <TabsContent value="audit-log">
-                    <p className="text-muted-foreground">{/* Add audit log logic */}</p>
-                </TabsContent>
-
-                <TabsContent value="locations">
-                    <p className="text-muted-foreground">{/* Add locations logic */}</p>
-                </TabsContent>
-            </Tabs>
-        </div>
-    );
-}
+                                <FormField
+                                    control={form.control}
+                                    name="apiDomain"
+                                    render={({ field }) => (
+                                        <FormItem className="grid gap-3">
+                                            <FormLabel>API Domain</FormLabel>
+                                            {isEditMode ? (
+                                                <FormControl>
+                                                    <Input
+                                                        placeholder="api.example.com"
+                                                        className="w-80"
+                                                        {...field}
+                                                    />
+                                                </FormControl>
+                                            ) : (
+                                                <p className="text-sm">{field.value || "Empty"}</p>
+                                            )}
+                                            <FormMessage />
+                                        </FormItem>
+                                    )}
+                                />
+                            </CardContent>
+                        </Card>
+                    </fieldset>
+                </Form>
+            </div>
+        );
+    }
+);
+AdminGeneralForm.displayName = "AdminGeneralForm";
 
 export default AdminGeneralForm;
