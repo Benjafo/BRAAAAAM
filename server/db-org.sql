@@ -64,42 +64,6 @@ CREATE TYPE donation_type ENUM ('Cash', 'Check', 'Envelope', 'Electronic', 'None
 -- Operating hours
 -- Not sure how to implement this since some of this 
 
--- Users
-CREATE TABLE users (
-    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    first_name VARCHAR(100) NOT NULL,
-    last_name VARCHAR(100) NOT NULL,
-    email CITEXT NOT NULL UNIQUE,
-    phone phone_e164,
-    contact_preference contact_preference NOT NULL DEFAULT 'email',
-    password_hash VARCHAR(255),
-    is_active BOOLEAN DEFAULT TRUE,
-    is_deleted BOOLEAN DEFAULT FALSE,
-    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-    updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
-);
-
-CREATE TRIGGER users_set_updated_at
-    BEFORE UPDATE ON users
-    FOR EACH ROW EXECUTE FUNCTION set_updated_at();
-
--- Audit logs
-CREATE TABLE audit_logs (
-    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    user_id UUID REFERENCES users(id) ON DELETE SET NULL,
-    object_id UUID,
-    action_type audit_action NOT NULL,
-    action_message TEXT,
-    action_details JSONB NOT NULL DEFAULT '{}'::jsonb,
-    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
-);
-
-CREATE INDEX IF NOT EXISTS idx_audit_user ON audit_logs (user_id);
-CREATE INDEX IF NOT EXISTS idx_audit_object ON audit_logs (object_id);
-CREATE INDEX IF NOT EXISTS idx_audit_created_at ON audit_logs (created_at);
-CREATE INDEX IF NOT EXISTS idx_audit_action_type ON audit_logs (action_type);
-CREATE INDEX IF NOT EXISTS idx_audit_details_gin ON audit_logs USING GIN (action_details);
-
 -- Permissions
 CREATE DOMAIN slug_key AS TEXT
     CHECK (VALUE ~ '^[a-z0-9][a-z0-9.-]*$');
@@ -140,6 +104,27 @@ CREATE TABLE role_permissions (
     PRIMARY KEY (role_id, permission_id)
 );
 
+-- Users
+CREATE TABLE users (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    first_name VARCHAR(100) NOT NULL,
+    last_name VARCHAR(100) NOT NULL,
+    email CITEXT NOT NULL UNIQUE,
+    phone phone_e164,
+    contact_preference contact_preference NOT NULL DEFAULT 'email',
+    password_hash VARCHAR(255),
+    role 
+    is_driver BOOLEAN DEFAULT FALSE,
+    is_active BOOLEAN DEFAULT TRUE,
+    is_deleted BOOLEAN DEFAULT FALSE,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+CREATE TRIGGER users_set_updated_at
+    BEFORE UPDATE ON users
+    FOR EACH ROW EXECUTE FUNCTION set_updated_at();
+
 -- User Permissions
 CREATE TABLE user_permissions (
     permission_id UUID NOT NULL REFERENCES permissions(id) ON DELETE CASCADE,
@@ -150,6 +135,24 @@ CREATE TABLE user_permissions (
 
 -- User Unavailability
 -- Complexity that we need to go over !!! TODO
+
+-- Audit logs
+CREATE TABLE audit_logs (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    user_id UUID REFERENCES users(id) ON DELETE SET NULL,
+    object_id UUID,
+    action_type audit_action NOT NULL,
+    action_message TEXT,
+    action_details JSONB NOT NULL DEFAULT '{}'::jsonb,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+CREATE INDEX IF NOT EXISTS idx_audit_user ON audit_logs (user_id);
+CREATE INDEX IF NOT EXISTS idx_audit_object ON audit_logs (object_id);
+CREATE INDEX IF NOT EXISTS idx_audit_created_at ON audit_logs (created_at);
+CREATE INDEX IF NOT EXISTS idx_audit_action_type ON audit_logs (action_type);
+CREATE INDEX IF NOT EXISTS idx_audit_details_gin ON audit_logs USING GIN (action_details);
+
 
 -- Locations
 CREATE TABLE locations (
@@ -240,6 +243,10 @@ CREATE INDEX IF NOT EXISTS clients_email_trgm_idx
 CREATE INDEX IF NOT EXISTS clients_cell_only_idx
     ON clients (phone) WHERE phone_is_cell;
 
+CREATE TRIGGER clients_set_updated_at
+    BEFORE UPDATE ON clients
+    FOR EACH ROW EXECUTE FUNCTION set_updated_at();
+
 -- Client call log types
 CREATE TABLE call_log_types (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -247,7 +254,7 @@ CREATE TABLE call_log_types (
 )
 
 -- Client call log
-CREATE TABLE call_log (
+CREATE TABLE call_logs (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     created_by_user_id UUID NOT NULL REFERENCES users(id),
     date DATE NOT NULL,
@@ -258,8 +265,13 @@ CREATE TABLE call_log (
     message TEXT,
     notes TEXT,
     is_deleted BOOLEAN DEFAULT FALSE,
-    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
+
+CREATE TRIGGER call_logs_set_updated_at
+    BEFORE UPDATE ON call_logs
+    FOR EACH ROW EXECUTE FUNCTION set_updated_at();
 
 -- Custom forms
 CREATE TABLE custom_forms (
@@ -294,6 +306,10 @@ CREATE TABLE appointments (
     updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
 
+CREATE TRIGGER appointments_set_updated_at
+    BEFORE UPDATE ON appointments
+    FOR EACH ROW EXECUTE FUNCTION set_updated_at();
+
 -- Custom reports
 CREATE TABLE custom_reports (
 
@@ -307,7 +323,6 @@ CREATE TABLE notifications (
     descripton TEXT,
     is_dismissed BOOLEAN DEFAULT FALSE,
     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-    updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
 
 -- Messages
@@ -318,8 +333,8 @@ CREATE TABLE messages (
     message_type message_type NOT NULL DEFAULT 'email',
     subject VARCHAR(255) NOT NULL,
     body TEXT NOT NULL,
-    sent_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-    status message_status NOT NULL DEFAULT 'pending'
+    status message_status NOT NULL DEFAULT 'pending',
+    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
 
 -- Message recipients
