@@ -6,7 +6,7 @@ import z from "zod";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "../ui/form";
 import { Input } from "../ui/input";
 import { Button } from "../ui/button";
-import { useResetPassword } from "@/services/AuthService";
+import { useResetPassword } from "@/hooks/useAuth";
 
 /**
  * Zod schema for password creation validation
@@ -15,12 +15,12 @@ import { useResetPassword } from "@/services/AuthService";
 const createPasswordSchema = z
     .object({
         newPassword: z.string().min(8, "Password must be at least 8 characters long."),
-        confirmPassword: z.string().nonempty("Please confirm your password."),
+        confirmNewPassword: z.string().nonempty("Please confirm your password."),
     })
     // Custom validation to ensure passwords match
-    .refine((data) => data.newPassword === data.confirmPassword, {
+    .refine((data) => data.newPassword === data.confirmNewPassword, {
         message: "Passwords do not match.",
-        path: ["confirmPassword"], // Attach error to confirmPassword field
+        path: ["confirmNewPassword"], // Attach error to confirmNewPassword field
     });
 
 // TypeScript type inferred from the Zod schema
@@ -35,7 +35,7 @@ type FieldProps = {
 // Props interface for the ResetPasswordForm component
 interface ResetPasswordFormProps {
     readonly newPassword?: FieldProps;
-    readonly confirmPassword?: FieldProps;
+    readonly confirmNewPassword?: FieldProps;
     readonly submitButtonText?: string;
 }
 
@@ -46,7 +46,7 @@ interface ResetPasswordFormProps {
  */
 function ResetPasswordForm({
     newPassword = { label: "New Password", placeholder: "New Password" },
-    confirmPassword = { label: "Confirm Password", placeholder: "Confirm Password" },
+    confirmNewPassword = { label: "Confirm Password", placeholder: "Confirm Password" },
     submitButtonText = "Set Password",
 }: ResetPasswordFormProps) {
     const navigate = useNavigate();
@@ -57,14 +57,14 @@ function ResetPasswordForm({
 
     const token = search.token;
 
-    const resetPasswordMutation = useResetPassword();
+    const resetPassword = useResetPassword();
 
     // React Hook Form setup with Zod validation
     const form = useForm<CreatePasswordFormData>({
         resolver: zodResolver(createPasswordSchema),
         defaultValues: {
             newPassword: "",
-            confirmPassword: "",
+            confirmNewPassword: "",
         },
         mode: "onBlur",
     });
@@ -81,27 +81,18 @@ function ResetPasswordForm({
             return;
         }
 
-        try {
-            /**
-             * @TODO
-             * Implement ky fetch to api and handle form data
-             */
-
-            await resetPasswordMutation.mutateAsync({
-                newPassword: value.newPassword,
-                confirmPassword: value.confirmPassword,
-                token,
-            });
-
-            toast.success("Password reset successfully!");
-            navigate({ to: "/dashboard" });
-        } catch (error) {
-            if (import.meta.env.DEV) {
-                console.error("ResetPasswordForm onSubmit error", error);
+        resetPassword.mutate({ ...value, token }, {
+            onSuccess: () => {
+                toast.success('Password reset successfully!');
+                navigate({ to: '/sign-in' });
+            },
+            onError: (error) => {
+                toast.error("Password failed to reset", {
+                    description: error.message
+                })
             }
-
-            toast.error("An error occurred while setting the new password. Please try again.");
-        }
+        });
+        
     }
 
     return (
@@ -126,14 +117,14 @@ function ResetPasswordForm({
                 />
                 <FormField
                     control={form.control}
-                    name="confirmPassword"
+                    name="confirmNewPassword"
                     render={({ field }) => (
                         <FormItem>
-                            <FormLabel>{confirmPassword.label}</FormLabel>
+                            <FormLabel>{confirmNewPassword.label}</FormLabel>
                             <FormControl>
                                 <Input
                                     type="password"
-                                    placeholder={confirmPassword.placeholder}
+                                    placeholder={confirmNewPassword.placeholder}
                                     {...field}
                                 />
                             </FormControl>
@@ -141,8 +132,8 @@ function ResetPasswordForm({
                         </FormItem>
                     )}
                 />
-                <Button type="submit" className="w-full" disabled={resetPasswordMutation.isPending}>
-                    {resetPasswordMutation.isPending ? "Setting Password..." : submitButtonText}
+                <Button type="submit" className="w-full" disabled={resetPassword.isPending}>
+                    {resetPassword.isPending ? "Setting Password..." : submitButtonText}
                 </Button>
             </form>
         </Form>

@@ -1,8 +1,8 @@
-import { useAuthStore } from "@/components/stores/authStore";
+import { authStore, useAuthStore, useIsAuthed } from "@/components/stores/authStore";
 import { useNavigate } from "@tanstack/react-router";
 import ky, { HTTPError } from "ky";
 import { toast } from "sonner";
-import type { RefreshAccessTokenRequest } from "./types";
+// import type { RefreshAccessTokenRequest } from "./types";
 
 const kyWithAuth = ky.create({
     prefixUrl: import.meta.env.BASE_URL,
@@ -10,10 +10,11 @@ const kyWithAuth = ky.create({
     hooks: {
         beforeRequest: [
             (request) => {
-                const { isAuthenticated, token } = useAuthStore.getState();
+                const isAuthed = useIsAuthed()
+                const accessToken = useAuthStore((s) => s.accessToken);
 
-                if (!isAuthenticated || !token) return;
-                request.headers.set("Authorization", `Bearer ${token}`);
+                if (!isAuthed || !accessToken) return;
+                request.headers.set("Authorization", `Bearer ${accessToken}`);
 
                 /**
                  * Possibly add a TTL for the refresh token in the response
@@ -23,7 +24,7 @@ const kyWithAuth = ky.create({
         ],
         beforeRetry: [
             async ({ options, error }) => {
-                const { setToken } = useAuthStore();
+                
                 const navigate = useNavigate();
 
                 if (!(error instanceof HTTPError)) return;
@@ -33,7 +34,10 @@ const kyWithAuth = ky.create({
                         .post("auth/token-refresh", { ...options, retry: 0 })
                         .json<RefreshAccessTokenRequest>();
 
-                    setToken(res.accessToken);
+                        authStore.getState().setAuth({
+                            accessToken: res.accessToken
+                        })
+
                 } catch (error) {
                     if (import.meta.env.DEV) {
                         console.error(error);

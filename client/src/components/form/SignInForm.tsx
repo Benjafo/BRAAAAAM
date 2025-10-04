@@ -6,11 +6,9 @@ import z from "zod";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "../ui/form";
 import { Input } from "../ui/input";
 import { Button } from "../ui/button";
-import { useAuthStore } from "../stores/authStore";
-
 import { useEffect } from "react";
-
-import { useSignIn } from "@/services/AuthService";
+import { useLogin } from "@/hooks/useAuth";
+import { useIsAuthed } from "../stores/authStore";
 
 /**
  * Zod schema for form validation
@@ -55,10 +53,8 @@ function SignInForm({
 }: SignInFormProps) {
     const navigate = useNavigate();
 
-    // Get auth state and actions from Zustand store
-    const { user, isAuthenticated, setAuth } = useAuthStore();
-
-    const signInMutation = useSignIn();
+    const login = useLogin();
+    const isAuthed = useIsAuthed();
     const form = useForm<SignInFormData>({
         resolver: zodResolver(signInSchema),
         defaultValues: {
@@ -68,46 +64,32 @@ function SignInForm({
         mode: "onBlur",
     });
 
-    // Effect: Handle successful authentication by redirecting user
-    // Note: Both admin and regular users redirect to "/", we will change this later when we have the routing properly developed
     useEffect(() => {
-        if (user && isAuthenticated) {
-            const redirectTo = user.role === "admin" ? "/" : "/";
-            navigate({ to: redirectTo });
-        }
-    }, [user, isAuthenticated, navigate]);
+        if(isAuthed) navigate({to: '/'});
+    }, [isAuthed, navigate])
 
-    async function onSubmit(values: SignInFormData) {
+    // Effect: Handle successful authentication by redirecting user
+    // // Note: Both admin and regular users redirect to "/", we will change this later when we have the routing properly developed
+    // useEffect(() => {
+    //     if (user && isAuthenticated) {
+    //         const redirectTo = user.role === "admin" ? "/" : "/";
+    //         navigate({ to: redirectTo });
+    //     }
+    // }, [user, isAuthenticated, navigate]);
+
+    async function onSubmit({ email, password }: SignInFormData) {
         if (import.meta.env.DEV) {
-            console.log("SignInForm onSubmit values", values);
+            console.log("SignInForm onSubmit values", email, password);
         }
 
-        try {
-            /**
-             * @TODO
-             * Implement ky fetch to api and handle form data
-             * On success, navigate to page dependent by role/permissions returned
-             */
-
-            const response = await signInMutation.mutateAsync({
-                email: values.email,
-                password: values.password,
-            });
-
-            // Update auth store with user data and token
-            setAuth(response.user, response.accessToken);
-            toast.success(`Welcome back!`);
-        } catch (error) {
-            if (import.meta.env.DEV) {
-                console.error("SignInForm onSubmit error", error);
+        login.mutate({ email, password }, {
+            onSuccess: () => {
+                toast.success('Welcome back!')
+            },
+            onError: (error) => {
+                toast.error(error.message)
             }
-
-            const errorMessage =
-                error instanceof Error ? error.message : "Failed to sign in. Please try again.";
-
-            // Show error toast notification
-            toast.error(errorMessage);
-        }
+        })
     }
 
     return (
@@ -146,8 +128,8 @@ function SignInForm({
                         )}
                     />
 
-                    <Button type="submit" className="w-full" disabled={signInMutation.isPending}>
-                        {signInMutation.isPending ? "Signing In..." : submitButtonText}
+                    <Button type="submit" className="w-full" disabled={login.isPending}>
+                        {login.isPending ? "Signing In..." : submitButtonText}
                     </Button>
                 </form>
             </Form>
