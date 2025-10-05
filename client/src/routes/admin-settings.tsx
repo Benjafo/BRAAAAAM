@@ -1,9 +1,10 @@
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Button } from "@/components/ui/button";
-import AdminGeneralForm from "@/components/form/AdminGeneralForm";
 import type { AdminGeneralFormRef } from "@/components/form/AdminGeneralForm";
+import AdminGeneralForm from "@/components/form/AdminGeneralForm";
+import { MainNavigation } from "@/components/Navigation";
+import { Button } from "@/components/ui/button";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { createFileRoute } from "@tanstack/react-router";
-import { useState, useCallback, useRef } from "react";
+import { useCallback, useRef, useState } from "react";
 
 export const Route = createFileRoute("/admin-settings")({
     component: RouteComponent,
@@ -59,70 +60,73 @@ function RouteComponent() {
     };
 
     return (
-        <div className="w-full px-2.5">
-            <Tabs value={activeTab} onValueChange={handleTabChange} className="w-full">
-                <div className="relative flex items-center justify-between mb-[15px] pt-2.5">
-                    <TabsList>
-                        <TabsTrigger value="general">General</TabsTrigger>
-                        <TabsTrigger value="forms">Forms</TabsTrigger>
-                        <TabsTrigger value="roles">Roles</TabsTrigger>
-                        <TabsTrigger value="audit-log">Audit Log</TabsTrigger>
-                        <TabsTrigger value="locations">Locations</TabsTrigger>
-                    </TabsList>
+        <>
+            <MainNavigation />
+            <div className="w-full px-2.5">
+                <Tabs value={activeTab} onValueChange={handleTabChange} className="w-full">
+                    <div className="relative flex items-center justify-between mb-[15px] pt-2.5">
+                        <TabsList>
+                            <TabsTrigger value="general">General</TabsTrigger>
+                            <TabsTrigger value="forms">Forms</TabsTrigger>
+                            <TabsTrigger value="roles">Roles</TabsTrigger>
+                            <TabsTrigger value="audit-log">Audit Log</TabsTrigger>
+                            <TabsTrigger value="locations">Locations</TabsTrigger>
+                        </TabsList>
 
-                    <div className="flex justify-end gap-2">
-                        {activeTab === "general" ? (
-                            <>
-                                {isEditMode && (
+                        <div className="flex justify-end gap-2">
+                            {activeTab === "general" ? (
+                                <>
+                                    {isEditMode && (
+                                        <Button
+                                            variant="link"
+                                            size="sm"
+                                            onClick={handleCancel}
+                                            disabled={isSubmitting}
+                                        >
+                                            Cancel
+                                        </Button>
+                                    )}
                                     <Button
-                                        variant="link"
-                                        size="sm"
-                                        onClick={handleCancel}
+                                        variant="outline"
+                                        onClick={handleEditOrSave}
                                         disabled={isSubmitting}
                                     >
-                                        Cancel
+                                        {isSubmitting
+                                            ? "Saving..."
+                                            : isEditMode
+                                              ? "Save Changes"
+                                              : "Edit Page"}
                                     </Button>
-                                )}
-                                <Button
-                                    variant="outline"
-                                    onClick={handleEditOrSave}
-                                    disabled={isSubmitting}
-                                >
-                                    {isSubmitting
-                                        ? "Saving..."
-                                        : isEditMode
-                                          ? "Save Changes"
-                                          : "Edit Page"}
+                                </>
+                            ) : (
+                                <Button variant="outline" onClick={() => {}}>
+                                    {tabButtonText[activeTab]}
                                 </Button>
-                            </>
-                        ) : (
-                            <Button variant="outline" onClick={() => {}}>
-                                {tabButtonText[activeTab]}
-                            </Button>
-                        )}
+                            )}
+                        </div>
                     </div>
-                </div>
 
-                <TabsContent value="general">
-                    <AdminGeneralForm ref={formRef} isEditMode={isEditMode} />
-                </TabsContent>
+                    <TabsContent value="general">
+                        <AdminGeneralForm ref={formRef} isEditMode={isEditMode} />
+                    </TabsContent>
 
-                <TabsContent value="forms">
-                    <p className="text-muted-foreground">{/* Forms content */}</p>
-                </TabsContent>
+                    <TabsContent value="forms">
+                        <p className="text-muted-foreground">{/* Forms content */}</p>
+                    </TabsContent>
 
-                <TabsContent value="roles">
-                    <p className="text-muted-foreground">{/* Roles content */}</p>
-                </TabsContent>
+                    <TabsContent value="roles">
+                        <p className="text-muted-foreground">{/* Roles content */}</p>
+                    </TabsContent>
 
-                <TabsContent value="audit-log">
-                    <p className="text-muted-foreground">{/* Audit log content */}</p>
-                </TabsContent>
+                    <TabsContent value="audit-log">
+                        <p className="text-muted-foreground">{/* Audit log content */}</p>
+                    </TabsContent>
 
-                <TabsContent value="locations">
-                    <p className="text-muted-foreground">{/* Locations content */}</p>
-                </TabsContent>
-            </Tabs>
-        </div>
+                    <TabsContent value="locations">
+                        <p className="text-muted-foreground">{/* Locations content */}</p>
+                    </TabsContent>
+                </Tabs>
+            </div>
+        </>
     );
 }
