@@ -1,12 +1,12 @@
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useNavigate } from "@tanstack/react-router";
+import { useNavigate, useSearch } from "@tanstack/react-router";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import z from "zod";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "../ui/form";
 import { Input } from "../ui/input";
 import { Button } from "../ui/button";
-
+import { useResetPassword } from "@/hooks/useAuth";
 
 /**
  * Zod schema for password creation validation
@@ -15,12 +15,12 @@ import { Button } from "../ui/button";
 const createPasswordSchema = z
     .object({
         newPassword: z.string().min(8, "Password must be at least 8 characters long."),
-        confirmPassword: z.string().nonempty("Please confirm your password."),
+        confirmNewPassword: z.string().nonempty("Please confirm your password."),
     })
     // Custom validation to ensure passwords match
-    .refine((data) => data.newPassword === data.confirmPassword, {
+    .refine((data) => data.newPassword === data.confirmNewPassword, {
         message: "Passwords do not match.",
-        path: ["confirmPassword"], // Attach error to confirmPassword field
+        path: ["confirmNewPassword"], // Attach error to confirmNewPassword field
     });
 
 // TypeScript type inferred from the Zod schema
@@ -30,64 +30,69 @@ type CreatePasswordFormData = z.infer<typeof createPasswordSchema>;
 type FieldProps = {
     readonly label: string;
     readonly placeholder: string;
-}
+};
 
 // Props interface for the ResetPasswordForm component
 interface ResetPasswordFormProps {
     readonly newPassword?: FieldProps;
-    readonly confirmPassword?: FieldProps;
+    readonly confirmNewPassword?: FieldProps;
     readonly submitButtonText?: string;
 }
 
 /**
  * ResetPasswordForm Component
  * @param props - ResetPasswordFormProps object containing optional customizations
- * @returns 
+ * @returns
  */
 function ResetPasswordForm({
     newPassword = { label: "New Password", placeholder: "New Password" },
-    confirmPassword = { label: "Confirm Password", placeholder: "Confirm Password" },
+    confirmNewPassword = { label: "Confirm Password", placeholder: "Confirm Password" },
     submitButtonText = "Set Password",
 }: ResetPasswordFormProps) {
+    const navigate = useNavigate();
 
-    const navigate = useNavigate()
+    const search = useSearch({
+        from: "/_login/reset-password",
+    });
+
+    const token = search.token;
+
+    const resetPassword = useResetPassword();
 
     // React Hook Form setup with Zod validation
     const form = useForm<CreatePasswordFormData>({
         resolver: zodResolver(createPasswordSchema),
         defaultValues: {
             newPassword: "",
-            confirmPassword: "",
+            confirmNewPassword: "",
         },
         mode: "onBlur",
-    })
+    });
 
     // Form submission handler
-    async function onSubmit(data: CreatePasswordFormData) {
-     
+    async function onSubmit(value: CreatePasswordFormData) {
         // Log form data in development mode
-        if(import.meta.env.DEV) {
-            console.log('ResetPasswordForm onSubmit data', data);
+        if (import.meta.env.DEV) {
+            console.log("ResetPasswordForm onSubmit data", value);
         }
 
-        try {
+        if (!token) {
+            toast.error("Invalid reset link. Please request a new password reset.");
+            return;
+        }
 
-            /**
-             * @TODO
-             * Implement ky fetch to api and handle form data
-            */
-
-            navigate({to: '/sign-in'})
-
-        } catch ( error ) {
-
-            if(import.meta.env.DEV) {
-                console.error('ResetPasswordForm onSubmit error', error);
+        resetPassword.mutate({ ...value, token }, {
+            onSuccess: () => {
+                toast.success('Password reset successfully!');
+                navigate({ to: '/sign-in' });
+            },
+            onError: (error) => {
+                toast.error("Password failed to reset", {
+                    description: error.message
+                })
             }
-
-            // May want to handle different repsonse codes differently
-            toast.error("An error occurred while setting the new password. Please try again.")
-        }
+        });
+        
     }
 
     return (
@@ -100,7 +105,7 @@ function ResetPasswordForm({
                         <FormItem>
                             <FormLabel>{newPassword.label}</FormLabel>
                             <FormControl>
-                                <Input 
+                                <Input
                                     type="password"
                                     placeholder={newPassword.placeholder}
                                     {...field}
@@ -112,14 +117,14 @@ function ResetPasswordForm({
                 />
                 <FormField
                     control={form.control}
-                    name="confirmPassword"
+                    name="confirmNewPassword"
                     render={({ field }) => (
                         <FormItem>
-                            <FormLabel>{confirmPassword.label}</FormLabel>
+                            <FormLabel>{confirmNewPassword.label}</FormLabel>
                             <FormControl>
-                                <Input 
+                                <Input
                                     type="password"
-                                    placeholder={confirmPassword.placeholder}
+                                    placeholder={confirmNewPassword.placeholder}
                                     {...field}
                                 />
                             </FormControl>
@@ -127,10 +132,12 @@ function ResetPasswordForm({
                         </FormItem>
                     )}
                 />
-                <Button type="submit" className="w-full">{submitButtonText}</Button>
+                <Button type="submit" className="w-full" disabled={resetPassword.isPending}>
+                    {resetPassword.isPending ? "Setting Password..." : submitButtonText}
+                </Button>
             </form>
         </Form>
-    )
+    );
 }
 
 export default ResetPasswordForm;
