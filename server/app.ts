@@ -16,32 +16,35 @@ const __dirname = path.dirname(__filename);
 
 const app = express();
 
-if(process.env.ENABLE_PGADMIN === 'true') {
-
+if (process.env.ENABLE_PGADMIN === "true") {
     const pgadminProxyOptions = createProxyMiddleware({
-        target: 'http://pgadmin:80',
+        target: "http://pgadmin:80",
         changeOrigin: true,
         pathRewrite: (path) => `/s/pgadmin/${path}`,
-        cookiePathRewrite: { '/': '/s/pgadmin' },
+        cookiePathRewrite: { "/": "/s/pgadmin" },
         logger: console,
         plugins: [
             (proxyServer) => {
-                proxyServer.on('proxyReq', (proxyReq, req) => {
-                proxyReq.setHeader('X-Script-Name', '/s/pgadmin')
-                proxyReq.setHeader('X-Forwarded-Proto', 'http')
-                if (req.headers.host) proxyReq.setHeader('X-Forwarded-Host', req.headers.host)
-                })
-            }
-        ]
-    })
+                proxyServer.on("proxyReq", (proxyReq, req) => {
+                    proxyReq.setHeader("X-Script-Name", "/s/pgadmin");
+                    proxyReq.setHeader("X-Forwarded-Proto", "http");
+                    if (req.headers.host) proxyReq.setHeader("X-Forwarded-Host", req.headers.host);
+                });
+            },
+        ],
+    });
 
-    app.use('/s/pgadmin', pgadminProxyOptions)
+    app.use("/s/pgadmin", pgadminProxyOptions);
 }
 
 // CORS configuration
 app.use(
     cors({
-        origin: ["https://braaaaam.webdev.gccis.rit.edu", "http://localhost:5173", "http://localhost:3000"], //TODO: use .env for allowed origins
+        origin: [
+            "https://braaaaam.webdev.gccis.rit.edu",
+            "http://localhost:5173",
+            "http://localhost:3000",
+        ], //TODO: use .env for allowed origins
         credentials: true,
     })
 );
