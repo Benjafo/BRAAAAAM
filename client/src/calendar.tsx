@@ -201,12 +201,28 @@ export default function ReactBigCalendar() {
         const isBusinessHours = hour >= 8 && hour < 20; // 8 AM to 8 PM - have to confirm time with PM
         const isBusinessDay = dayOfWeek !== 0; // Not Sunday (0 = Sunday) nat sandey
 
-        // The company is open only during business hours AND not on Sunday
-        const isOpen = isBusinessHours && isBusinessDay;
+        // Company is open only during business hours AND not on Sunday
+        let backgroundColor = "#4a4a4a";
 
+        if (isBusinessDay && isBusinessHours) {
+            backgroundColor = "#000000";
+        }
+        // const isOpen = isBusinessHours && isBusinessDay;
+
+        if (dayOfWeek === 0) {
+            return {
+                style: {
+                    backgroundColor: "#4a4a4a", // gray
+                    minHeight: "60px",
+                    borderBottom: "1px solid #444444",
+                },
+            };
+        }
+
+        // Weekdays: business hours are black, otherwise gray
         return {
             style: {
-                backgroundColor: isOpen ? "#1a1a1a" : "#4a4a4a", // Dark black for open hours, grey for closed
+                backgroundColor: isBusinessHours ? "#000000" : "#4a4a4a",
                 minHeight: "60px",
                 borderBottom: "1px solid #444444",
             },
@@ -314,13 +330,15 @@ export default function ReactBigCalendar() {
     .rbc-time-slot {
       border-top: none;
       min-height: 60px;
-      background-color: #1a1a1a;
+      
+
     }
     
     .rbc-day-slot {
       border-left: 1px solid #444444;
-      background-color: #1a1a1a;
+
       min-height: 60px;
+
     }
     
     .rbc-day-slot:first-child {
@@ -343,9 +361,13 @@ export default function ReactBigCalendar() {
       width: 60px;
     }
     
-    .rbc-time-content {
+    .rbc-time-content  > .rbc-day-slot:first-child .rbc-time-slot{
       border-top: none;
-      background-color: #000000;
+      background-color: #2a2a2a !important;
+    }
+
+    .rbc-day-slot.sunday .rbc-time-slot {
+        background-color: #2a2a2a !important;
     }
     
     .rbc-time-gutter .rbc-time-slot {
@@ -370,11 +392,11 @@ export default function ReactBigCalendar() {
     
     .rbc-event {
       border: none !important;
-      border-radius: 4px;
+      border-radius: 10px;
       font-size: 11px;
       font-weight: 500;
       padding: 8px 6px;
-      margin: 1px;
+      margin: 2px;
       line-height: 1.2;
     }
     
@@ -592,7 +614,7 @@ export default function ReactBigCalendar() {
                         event: EventComponent,
                     }}
                     min={new Date(1970, 1, 1, 7, 0, 0)} // 7 AM
-                    max={new Date(1970, 1, 1, 20, 0, 0)} // 8 PM
+                    max={new Date(1970, 1, 1, 21, 0, 0)} // 8 PM
                     step={60} // 1 hour steps
                     timeslots={1}
                     showMultiDayTimes={false}
