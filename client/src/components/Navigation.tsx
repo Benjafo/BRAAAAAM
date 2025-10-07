@@ -182,7 +182,11 @@ export const MainNavigation = ({
                     </Avatar>
                     {visibleNavItems.map((button, idx) => (
                         <Link key={button.link ?? idx} to={button.link}>
-                            <Button size="sm" className="active:bg-primary/90">
+                            <Button
+                                size="sm"
+                                variant={"secondary"}
+                                className="active:bg-secondary/70"
+                            >
                                 {button.text}
                             </Button>
                         </Link>
@@ -190,7 +194,7 @@ export const MainNavigation = ({
                 </>
             }
             rightNavItems={
-                <Button size="sm" onClick={handleSignOut}>
+                <Button size="sm" variant={"secondary"} onClick={handleSignOut}>
                     {user ? `${user.firstName} ${user.lastName}` : "User"}
                     <LogOut />
                 </Button>
