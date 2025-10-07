@@ -3,8 +3,8 @@
 import * as React from "react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter } from "@/components/ui/dialog";
-import CreateRideForm, { type CreateRideFormValues } from "@/components/forms/createRideForm";
+import {Dialog,DialogContent,DialogHeader,DialogTitle,DialogTrigger,DialogFooter,} from "@/components/ui/dialog";
+import CreateRideForm, {type CreateRideFormValues,} from "@/components/forms/createRideForm";
 
 type Props = {
   trigger?: React.ReactNode;
@@ -14,6 +14,9 @@ type Props = {
 export default function CreateRideModal({ trigger, onSave }: Props) {
   const [open, setOpen] = React.useState(false);
 
+  // Provide the form with sane starting values
+ const defaultValues: Partial<CreateRideFormValues> = {};
+
   async function handleSubmit(values: CreateRideFormValues) {
     await onSave?.(values);
     toast.success("Ride created");
@@ -22,12 +25,26 @@ export default function CreateRideModal({ trigger, onSave }: Props) {
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger asChild>{trigger ?? <Button className="rounded-md">New Ride</Button>}</DialogTrigger>
+      <DialogTrigger asChild>
+        {trigger ?? <Button className="rounded-md">New Ride</Button>}
+      </DialogTrigger>
+
       <DialogContent className="max-w-[720px]">
-        <DialogHeader><DialogTitle>New Ride</DialogTitle></DialogHeader>
-        <CreateRideForm onSubmit={handleSubmit} submitLabel="Save" />
+        <DialogHeader>
+          <DialogTitle>New Ride</DialogTitle>
+        </DialogHeader>
+
+        {/* ✅ Pass defaultValues so the prop requirement is satisfied */}
+        <CreateRideForm
+          defaultValues={defaultValues}
+          onSubmit={handleSubmit}
+          submitLabel="Save"
+        />
+
         <DialogFooter>
-          <Button type="button" variant="outline" onClick={() => setOpen(false)}>Cancel</Button>
+          <Button type="button" variant="outline" onClick={() => setOpen(false)}>
+            Cancel
+          </Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>

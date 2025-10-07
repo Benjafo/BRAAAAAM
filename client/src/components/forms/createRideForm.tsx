@@ -14,7 +14,7 @@ import {
 import { Button } from "@/components/ui/button";
 
 /* --------------------------------- Schema --------------------------------- */
-const editRideSchema = z.object({
+const createRideSchema = z.object({
   clientName: z.string(),
   driverName: z.string(),
   dispatcherName: z.string(),
@@ -41,13 +41,13 @@ const editRideSchema = z.object({
     }),
 });
 
-export type EditRideFormValues = z.infer<typeof editRideSchema>;
+export type CreateRideFormValues = z.infer<typeof createRideSchema>;
 
 /* --------------------------------- Props ---------------------------------- */
 /** Accept Partial so we can provide sane fallbacks when something is missing. */
 type Props = {
-  defaultValues: Partial<EditRideFormValues>;
-  onSubmit: (values: EditRideFormValues) => void | Promise<void>;
+  defaultValues: Partial<CreateRideFormValues>;
+  onSubmit: (values: CreateRideFormValues) => void | Promise<void>;
   submitLabel?: string;
 };
 
@@ -57,8 +57,8 @@ export default function EditRideForm({
   onSubmit,
   submitLabel = "Save Changes",
 }: Props) {
-  const form = useForm<EditRideFormValues>({
-    resolver: zodResolver(editRideSchema),
+  const form = useForm<CreateRideFormValues>({
+    resolver: zodResolver(createRideSchema),
     mode: "onBlur",
     /** Explicit, standardized defaults (requested in review) */
     defaultValues: {
@@ -77,9 +77,9 @@ export default function EditRideForm({
       donationAmount:
         typeof defaultValues.donationAmount === "number" ? defaultValues.donationAmount : 0,
 
-      status: (defaultValues.status as EditRideFormValues["status"]) ?? "scheduled",
+      status: (defaultValues.status as CreateRideFormValues["status"]) ?? "scheduled",
       donationType:
-        (defaultValues.donationType as EditRideFormValues["donationType"]) ?? "Cash",
+        (defaultValues.donationType as CreateRideFormValues["donationType"]) ?? "Cash",
     },
   });
 
