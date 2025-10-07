@@ -57,7 +57,7 @@ const adminGeneralSchema = z.object({
         .min(1, "Zip code is required")
         .regex(/^\d{5}(-\d{4})?$/, "Please enter a valid zip code (e.g., 12345 or 12345-6789)"),
     city: z.string().min(1, "City is required").max(255, "City must not exceed 255 characters"),
-    state: z.string().length(2, "City must be exactly 2 characters"),
+    state: z.string().length(2, "State must be exactly 2 characters"),
     country: z
         .string()
         .min(1, "Country is required")
