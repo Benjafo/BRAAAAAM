@@ -1,10 +1,8 @@
 "use client";
 
-import * as React from "react";
 import { z } from "zod";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-
 import { Input } from "@/components/ui/input";
 import {
   Select,
@@ -21,10 +19,9 @@ import {
   FormControl,
   FormMessage,
 } from "@/components/ui/form";
-import { Button } from "@/components/ui/button";
+// import { Button } from "@/components/ui/button";
 
 /* --------------------------------- Schema --------------------------------- */
-
 const editRideSchema = z.object({
   clientName: z.string(),
   driverName: z.string(),
@@ -62,24 +59,33 @@ const editRideSchema = z.object({
 export type EditRideFormValues = z.infer<typeof editRideSchema>;
 
 /* --------------------------------- Props ---------------------------------- */
-
 type Props = {
-  defaultValues: EditRideFormValues;
+  // defaultValues: EditRideFormValues;
+  defaultValues?: Partial<EditRideFormValues>;
   onSubmit: (values: EditRideFormValues) => void | Promise<void>;
   submitLabel?: string;
 };
 
 /* --------------------------------- Form ----------------------------------- */
-
 export default function EditRideForm({
-  defaultValues,
+  defaultValues = {},
   onSubmit,
-  submitLabel = "Save Changes",
+  // submitLabel = "Save Changes",
 }: Props) {
   const form = useForm<EditRideFormValues>({
     resolver: zodResolver(editRideSchema),
     mode: "onBlur",
-    defaultValues,
+    defaultValues: {
+      clientName: defaultValues.clientName ?? "",
+      driverName: defaultValues.driverName ?? "",
+      dispatcherName: defaultValues.dispatcherName ?? "",
+      numClients: defaultValues.numClients ?? 0,
+      durationHours: defaultValues.durationHours ?? 0,
+      distanceMilesTenths: defaultValues.distanceMilesTenths ?? 0,
+      donationAmount: defaultValues.donationAmount ?? 0,
+      status: defaultValues.status ?? "",
+      donationType: defaultValues.donationType ?? "",
+    }
   });
 
   return (
@@ -240,9 +246,9 @@ export default function EditRideForm({
           )}
         />
 
-        <div className="mt-2">
+        {/* <div className="mt-2">
           <Button type="submit">{submitLabel}</Button>
-        </div>
+        </div> */}
       </form>
     </Form>
   );
