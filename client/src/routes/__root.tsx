@@ -3,7 +3,7 @@ import { Toaster } from "@/components/ui/sonner";
 import { createRootRoute, Outlet } from "@tanstack/react-router";
 
 const RootLayout = () => (
-    <div className="bg-neutral-100 dark:bg-black">
+    <div className="bg-background">
         <Outlet />
         <Toaster />
         {/* <TanStackRouterDevtools /> */}

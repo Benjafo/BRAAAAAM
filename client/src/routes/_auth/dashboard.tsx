@@ -8,9 +8,9 @@ export const Route = createFileRoute("/_auth/dashboard")({
 
 function RouteComponent() {
     return (
-        <>
+        <div className=''>
             <MainNavigation />
             <AdminDashboard />
-        </>
+        </div>
     );
 }
