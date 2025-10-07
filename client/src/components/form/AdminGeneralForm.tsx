@@ -454,7 +454,7 @@ export const AdminGeneralForm = forwardRef<AdminGeneralFormRef, AdminGeneralForm
                                                     />
                                                 </FormControl>
                                             ) : (
-                                                <p className="text-sm">{field.value || "Empty"}</p>
+                                                <p className="text-sm">{field.value}</p>
                                             )}
                                             <FormMessage />
                                         </FormItem>
