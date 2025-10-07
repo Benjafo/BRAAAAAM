@@ -1,94 +1,159 @@
 "use client";
+
 import { z } from "zod";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { format } from "date-fns";
-import { CalendarIcon } from "lucide-react";
 
-import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "@/components/ui/select";
-import { Popover, PopoverTrigger, PopoverContent } from "@/components/ui/popover";
-import { Calendar } from "@/components/ui/calendar";
-import { cn } from "@/lib/utils";
-import { Form, FormField, FormItem, FormLabel, FormControl, FormMessage } from "@/components/ui/form";
+import {
+  Select, SelectTrigger, SelectValue, SelectContent, SelectItem,
+} from "@/components/ui/select";
+import {
+  Form, FormField, FormItem, FormLabel, FormControl, FormMessage,
+} from "@/components/ui/form";
+import { Button } from "@/components/ui/button";
 
-export const createRideSchema = z.object({
-  client: z.string().min(1, "Client is required"),
-  purpose: z.string().min(1, "Purpose is required"),
+/* --------------------------------- Schema --------------------------------- */
+const editRideSchema = z.object({
+  clientName: z.string(),
+  driverName: z.string(),
+  dispatcherName: z.string(),
 
-  tripType: z
+  numClients: z.number().min(0, "Must be ≥ 0"),
+  durationHours: z.number().min(0, "Must be ≥ 0"),
+  distanceMilesTenths: z.number().min(0, "Must be ≥ 0"),
+  donationAmount: z.number().min(0, "Must be ≥ 0"),
+
+  status: z
     .string()
-    .min(1, "Select trip type")
-    .refine((v): v is "Round Trip" | "One Way" => v === "Round Trip" || v === "One Way", {
-      message: "Select trip type",
+    .min(1, "Select a status")
+    .refine(
+      (v): v is "completed" | "cancelled" | "one-way" | "round-trip" | "scheduled" =>
+        ["completed", "cancelled", "one-way", "round-trip", "scheduled"].includes(v as any),
+      { message: "Select a status" },
+    ),
+
+  donationType: z
+    .string()
+    .min(1, "Select donation type")
+    .refine((v): v is "Check" | "Cash" | "Card" => ["Check", "Cash", "Card"].includes(v as any), {
+      message: "Select donation type",
     }),
+});
 
-  date: z.any().refine((v): v is Date => v instanceof Date, { message: "Pick a date" }),
+export type EditRideFormValues = z.infer<typeof editRideSchema>;
 
-  time: z.string().min(1, "Pick a time").regex(/^\d{2}:\d{2}$/, "Time must be HH:MM"),
-
-  additionalRider: z
-    .string()
-    .min(1, "Select Yes or No")
-    .refine((v): v is "Yes" | "No" => v === "Yes" || v === "No", { message: "Select Yes or No" }),
-
-  addFirst: z.string().optional(),
-  addLast: z.string().optional(),
-  driver: z.string().min(1, "Driver is required"),
-  relation: z.string().min(1, "Relationship is required"),
-}).refine(
-  (d) => d.additionalRider === "No" || (d.addFirst && d.addLast),
-  { message: "Enter first and last name for additional rider", path: ["addFirst"] }
-);
-
-export type CreateRideFormValues = z.infer<typeof createRideSchema>;
-
+/* --------------------------------- Props ---------------------------------- */
+/** Accept Partial so we can provide sane fallbacks when something is missing. */
 type Props = {
-  defaultValues?: Partial<CreateRideFormValues>;
-  onSubmit: (values: CreateRideFormValues) => Promise<void> | void;
+  defaultValues: Partial<EditRideFormValues>;
+  onSubmit: (values: EditRideFormValues) => void | Promise<void>;
   submitLabel?: string;
 };
 
-export default function CreateRideForm({ defaultValues, onSubmit, submitLabel = "Save" }: Props) {
-  const form = useForm<CreateRideFormValues>({
-    resolver: zodResolver(createRideSchema),
+/* --------------------------------- Form ----------------------------------- */
+export default function EditRideForm({
+  defaultValues,
+  onSubmit,
+  submitLabel = "Save Changes",
+}: Props) {
+  const form = useForm<EditRideFormValues>({
+    resolver: zodResolver(editRideSchema),
     mode: "onBlur",
+    /** Explicit, standardized defaults (requested in review) */
     defaultValues: {
-      client: "",
-      purpose: "",
-      tripType: "",
-      date: undefined,
-      time: "",
-      additionalRider: "No",
-      addFirst: "",
-      addLast: "",
-      driver: "",
-      relation: "",
-      ...defaultValues,
+      clientName: defaultValues.clientName ?? "",
+      driverName: defaultValues.driverName ?? "",
+      dispatcherName: defaultValues.dispatcherName ?? "",
+
+      numClients:
+        typeof defaultValues.numClients === "number" ? defaultValues.numClients : 0,
+      durationHours:
+        typeof defaultValues.durationHours === "number" ? defaultValues.durationHours : 0,
+      distanceMilesTenths:
+        typeof defaultValues.distanceMilesTenths === "number"
+          ? defaultValues.distanceMilesTenths
+          : 0,
+      donationAmount:
+        typeof defaultValues.donationAmount === "number" ? defaultValues.donationAmount : 0,
+
+      status: (defaultValues.status as EditRideFormValues["status"]) ?? "scheduled",
+      donationType:
+        (defaultValues.donationType as EditRideFormValues["donationType"]) ?? "Cash",
     },
   });
 
-  const additionalRider = form.watch("additionalRider");
-
   return (
     <Form {...form}>
-      <form className="grid grid-cols-1 gap-4 md:grid-cols-2" onSubmit={form.handleSubmit(onSubmit)}>
+      <form className="grid grid-cols-1 gap-4" onSubmit={form.handleSubmit(onSubmit)}>
+        {/* Client Name (read-only) */}
         <FormField
           control={form.control}
-          name="client"
+          name="clientName"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Client</FormLabel>
+              <FormLabel>Client Name</FormLabel>
+              <FormControl><Input {...field} disabled /></FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+
+        {/* Driver Name (read-only) */}
+        <FormField
+          control={form.control}
+          name="driverName"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Driver Name</FormLabel>
+              <FormControl><Input {...field} disabled /></FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+
+        {/* Dispatcher Name (read-only) */}
+        <FormField
+          control={form.control}
+          name="dispatcherName"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Dispatcher Name</FormLabel>
+              <FormControl><Input {...field} disabled /></FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+
+        {/* Number of Clients */}
+        <FormField
+          control={form.control}
+          name="numClients"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Number of Clients</FormLabel>
+              <FormControl><Input inputMode="numeric" {...field} /></FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+
+        {/* Status */}
+        <FormField
+          control={form.control}
+          name="status"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Ride Status</FormLabel>
               <FormControl>
                 <Select value={field.value} onValueChange={field.onChange}>
-                  <SelectTrigger><SelectValue placeholder="Select client" /></SelectTrigger>
+                  <SelectTrigger><SelectValue placeholder="(completed, cancelled, one-way, etc.)" /></SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="WASPS">WASPS</SelectItem>
-                    <SelectItem value="Joan Albany">Joan Albany</SelectItem>
-                    <SelectItem value="Deb Reilley">Deb Reilley</SelectItem>
-                    <SelectItem value="Audrey Buck">Audrey Buck</SelectItem>
-                    <SelectItem value="Caren">Caren</SelectItem>
+                    <SelectItem value="completed">Completed</SelectItem>
+                    <SelectItem value="cancelled">Cancelled</SelectItem>
+                    <SelectItem value="one-way">One-way</SelectItem>
+                    <SelectItem value="round-trip">Round trip</SelectItem>
+                    <SelectItem value="scheduled">Scheduled</SelectItem>
                   </SelectContent>
                 </Select>
               </FormControl>
@@ -97,59 +162,46 @@ export default function CreateRideForm({ defaultValues, onSubmit, submitLabel = 
           )}
         />
 
+        {/* Duration Hours */}
         <FormField
           control={form.control}
-          name="purpose"
+          name="durationHours"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Purpose of trip</FormLabel>
-              <FormControl><Input placeholder="Value" {...field} /></FormControl>
+              <FormLabel>Trip Duration (hours & quarter-hours)</FormLabel>
+              <FormControl><Input inputMode="decimal" {...field} /></FormControl>
               <FormMessage />
             </FormItem>
           )}
         />
 
+        {/* Distance */}
         <FormField
           control={form.control}
-          name="date"
+          name="distanceMilesTenths"
           render={({ field }) => (
-            <FormItem className="flex flex-col">
-              <FormLabel>Date of Trip</FormLabel>
-              <Popover>
-                <PopoverTrigger asChild>
-                  <FormControl>
-                    <Button variant="outline" className={cn("justify-start", !field.value && "text-muted-foreground")}>
-                      <CalendarIcon className="mr-2 h-4 w-4" />
-                      {field.value ? format(field.value, "PPP") : "Calendar picker here"}
-                    </Button>
-                  </FormControl>
-                </PopoverTrigger>
-                <PopoverContent className="p-0" side="bottom" align="start">
-                  <Calendar
-                    mode="single"
-                    selected={field.value}
-                    onSelect={(d) => d && field.onChange(d)}
-                    initialFocus
-                  />
-                </PopoverContent>
-              </Popover>
+            <FormItem>
+              <FormLabel>Trip Distance (miles & tenths)</FormLabel>
+              <FormControl><Input inputMode="decimal" {...field} /></FormControl>
               <FormMessage />
             </FormItem>
           )}
         />
 
+        {/* Donation Type */}
         <FormField
           control={form.control}
-          name="tripType"
+          name="donationType"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Round Trip/One Way</FormLabel>
+              <FormLabel>Donation Type</FormLabel>
               <FormControl>
                 <Select value={field.value} onValueChange={field.onChange}>
-                  <SelectTrigger><SelectValue placeholder="Select trip type" /></SelectTrigger>
+                  <SelectTrigger><SelectValue placeholder="Select…" /></SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="Round Trip">Round Trip</SelectItem>
-                    <SelectItem value="One Way">One Way</SelectItem>
+                    <SelectItem value="Check">Check</SelectItem>
+                    <SelectItem value="Cash">Cash</SelectItem>
+                    <SelectItem value="Card">Card</SelectItem>
                   </SelectContent>
                 </Select>
               </FormControl>
@@ -158,99 +210,20 @@ export default function CreateRideForm({ defaultValues, onSubmit, submitLabel = 
           )}
         />
 
+        {/* Donation Amount */}
         <FormField
           control={form.control}
-          name="time"
+          name="donationAmount"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Appointment Time</FormLabel>
-              <FormControl><Input type="time" placeholder="HH:MM" {...field} /></FormControl>
+              <FormLabel>Donation Amount ($)</FormLabel>
+              <FormControl><Input inputMode="decimal" {...field} /></FormControl>
               <FormMessage />
             </FormItem>
           )}
         />
 
-        <FormField
-          control={form.control}
-          name="additionalRider"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Additional Rider</FormLabel>
-              <FormControl>
-                <Select value={field.value} onValueChange={field.onChange}>
-                  <SelectTrigger><SelectValue placeholder="Select" /></SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="Yes">Yes</SelectItem>
-                    <SelectItem value="No">No</SelectItem>
-                  </SelectContent>
-                </Select>
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-
-        {additionalRider === "Yes" && (
-          <>
-            <FormField
-              control={form.control}
-              name="addFirst"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Additional Rider First Name</FormLabel>
-                  <FormControl><Input placeholder="First" {...field} /></FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            <FormField
-              control={form.control}
-              name="addLast"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Additional Rider Last Name</FormLabel>
-                  <FormControl><Input placeholder="Last" {...field} /></FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-          </>
-        )}
-
-        <FormField
-          control={form.control}
-          name="driver"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Assigned Driver</FormLabel>
-              <FormControl>
-                <Select value={field.value} onValueChange={field.onChange}>
-                  <SelectTrigger><SelectValue placeholder="Select a driver" /></SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="Driver A">Driver A</SelectItem>
-                    <SelectItem value="Driver B">Driver B</SelectItem>
-                    <SelectItem value="Driver C">Driver C</SelectItem>
-                  </SelectContent>
-                </Select>
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-
-        <FormField
-          control={form.control}
-          name="relation"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Relationship to Client</FormLabel>
-              <FormControl><Input placeholder="Value" {...field} /></FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-
-        <div className="md:col-span-2 flex justify-end gap-2">
+        <div className="mt-2">
           <Button type="submit">{submitLabel}</Button>
         </div>
       </form>
