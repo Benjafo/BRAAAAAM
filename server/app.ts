@@ -5,6 +5,21 @@ import createError from "http-errors";
 import logger from "morgan";
 
 import authRouter from "./routes/auth.js";
+import sseRouter from "./routes/sse.js";
+
+// org-scoped
+import usersRouter from "./routes/users.js";
+import clientsRouter from "./routes/clients.js";
+import orgSettingsRouter from "./routes/orgSettings.js";
+import rolesRouter from "./routes/roles.js";
+import locationsRouter from "./routes/locations.js";
+import appointmentsRouter from "./routes/appointments.js";
+import notificationsRouter from "./routes/notifications.js";
+import reportsRouter from "./routes/reports.js";
+
+// system-scoped
+import organizationsRouter from "./routes/organizations.js";
+import sysSettingsRouter from "./routes/sysSettings.js";
 
 import { NextFunction, Request, Response } from "express";
 
@@ -59,6 +74,17 @@ app.use(express.static(path.join(__dirname, "..", "public")));
 
 // API routes
 app.use("/auth", authRouter);
+app.use("/o/:orgId/users", usersRouter);
+app.use("/o/:orgId/clients", clientsRouter);
+app.use("/o/:orgId/settings", orgSettingsRouter);
+app.use("/s/settings", sysSettingsRouter)
+app.use("/o/:orgId/appointments", appointmentsRouter);
+app.use("/o/:orgId/notifications", notificationsRouter);
+app.use("/o/:orgId/reports", reportsRouter);
+app.use("/s/organizations", organizationsRouter);
+app.use("/o/:orgId/settings/roles", rolesRouter);
+app.use("/o/:orgId/settings/locations", locationsRouter);
+app.use("/sse", sseRouter);
 
 // Catch-all route - serve React app for any non-API routes
 app.get("/*", (_req, res) => {
