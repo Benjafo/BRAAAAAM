@@ -41,7 +41,7 @@ function RouteComponent() {
 
     const handleTabChange = useCallback(
         (value: string) => {
-            // Exit edit mode when switching tabs
+            // Exit edit mode when switching tabs, help from AI on this
             if (isEditMode) {
                 formRef.current?.handleCancel();
                 setIsEditMode(false);
@@ -76,6 +76,7 @@ function RouteComponent() {
                         <div className="flex justify-end gap-2">
                             {activeTab === "general" ? (
                                 <>
+                                    {/* Making it variant link so it follows the look of cancel button on sign in pages, not sure if we want it to look like a regular button instead */}
                                     {isEditMode && (
                                         <Button
                                             variant="link"

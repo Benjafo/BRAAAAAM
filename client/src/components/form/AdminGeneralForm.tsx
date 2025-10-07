@@ -1,8 +1,6 @@
-import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-import { Calendar } from "@/components/ui/calendar";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+
 import {
     Form,
     FormControl,
@@ -15,8 +13,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { useCallback, useEffect, useRef, useState, forwardRef, useImperativeHandle } from "react";
 import { toast } from "sonner";
-import { format } from "date-fns";
-import { Calendar as CalendarIcon } from "lucide-react";
+
 import z from "zod";
 
 /**
@@ -28,7 +25,7 @@ const adminGeneralSchema = z.object({
         .string()
         .min(1, "Organization name is required")
         .min(2, "Name must be at least 2 characters")
-        .max(100, "Name must not exceed 100 characters"),
+        .max(255, "Name must not exceed 255 characters"),
     logoUrl: z.url("Please enter a valid URL").optional().or(z.literal("")),
     organizationDomain: z
         .string()
@@ -50,26 +47,27 @@ const adminGeneralSchema = z.object({
     email: z.email("Please enter a valid email address"),
 
     // Organization Mailing Address
-    street: z
+    AddressLineOne: z
         .string()
         .min(1, "Street address is required")
-        .max(200, "Street address must not exceed 200 characters"),
+        .max(255, "Street address must not exceed 255 characters"),
+    AddressLineTwo: z.string().max(255, "Street address must not exceed 255 characters").optional(),
     zip: z
         .string()
         .min(1, "Zip code is required")
         .regex(/^\d{5}(-\d{4})?$/, "Please enter a valid zip code (e.g., 12345 or 12345-6789)"),
-    city: z.string().min(1, "City is required").max(100, "City must not exceed 100 characters"),
-    state: z.string().min(1, "State is required").max(50, "State must not exceed 50 characters"),
+    city: z.string().min(1, "City is required").max(255, "City must not exceed 255 characters"),
+    state: z.string().length(2, "City must be exactly 2 characters"),
     country: z
         .string()
         .min(1, "Country is required")
-        .max(100, "Country must not exceed 100 characters"),
+        .max(255, "Country must not exceed 255 characters"),
 
     // API Keys
     postmarkApiKey: z
         .string()
         .min(1, "Postmark API Key is required")
-        .max(200, "API Key must not exceed 200 characters"),
+        .max(255, "API Key must not exceed 255 characters"),
     apiDomain: z
         .string()
         .min(1, "API domain is required")
@@ -88,7 +86,8 @@ const testData: AdminGeneralFormData = {
     creationDate: new Date("2025-09-10"),
     phone: "(111) 111-1111",
     email: "contact@gmail.com",
-    street: "123 Main St",
+    AddressLineOne: "123 Main St",
+    AddressLineTwo: "456 Random St",
     zip: "12345",
     city: "New York",
     country: "United States",
@@ -108,12 +107,11 @@ export interface AdminGeneralFormRef {
 
 export const AdminGeneralForm = forwardRef<AdminGeneralFormRef, AdminGeneralFormProps>(
     ({ isEditMode = false }, ref) => {
-        const [isCalendarOpen, setIsCalendarOpen] = useState(false);
         const [serverData, setServerData] = useState<AdminGeneralFormData>(testData);
         const [logoFile, setLogoFile] = useState<File | null>(null);
         const [uploadedFileName, setUploadedFileName] = useState<string | null>(null);
 
-        // Refs
+        // Refs (Recomended by AI)
         const serverDataRef = useRef(serverData);
         const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -124,12 +122,12 @@ export const AdminGeneralForm = forwardRef<AdminGeneralFormRef, AdminGeneralForm
             mode: "onBlur",
         });
 
-        // Keep serverDataRef in sync with serverData
+        // Keep serverDataRef in sync with serverData (Recomended by AI)
         useEffect(() => {
             serverDataRef.current = serverData;
         }, [serverData]);
 
-        // Cleanup URLs to prevent memory leaks
+        // Cleanup URLs to prevent memory leaks (Recomended by AI)
         useEffect(() => {
             return () => {
                 if (serverData.logoUrl && serverData.logoUrl.startsWith("blob:")) {
@@ -138,7 +136,7 @@ export const AdminGeneralForm = forwardRef<AdminGeneralFormRef, AdminGeneralForm
             };
         }, [serverData.logoUrl]);
 
-        // Handling logo file change
+        // Handling logo file change, AI was in some part of handleLogoChange
         const handleLogoChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
             const file = e.target.files?.[0];
             if (!file) return;
@@ -187,7 +185,7 @@ export const AdminGeneralForm = forwardRef<AdminGeneralFormRef, AdminGeneralForm
 
                 // Handle logo file upload if a new file was selected
                 if (logoFile) {
-                    // Revoke previous blob URL if it exists
+                    // Revoke previous blob URL if it exists (AI help)
                     if (serverData.logoUrl && serverData.logoUrl.startsWith("blob:")) {
                         URL.revokeObjectURL(serverData.logoUrl);
                     }
@@ -231,7 +229,7 @@ export const AdminGeneralForm = forwardRef<AdminGeneralFormRef, AdminGeneralForm
             }
         }, [form, logoFile, serverData.logoUrl]);
 
-        // Code for edit button to work in admin settings route
+        // Code for edit button to work in admin settings route, might be a better way to do this? Don't know for now
         useImperativeHandle(
             ref,
             () => ({
@@ -357,60 +355,6 @@ export const AdminGeneralForm = forwardRef<AdminGeneralFormRef, AdminGeneralForm
                                         </FormItem>
                                     )}
                                 />
-
-                                <FormField
-                                    control={form.control}
-                                    name="creationDate"
-                                    render={({ field }) => (
-                                        <FormItem className="grid gap-3">
-                                            <FormLabel>Creation Date</FormLabel>
-                                            {isEditMode ? (
-                                                <FormControl>
-                                                    <Popover
-                                                        open={isCalendarOpen}
-                                                        onOpenChange={setIsCalendarOpen}
-                                                    >
-                                                        <PopoverTrigger asChild>
-                                                            <Button
-                                                                variant="outline"
-                                                                data-empty={!field.value}
-                                                                className="data-[empty=true]:text-muted-foreground w-80 justify-start text-left font-normal"
-                                                            >
-                                                                {field.value instanceof Date ? (
-                                                                    format(field.value, "PPP")
-                                                                ) : (
-                                                                    <span>Pick a date</span>
-                                                                )}
-                                                                <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
-                                                            </Button>
-                                                        </PopoverTrigger>
-                                                        <PopoverContent className="w-auto p-0">
-                                                            <Calendar
-                                                                mode="single"
-                                                                selected={
-                                                                    field.value instanceof Date
-                                                                        ? field.value
-                                                                        : undefined
-                                                                }
-                                                                onSelect={(date) => {
-                                                                    field.onChange(date);
-                                                                    setIsCalendarOpen(false);
-                                                                }}
-                                                            />
-                                                        </PopoverContent>
-                                                    </Popover>
-                                                </FormControl>
-                                            ) : (
-                                                <p className="text-sm">
-                                                    {field.value instanceof Date
-                                                        ? format(field.value, "PPP")
-                                                        : "Empty"}
-                                                </p>
-                                            )}
-                                            <FormMessage />
-                                        </FormItem>
-                                    )}
-                                />
                             </CardContent>
                         </Card>
 
@@ -475,10 +419,10 @@ export const AdminGeneralForm = forwardRef<AdminGeneralFormRef, AdminGeneralForm
                             <CardContent className="grid gap-6">
                                 <FormField
                                     control={form.control}
-                                    name="street"
+                                    name="AddressLineOne"
                                     render={({ field }) => (
                                         <FormItem className="grid gap-3">
-                                            <FormLabel>Street Address</FormLabel>
+                                            <FormLabel>Address Line One</FormLabel>
                                             {isEditMode ? (
                                                 <FormControl>
                                                     <Input
@@ -495,6 +439,27 @@ export const AdminGeneralForm = forwardRef<AdminGeneralFormRef, AdminGeneralForm
                                     )}
                                 />
 
+                                <FormField
+                                    control={form.control}
+                                    name="AddressLineTwo"
+                                    render={({ field }) => (
+                                        <FormItem className="grid gap-3">
+                                            <FormLabel>Address Line Two</FormLabel>
+                                            {isEditMode ? (
+                                                <FormControl>
+                                                    <Input
+                                                        placeholder="456 Random St"
+                                                        className="w-80"
+                                                        {...field}
+                                                    />
+                                                </FormControl>
+                                            ) : (
+                                                <p className="text-sm">{field.value || "Empty"}</p>
+                                            )}
+                                            <FormMessage />
+                                        </FormItem>
+                                    )}
+                                />
                                 <FormField
                                     control={form.control}
                                     name="zip"
