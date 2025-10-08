@@ -139,6 +139,83 @@ const sampleEvents: CalendarEvent[] = [
         end: new Date(2025, 9, 6, 17, 0), // Aug 29, 2025, 5:00 PM
         resource: { status: "scheduled", details: "1 - 5 PM" },
     },
+    {
+      id: 16,
+      title: "Scheduled",
+      start: new Date(2025, 9, 13, 9, 0), // Aug 29, 2025, 4:00 PM
+      end: new Date(2025, 9, 13, 10, 0), // Aug 29, 2025, 5:00 PM
+      resource: { status: "scheduled", details: "9 - 10 AM" },
+  },
+  {
+    id: 17,
+    title: "Scheduled",
+    start: new Date(2025, 9, 13, 11, 0), // Aug 29, 2025, 4:00 PM
+    end: new Date(2025, 9, 13, 12, 30), // Aug 29, 2025, 5:00 PM
+    resource: { status: "scheduled", details: "11 - 12:30 PM" },
+  },
+  {
+    id: 18,
+    title: "Scheduled",
+    start: new Date(2025, 9, 13, 13, 30), // Aug 29, 2025, 4:00 PM
+    end: new Date(2025, 9, 13, 14, 30), // Aug 29, 2025, 5:00 PM
+    resource: { status: "scheduled", details: "1:30 - 2:30 PM" },
+  },
+  {
+    id: 19,
+    title: "Scheduled",
+    start: new Date(2025, 9, 14, 14, 30), // Aug 29, 2025, 4:00 PM
+    end: new Date(2025, 9, 14, 15, 30), // Aug 29, 2025, 5:00 PM
+    resource: { status: "scheduled", details: "2:30 - 3:30 PM" },
+  },
+  {
+    id: 20,
+    title: "Cancelled",
+    start: new Date(2025, 9, 14, 18, 30), // Aug 29, 2025, 4:00 PM
+    end: new Date(2025, 9, 14, 19, 30), // Aug 29, 2025, 5:00 PM
+    resource: { status: "cancelled", details: "6:30 - 7:30 PM" },
+  },
+  {
+    id: 21,
+    title: "Scheduled",
+    start: new Date(2025, 9, 15, 10, 30), // Aug 29, 2025, 4:00 PM
+    end: new Date(2025, 9, 15, 11, 30), // Aug 29, 2025, 5:00 PM
+    resource: { status: "scheduled", details: "10:30 - 11:30 AM" },
+  },
+  {
+    id: 22,
+    title: "Scheduled",
+    start: new Date(2025, 9, 15, 15, 0), // Aug 29, 2025, 4:00 PM
+    end: new Date(2025, 9, 15, 18, 0), // Aug 29, 2025, 5:00 PM
+    resource: { status: "scheduled", details: "3:00 - 6:00 PM" },
+  },
+  {
+    id: 23,
+    title: "Withdrawn",
+    start: new Date(2025, 9, 16, 12, 0), // Aug 29, 2025, 4:00 PM
+    end: new Date(2025, 9, 16, 14, 0), // Aug 29, 2025, 5:00 PM
+    resource: { status: "withdrawn", details: "12:00 - 2:00 PM" },
+  },
+  {
+    id: 24,
+    title: "Scheduled",
+    start: new Date(2025, 9, 17, 9, 0), // Aug 29, 2025, 4:00 PM
+    end: new Date(2025, 9, 17, 10, 0), // Aug 29, 2025, 5:00 PM
+    resource: { status: "scheduled", details: "9:00 - 10:00 AM" },
+  },
+  {
+    id: 25,
+    title: "Scheduled",
+    start: new Date(2025, 9, 17, 16, 0), // Aug 29, 2025, 4:00 PM
+    end: new Date(2025, 9, 17, 17, 0), // Aug 29, 2025, 5:00 PM
+    resource: { status: "scheduled", details: "4:00 - 5:00 PM" },
+  },
+  {
+    id: 26,
+    title: "Scheduled",
+    start: new Date(2025, 9, 18, 13, 0), // Aug 29, 2025, 4:00 PM
+    end: new Date(2025, 9, 18, 14, 0), // Aug 29, 2025, 5:00 PM
+    resource: { status: "scheduled", details: "1:00 - 2:00 PM" },
+  },
 ];
 ("/////////////////////////////////////////////////////////////////////////Buttons////////////////////////////////////////////////////////////////////////////////////////////////////////////////");
 // Custom Button component
@@ -169,10 +246,10 @@ const Button = ({
 // Tab Button component
 const TabButton = ({ active, onClick, children }: any) => (
     <button
-        className={`px-4 py-2 rounded-none text-sm font-medium border-r border-gray-600 last:border-r-0 ${
+        className={`px-4 py-2 rounded-none text-sm font-medium border border-gray-500 last:border-r-0 focus:outline-none focus:ring-0 ${
             active
                 ? "bg-gray-600 text-white shadow"
-                : "text-gray-300 hover:text-white hover:bg-gray-700"
+                : "text-gray-300 hover:text-white hover:bg-black focus:bg-black focus:text-white active:bg-black active:text-white"
         }`}
         onClick={onClick}
     >
@@ -196,33 +273,47 @@ export default function ReactBigCalendar() {
 
     const slotStyleGetter = useCallback((date: Date) => {
         const hour = date.getHours();
+        const minute = date.getMinutes();
         const dayOfWeek = date.getDay(); // 0 = Sunday, 1 = Monday, ..., 6 = Saturday
 
-        const isBusinessHours = hour >= 8 && hour < 20; // 8 AM to 8 PM - have to confirm time with PM
-        const isBusinessDay = dayOfWeek !== 0; // Not Sunday (0 = Sunday) nat sandey
+        // Business hours: Mon-Fri 8 AM to 8 PM, Saturday 10:30 AM to 4 PM
+        let isBusinessHours = false;
+        let isBusinessDay = false;
 
-        // Company is open only during business hours AND not on Sunday
-        let backgroundColor = "#4a4a4a";
+        if (dayOfWeek >= 1 && dayOfWeek <= 5) {
+            // Monday to Friday: 8 AM to 8 PM
+            isBusinessDay = true;
+            isBusinessHours = hour >= 8 && hour < 20;
+        } else if (dayOfWeek === 6) {
+            // Saturday: 10:30 AM to 4 PM
+            isBusinessDay = true;
+            const timeInMinutes = hour * 60 + minute;
+            const startTime = 10 * 60 + 30; // 10:30 AM
+            const endTime = 16 * 60; // 4:00 PM
+            isBusinessHours = timeInMinutes >= startTime && timeInMinutes < endTime;
+        }
+
+        // Company is closed on Sunday and outside business hours
+        let backgroundColor = "#2a2a2a"; // default closed color
 
         if (isBusinessDay && isBusinessHours) {
             backgroundColor = "#000000";
         }
-        // const isOpen = isBusinessHours && isBusinessDay;
 
         if (dayOfWeek === 0) {
             return {
                 style: {
-                    backgroundColor: "#4a4a4a", // gray
+                    backgroundColor: "#2a2a2a", // Sundays are closed
                     minHeight: "60px",
                     borderBottom: "1px solid #444444",
                 },
             };
         }
 
-        // Weekdays: business hours are black, otherwise gray
+        // Weekdays and Saturday: business hours are black, otherwise gray
         return {
             style: {
-                backgroundColor: isBusinessHours ? "#000000" : "#4a4a4a",
+                backgroundColor: isBusinessHours ? "#000000" : "#2a2a2a",
                 minHeight: "60px",
                 borderBottom: "1px solid #444444",
             },
@@ -232,16 +323,27 @@ export default function ReactBigCalendar() {
     // Custom day style getter for Month view
     const dayPropGetter = useCallback((date: Date) => {
         const dayOfWeek = date.getDay(); // 0 = Sunday
+        const isOffRangeMonth = date.getMonth() !== currentDate.getMonth();
 
+        // In Month view: off-range days should be black regardless of weekday
+        if (currentView === Views.MONTH && isOffRangeMonth) {
+            return {
+                style: {
+                    backgroundColor: "#2a2a2a",
+                },
+            };
+        }
+
+        // In-range Sundays use slightly lighter dark gray
         if (dayOfWeek === 0) {
             return {
                 style: {
-                    backgroundColor: "#4a4a4a", // gray out Sundays
+                    backgroundColor: "#2a2a2a",
                 },
             };
         }
         return {};
-    }, []);
+    }, [currentDate, currentView]);
 
     // Custom formats
     const formats = useMemo(
@@ -293,9 +395,9 @@ export default function ReactBigCalendar() {
     }
     
     .rbc-header {
-      background-color: #2a2a2a;
-      border-bottom: 1px solid #444444;
-      border-right: 1px solid #444444;
+      background-color: #000000;
+      border-bottom: none; /* remove bottom border */
+      border-right: none; /* remove right border */
       color: #ffffff;
       font-weight: 500;
       padding: 8px 4px;
@@ -310,6 +412,60 @@ export default function ReactBigCalendar() {
     .rbc-header:last-child {
       border-right: none;
     }
+
+    /* Force specific borders in week view - top and left only black, rest gray */
+    .rbc-time-view *,
+    .rbc-time-view .rbc-time-header *,
+    .rbc-time-view .rbc-time-header-gutter *,
+    .rbc-time-view .rbc-time-gutter *,
+    .rbc-time-view .rbc-header * {
+      border-color: #444444 !important; /* default gray for most borders */
+    }
+    
+    /* Top border below day headers - black */
+    .rbc-time-view .rbc-time-header {
+      border-bottom: 1px solid #000000 !important;
+    }
+    
+    .rbc-time-view .rbc-time-header .rbc-row {
+      border-bottom: 1px solid #000000 !important;
+    }
+    
+    /* Left border (right of time column) - black */
+    .rbc-time-view .rbc-time-header-gutter {
+      border-right: 1px solid #000000 !important;
+      border-bottom: 1px solid #000000 !important;
+    }
+    
+    .rbc-time-view .rbc-time-gutter {
+      border-right: 1px solid #000000 !important;
+    }
+    
+    /* Force day separator borders to black - multiple selectors */
+    .rbc-time-view .rbc-header,
+    .rbc-time-view .rbc-time-header .rbc-header,
+    .rbc-time-view .rbc-time-header .rbc-row .rbc-header {
+      border-bottom: 1px solid #000000 !important;
+      border-right: 1px solid #000000 !important;
+      border-color: #000000 !important;
+    }
+    
+    /* Override any remaining gray borders between headers */
+    .rbc-time-view .rbc-header + .rbc-header {
+      border-left: 1px solid #000000 !important;
+    }
+    
+    /* Force all header borders to black */
+    .rbc-time-view .rbc-time-header .rbc-header:nth-child(1),
+    .rbc-time-view .rbc-time-header .rbc-header:nth-child(2),
+    .rbc-time-view .rbc-time-header .rbc-header:nth-child(3),
+    .rbc-time-view .rbc-time-header .rbc-header:nth-child(4),
+    .rbc-time-view .rbc-time-header .rbc-header:nth-child(5),
+    .rbc-time-view .rbc-time-header .rbc-header:nth-child(6),
+    .rbc-time-view .rbc-time-header .rbc-header:nth-child(7) {
+      border-right: 1px solid #000000 !important;
+      border-bottom: 1px solid #000000 !important;
+    }
     
     .rbc-time-view {
       background-color: #000000;
@@ -318,13 +474,14 @@ export default function ReactBigCalendar() {
     
     .rbc-time-gutter {
       background-color: #000000;
-      border-right: 1px solid #444444;
+      border-right: none; /* remove right border */
       width: 60px;
     }
     
     .rbc-time-gutter .rbc-timeslot-group {
       border-bottom: 1px solid #444444;
       min-height: 60px;
+      background-color: #000000 !important;
     }
     
     .rbc-time-slot {
@@ -355,15 +512,20 @@ export default function ReactBigCalendar() {
     }
     
     .rbc-time-header-gutter {
-      background-color: #2a2a2a;
-      border-bottom: 1px solid #444444;
-      border-right: 1px solid #444444;
+      background-color: #000000;
+      border-bottom: none; /* remove bottom border */
+      border-right: none; /* remove right border */
       width: 60px;
     }
     
     .rbc-time-content  > .rbc-day-slot:first-child .rbc-time-slot{
       border-top: none;
       background-color: #2a2a2a !important;
+    }
+
+    /* Week view: make Sunday header match others (black) */
+    .rbc-time-view .rbc-time-header .rbc-row .rbc-header:nth-child(1) {
+      background-color: #000000 !important;
     }
 
     .rbc-day-slot.sunday .rbc-time-slot {
@@ -379,7 +541,13 @@ export default function ReactBigCalendar() {
       display: flex;
       align-items: flex-start;
       padding-top: 4px;
-      background-color: #000000;
+      background-color: #000000 !important;
+    }
+
+    /* Ensure time labels in the gutter stay on black */
+    .rbc-time-gutter .rbc-label {
+      background-color: #000000 !important;
+      color: #ffffff;
     }
     
     .rbc-allday-cell {
@@ -454,6 +622,42 @@ export default function ReactBigCalendar() {
       display: none;
     }
     
+    /* Force all navigation buttons to be black with no blue highlighting */
+    button {
+      background-color: #000000 !important;
+      color: #ffffff !important;
+      border-radius: 7px !important;
+    }
+    
+    button:hover,
+    button:focus,
+    button:active {
+      background-color: #000000 !important;
+      color: #ffffff !important;
+    }
+    
+    /* Active tabs should be dark gray */
+    button.bg-black {
+      background-color: #2a2a2a !important;
+    }
+    
+    /* Override any blue highlighting */
+    button:focus-visible {
+      outline: none !important;
+      box-shadow: none !important;
+    }
+    
+    /* Specific override for Add Availability button */
+    button.bg-gray-300 {
+      background-color: #d1d5db !important;
+      color: #000000 !important;
+    }
+    
+    button.bg-gray-300:hover {
+      background-color: #9ca3af !important;
+      color: #000000 !important;
+    }
+    
     .rbc-time-slot:hover {
       background-color: #2a2a2a;
     }
@@ -488,7 +692,23 @@ export default function ReactBigCalendar() {
     }
 
     .rbc-time-header {
-      border-bottom: 1px solid #444444;
+      border-bottom: none; /* remove bottom border */
+    }
+
+    /* Month view: remove/lighten borders on weekday headers to black */
+    .rbc-month-view .rbc-header {
+      background-color: #000000;
+      border-bottom: 1px solid #000000 !important;
+      border-right: 1px solid #000000 !important;
+    }
+    .rbc-month-view .rbc-header + .rbc-header {
+      border-left: 1px solid #000000 !important;
+    }
+
+    /* Month view: force off-range day backgrounds to black */
+    .rbc-month-view .rbc-off-range-bg,
+    .rbc-off-range-bg {
+      background-color: #2a2a2a !important;
     }
     
     
@@ -510,10 +730,10 @@ export default function ReactBigCalendar() {
                         </div>
 
                         <div className="flex bg-gray-700 rounded overflow-hidden">
-                            <button className="px-3 py-1 text-xs bg-gray-600 text-white">
+                            <button className="px-3 py-1 text-xs bg-gray-600 text-white border border-gray-500">
                                 List View
                             </button>
-                            <button className="px-3 py-1 text-xs text-gray-300 hover:text-white hover:bg-gray-600">
+                            <button className="px-3 py-1 text-xs text-gray-300 hover:text-white hover:bg-black focus:bg-black focus:text-white active:bg-black active:text-white border border-gray-500">
                                 Calendar View
                             </button>
                         </div>
@@ -590,6 +810,17 @@ export default function ReactBigCalendar() {
                         >
                             <span>Next</span>
                             <span>→</span>
+                        </Button>
+
+                        <Button
+                            className="bg-gray-300 text-black hover:bg-gray-400 px-4 py-1.5 rounded text-sm font-medium transition-colors"
+                            style={{ color: '#000000' }}
+                            onClick={() => {
+                                console.log("Add Availability clicked");
+                                // Handle add availability logic here
+                            }}
+                        >
+                            Add Availability
                         </Button>
                     </div>
                 </div>
