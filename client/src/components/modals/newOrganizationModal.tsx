@@ -27,7 +27,7 @@ export default function NewOrganizationModal() {
         <Button variant="outline">New Organization</Button>
       </DialogTrigger>
 
-      <DialogContent className="max-w-[600px]">
+      <DialogContent className="max-w-[720px] max-h-[90vh] overflow-y-auto scroll-smooth p-6">
         <DialogHeader>
           <DialogTitle>New Organization</DialogTitle>
         </DialogHeader>
