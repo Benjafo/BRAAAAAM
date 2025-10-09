@@ -1,13 +1,7 @@
-import CreateRideModal from "@/components/modals/createRideModal";
-
 import { createFileRoute } from "@tanstack/react-router";
 
 function IndexPage() {
-    return (
-        <div className="p-6">
-            <CreateRideModal />
-        </div>
-    );
+    return <div className="p-6"></div>;
 }
 
 export const Route = createFileRoute("/")({
