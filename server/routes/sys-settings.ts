@@ -1,5 +1,5 @@
 import express, { Router } from "express";
-import * as sys from "../controllers/sysSettingsController";
+import * as sys from "../controllers/sys-settings.controller";
 
 const router: Router = express.Router();
 

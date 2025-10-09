@@ -1,5 +1,5 @@
 import express, { Router } from "express";
-import * as settings from "../controllers/orgSettingsController";
+import * as settings from "../controllers/org-settings.controller";
 
 const router: Router = express.Router({ mergeParams: true });
 
@@ -10,6 +10,7 @@ router.put("/", settings.updateSettings);
 // /operation-hours
 router.get("/operation-hours", settings.getOperationHours);
 
+// TODO: Make Forms router seperate from settings
 // /forms
 router.get("/forms", settings.listForms);
 router.post("/forms", settings.createForm);

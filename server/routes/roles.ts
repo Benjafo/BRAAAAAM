@@ -1,5 +1,5 @@
 import express, { Router } from "express";
-import * as roles from "../controllers/rolesController";
+import * as roles from "../controllers/roles.controller";
 
 const router: Router = express.Router({ mergeParams: true });
 

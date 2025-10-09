@@ -1,5 +1,5 @@
 import express, { Router } from "express";
-import * as orgs from "../controllers/organizationsController";
+import * as orgs from "../controllers/organizations.controller";
 
 const router: Router = express.Router();
 

@@ -1,5 +1,5 @@
 import express, { Router } from "express";
-import * as locations from "../controllers/locationsController";
+import * as locations from "../controllers/locations.controller";
 
 const router: Router = express.Router({ mergeParams: true });
 
