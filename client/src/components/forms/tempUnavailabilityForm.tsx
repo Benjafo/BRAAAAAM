@@ -61,11 +61,7 @@ type Props = {
     submitLabel?: string;
 };
 
-export default function TempUnavailabilityForm({
-    defaultValues,
-    onSubmit,
-    submitLabel = "Save",
-}: Props) {
+export default function TempUnavailabilityForm({ defaultValues, onSubmit }: Props) {
     const form = useForm<TempUnavailabilityFormValues>({
         resolver: zodResolver(schema),
         mode: "onBlur",
@@ -114,7 +110,11 @@ export default function TempUnavailabilityForm({
 
     return (
         <Form {...form}>
-            <form className="space-y-5" onSubmit={form.handleSubmit(onSubmit)}>
+            <form
+                id="temp-unavailability-form"
+                className="space-y-5"
+                onSubmit={form.handleSubmit(onSubmit)}
+            >
                 <FormField
                     control={form.control}
                     name="multiDay"
@@ -193,7 +193,7 @@ export default function TempUnavailabilityForm({
                 />
 
                 {!allDay && (
-                    <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                    <div className="grid grid-cols-1 gap-4 w-full md:col-span-2">
                         <FormField
                             control={form.control}
                             name="startTime"
@@ -222,10 +222,6 @@ export default function TempUnavailabilityForm({
                         />
                     </div>
                 )}
-
-                <div className="flex justify-end">
-                    <Button type="submit">{submitLabel}</Button>
-                </div>
             </form>
         </Form>
     );
