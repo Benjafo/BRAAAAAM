@@ -30,10 +30,7 @@ import { format } from "date-fns";
 const createRideSchema = z
     .object({
         clientName: z.string().min(1, "Please select an option."),
-        purposeOfTrip: z
-            .string()
-            .min(1, "Must have a purpose.")
-            .max(255, "Cannot be longer than 255 characters."),
+        purposeOfTrip: z.string().min(1, "Must have a purpose.").max(255),
         tripDate: z.date("Please select a date."),
         tripType: z.string().min(1, "Please select an option."),
         appointmentType: z.string().min(1, "Please select a time."),
@@ -44,70 +41,36 @@ const createRideSchema = z
             .refine((val) => ["Yes", "No"].includes(val), {
                 message: "Invalid selection.",
             }),
-        additionalRiderFirstName: z.string().optional(),
-        additionalRiderLastName: z.string().optional(),
-        relationshipToClient: z.string().optional(),
+        additionalRiderFirstName: z.string().max(255).optional(),
+        additionalRiderLastName: z.string().max(255).optional(),
+        relationshipToClient: z.string().max(255).optional(),
         assignedDriver: z.string().min(1, "Please select a driver."),
     })
-    .refine(
-        (data) => {
-            // If there's an additional rider, require the related fields. This refine information is based off AI
-            if (data.additionalRider === "Yes") {
-                return (
-                    data.additionalRiderFirstName && data.additionalRiderFirstName.trim().length > 0
-                );
+    .superRefine((data, ctx) => {
+        if (data.additionalRider === "Yes") {
+            if (!data.additionalRiderFirstName?.trim()) {
+                ctx.addIssue({
+                    code: "custom",
+                    message: "First name is required when there's an additional rider.",
+                    path: ["additionalRiderFirstName"],
+                });
             }
-            return true;
-        },
-        {
-            message: "First name is required when there's an additional rider.",
-            path: ["additionalRiderFirstName"],
-        }
-    )
-    .refine(
-        (data) => {
-            if (data.additionalRider === "Yes") {
-                return (
-                    data.additionalRiderLastName && data.additionalRiderLastName.trim().length > 0
-                );
+            if (!data.additionalRiderLastName?.trim()) {
+                ctx.addIssue({
+                    code: "custom",
+                    message: "Last name is required when there's an additional rider.",
+                    path: ["additionalRiderLastName"],
+                });
             }
-            return true;
-        },
-        {
-            message: "Last name is required when there's an additional rider.",
-            path: ["additionalRiderLastName"],
-        }
-    )
-    .refine(
-        (data) => {
-            if (data.additionalRider === "Yes") {
-                return data.relationshipToClient && data.relationshipToClient.trim().length > 0;
+            if (!data.relationshipToClient?.trim()) {
+                ctx.addIssue({
+                    code: "custom",
+                    message: "Relationship is required when there's an additional rider.",
+                    path: ["relationshipToClient"],
+                });
             }
-            return true;
-        },
-        {
-            message: "Relationship is required when there's an additional rider.",
-            path: ["relationshipToClient"],
         }
-    )
-    .refine(
-        (data) => {
-            // Validate max length for additional rider fields when present
-            if (data.additionalRider === "Yes") {
-                return (
-                    (!data.additionalRiderFirstName ||
-                        data.additionalRiderFirstName.length <= 255) &&
-                    (!data.additionalRiderLastName || data.additionalRiderLastName.length <= 255) &&
-                    (!data.relationshipToClient || data.relationshipToClient.length <= 255)
-                );
-            }
-            return true;
-        },
-        {
-            message: "Field cannot be longer than 255 characters.",
-            path: ["additionalRiderFirstName"],
-        }
-    );
+    });
 
 export type CreateRideFormValues = z.infer<typeof createRideSchema>;
 
@@ -128,7 +91,7 @@ export default function EditRideForm({ defaultValues, onSubmit }: Props) {
         defaultValues: {
             clientName: defaultValues.clientName ?? "",
             purposeOfTrip: defaultValues.purposeOfTrip ?? "",
-            tripDate: defaultValues.tripDate,
+            tripDate: defaultValues.tripDate ?? new Date(),
 
             tripType: defaultValues.tripType ?? "",
             appointmentType: defaultValues.appointmentType ?? "12:00:00",
@@ -233,7 +196,7 @@ export default function EditRideForm({ defaultValues, onSubmit }: Props) {
                         <FormItem className="w-full">
                             <FormLabel>Round Trip/One Way</FormLabel>
                             <FormControl className="w-full">
-                                <Select onValueChange={field.onChange}>
+                                <Select value={field.value} onValueChange={field.onChange}>
                                     <SelectTrigger className="w-full">
                                         <SelectValue placeholder="Select a value" />
                                     </SelectTrigger>
@@ -276,7 +239,7 @@ export default function EditRideForm({ defaultValues, onSubmit }: Props) {
                         <FormItem className="w-full">
                             <FormLabel>Additional Rider</FormLabel>
                             <FormControl className="w-full">
-                                <Select onValueChange={field.onChange}>
+                                <Select value={field.value} onValueChange={field.onChange}>
                                     <SelectTrigger className="w-full">
                                         <SelectValue placeholder="Select a value" />
                                     </SelectTrigger>
@@ -314,7 +277,7 @@ export default function EditRideForm({ defaultValues, onSubmit }: Props) {
                         <FormItem className="w-full">
                             <FormLabel>Assigned Driver</FormLabel>
                             <FormControl className="w-full">
-                                <Select onValueChange={field.onChange}>
+                                <Select value={field.value} onValueChange={field.onChange}>
                                     <SelectTrigger className="w-full">
                                         <SelectValue placeholder="Select a value" />
                                     </SelectTrigger>
