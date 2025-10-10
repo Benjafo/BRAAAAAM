@@ -45,6 +45,22 @@ const createRideSchema = z
         additionalRiderLastName: z.string().max(255).optional(),
         relationshipToClient: z.string().max(255).optional(),
         assignedDriver: z.string().min(1, "Please select a driver."),
+        rideStatus: z.string().min(1, "Please select an option."),
+        tripDuration: z.number().min(1, "Please select how long the trip was."),
+        volunteerHours: z
+            .number()
+            .min(0, "Volunteer hours cannot be negative.")
+            .refine(
+                (val) => {
+                    // Check if it's a valid quarter-hour increment (0.00, 0.25, 0.50, 0.75)
+                    const decimal = val % 1;
+                    return [0, 0.25, 0.5, 0.75].includes(Math.round(decimal * 100) / 100);
+                },
+                {
+                    message:
+                        "Volunteer hours must be in quarter-hour increments (e.g., 1.25, 2.50).",
+                }
+            ),
     })
     .superRefine((data, ctx) => {
         if (data.additionalRider === "Yes") {
@@ -79,7 +95,6 @@ export type CreateRideFormValues = z.infer<typeof createRideSchema>;
 type Props = {
     defaultValues: Partial<CreateRideFormValues>;
     onSubmit: (values: CreateRideFormValues) => void | Promise<void>;
-    submitLabel?: string;
 };
 
 /* --------------------------------- Form ----------------------------------- */
@@ -101,9 +116,14 @@ export default function EditRideForm({ defaultValues, onSubmit }: Props) {
 
             additionalRiderLastName: defaultValues.additionalRiderLastName ?? "",
             relationshipToClient: defaultValues.relationshipToClient ?? "",
+            rideStatus: defaultValues.rideStatus ?? "",
+            tripDuration: defaultValues.tripDuration ?? 0,
+            volunteerHours: defaultValues.volunteerHours ?? 0,
         },
     });
 
+    /* AI said to use form.watch to check if Additional Rider is included - if it is, show additional rider form fields, if not, don't include them. */
+    const additionalRider = form.watch("additionalRider");
     return (
         <Form {...form}>
             <form
@@ -111,7 +131,7 @@ export default function EditRideForm({ defaultValues, onSubmit }: Props) {
                 className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-6 w-full items-start"
                 onSubmit={form.handleSubmit(onSubmit)}
             >
-                {/* Client Name, Replace with information from API later */}
+                {/* Client Name, on all the dropdowns, replace with information from API later. */}
                 <FormField
                     control={form.control}
                     name="clientName"
@@ -253,22 +273,6 @@ export default function EditRideForm({ defaultValues, onSubmit }: Props) {
                         </FormItem>
                     )}
                 />
-
-                {/* Additional Rider First Name */}
-                <FormField
-                    control={form.control}
-                    name="additionalRiderFirstName"
-                    render={({ field }) => (
-                        <FormItem className="w-full">
-                            <FormLabel>Additional Rider First Name</FormLabel>
-                            <FormControl className="w-full">
-                                <Input placeholder="Value" {...field} className="w-full" />
-                            </FormControl>
-                            <FormMessage />
-                        </FormItem>
-                    )}
-                />
-
                 {/* Assigned Driver */}
                 <FormField
                     control={form.control}
@@ -292,29 +296,115 @@ export default function EditRideForm({ defaultValues, onSubmit }: Props) {
                     )}
                 />
 
+                {/* Additional Rider First Name */}
+                {additionalRider === "Yes" && (
+                    <FormField
+                        control={form.control}
+                        name="additionalRiderFirstName"
+                        render={({ field }) => (
+                            <FormItem className="w-full">
+                                <FormLabel>Additional Rider First Name</FormLabel>
+                                <FormControl className="w-full">
+                                    <Input placeholder="Value" {...field} className="w-full" />
+                                </FormControl>
+                                <FormMessage />
+                            </FormItem>
+                        )}
+                    />
+                )}
+
                 {/* Additional Rider Last Name  */}
+                {additionalRider === "Yes" && (
+                    <FormField
+                        control={form.control}
+                        name="additionalRiderLastName"
+                        render={({ field }) => (
+                            <FormItem className="w-full">
+                                <FormLabel>Additional Rider Last Name</FormLabel>
+                                <FormControl className="w-full">
+                                    <Input placeholder="Value" {...field} className="w-full" />
+                                </FormControl>
+                                <FormMessage />
+                            </FormItem>
+                        )}
+                    />
+                )}
+
+                {additionalRider === "Yes" && (
+                    <FormField
+                        control={form.control}
+                        name="relationshipToClient"
+                        render={({ field }) => (
+                            <FormItem className="w-full">
+                                <FormLabel>Relationship to Client</FormLabel>
+                                <FormControl className="w-full">
+                                    <Input placeholder="Value" {...field} className="w-full" />
+                                </FormControl>
+                                <FormMessage />
+                            </FormItem>
+                        )}
+                    />
+                )}
+                {/* Ride Status: Completed Round Trip, Completed One Way To, Completed One Way From, Cancelled by Client, Cancelled by Driver */}
                 <FormField
                     control={form.control}
-                    name="additionalRiderLastName"
+                    name="rideStatus"
                     render={({ field }) => (
                         <FormItem className="w-full">
-                            <FormLabel>Additional Rider Last Name</FormLabel>
+                            <FormLabel>Ride Status</FormLabel>
                             <FormControl className="w-full">
-                                <Input placeholder="Value" {...field} className="w-full" />
+                                <Select value={field.value} onValueChange={field.onChange}>
+                                    <SelectTrigger className="w-full">
+                                        <SelectValue placeholder="Select Ride Status" />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        <SelectItem value="Completed Round Trip">
+                                            Completed Round Trip
+                                        </SelectItem>
+                                        <SelectItem value="Completed One Way To">
+                                            Completed One Way To
+                                        </SelectItem>
+                                        <SelectItem value="Completed One Way From">
+                                            Completed One Way From
+                                        </SelectItem>
+                                        <SelectItem value="Cancelled by Driver">
+                                            Cancelled by Client
+                                        </SelectItem>
+                                        <SelectItem value="Cancelled by Driver">
+                                            Cancelled by Driver
+                                        </SelectItem>
+                                    </SelectContent>
+                                </Select>
                             </FormControl>
                             <FormMessage />
                         </FormItem>
                     )}
                 />
-
+                {/* Volunteer Hours */}
                 <FormField
                     control={form.control}
-                    name="relationshipToClient"
+                    name="volunteerHours"
                     render={({ field }) => (
                         <FormItem className="w-full">
-                            <FormLabel>Relationship to Client</FormLabel>
+                            <FormLabel>Volunteer Hours</FormLabel>
                             <FormControl className="w-full">
-                                <Input placeholder="Value" {...field} className="w-full" />
+                                <Input
+                                    type="number"
+                                    step="0.25"
+                                    value={field.value === 0 ? "" : field.value}
+                                    onChange={(e) => {
+                                        const value = e.target.value;
+                                        // If empty, set to 0
+                                        if (value === "") {
+                                            field.onChange(0);
+                                            return;
+                                        }
+                                        // Otherwise parse as float
+                                        const parsed = parseFloat(value);
+                                        field.onChange(isNaN(parsed) ? 0 : parsed);
+                                    }}
+                                    className="w-full"
+                                />
                             </FormControl>
                             <FormMessage />
                         </FormItem>
