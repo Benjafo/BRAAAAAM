@@ -1,9 +1,26 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { MainNavigation } from "@/components/Navigation";
+import { authStore } from "@/components/stores/authStore";
+import { createFileRoute, redirect } from "@tanstack/react-router";
 
-function IndexPage() {
-    return <div className="p-6"></div>;
-}
-
+// not sure we need a index here for main navigation? This could be moved elsewhere.
 export const Route = createFileRoute("/")({
-    component: IndexPage,
+    beforeLoad: async () => {
+        const s = authStore.getState();
+        const isAuthed = Boolean(s.user && s.accessToken);
+
+        if (isAuthed) {
+            throw redirect({
+                to: "/dashboard",
+            });
+        } else {
+            throw redirect({
+                to: "/sign-in",
+            });
+        }
+    },
+    component: RouteComponent,
 });
+
+function RouteComponent() {
+    return <MainNavigation />;
+}
