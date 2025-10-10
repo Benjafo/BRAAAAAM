@@ -18,7 +18,7 @@ import {
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 
 /* ----------------------------- Zod schema ----------------------------- */
-export const newOrganizationSchema = z.object({
+const newOrganizationSchema = z.object({
     // top section
     orgName: z
         .string()

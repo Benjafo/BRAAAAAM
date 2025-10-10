@@ -15,17 +15,15 @@ import CreateRideForm, { type CreateRideFormValues } from "@/components/forms/cr
 
 type Props = {
     trigger?: React.ReactNode;
-    onSave?: (v: CreateRideFormValues) => Promise<void> | void;
 };
 
-export default function CreateRideModal({ trigger, onSave }: Props) {
+export default function CreateRideModal({ trigger }: Props) {
     const [open, setOpen] = React.useState(false);
 
     // Provide the form with sane starting values
     const defaultValues: Partial<CreateRideFormValues> = {};
 
-    async function handleSubmit(values: CreateRideFormValues) {
-        await onSave?.(values);
+    async function handleSubmit() {
         toast.success("Ride created");
         setOpen(false);
     }
