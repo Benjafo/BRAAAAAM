@@ -40,7 +40,12 @@ const newOrganizationSchema = z.object({
             "Please enter a valid US phone number."
         ),
     email: z.email(),
-    website: z.url("Invalid URL"),
+    website: z
+        .string()
+        .url()
+        .regex(/^https?:\/\/(www\.)/, {
+            message: "URL must start with 'www.' after the protocol and slashes",
+        }),
     mailingAddress: z
         .string()
         .min(1, "Mailing address is required.")

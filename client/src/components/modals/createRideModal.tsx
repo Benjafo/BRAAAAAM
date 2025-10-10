@@ -11,7 +11,7 @@ import {
     DialogTrigger,
     DialogFooter,
 } from "@/components/ui/dialog";
-import CreateRideForm, { type CreateRideFormValues } from "@/components/forms/createRideForm";
+import CreateRideForm, { type CreateRideFormValues } from "@/components/form/createRideForm";
 
 type Props = {
     trigger?: React.ReactNode;

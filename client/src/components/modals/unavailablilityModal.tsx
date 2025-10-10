@@ -12,10 +12,10 @@ import {
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import TempUnavailabilityForm, {
     type TempUnavailabilityFormValues,
-} from "@/components/forms/tempUnavailabilityForm";
+} from "@/components/form/tempUnavailabilityForm";
 import RecurringUnavailabilityForm, {
     type RecurringUnavailabilityFormValues,
-} from "@/components/forms/recurringUnavailabilityForm";
+} from "@/components/form/recurringUnavailabilityForm";
 
 type Props = {
     trigger?: React.ReactNode;
