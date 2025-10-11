@@ -21,6 +21,15 @@ type Client = {
     status: 'active' | 'inactive'
 }
 
+type Ride = {
+    date: string
+    time: string
+    clientName: string
+    destinationAddress: string
+    dispatcherName: string
+    status: 'unassigned' | 'scheduled' | 'cancelled' | 'completed' | 'withdrawn'
+}
+
 const USERS: User[] = [
     { name: 'Smith, John', phoneNumber: '(555) 123-4567', email: 'john.smith@example.com', address: "105 Stark Street", city: "Rochester", zip: 14623, role: 'driver' },
     { name: 'Johnson, Sarah', email: 'sarah.j@example.com', phoneNumber: '(555) 234-5678', address: '200 Main St', city: 'Rochester', zip: 14604, role: 'dispatcher' },
@@ -62,6 +71,24 @@ const CLIENTS: Client[] = [
     { name: 'Parker, Benjamin', phoneNumber: '(585) 555-1022', address: '350 Wealth Way', city: 'Rochester', zip: 14618, status: 'active' },
     { name: 'Evans, Angela', phoneNumber: '(585) 555-1023', address: '5000 Showroom Rd', city: 'Greece', zip: 14626, status: 'inactive' },
     { name: 'Edwards, Nathan', phoneNumber: '(585) 555-1024', address: '2800 Rental Plaza', city: 'Spencerport', zip: 14559, status: 'active' },
+]
+
+const RIDES: Ride[] = [
+    { date: '2025-10-15', time: '08:30 AM', clientName: 'Harris, Christopher', destinationAddress: '1000 Medical Center Dr, Rochester NY 14623', dispatcherName: 'Johnson, Sarah', status: 'completed' },
+    { date: '2025-10-15', time: '10:00 AM', clientName: 'Moore, Amanda', destinationAddress: '500 Grocery Plaza, Rochester NY 14604', dispatcherName: 'Martinez, Lisa', status: 'completed' },
+    { date: '2025-10-16', time: '09:15 AM', clientName: 'Clark, Daniel', destinationAddress: '350 Pharmacy Way, Victor NY 14564', dispatcherName: 'Thomas, William', status: 'scheduled' },
+    { date: '2025-10-16', time: '11:30 AM', clientName: 'Lewis, Michelle', destinationAddress: '2400 Hospital Rd, Rochester NY 14620', dispatcherName: 'Johnson, Sarah', status: 'scheduled' },
+    { date: '2025-10-16', time: '02:00 PM', clientName: 'Hall, Nicole', destinationAddress: '800 Shopping Center, Rochester NY 14612', dispatcherName: 'Martinez, Lisa', status: 'unassigned' },
+    { date: '2025-10-17', time: '08:00 AM', clientName: 'Allen, Gregory', destinationAddress: '150 Clinic Ave, Pittsford NY 14534', dispatcherName: 'Thomas, William', status: 'scheduled' },
+    { date: '2025-10-17', time: '01:30 PM', clientName: 'Young, Stephanie', destinationAddress: '900 Wellness Center, Henrietta NY 14467', dispatcherName: 'Johnson, Sarah', status: 'unassigned' },
+    { date: '2025-10-18', time: '10:30 AM', clientName: 'King, Raymond', destinationAddress: '450 Specialist Office, Rush NY 14543', dispatcherName: 'Martinez, Lisa', status: 'cancelled' },
+    { date: '2025-10-18', time: '03:00 PM', clientName: 'Scott, Kevin', destinationAddress: '700 Therapy Center, Brockport NY 14420', dispatcherName: 'Thomas, William', status: 'scheduled' },
+    { date: '2025-10-19', time: '09:00 AM', clientName: 'Green, Rebecca', destinationAddress: '1200 Dental Clinic, Webster NY 14580', dispatcherName: 'Johnson, Sarah', status: 'completed' },
+    { date: '2025-10-19', time: '11:00 AM', clientName: 'Baker, Timothy', destinationAddress: '600 Eye Center, Rochester NY 14607', dispatcherName: 'Martinez, Lisa', status: 'withdrawn' },
+    { date: '2025-10-20', time: '08:45 AM', clientName: 'Nelson, Richard', destinationAddress: '300 Physical Therapy, Penfield NY 14526', dispatcherName: 'Thomas, William', status: 'scheduled' },
+    { date: '2025-10-20', time: '02:30 PM', clientName: 'Carter, Elizabeth', destinationAddress: '1500 Urgent Care, Rochester NY 14604', dispatcherName: 'Johnson, Sarah', status: 'unassigned' },
+    { date: '2025-10-21', time: '10:15 AM', clientName: 'Mitchell, Andrew', destinationAddress: '2000 Senior Center, Gates NY 14624', dispatcherName: 'Martinez, Lisa', status: 'scheduled' },
+    { date: '2025-10-21', time: '01:00 PM', clientName: 'Perez, Katherine', destinationAddress: '850 Community Health, Rochester NY 14620', dispatcherName: 'Thomas, William', status: 'completed' },
 ]
 
 router.get("/users", (req, res, next) => {
@@ -158,6 +185,66 @@ router.get("/clients", (req, res, next) => {
                 results = [...results].sort((a, b) => {
                     const aVal = a[sortBy as keyof Client]
                     const bVal = b[sortBy as keyof Client]
+
+                    if (aVal < bVal) return sortDir === 'asc' ? -1 : 1
+                    if (aVal > bVal) return sortDir === 'asc' ? 1 : -1
+                    return 0
+                })
+            }
+
+            // Get total before pagination
+            const total = results.length
+
+            // Apply pagination
+            const page = parseInt(req.query.page as string || '0')
+            const pageSize = parseInt(req.query.pageSize as string || '10')
+            const start = page * pageSize
+            const paginatedResults = results.slice(start, start + pageSize)
+
+            res.json({
+                data: paginatedResults,
+                total
+            })
+        }, 300) // 300ms delay to simulate network
+    } catch (error) {
+        next(error)
+    }
+});
+
+router.get("/rides", (req, res, next) => {
+    try {
+        // Simulate network delay
+        setTimeout(() => {
+            let results = [...RIDES]
+
+            // Apply search filter
+            const search = (req.query.search as string) || ''
+            if (search) {
+                results = results.filter(ride =>
+                    Object.values(ride).some(value =>
+                        String(value).toLowerCase().includes(search.toLowerCase())
+                    )
+                )
+            }
+
+            // Apply column filters (dynamic based on query params)
+            Object.entries(req.query).forEach(([key, value]) => {
+                if (key !== 'page' && key !== 'pageSize' && key !== 'sortBy' && key !== 'sortDir' && key !== 'search' && value) {
+                    results = results.filter(ride =>
+                        String(ride[key as keyof Ride])
+                            .toLowerCase()
+                            .includes(String(value).toLowerCase())
+                    )
+                }
+            })
+
+            // Apply sorting
+            const sortBy = req.query.sortBy as string
+            const sortDir = req.query.sortDir as 'asc' | 'desc' | undefined
+            if (sortBy && sortDir) {
+                results = [...results].sort((a, b) => {
+                    const aVal = a[sortBy as keyof Ride]
+                    const bVal = b[sortBy as keyof Ride]
 
                     if (aVal < bVal) return sortDir === 'asc' ? -1 : 1
                     if (aVal > bVal) return sortDir === 'asc' ? 1 : -1
