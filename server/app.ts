@@ -5,6 +5,7 @@ import createError from "http-errors";
 import logger from "morgan";
 
 import authRouter from "./routes/auth.js";
+import dummyRouter from "./routes/dummy.js"
 
 import { NextFunction, Request, Response } from "express";
 
@@ -59,6 +60,7 @@ app.use(express.static(path.join(__dirname, "..", "public")));
 
 // API routes
 app.use("/auth", authRouter);
+app.use("/dummy", dummyRouter);
 
 // Catch-all route - serve React app for any non-API routes
 app.get("/*", (_req, res) => {
