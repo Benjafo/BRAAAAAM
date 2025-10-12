@@ -27,24 +27,35 @@ import { PopoverTrigger } from "@radix-ui/react-popover";
 import { format } from "date-fns";
 
 /* --------------------------------- Schema --------------------------------- */
+/* using z.enum for select values that we know are included */
 const createRideSchema = z
     .object({
         clientName: z.string().min(1, "Please select an option."),
         purposeOfTrip: z.string().min(1, "Must have a purpose.").max(255),
         tripDate: z.date("Please select a date."),
-        tripType: z.string().min(1, "Please select an option."),
+        tripType: z.enum(["roundTrip", "oneWay"], {
+            message: "Please specifiy the trip type.",
+        }),
         appointmentType: z.string().min(1, "Please select a time."),
-        additionalRider: z
-            .string()
-            .min(1, "Please specify if there's an additional rider.")
-            .refine((val) => ["Yes", "No"].includes(val), {
-                message: "Invalid selection.",
-            }),
+        additionalRider: z.enum(["Yes", "No"], {
+            message: "Please specify if there's an additional rider.",
+        }),
         additionalRiderFirstName: z.string().max(255).optional(),
         additionalRiderLastName: z.string().max(255).optional(),
         relationshipToClient: z.string().max(255).optional(),
         assignedDriver: z.string().min(1, "Please select a driver."),
-        rideStatus: z.string().min(1, "Please select an option."),
+        rideStatus: z.enum(
+            [
+                "completedRoundTrip",
+                "completedOneWayTo",
+                "completedOneWayFrom",
+                "cancelledClient",
+                "cancelledDriver",
+            ],
+            {
+                message: "Please select a ride status.",
+            }
+        ),
         tripDuration: z
             .number()
             .min(0, "Trip duration cannot be negative.")
@@ -74,7 +85,7 @@ const createRideSchema = z
                     message: "Miles must be in full or tenths (e.g., 1.0, 1.1, 1.2).",
                 }
             ),
-        donationType: z.string().optional(),
+        donationType: z.enum(["Check", "Cash", "unopenedEnvelope"]).optional(),
         donationAmount: z.number().min(1, "Donation amount must be at least $1.").optional(),
     })
     .superRefine((data, ctx) => {
@@ -139,19 +150,18 @@ export default function EditRideForm({ defaultValues, onSubmit }: Props) {
             clientName: defaultValues.clientName ?? "",
             purposeOfTrip: defaultValues.purposeOfTrip ?? "",
             tripDate: defaultValues.tripDate ?? new Date(),
-
-            tripType: defaultValues.tripType ?? "",
+            tripType: defaultValues.tripType,
             appointmentType: defaultValues.appointmentType ?? "12:00:00",
-            additionalRider: defaultValues.additionalRider ?? "",
+            additionalRider: defaultValues.additionalRider ?? "No",
             additionalRiderFirstName: defaultValues.additionalRiderFirstName ?? "",
             assignedDriver: defaultValues.assignedDriver ?? "",
 
             additionalRiderLastName: defaultValues.additionalRiderLastName ?? "",
             relationshipToClient: defaultValues.relationshipToClient ?? "",
-            rideStatus: defaultValues.rideStatus ?? "",
+            rideStatus: defaultValues.rideStatus,
             tripDuration: defaultValues.tripDuration,
             tripDistance: defaultValues.tripDistance,
-            donationType: defaultValues.donationType ?? "",
+            donationType: defaultValues.donationType,
             donationAmount: defaultValues.donationAmount,
         },
     });

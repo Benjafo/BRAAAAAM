@@ -4,8 +4,6 @@ import { z } from "zod";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { MapPin } from "lucide-react";
-
-import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
     Form,
@@ -16,15 +14,15 @@ import {
     FormMessage,
 } from "@/components/ui/form";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import { toast } from "sonner";
 
 /* ----------------------------- Zod schema ----------------------------- */
 const newOrganizationSchema = z.object({
-    // top section
     orgName: z
         .string()
         .min(1, "Organization name is required")
         .max(255, "Max characters allowed is 255."),
-    logo: z.instanceof(File).optional().nullable(),
+    logo: z.instanceof(File),
     phoneGeneral: z
         .string()
         .min(1, "Phone number is required")
@@ -40,9 +38,7 @@ const newOrganizationSchema = z.object({
             "Please enter a valid US phone number."
         ),
     email: z.email(),
-    website: z.string().regex(/^(https?:\/\/)?www\./, {
-        message: "Please enter a valid website (starting with www).",
-    }),
+    website: z.url("Please enter a valid uRL."),
     mailingAddress: z
         .string()
         .min(1, "Mailing address is required.")
@@ -54,21 +50,23 @@ const newOrganizationSchema = z.object({
     address2: z.string().optional(),
 
     // status
-    status: z.enum(["Active", "Inactive"]),
+    status: z.enum(["Active", "Inactive"], {
+        message: "Please specify if driver is active or inactive.",
+    }),
 
     // contacts
     primaryContact: z
         .string()
-        .min(1, "Primary contact is required")
+        .min(1, "Primary contact is required.")
         .max(255, "Max characters allowed is 255."),
     adminEmail: z.email(),
     adminMailingAddress: z
         .string()
-        .min(1, "Admin mailing address is required")
+        .min(1, "Admin mailing address is required.")
         .max(255, "Max characters allowed is 255."),
     adminAddress2: z.string().optional(),
     secondaryContact: z.string().max(255, "Max characters allowed is 255.").optional(),
-    secondaryEmail: z.union([z.email("Invalid email address"), z.literal("")]).optional(),
+    secondaryEmail: z.string().email("Invalid email address").optional().or(z.literal("")),
     secondaryMailingAddress: z.string().max(255, "Max characters allowed is 255.").optional(),
     secondaryAddress2: z.string().max(255, "Max characters allowed is 255.").optional(),
 });
@@ -77,54 +75,49 @@ export type NewOrganizationFormValues = z.infer<typeof newOrganizationSchema>;
 
 /* -------------------------------- Props -------------------------------- */
 type Props = {
-    defaultValues?: Partial<NewOrganizationFormValues>;
+    defaultValues: Partial<NewOrganizationFormValues>;
     onSubmit: (values: NewOrganizationFormValues) => void | Promise<void>;
-    submitLabel?: string;
-    cancelLabel?: string;
-    onCancel?: () => void;
 };
 
 /* --------------------------------- Form -------------------------------- */
-export default function NewOrganizationForm({
-    defaultValues,
-    onSubmit,
-    submitLabel = "Create",
-    cancelLabel = "Cancel",
-    onCancel,
-}: Props) {
+export default function NewOrganizationForm({ defaultValues, onSubmit }: Props) {
     const form = useForm<NewOrganizationFormValues>({
         resolver: zodResolver(newOrganizationSchema),
         mode: "onBlur",
         defaultValues: {
-            orgName: defaultValues?.orgName ?? "",
-            logo: defaultValues?.logo ?? null,
+            orgName: defaultValues.orgName ?? "",
+            logo: defaultValues.logo,
 
-            phoneGeneral: defaultValues?.phoneGeneral ?? "",
-            phoneRides: defaultValues?.phoneRides ?? "",
-            email: defaultValues?.email ?? "",
-            website: defaultValues?.website ?? "",
+            phoneGeneral: defaultValues.phoneGeneral ?? "",
+            phoneRides: defaultValues.phoneRides ?? "",
+            email: defaultValues.email ?? "",
+            website: defaultValues.website ?? "",
 
-            mailingAddress: defaultValues?.mailingAddress ?? "",
-            streetAddress: defaultValues?.streetAddress ?? "",
-            address2: defaultValues?.address2 ?? "",
+            mailingAddress: defaultValues.mailingAddress ?? "",
+            streetAddress: defaultValues.streetAddress ?? "",
+            address2: defaultValues.address2 ?? "",
 
-            status: defaultValues?.status ?? "Active",
+            status: defaultValues.status ?? "Active",
 
-            primaryContact: defaultValues?.primaryContact ?? "",
-            adminEmail: defaultValues?.adminEmail ?? "",
-            adminMailingAddress: defaultValues?.adminMailingAddress ?? "",
-            adminAddress2: defaultValues?.adminAddress2 ?? "",
+            primaryContact: defaultValues.primaryContact ?? "",
+            adminEmail: defaultValues.adminEmail ?? "",
+            adminMailingAddress: defaultValues.adminMailingAddress ?? "",
+            adminAddress2: defaultValues.adminAddress2 ?? "",
 
-            secondaryContact: defaultValues?.secondaryContact ?? "",
-            secondaryEmail: defaultValues?.secondaryEmail ?? "",
-            secondaryMailingAddress: defaultValues?.secondaryMailingAddress ?? "",
-            secondaryAddress2: defaultValues?.secondaryAddress2 ?? "",
+            secondaryContact: defaultValues.secondaryContact ?? "",
+            secondaryEmail: defaultValues.secondaryEmail ?? "",
+            secondaryMailingAddress: defaultValues.secondaryMailingAddress ?? "",
+            secondaryAddress2: defaultValues.secondaryAddress2 ?? "",
         },
     });
 
     return (
         <Form {...form}>
-            <form className="grid grid-cols-1 gap-4" onSubmit={form.handleSubmit(onSubmit)}>
+            <form
+                id="new-organization-form"
+                className="grid grid-cols-1 gap-4"
+                onSubmit={form.handleSubmit(onSubmit)}
+            >
                 {/* Organization Name */}
                 <FormField
                     control={form.control}
@@ -144,17 +137,31 @@ export default function NewOrganizationForm({
                 <FormField
                     control={form.control}
                     name="logo"
-                    render={({ field }) => (
+                    render={({ field: { onChange, ...field } }) => (
                         <FormItem>
                             <FormLabel>Upload Organization Logo</FormLabel>
                             <FormControl>
                                 <Input
                                     type="file"
-                                    accept="image/*"
-                                    onChange={(e) => field.onChange(e.target.files?.[0] ?? null)}
+                                    accept="image/jpeg,image/jpg,image/png,image/webp"
+                                    onChange={(e) => {
+                                        const file = e.target.files?.[0];
+                                        if (file) {
+                                            // Size Validation
+                                            if (file.size > 2 * 1024 * 1024) {
+                                                toast.error("File size must be less than 2MB");
+                                                return;
+                                            }
+                                            onChange(file);
+                                        }
+                                    }}
+                                    {...field}
+                                    value={undefined} // File inputs can't have a controlled value
                                 />
                             </FormControl>
-                            <FormMessage />
+                            <p className="text-xs text-muted-foreground">
+                                JPEG, PNG, or WebP up to 2MB
+                            </p>
                         </FormItem>
                     )}
                 />
@@ -437,14 +444,6 @@ export default function NewOrganizationForm({
                         </FormItem>
                     )}
                 />
-
-                {/* Footer buttons */}
-                <div className="mt-2 flex justify-end gap-2">
-                    <Button type="button" variant="outline" onClick={onCancel}>
-                        {cancelLabel}
-                    </Button>
-                    <Button type="submit">{submitLabel}</Button>
-                </div>
             </form>
         </Form>
     );

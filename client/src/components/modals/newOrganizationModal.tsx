@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import {
     Dialog,
     DialogContent,
+    DialogFooter,
     DialogHeader,
     DialogTitle,
     DialogTrigger,
@@ -12,12 +13,18 @@ import {
 import NewOrganizationForm, {
     type NewOrganizationFormValues,
 } from "@/components/form/newOrganizationForm";
+import { toast } from "sonner";
 
 export default function NewOrganizationModal() {
     const [open, setOpen] = React.useState(false);
 
-    async function handleSubmit(values: NewOrganizationFormValues) {
-        console.log("Submitted organization:", values);
+    // Test default values for now - don't know if we want to use it for anything yet, just using one thing right now to make sure it works
+    const defaultValues: Partial<NewOrganizationFormValues> = {
+        status: "Active",
+    };
+    async function handleSubmit() {
+        // TODO: API logic for new organization information sent
+        toast.success("New Organization Created");
         setOpen(false);
     }
 
@@ -28,11 +35,19 @@ export default function NewOrganizationModal() {
             </DialogTrigger>
 
             <DialogContent className="max-w-[720px] max-h-[90vh] overflow-y-auto scroll-smooth p-6">
-                <DialogHeader>
+                <DialogHeader className="mb-4">
                     <DialogTitle>New Organization</DialogTitle>
                 </DialogHeader>
 
-                <NewOrganizationForm onSubmit={handleSubmit} onCancel={() => setOpen(false)} />
+                <NewOrganizationForm defaultValues={defaultValues} onSubmit={handleSubmit} />
+                <DialogFooter className="flex flex-row justify-end gap-3 mt-3">
+                    <Button type="button" variant="outline" onClick={() => setOpen(false)}>
+                        Cancel
+                    </Button>
+                    <Button type="submit" form="new-organization-form">
+                        Create
+                    </Button>
+                </DialogFooter>
             </DialogContent>
         </Dialog>
     );
