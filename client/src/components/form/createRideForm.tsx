@@ -36,7 +36,6 @@ const createRideSchema = z
         appointmentType: z.string().min(1, "Please select a time."),
         additionalRider: z
             .string()
-            // Using AI for this refine selection of Yes / No
             .min(1, "Please specify if there's an additional rider.")
             .refine((val) => ["Yes", "No"].includes(val), {
                 message: "Invalid selection.",
@@ -46,21 +45,37 @@ const createRideSchema = z
         relationshipToClient: z.string().max(255).optional(),
         assignedDriver: z.string().min(1, "Please select a driver."),
         rideStatus: z.string().min(1, "Please select an option."),
-        tripDuration: z.number().min(1, "Please select how long the trip was."),
-        volunteerHours: z
+        tripDuration: z
             .number()
-            .min(0, "Volunteer hours cannot be negative.")
+            .min(0, "Trip duration cannot be negative.")
+            .optional()
             .refine(
                 (val) => {
-                    // Check if it's a valid quarter-hour increment (0.00, 0.25, 0.50, 0.75)
-                    const decimal = val % 1;
-                    return [0, 0.25, 0.5, 0.75].includes(Math.round(decimal * 100) / 100);
+                    if (val === undefined || val === 0) return true;
+
+                    // Check if multiplying by 4 gives a whole number, uses quarter hour increment
+                    return Number.isInteger(val * 4);
                 },
                 {
-                    message:
-                        "Volunteer hours must be in quarter-hour increments (e.g., 1.25, 2.50).",
+                    message: "Hours must be in full or quarter-hour increments (e.g., 1.25, 1.5).",
                 }
             ),
+        tripDistance: z
+            .number()
+            .min(0, "Trip distance cannot be negative.")
+            .optional()
+            .refine(
+                (val) => {
+                    if (val === undefined || val === 0) return true;
+                    // Check if multiplying by 10 gives a whole number, gives tenth mile increment
+                    return Number.isInteger(val * 10);
+                },
+                {
+                    message: "Miles must be in full or tenths (e.g., 1.0, 1.1, 1.2).",
+                }
+            ),
+        donationType: z.string().optional(),
+        donationAmount: z.number().min(1, "Donation amount must be at least $1.").optional(),
     })
     .superRefine((data, ctx) => {
         if (data.additionalRider === "Yes") {
@@ -86,6 +101,23 @@ const createRideSchema = z
                 });
             }
         }
+
+        if (data.rideStatus.toLowerCase().includes("completed")) {
+            if (!data.tripDuration || data.tripDuration === 0) {
+                ctx.addIssue({
+                    code: "custom",
+                    message: "Trip duration is required for completed rides.",
+                    path: ["tripDuration"],
+                });
+            }
+            if (!data.tripDistance || data.tripDistance === 0) {
+                ctx.addIssue({
+                    code: "custom",
+                    message: "Trip distance is required for completed rides.",
+                    path: ["tripDistance"],
+                });
+            }
+        }
     });
 
 export type CreateRideFormValues = z.infer<typeof createRideSchema>;
@@ -102,7 +134,7 @@ export default function EditRideForm({ defaultValues, onSubmit }: Props) {
     const form = useForm<CreateRideFormValues>({
         resolver: zodResolver(createRideSchema),
         mode: "onBlur",
-        /** Explicit, standardized defaults (requested in review) */
+
         defaultValues: {
             clientName: defaultValues.clientName ?? "",
             purposeOfTrip: defaultValues.purposeOfTrip ?? "",
@@ -110,20 +142,39 @@ export default function EditRideForm({ defaultValues, onSubmit }: Props) {
 
             tripType: defaultValues.tripType ?? "",
             appointmentType: defaultValues.appointmentType ?? "12:00:00",
-            additionalRider: defaultValues.additionalRider ?? "No",
+            additionalRider: defaultValues.additionalRider ?? "",
             additionalRiderFirstName: defaultValues.additionalRiderFirstName ?? "",
             assignedDriver: defaultValues.assignedDriver ?? "",
 
             additionalRiderLastName: defaultValues.additionalRiderLastName ?? "",
             relationshipToClient: defaultValues.relationshipToClient ?? "",
             rideStatus: defaultValues.rideStatus ?? "",
-            tripDuration: defaultValues.tripDuration ?? 0,
-            volunteerHours: defaultValues.volunteerHours ?? 0,
+            tripDuration: defaultValues.tripDuration,
+            tripDistance: defaultValues.tripDistance,
+            donationType: defaultValues.donationType ?? "",
+            donationAmount: defaultValues.donationAmount,
         },
     });
 
     /* AI said to use form.watch to check if Additional Rider is included - if it is, show additional rider form fields, if not, don't include them. */
     const additionalRider = form.watch("additionalRider");
+    const rideStatus = form.watch("rideStatus");
+
+    // Check if ride status contains "completed"
+    const isCompleted = rideStatus?.toLowerCase().includes("completed");
+
+    // Used to handle number input logic (AI helped on this)
+    const handleNumberChange =
+        (field: { onChange: (value: number | undefined) => void }) =>
+        (e: React.ChangeEvent<HTMLInputElement>) => {
+            const value = e.target.value;
+            if (value === "") {
+                field.onChange(undefined); // Set to undefined when empty
+                return;
+            }
+            const parsed = parseFloat(value);
+            field.onChange(isNaN(parsed) ? undefined : parsed);
+        };
     return (
         <Form {...form}>
             <form
@@ -286,8 +337,8 @@ export default function EditRideForm({ defaultValues, onSubmit }: Props) {
                                         <SelectValue placeholder="Select a value" />
                                     </SelectTrigger>
                                     <SelectContent>
-                                        <SelectItem value="DriverOne">Bob Smith</SelectItem>
-                                        <SelectItem value="DriverTwo">Samantha Noel</SelectItem>
+                                        <SelectItem value="driverOne">Bob Smith</SelectItem>
+                                        <SelectItem value="driverTwo">Samantha Noel</SelectItem>
                                     </SelectContent>
                                 </Select>
                             </FormControl>
@@ -330,6 +381,7 @@ export default function EditRideForm({ defaultValues, onSubmit }: Props) {
                     />
                 )}
 
+                {/* Relationship to client */}
                 {additionalRider === "Yes" && (
                     <FormField
                         control={form.control}
@@ -358,19 +410,19 @@ export default function EditRideForm({ defaultValues, onSubmit }: Props) {
                                         <SelectValue placeholder="Select Ride Status" />
                                     </SelectTrigger>
                                     <SelectContent>
-                                        <SelectItem value="Completed Round Trip">
+                                        <SelectItem value="completedRoundTrip">
                                             Completed Round Trip
                                         </SelectItem>
-                                        <SelectItem value="Completed One Way To">
+                                        <SelectItem value="completedOneWayTo">
                                             Completed One Way To
                                         </SelectItem>
-                                        <SelectItem value="Completed One Way From">
+                                        <SelectItem value="completedOneWayFrom">
                                             Completed One Way From
                                         </SelectItem>
-                                        <SelectItem value="Cancelled by Driver">
+                                        <SelectItem value="cancelledClient">
                                             Cancelled by Client
                                         </SelectItem>
-                                        <SelectItem value="Cancelled by Driver">
+                                        <SelectItem value="cancelledDriver">
                                             Cancelled by Driver
                                         </SelectItem>
                                     </SelectContent>
@@ -380,36 +432,106 @@ export default function EditRideForm({ defaultValues, onSubmit }: Props) {
                         </FormItem>
                     )}
                 />
-                {/* Volunteer Hours */}
-                <FormField
-                    control={form.control}
-                    name="volunteerHours"
-                    render={({ field }) => (
-                        <FormItem className="w-full">
-                            <FormLabel>Volunteer Hours</FormLabel>
-                            <FormControl className="w-full">
-                                <Input
-                                    type="number"
-                                    step="0.25"
-                                    value={field.value === 0 ? "" : field.value}
-                                    onChange={(e) => {
-                                        const value = e.target.value;
-                                        // If empty, set to 0
-                                        if (value === "") {
-                                            field.onChange(0);
-                                            return;
-                                        }
-                                        // Otherwise parse as float
-                                        const parsed = parseFloat(value);
-                                        field.onChange(isNaN(parsed) ? 0 : parsed);
-                                    }}
-                                    className="w-full"
-                                />
-                            </FormControl>
-                            <FormMessage />
-                        </FormItem>
-                    )}
-                />
+                {/* Trip Duration */}
+                {/* Volunteer Hours - Only show for completed rides */}
+                {isCompleted && (
+                    <FormField
+                        control={form.control}
+                        name="tripDuration"
+                        render={({ field }) => (
+                            <FormItem className="w-full">
+                                <FormLabel>Trip Duration (Hours)</FormLabel>
+                                <FormControl className="w-full">
+                                    <Input
+                                        type="number"
+                                        step="0.25"
+                                        min="0"
+                                        placeholder="1.00"
+                                        value={field.value ?? ""}
+                                        onChange={handleNumberChange(field)}
+                                        className="w-full"
+                                    />
+                                </FormControl>
+                                <FormMessage />
+                            </FormItem>
+                        )}
+                    />
+                )}
+
+                {isCompleted && (
+                    <FormField
+                        control={form.control}
+                        name="tripDistance"
+                        render={({ field }) => (
+                            <FormItem className="w-full">
+                                <FormLabel>Trip Distance (Miles)</FormLabel>
+                                <FormControl className="w-full">
+                                    <Input
+                                        type="number"
+                                        step="0.1"
+                                        min="0"
+                                        placeholder="1.00"
+                                        value={field.value ?? ""}
+                                        onChange={handleNumberChange(field)}
+                                        className="w-full"
+                                    />
+                                </FormControl>
+                                <FormMessage />
+                            </FormItem>
+                        )}
+                    />
+                )}
+
+                {isCompleted && (
+                    <FormField
+                        control={form.control}
+                        name="donationType"
+                        render={({ field }) => (
+                            <FormItem className="w-full">
+                                <FormLabel>Donation Type</FormLabel>
+                                <FormControl className="w-full">
+                                    <Select value={field.value} onValueChange={field.onChange}>
+                                        <SelectTrigger className="w-full">
+                                            <SelectValue placeholder="Select a value" />
+                                        </SelectTrigger>
+                                        <SelectContent>
+                                            <SelectItem value="Check">Check</SelectItem>
+                                            <SelectItem value="Cash">Cash</SelectItem>
+                                            <SelectItem value="unopenedEnvelope">
+                                                Unopened Envelope
+                                            </SelectItem>
+                                        </SelectContent>
+                                    </Select>
+                                </FormControl>
+                                <FormMessage />
+                            </FormItem>
+                        )}
+                    />
+                )}
+
+                {isCompleted && (
+                    <FormField
+                        control={form.control}
+                        name="donationAmount"
+                        render={({ field }) => (
+                            <FormItem className="w-full">
+                                <FormLabel>Donation Amount ($)</FormLabel>
+                                <FormControl className="w-full">
+                                    <Input
+                                        type="number"
+                                        placeholder="1.00"
+                                        step="1"
+                                        min="1"
+                                        value={field.value ?? ""}
+                                        onChange={handleNumberChange(field)}
+                                        className="w-full"
+                                    />
+                                </FormControl>
+                                <FormMessage />
+                            </FormItem>
+                        )}
+                    />
+                )}
             </form>
         </Form>
     );

@@ -13,34 +13,31 @@ import {
 } from "@/components/ui/dialog";
 import CreateRideForm, { type CreateRideFormValues } from "@/components/form/createRideForm";
 
-type Props = {
-    trigger?: React.ReactNode;
-};
-
-export default function CreateRideModal({ trigger }: Props) {
+export default function CreateRideModal() {
     const [open, setOpen] = React.useState(false);
 
-    // Provide the form with sane starting values
-    const defaultValues: Partial<CreateRideFormValues> = {};
+    // Provide the form, passing in one default value for now to make sure this works
+    const defaultValues: Partial<CreateRideFormValues> = {
+        additionalRider: "No",
+    };
 
+    //
     async function handleSubmit() {
-        toast.success("Ride created");
+        // TODO: API logic for sending values
+        toast.success("Ride Created/Altered");
         setOpen(false);
     }
 
     return (
         <Dialog open={open} onOpenChange={setOpen}>
             <DialogTrigger asChild>
-                {trigger ?? <Button className="rounded-md">New Ride</Button>}
+                <Button variant="outline">New Ride</Button>
             </DialogTrigger>
             <DialogContent className="!max-w-[692px] w-[95vw] max-h-[90vh] overflow-y-auto scroll-smooth p-6">
                 <DialogHeader className="mb-4">
-                    <DialogTitle>New Ride</DialogTitle>
+                    <DialogTitle>Ride Form</DialogTitle>
                 </DialogHeader>
-
-                {/* ✅ Pass defaultValues so the prop requirement is satisfied */}
                 <CreateRideForm defaultValues={defaultValues} onSubmit={handleSubmit} />
-
                 <DialogFooter className="flex flex-row justify-end gap-3 mt-3">
                     <Button type="button" variant="outline" onClick={() => setOpen(false)}>
                         Cancel
