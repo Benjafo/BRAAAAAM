@@ -9,6 +9,9 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as UsersRouteImport } from './routes/users'
+import { Route as ScheduleRouteImport } from './routes/schedule'
+import { Route as ClientsRouteImport } from './routes/clients'
 import { Route as AdminSettingsRouteImport } from './routes/admin-settings'
 import { Route as LoginRouteRouteImport } from './routes/_login/route'
 import { Route as AuthRouteRouteImport } from './routes/_auth/route'
@@ -18,6 +21,21 @@ import { Route as LoginResetPasswordRouteImport } from './routes/_login/reset-pa
 import { Route as LoginForgetPasswordRouteImport } from './routes/_login/forget-password'
 import { Route as AuthDashboardRouteImport } from './routes/_auth/dashboard'
 
+const UsersRoute = UsersRouteImport.update({
+  id: '/users',
+  path: '/users',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ScheduleRoute = ScheduleRouteImport.update({
+  id: '/schedule',
+  path: '/schedule',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ClientsRoute = ClientsRouteImport.update({
+  id: '/clients',
+  path: '/clients',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const AdminSettingsRoute = AdminSettingsRouteImport.update({
   id: '/admin-settings',
   path: '/admin-settings',
@@ -60,6 +78,9 @@ const AuthDashboardRoute = AuthDashboardRouteImport.update({
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/admin-settings': typeof AdminSettingsRoute
+  '/clients': typeof ClientsRoute
+  '/schedule': typeof ScheduleRoute
+  '/users': typeof UsersRoute
   '/dashboard': typeof AuthDashboardRoute
   '/forget-password': typeof LoginForgetPasswordRoute
   '/reset-password': typeof LoginResetPasswordRoute
@@ -68,6 +89,9 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/admin-settings': typeof AdminSettingsRoute
+  '/clients': typeof ClientsRoute
+  '/schedule': typeof ScheduleRoute
+  '/users': typeof UsersRoute
   '/dashboard': typeof AuthDashboardRoute
   '/forget-password': typeof LoginForgetPasswordRoute
   '/reset-password': typeof LoginResetPasswordRoute
@@ -79,6 +103,9 @@ export interface FileRoutesById {
   '/_auth': typeof AuthRouteRouteWithChildren
   '/_login': typeof LoginRouteRouteWithChildren
   '/admin-settings': typeof AdminSettingsRoute
+  '/clients': typeof ClientsRoute
+  '/schedule': typeof ScheduleRoute
+  '/users': typeof UsersRoute
   '/_auth/dashboard': typeof AuthDashboardRoute
   '/_login/forget-password': typeof LoginForgetPasswordRoute
   '/_login/reset-password': typeof LoginResetPasswordRoute
@@ -89,6 +116,9 @@ export interface FileRouteTypes {
   fullPaths:
     | '/'
     | '/admin-settings'
+    | '/clients'
+    | '/schedule'
+    | '/users'
     | '/dashboard'
     | '/forget-password'
     | '/reset-password'
@@ -97,6 +127,9 @@ export interface FileRouteTypes {
   to:
     | '/'
     | '/admin-settings'
+    | '/clients'
+    | '/schedule'
+    | '/users'
     | '/dashboard'
     | '/forget-password'
     | '/reset-password'
@@ -107,6 +140,9 @@ export interface FileRouteTypes {
     | '/_auth'
     | '/_login'
     | '/admin-settings'
+    | '/clients'
+    | '/schedule'
+    | '/users'
     | '/_auth/dashboard'
     | '/_login/forget-password'
     | '/_login/reset-password'
@@ -118,10 +154,34 @@ export interface RootRouteChildren {
   AuthRouteRoute: typeof AuthRouteRouteWithChildren
   LoginRouteRoute: typeof LoginRouteRouteWithChildren
   AdminSettingsRoute: typeof AdminSettingsRoute
+  ClientsRoute: typeof ClientsRoute
+  ScheduleRoute: typeof ScheduleRoute
+  UsersRoute: typeof UsersRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/users': {
+      id: '/users'
+      path: '/users'
+      fullPath: '/users'
+      preLoaderRoute: typeof UsersRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/schedule': {
+      id: '/schedule'
+      path: '/schedule'
+      fullPath: '/schedule'
+      preLoaderRoute: typeof ScheduleRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/clients': {
+      id: '/clients'
+      path: '/clients'
+      fullPath: '/clients'
+      preLoaderRoute: typeof ClientsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/admin-settings': {
       id: '/admin-settings'
       path: '/admin-settings'
@@ -214,6 +274,9 @@ const rootRouteChildren: RootRouteChildren = {
   AuthRouteRoute: AuthRouteRouteWithChildren,
   LoginRouteRoute: LoginRouteRouteWithChildren,
   AdminSettingsRoute: AdminSettingsRoute,
+  ClientsRoute: ClientsRoute,
+  ScheduleRoute: ScheduleRoute,
+  UsersRoute: UsersRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
