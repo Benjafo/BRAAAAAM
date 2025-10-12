@@ -1,7 +1,9 @@
+import { Tabs, TabsList, TabsTrigger } from "@radix-ui/react-tabs";
 import moment from "moment";
 import { useCallback, useMemo, useState } from "react";
 import { Calendar, momentLocalizer, Views, type Event } from "react-big-calendar";
 import "react-big-calendar/lib/css/react-big-calendar.css";
+import { Button } from "./components/ui/button";
 
 const localizer = momentLocalizer(moment);
 
@@ -217,50 +219,17 @@ const sampleEvents: CalendarEvent[] = [
         resource: { status: "scheduled", details: "1:00 - 2:00 PM" },
     },
 ];
-("/////////////////////////////////////////////////////////////////////////Buttons////////////////////////////////////////////////////////////////////////////////////////////////////////////////");
-// Custom Button component
-const Button = ({
-    children,
-    className = "",
-    variant = "default",
-    disabled = false,
-    ...props
-}: any) => (
-    <button
-        className={`px-3 py-1.5 rounded text-sm font-medium transition-colors ${
-            disabled
-                ? "bg-gray-600 text-gray-400 cursor-not-allowed"
-                : variant === "secondary"
-                  ? "bg-gray-600 text-white hover:bg-gray-500"
-                  : variant === "ghost"
-                    ? "bg-transparent text-gray-300 hover:bg-gray-700 border border-gray-600"
-                    : "bg-blue-600 text-white hover:bg-blue-500"
-        } ${className}`}
-        disabled={disabled}
-        {...props}
-    >
-        {children}
-    </button>
-);
 
-// Tab Button component
-const TabButton = ({ active, onClick, children }: any) => (
-    <button
-        className={`px-4 py-2 rounded-none text-sm font-medium border border-gray-500 last:border-r-0 focus:outline-none focus:ring-0 ${
-            active
-                ? "bg-gray-600 text-white shadow"
-                : "text-gray-300 hover:text-white hover:bg-black focus:bg-black focus:text-white active:bg-black active:text-white"
-        }`}
-        onClick={onClick}
-    >
-        {children}
-    </button>
-);
 ("///////////////////////////////////////////////////////////////////Big Calendar ///////////////////////////////////////////////////////////////////////////////////////////////////////////////");
 export default function ReactBigCalendar() {
     const [currentView, setCurrentView] = useState(Views.WEEK);
-    const [currentDate, setCurrentDate] = useState(new Date()); // Aug 25, 2025
-    const [currentPage, setCurrentPage] = useState<"availability" | "schedule">("availability");
+    const [currentDate, setCurrentDate] = useState(new Date());
+
+    // Day/week/month tabs
+    const [activeTab, setActiveTab] = useState("month");
+    const handleTabChange = useCallback((value: string) => {
+        setActiveTab(value);
+    }, []);
 
     // Custom event style getter
     const eventStyleGetter = useCallback((event: CalendarEvent) => {
@@ -294,59 +263,59 @@ export default function ReactBigCalendar() {
         }
 
         // Company is closed on Sunday and outside business hours
-        let backgroundColor = "#2a2a2a"; // default closed color
+        // let backgroundColor = "#2a2a2a"; // default closed color
 
-        if (isBusinessDay && isBusinessHours) {
-            backgroundColor = "#000000";
-        }
+        // if (isBusinessDay && isBusinessHours) {
+        //     backgroundColor = "#000000";
+        // }
 
-        if (dayOfWeek === 0) {
-            return {
-                style: {
-                    backgroundColor: "#2a2a2a", // Sundays are closed
-                    minHeight: "60px",
-                    borderBottom: "1px solid #444444",
-                },
-            };
-        }
+        // if (dayOfWeek === 0) {
+        //     return {
+        //         style: {
+        //             backgroundColor: "#2a2a2a", // Sundays are closed
+        //             minHeight: "60px",
+        //             borderBottom: "1px solid #444444",
+        //         },
+        //     };
+        // }
 
         // Weekdays and Saturday: business hours are black, otherwise gray
-        return {
-            style: {
-                backgroundColor: isBusinessHours ? "#000000" : "#2a2a2a",
-                minHeight: "60px",
-                borderBottom: "1px solid #444444",
-            },
-        };
+        // return {
+        //     style: {
+        //         backgroundColor: isBusinessHours ? "#000000" : "#2a2a2a",
+        //         minHeight: "60px",
+        //         borderBottom: "1px solid #444444",
+        //     },
+        // };
     }, []);
 
     // Custom day style getter for Month view
-    const dayPropGetter = useCallback(
-        (date: Date) => {
-            const dayOfWeek = date.getDay(); // 0 = Sunday
-            const isOffRangeMonth = date.getMonth() !== currentDate.getMonth();
+    // const dayPropGetter = useCallback(
+    // (date: Date) => {
+    // const dayOfWeek = date.getDay(); // 0 = Sunday
+    // const isOffRangeMonth = date.getMonth() !== currentDate.getMonth();
 
-            // In Month view: off-range days should be black regardless of weekday
-            if (currentView === Views.MONTH && isOffRangeMonth) {
-                return {
-                    style: {
-                        backgroundColor: "#2a2a2a",
-                    },
-                };
-            }
+    // In Month view: off-range days should be black regardless of weekday
+    // if (currentView === Views.MONTH && isOffRangeMonth) {
+    //     return {
+    //         style: {
+    //             backgroundColor: "#2a2a2a",
+    //         },
+    //     };
+    // }
 
-            // In-range Sundays use slightly lighter dark gray
-            if (dayOfWeek === 0) {
-                return {
-                    style: {
-                        backgroundColor: "#2a2a2a",
-                    },
-                };
-            }
-            return {};
-        },
-        [currentDate, currentView]
-    );
+    // In-range Sundays use slightly lighter dark gray
+    // if (dayOfWeek === 0) {
+    //     return {
+    //         style: {
+    //             backgroundColor: "#2a2a2a",
+    //         },
+    //     };
+    // }
+    // return {};
+    //     },
+    //     [currentDate, currentView]
+    // );
 
     // Custom formats
     const formats = useMemo(
@@ -625,20 +594,6 @@ export default function ReactBigCalendar() {
       display: none;
     }
     
-    /* Force all navigation buttons to be black with no blue highlighting */
-    button {
-      background-color: #000000 !important;
-      color: #ffffff !important;
-      border-radius: 7px !important;
-    }
-    
-    button:hover,
-    button:focus,
-    button:active {
-      background-color: #000000 !important;
-      color: #ffffff !important;
-    }
-    
     /* Active tabs should be dark gray */
     button.bg-black {
       background-color: #2a2a2a !important;
@@ -720,45 +675,51 @@ export default function ReactBigCalendar() {
 
     ("--------------------------------------------------------------------------------------------------HTML Struct------------------------------------------------------------------------------------------------");
     return (
-        <div className="h-screen bg-black text-white">
+        <div className="h-screen">
             <style>{customStyles}</style>
 
             {/* Top Navigation Bar  */}
-            <div className="bg-black border-b border-gray-600 px-4 py-2">
+            <div className="border-b border-gray-600 px-4 py-2">
                 <div className="flex justify-between items-center">
                     <div className="flex items-center space-x-4">
-                        <div className="flex items-center space-x-2 text-sm text-white">
+                        <div className="flex items-center space-x-2">
                             <span>{moment(currentDate).format("MMM DD, YYYY")}</span>
                         </div>
 
-                        <div className="flex bg-gray-700 rounded overflow-hidden">
-                            <TabButton
-                                active={currentView === Views.DAY}
-                                onClick={() => setCurrentView(Views.DAY)}
-                            >
-                                Day
-                            </TabButton>
-                            <TabButton
-                                active={currentView === Views.WEEK}
-                                onClick={() => setCurrentView(Views.WEEK)}
-                            >
-                                Week
-                            </TabButton>
-                            <TabButton
-                                active={currentView === Views.MONTH}
-                                onClick={() => setCurrentView(Views.MONTH)}
-                            >
-                                Month
-                            </TabButton>
-                        </div>
+                        <Tabs value={activeTab} onValueChange={handleTabChange} className="w-full">
+                            <div className="relative flex items-center">
+                                <TabsList className="space-x-0.5">
+                                    <TabsTrigger value="day">
+                                        <Button
+                                            variant="secondary"
+                                            onClick={() => setCurrentView(Views.DAY)}
+                                        >
+                                            Day
+                                        </Button>
+                                    </TabsTrigger>
+                                    <TabsTrigger value="week">
+                                        <Button
+                                            variant="secondary"
+                                            onClick={() => setCurrentView(Views.WEEK)}
+                                        >
+                                            Week
+                                        </Button>
+                                    </TabsTrigger>
+                                    <TabsTrigger value="month">
+                                        <Button
+                                            variant="secondary"
+                                            onClick={() => setCurrentView(Views.MONTH)}
+                                        >
+                                            Month
+                                        </Button>
+                                    </TabsTrigger>
+                                </TabsList>
+                            </div>
+                        </Tabs>
 
-                        <div className="flex space-x-2">
-                            <Button variant="ghost" className="text-xs">
-                                Filters
-                            </Button>
-                            <Button variant="ghost" className="text-xs">
-                                Print
-                            </Button>
+                        <div className="flex items-center space-x-2">
+                            <Button variant="secondary">Filters</Button>
+                            <Button variant="secondary">Print</Button>
                         </div>
                     </div>
 
@@ -778,7 +739,7 @@ export default function ReactBigCalendar() {
                                     .toDate();
                                 setCurrentDate(newDate);
                             }}
-                            className="flex items-center space-x-1 text-xs"
+                            className="flex items-center space-x-1"
                         >
                             <span>←</span>
                             <span>Previous</span>
@@ -799,15 +760,14 @@ export default function ReactBigCalendar() {
                                     .toDate();
                                 setCurrentDate(newDate);
                             }}
-                            className="flex items-center space-x-1 text-xs"
+                            className="flex items-center space-x-1"
                         >
                             <span>Next</span>
                             <span>→</span>
                         </Button>
 
                         <Button
-                            className="bg-gray-300 text-black hover:bg-gray-400 px-4 py-1.5 rounded text-sm font-medium transition-colors"
-                            style={{ color: "#000000" }}
+                            variant="secondary"
                             onClick={() => {
                                 console.log("Add Availability clicked");
                                 // Handle add availability logic here
@@ -820,7 +780,7 @@ export default function ReactBigCalendar() {
             </div>
 
             {/* React Big Calendar  */}
-            <div className="flex-1 bg-black" style={{ height: "calc(100vh - 80px)" }}>
+            <div className="flex-1" style={{ height: "calc(100vh - 80px)" }}>
                 <Calendar
                     localizer={localizer}
                     events={sampleEvents}
@@ -832,7 +792,7 @@ export default function ReactBigCalendar() {
                     onNavigate={handleNavigate}
                     eventPropGetter={eventStyleGetter}
                     slotPropGetter={slotStyleGetter}
-                    dayPropGetter={dayPropGetter}
+                    // dayPropGetter={dayPropGetter}
                     formats={formats}
                     components={{
                         event: EventComponent,
@@ -847,10 +807,10 @@ export default function ReactBigCalendar() {
                     views={[Views.DAY, Views.WEEK, Views.MONTH]}
                     defaultView={Views.WEEK}
                     scrollToTime={new Date(1970, 1, 1, 8, 0, 0)} // Auto scroll to 8 AM
-                    onSelectEvent={(event) => {
+                    onSelectEvent={(event: Event) => {
                         console.log("Event clicked:", event);
                     }}
-                    onSelectSlot={(slotInfo) => {
+                    onSelectSlot={(slotInfo: unknown) => {
                         console.log("Slot selected:", slotInfo);
                         // Handle slot selection for creating new availability
                     }}
