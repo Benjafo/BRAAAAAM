@@ -1,9 +1,9 @@
-import * as React from "react";
-import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
+import { Card, CardContent } from "@/components/ui/card";
 import { Checkbox } from "@/components/ui/checkbox";
-import { ArrowUpDown, ArrowUp, ArrowDown } from "lucide-react";
+import { Input } from "@/components/ui/input";
+import { ArrowDown, ArrowUp, ArrowUpDown } from "lucide-react";
+import * as React from "react";
 
 import {
     Table,
@@ -22,16 +22,12 @@ import {
     SelectValue,
 } from "@/components/ui/select";
 
-import {
-    useReactTable,
-    flexRender,
-    getCoreRowModel,
-} from "@tanstack/react-table";
+import { flexRender, getCoreRowModel, useReactTable } from "@tanstack/react-table";
 
 import type {
     ColumnDef,
-    SortingState,
     ColumnFiltersState,
+    SortingState,
     VisibilityState,
 } from "@tanstack/react-table";
 
@@ -44,6 +40,7 @@ export type DataTableProps<T extends Record<string, unknown>> = {
     ariaLabel?: string;
     rowActions?: (row: T, index: number) => React.ReactNode;
     showSearch?: boolean;
+    showFilters?: boolean;
     searchPlaceholder?: string;
     onRowClick?: (row: T, index: number) => void;
     initialPageSize?: number;
@@ -77,6 +74,7 @@ export function DataTable<T extends Record<string, unknown>>({
     ariaLabel = "Data table",
     rowActions,
     showSearch = true,
+    showFilters = true,
     searchPlaceholder = "Search…",
     onRowClick,
     initialPageSize = 10,
@@ -179,7 +177,14 @@ export function DataTable<T extends Record<string, unknown>>({
         };
 
         loadData();
-    }, [pagination.pageIndex, pagination.pageSize, sorting, columnFilters, globalFilter, fetchData]);
+    }, [
+        pagination.pageIndex,
+        pagination.pageSize,
+        sorting,
+        columnFilters,
+        globalFilter,
+        fetchData,
+    ]);
 
     // Columns that can be filtered
     const filterableCols = table.getAllColumns().filter((col) => col.getCanFilter());
@@ -196,24 +201,26 @@ export function DataTable<T extends Record<string, unknown>>({
                     {/* Column filter */}
                     {filterableCols.length > 0 && (
                         <>
-                            <Select
-                                value={activeFilterCol}
-                                onValueChange={(val) => {
-                                    setActiveFilterCol(val);
-                                    filterableCols.forEach((c) => c.setFilterValue(undefined));
-                                }}
-                            >
-                                <SelectTrigger className="w-[180px]">
-                                    <SelectValue placeholder="Filter column…" />
-                                </SelectTrigger>
-                                <SelectContent>
-                                    {filterableCols.map((c) => (
-                                        <SelectItem key={c.id} value={c.id}>
-                                            {String(c.columnDef.header ?? c.id)}
-                                        </SelectItem>
-                                    ))}
-                                </SelectContent>
-                            </Select>
+                            {showFilters && (
+                                <Select
+                                    value={activeFilterCol}
+                                    onValueChange={(val) => {
+                                        setActiveFilterCol(val);
+                                        filterableCols.forEach((c) => c.setFilterValue(undefined));
+                                    }}
+                                >
+                                    <SelectTrigger className="w-[180px]">
+                                        <SelectValue placeholder="Filter column…" />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        {filterableCols.map((c) => (
+                                            <SelectItem key={c.id} value={c.id}>
+                                                {String(c.columnDef.header ?? c.id)}
+                                            </SelectItem>
+                                        ))}
+                                    </SelectContent>
+                                </Select>
+                            )}
 
                             {/* Input for filtering selected column */}
                             {activeFilterCol && (
