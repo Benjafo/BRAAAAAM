@@ -1,4 +1,4 @@
-import { ClientsTable } from "@/components/ClientsTable";
+import { ClientsTable } from "@/components/tables/ClientsTable";
 import { MainNavigation } from "@/components/Navigation";
 import { createFileRoute } from "@tanstack/react-router";
 
