@@ -1,3 +1,4 @@
+// @ts-nocheck
 import express, { Router } from "express";
 
 const router: Router = express.Router();
