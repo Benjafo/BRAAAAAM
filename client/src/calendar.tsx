@@ -1,7 +1,7 @@
 import { Tabs, TabsList, TabsTrigger } from "@radix-ui/react-tabs";
 import moment from "moment";
-import { useCallback, useMemo, useState } from "react";
-import { Calendar, momentLocalizer, Views, type Event } from "react-big-calendar";
+import { useCallback, useState } from "react";
+import { Calendar, momentLocalizer, Views, type Event, type View } from "react-big-calendar";
 import "react-big-calendar/lib/css/react-big-calendar.css";
 import { Button } from "./components/ui/button";
 
@@ -9,8 +9,6 @@ const localizer = momentLocalizer(moment);
 
 // Availability status types
 type AvailabilityStatus = "scheduled" | "unassigned" | "cancelled" | "completed" | "withdrawn";
-// | "unavailable";
-// | "available" ignore for now
 
 interface CalendarEvent extends Event {
     id: number;
@@ -24,8 +22,7 @@ interface CalendarEvent extends Event {
         location?: string;
     };
 }
-("////////////////////////////////////////////////////////////////////Sample Data///////////////////////////////////////////////////////////////////////////////////////////////////////////////////");
-// Sample events data matching your calendar images
+
 const sampleEvents: CalendarEvent[] = [
     // Sunday  - Available blocks
     {
@@ -33,35 +30,35 @@ const sampleEvents: CalendarEvent[] = [
         title: "Scheduled",
         start: new Date(2025, 8, 27, 9, 0), // Sep 27, 2025, 9:00 AM
         end: new Date(2025, 8, 27, 11, 0), // Sep 27, 2025, 11:00 AM
-        resource: { status: "scheduled", details: "9 - 11 AM" },
+        resource: { status: "scheduled", details: "9:00 - 11:00 AM" },
     },
     {
         id: 2,
         title: "Scheduled",
         start: new Date(2025, 8, 27, 11, 0), // Sep 27, 2025, 11:00 AM
-        end: new Date(2025, 8, 27, 12, 0), // Sep 27, 2025, 12:00 PM
-        resource: { status: "scheduled", details: "11 - 12 AM" },
+        end: new Date(2025, 8, 27, 12, 15), // Sep 27, 2025, 12:00 PM
+        resource: { status: "scheduled", details: "11:00 - 12:15 PM" },
     },
     {
         id: 3,
         title: "Cancelled",
         start: new Date(2025, 8, 25, 13, 0), // Sep 27, 2025, 1:00 PM
         end: new Date(2025, 8, 25, 14, 0), // Sep 27, 2025, 2:00 PM
-        resource: { status: "cancelled", details: "1 - 2 PM" },
+        resource: { status: "cancelled", details: "1:00 - 2:00 PM" },
     },
     {
         id: 4,
         title: "Unassigned",
         start: new Date(2025, 8, 25, 15, 0), // Sep 27, 2025, 3:00 PM
         end: new Date(2025, 8, 25, 16, 0), // Sep 27, 2025, 4:00 PM
-        resource: { status: "unassigned", details: "3 - 4 PM" },
+        resource: { status: "unassigned", details: "3:00 - 4:00 PM" },
     },
     {
         id: 5,
         title: "Unassigned",
-        start: new Date(2025, 8, 25, 18, 0), // Sep 27, 2025, 6:00 PM
-        end: new Date(2025, 8, 25, 19, 0), // Sep 27, 2025, 7:00 PM
-        resource: { status: "unassigned", details: "6 - 7 PM" },
+        start: new Date(2025, 8, 25, 9, 0), // Sep 27, 2025, 9:00 AM
+        end: new Date(2025, 8, 25, 13, 0), // Sep 27, 2025, 1:00 PM
+        resource: { status: "unassigned", details: "9:00 AM - 1:00 PM" },
     },
 
     // Tuesday Aug 26 - Scheduled block
@@ -70,7 +67,7 @@ const sampleEvents: CalendarEvent[] = [
         title: "Completed",
         start: new Date(2025, 8, 26, 11, 0), // Aug 26, 2025, 11:00 AM
         end: new Date(2025, 8, 26, 12, 0), // Aug 26, 2025, 12:00 PM
-        resource: { status: "completed", details: "11 - 12 AM" },
+        resource: { status: "completed", details: "11:00 AM - 12:00 PM" },
     },
 
     // Wednesday Aug 27 - Multiple availability blocks
@@ -79,14 +76,14 @@ const sampleEvents: CalendarEvent[] = [
         title: "Completed",
         start: new Date(2025, 8, 24, 11, 0), // Aug 27, 2025, 11:00 AM
         end: new Date(2025, 8, 24, 12, 0), // Aug 27, 2025, 12:00 PM
-        resource: { status: "completed", details: "11 - 12 AM" },
+        resource: { status: "completed", details: "11:00 AM - 12:00 PM" },
     },
     {
         id: 8,
         title: "Scheduled",
         start: new Date(2025, 8, 26, 15, 0), // Aug 27, 2025, 3:00 PM
-        end: new Date(2025, 8, 26, 18, 0), // Aug 27, 2025, 6:00 PM
-        resource: { status: "scheduled", details: "3 - 5 AM" },
+        end: new Date(2025, 8, 26, 17, 0), // Aug 27, 2025, 5:00 PM
+        resource: { status: "scheduled", details: "3:00 - 5:00 PM" },
     },
 
     // Thursday Aug 28 - Withdrawn block
@@ -94,8 +91,8 @@ const sampleEvents: CalendarEvent[] = [
         id: 9,
         title: "Withrawn",
         start: new Date(2025, 8, 29, 12, 0), // Aug 28, 2025, 12:00 PM
-        end: new Date(2025, 8, 29, 13, 0), // Aug 28, 2025, 1:00 PM
-        resource: { status: "withdrawn", details: "12 - 1 PM" },
+        end: new Date(2025, 8, 29, 15, 0), // Aug 28, 2025, 3:00 PM
+        resource: { status: "withdrawn", details: "12:00 - 3:00 PM" },
     },
 
     // Friday Aug 29 - Multiple available blocks
@@ -104,56 +101,56 @@ const sampleEvents: CalendarEvent[] = [
         title: "Withdrawn",
         start: new Date(2025, 8, 29, 9, 0), // Aug 29, 2025, 9:00 AM
         end: new Date(2025, 8, 29, 11, 0), // Aug 29, 2025, 11:00 AM
-        resource: { status: "withdrawn", details: "9 - 11 AM" },
+        resource: { status: "withdrawn", details: "9:00 - 11:00 AM" },
     },
     {
         id: 11,
         title: "Scheduled",
         start: new Date(2025, 8, 29, 13, 0), // Aug 29, 2025, 1:00 PM
         end: new Date(2025, 8, 29, 14, 0), // Aug 29, 2025, 2:00 PM
-        resource: { status: "scheduled", details: "1 - 2 AM" },
+        resource: { status: "scheduled", details: "1:00 - 2:00 PM" },
     },
     {
         id: 12,
         title: "Unassigned",
         start: new Date(2025, 8, 29, 16, 0), // Aug 29, 2025, 4:00 PM
         end: new Date(2025, 8, 29, 17, 0), // Aug 29, 2025, 5:00 PM
-        resource: { status: "unassigned", details: "4 - 5 AM" },
+        resource: { status: "unassigned", details: "4:00 - 5:00 PM" },
     },
     {
         id: 13,
         title: "Unassigned",
         start: new Date(2025, 8, 30, 16, 0), // Aug 29, 2025, 4:00 PM
         end: new Date(2025, 8, 30, 17, 0), // Aug 29, 2025, 5:00 PM
-        resource: { status: "unassigned", details: "4 - 5 PM" },
+        resource: { status: "unassigned", details: "4:00 - 5:00 PM" },
     },
     {
         id: 14,
         title: "Scheduled",
         start: new Date(2025, 9, 4, 16, 0), // Aug 29, 2025, 4:00 PM
         end: new Date(2025, 9, 4, 17, 0), // Aug 29, 2025, 5:00 PM
-        resource: { status: "scheduled", details: "4 - 5 PM" },
+        resource: { status: "scheduled", details: "4:00 - 5:00 PM" },
     },
     {
         id: 15,
         title: "Scheduled",
         start: new Date(2025, 9, 6, 13, 0), // Aug 29, 2025, 4:00 PM
         end: new Date(2025, 9, 6, 17, 0), // Aug 29, 2025, 5:00 PM
-        resource: { status: "scheduled", details: "1 - 5 PM" },
+        resource: { status: "scheduled", details: "1:00 - 5:00 PM" },
     },
     {
         id: 16,
         title: "Scheduled",
         start: new Date(2025, 9, 13, 9, 0), // Aug 29, 2025, 4:00 PM
         end: new Date(2025, 9, 13, 10, 0), // Aug 29, 2025, 5:00 PM
-        resource: { status: "scheduled", details: "9 - 10 AM" },
+        resource: { status: "scheduled", details: "9:00 - 10:00 AM" },
     },
     {
         id: 17,
         title: "Scheduled",
         start: new Date(2025, 9, 13, 11, 0), // Aug 29, 2025, 4:00 PM
         end: new Date(2025, 9, 13, 12, 30), // Aug 29, 2025, 5:00 PM
-        resource: { status: "scheduled", details: "11 - 12:30 PM" },
+        resource: { status: "scheduled", details: "11:00 - 12:30 PM" },
     },
     {
         id: 18,
@@ -172,9 +169,9 @@ const sampleEvents: CalendarEvent[] = [
     {
         id: 20,
         title: "Cancelled",
-        start: new Date(2025, 9, 14, 18, 30), // Aug 29, 2025, 4:00 PM
-        end: new Date(2025, 9, 14, 19, 30), // Aug 29, 2025, 5:00 PM
-        resource: { status: "cancelled", details: "6:30 - 7:30 PM" },
+        start: new Date(2025, 9, 14, 15, 30), // Aug 29, 2025, 3:30 PM
+        end: new Date(2025, 9, 14, 17, 0), // Aug 29, 2025, 5:00 PM
+        resource: { status: "cancelled", details: "3:30 - 5:00 PM" },
     },
     {
         id: 21,
@@ -187,8 +184,8 @@ const sampleEvents: CalendarEvent[] = [
         id: 22,
         title: "Scheduled",
         start: new Date(2025, 9, 15, 15, 0), // Aug 29, 2025, 4:00 PM
-        end: new Date(2025, 9, 15, 18, 0), // Aug 29, 2025, 5:00 PM
-        resource: { status: "scheduled", details: "3:00 - 6:00 PM" },
+        end: new Date(2025, 9, 15, 17, 0), // Aug 29, 2025, 5:00 PM
+        resource: { status: "scheduled", details: "3:00 - 5:00 PM" },
     },
     {
         id: 23,
@@ -220,9 +217,8 @@ const sampleEvents: CalendarEvent[] = [
     },
 ];
 
-("///////////////////////////////////////////////////////////////////Big Calendar ///////////////////////////////////////////////////////////////////////////////////////////////////////////////");
 export default function ReactBigCalendar() {
-    const [currentView, setCurrentView] = useState(Views.WEEK);
+    const [currentView, setCurrentView] = useState<View>(Views.WEEK);
     const [currentDate, setCurrentDate] = useState(new Date());
 
     // Day/week/month tabs
@@ -245,95 +241,56 @@ export default function ReactBigCalendar() {
         const minute = date.getMinutes();
         const dayOfWeek = date.getDay(); // 0 = Sunday, 1 = Monday, ..., 6 = Saturday
 
-        // Business hours: Mon-Fri 8 AM to 8 PM, Saturday 10:30 AM to 4 PM
+        // Business hours: Mon-Fri 9 AM to 5 PM, Saturday 10:30 AM to 4 PM
         let isBusinessHours = false;
-        let isBusinessDay = false;
 
         if (dayOfWeek >= 1 && dayOfWeek <= 5) {
-            // Monday to Friday: 8 AM to 8 PM
-            isBusinessDay = true;
-            isBusinessHours = hour >= 8 && hour < 20;
+            // Monday to Friday: 9 AM to 5 PM
+            isBusinessHours = hour >= 9 && hour < 17;
         } else if (dayOfWeek === 6) {
             // Saturday: 10:30 AM to 4 PM
-            isBusinessDay = true;
             const timeInMinutes = hour * 60 + minute;
             const startTime = 10 * 60 + 30; // 10:30 AM
             const endTime = 16 * 60; // 4:00 PM
             isBusinessHours = timeInMinutes >= startTime && timeInMinutes < endTime;
         }
 
-        // Company is closed on Sunday and outside business hours
-        // let backgroundColor = "#2a2a2a"; // default closed color
-
-        // if (isBusinessDay && isBusinessHours) {
-        //     backgroundColor = "#000000";
-        // }
-
-        // if (dayOfWeek === 0) {
-        //     return {
-        //         style: {
-        //             backgroundColor: "#2a2a2a", // Sundays are closed
-        //             minHeight: "60px",
-        //             borderBottom: "1px solid #444444",
-        //         },
-        //     };
-        // }
-
-        // Weekdays and Saturday: business hours are black, otherwise gray
-        // return {
-        //     style: {
-        //         backgroundColor: isBusinessHours ? "#000000" : "#2a2a2a",
-        //         minHeight: "60px",
-        //         borderBottom: "1px solid #444444",
-        //     },
-        // };
+        // Weekdays and Saturday: business hours are white, otherwise light gray
+        return {
+            style: {
+                backgroundColor: isBusinessHours ? "#ffffff" : "#f3f4f6",
+                minHeight: "60px",
+                borderBottom: "1px solid #e5e7eb",
+            },
+        };
     }, []);
 
     // Custom day style getter for Month view
-    // const dayPropGetter = useCallback(
-    // (date: Date) => {
-    // const dayOfWeek = date.getDay(); // 0 = Sunday
-    // const isOffRangeMonth = date.getMonth() !== currentDate.getMonth();
+    const dayPropGetter = useCallback(
+        (date: Date) => {
+            const dayOfWeek = date.getDay(); // 0 = Sunday
+            const isOffRangeMonth = date.getMonth() !== currentDate.getMonth();
 
-    // In Month view: off-range days should be black regardless of weekday
-    // if (currentView === Views.MONTH && isOffRangeMonth) {
-    //     return {
-    //         style: {
-    //             backgroundColor: "#2a2a2a",
-    //         },
-    //     };
-    // }
+            // In Month view: off-range days should be light grey regardless of weekday
+            if (currentView === Views.MONTH && isOffRangeMonth) {
+                return {
+                    style: {
+                        backgroundColor: "#f3f4f6",
+                    },
+                };
+            }
 
-    // In-range Sundays use slightly lighter dark gray
-    // if (dayOfWeek === 0) {
-    //     return {
-    //         style: {
-    //             backgroundColor: "#2a2a2a",
-    //         },
-    //     };
-    // }
-    // return {};
-    //     },
-    //     [currentDate, currentView]
-    // );
-
-    // Custom formats
-    const formats = useMemo(
-        () => ({
-            dayHeaderFormat: (date: Date, culture?: string, localizer?: any) => {
-                return localizer.format(date, "ddd DD", culture);
-            },
-            timeGutterFormat: (date: Date, culture?: string, localizer?: any) => {
-                return localizer.format(date, "h A", culture);
-            },
-            eventTimeRangeFormat: ({ start, end }: any, culture?: string, localizer?: any) => {
-                return `${localizer.format(start, "h:mm A", culture)} - ${localizer.format(end, "h:mm A", culture)}`;
-            },
-            agendaTimeFormat: (date: Date, culture?: string, localizer?: any) => {
-                return localizer.format(date, "h:mm A", culture);
-            },
-        }),
-        []
+            // In-range Sundays use light gray
+            if (dayOfWeek === 0) {
+                return {
+                    style: {
+                        backgroundColor: "#f3f4f6",
+                    },
+                };
+            }
+            return {};
+        },
+        [currentDate, currentView]
     );
 
     // Navigation handlers
@@ -341,7 +298,7 @@ export default function ReactBigCalendar() {
         setCurrentDate(newDate);
     }, []);
 
-    const handleViewChange = useCallback((view: any) => {
+    const handleViewChange = useCallback((view: View) => {
         setCurrentView(view);
     }, []);
 
@@ -355,22 +312,22 @@ export default function ReactBigCalendar() {
         </div>
     );
 
-    ("------------------------------------------------------------------------------------------Styles-----------------------------------------------------------------------------------------------------");
-    // Custom CSS styles for dark themed colors
+    // ("------------------------------------------------------------------------------------------Styles-----------------------------------------------------------------------------------------------------");
+    // Custom CSS styles for light themed colors
     const customStyles = `
     .rbc-calendar {
-      background-color: #000000;
-      color: #ffffff;
+      background-color: #ffffff;
+      color: #000000;
       font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
       height: 100%;
       border: none;
     }
     
     .rbc-header {
-      background-color: #000000;
+      background-color: #ffffff;
       border-bottom: none; /* remove bottom border */
       border-right: none; /* remove right border */
-      color: #ffffff;
+      color: #000000;
       font-weight: 500;
       padding: 8px 4px;
       text-align: center;
@@ -385,49 +342,49 @@ export default function ReactBigCalendar() {
       border-right: none;
     }
 
-    /* Force specific borders in week view - top and left only black, rest gray */
+    /* Force specific borders in week view - light grey borders */
     .rbc-time-view *,
     .rbc-time-view .rbc-time-header *,
     .rbc-time-view .rbc-time-header-gutter *,
     .rbc-time-view .rbc-time-gutter *,
     .rbc-time-view .rbc-header * {
-      border-color: #444444 !important; /* default gray for most borders */
+      border-color: #e5e7eb !important; /* default light grey for most borders */
     }
-    
-    /* Top border below day headers - black */
+
+    /* Top border below day headers - light grey */
     .rbc-time-view .rbc-time-header {
-      border-bottom: 1px solid #000000 !important;
+      border-bottom: 1px solid #d1d5db !important;
     }
-    
+
     .rbc-time-view .rbc-time-header .rbc-row {
-      border-bottom: 1px solid #000000 !important;
+      border-bottom: 1px solid #d1d5db !important;
     }
-    
-    /* Left border (right of time column) - black */
+
+    /* Left border (right of time column) - light grey */
     .rbc-time-view .rbc-time-header-gutter {
-      border-right: 1px solid #000000 !important;
-      border-bottom: 1px solid #000000 !important;
+      border-right: 1px solid #d1d5db !important;
+      border-bottom: 1px solid #d1d5db !important;
     }
-    
+
     .rbc-time-view .rbc-time-gutter {
-      border-right: 1px solid #000000 !important;
+      border-right: 1px solid #d1d5db !important;
     }
-    
-    /* Force day separator borders to black - multiple selectors */
+
+    /* Force day separator borders to light grey - multiple selectors */
     .rbc-time-view .rbc-header,
     .rbc-time-view .rbc-time-header .rbc-header,
     .rbc-time-view .rbc-time-header .rbc-row .rbc-header {
-      border-bottom: 1px solid #000000 !important;
-      border-right: 1px solid #000000 !important;
-      border-color: #000000 !important;
+      border-bottom: 1px solid #d1d5db !important;
+      border-right: 1px solid #d1d5db !important;
+      border-color: #d1d5db !important;
     }
-    
-    /* Override any remaining gray borders between headers */
+
+    /* Override any remaining borders between headers */
     .rbc-time-view .rbc-header + .rbc-header {
-      border-left: 1px solid #000000 !important;
+      border-left: 1px solid #d1d5db !important;
     }
-    
-    /* Force all header borders to black */
+
+    /* Force all header borders to light grey */
     .rbc-time-view .rbc-time-header .rbc-header:nth-child(1),
     .rbc-time-view .rbc-time-header .rbc-header:nth-child(2),
     .rbc-time-view .rbc-time-header .rbc-header:nth-child(3),
@@ -435,25 +392,25 @@ export default function ReactBigCalendar() {
     .rbc-time-view .rbc-time-header .rbc-header:nth-child(5),
     .rbc-time-view .rbc-time-header .rbc-header:nth-child(6),
     .rbc-time-view .rbc-time-header .rbc-header:nth-child(7) {
-      border-right: 1px solid #000000 !important;
-      border-bottom: 1px solid #000000 !important;
+      border-right: 1px solid #d1d5db !important;
+      border-bottom: 1px solid #d1d5db !important;
     }
-    
+
     .rbc-time-view {
-      background-color: #000000;
+      background-color: #ffffff;
       border: none;
     }
-    
+
     .rbc-time-gutter {
-      background-color: #000000;
+      background-color: #ffffff;
       border-right: none; /* remove right border */
       width: 60px;
     }
-    
+
     .rbc-time-gutter .rbc-timeslot-group {
-      border-bottom: 1px solid #444444;
+      border-bottom: 1px solid #e5e7eb;
       min-height: 60px;
-      background-color: #000000 !important;
+      background-color: #ffffff !important;
     }
     
     .rbc-time-slot {
@@ -464,62 +421,62 @@ export default function ReactBigCalendar() {
     }
     
     .rbc-day-slot {
-      border-left: 1px solid #444444;
+      border-left: 1px solid #e5e7eb;
 
       min-height: 60px;
 
     }
-    
+
     .rbc-day-slot:first-child {
       border-left: none;
     }
-    
+
     .rbc-timeslot-group {
-      border-bottom: 1px solid #444444;
+      border-bottom: 1px solid #e5e7eb;
       min-height: 60px;
     }
-    
+
     .rbc-today {
-      background-color: #1a1a1a;
+      background-color: #fef3c7;
     }
-    
+
     .rbc-time-header-gutter {
-      background-color: #000000;
+      background-color: #ffffff;
       border-bottom: none; /* remove bottom border */
       border-right: none; /* remove right border */
       width: 60px;
     }
-    
+
     .rbc-time-content  > .rbc-day-slot:first-child .rbc-time-slot{
       border-top: none;
-      background-color: #2a2a2a !important;
+      background-color: #f3f4f6 !important;
     }
 
-    /* Week view: make Sunday header match others (black) */
+    /* Week view: make Sunday header match others (white) */
     .rbc-time-view .rbc-time-header .rbc-row .rbc-header:nth-child(1) {
-      background-color: #000000 !important;
+      background-color: #ffffff !important;
     }
 
     .rbc-day-slot.sunday .rbc-time-slot {
-        background-color: #2a2a2a !important;
+        background-color: #f3f4f6 !important;
     }
-    
+
     .rbc-time-gutter .rbc-time-slot {
-      color: #ffffff;
+      color: #000000;
       font-size: 11px;
       text-align: right;
       padding-right: 8px;
-      border-bottom: 1px solid #444444;
+      border-bottom: 1px solid #e5e7eb;
       display: flex;
       align-items: flex-start;
       padding-top: 4px;
-      background-color: #000000 !important;
+      background-color: #ffffff !important;
     }
 
-    /* Ensure time labels in the gutter stay on black */
+    /* Ensure time labels in the gutter stay on white */
     .rbc-time-gutter .rbc-label {
-      background-color: #000000 !important;
-      color: #ffffff;
+      background-color: #ffffff !important;
+      color: #000000;
     }
     
     .rbc-allday-cell {
@@ -571,7 +528,7 @@ export default function ReactBigCalendar() {
     }
     
     .rbc-event.completed {
-      background-color: #ffffff !important;
+      background-color: #e4e4e4ff !important;
       color: #374151 !important;
     }
     
@@ -617,30 +574,30 @@ export default function ReactBigCalendar() {
     }
     
     .rbc-time-slot:hover {
-      background-color: #2a2a2a;
+      background-color: #e5e7eb;
     }
-    
+
     .rbc-current-time-indicator {
       background-color: #ef4444;
       height: 2px;
       z-index: 10;
     }
-    
+
     .rbc-time-content::-webkit-scrollbar {
       width: 8px;
     }
-    
+
     .rbc-time-content::-webkit-scrollbar-track {
-      background: #1a1a1a;
+      background: #f9fafb;
     }
-    
+
     .rbc-time-content::-webkit-scrollbar-thumb {
-      background: #4a4a4a;
+      background: #d1d5db;
       border-radius: 4px;
     }
-    
+
     .rbc-time-content::-webkit-scrollbar-thumb:hover {
-      background: #6a6a6a;
+      background: #9ca3af;
     }
     
     
@@ -653,27 +610,27 @@ export default function ReactBigCalendar() {
       border-bottom: none; /* remove bottom border */
     }
 
-    /* Month view: remove/lighten borders on weekday headers to black */
+    /* Month view: light borders on weekday headers */
     .rbc-month-view .rbc-header {
-      background-color: #000000;
-      border-bottom: 1px solid #000000 !important;
-      border-right: 1px solid #000000 !important;
+      background-color: #ffffff;
+      border-bottom: 1px solid #d1d5db !important;
+      border-right: 1px solid #d1d5db !important;
     }
     .rbc-month-view .rbc-header + .rbc-header {
-      border-left: 1px solid #000000 !important;
+      border-left: 1px solid #d1d5db !important;
     }
 
-    /* Month view: force off-range day backgrounds to black */
+    /* Month view: force off-range day backgrounds to light grey */
     .rbc-month-view .rbc-off-range-bg,
     .rbc-off-range-bg {
-      background-color: #2a2a2a !important;
+      background-color: #f3f4f6 !important;
     }
     
     
     
   `;
 
-    ("--------------------------------------------------------------------------------------------------HTML Struct------------------------------------------------------------------------------------------------");
+    // ("--------------------------------------------------------------------------------------------------HTML Struct------------------------------------------------------------------------------------------------");
     return (
         <div className="h-screen">
             <style>{customStyles}</style>
@@ -688,10 +645,10 @@ export default function ReactBigCalendar() {
 
                         <Tabs value={activeTab} onValueChange={handleTabChange} className="w-full">
                             <div className="relative flex items-center">
-                                <TabsList className="space-x-0.5">
+                                <TabsList className="space-x-1">
                                     <TabsTrigger value="day">
                                         <Button
-                                            variant="secondary"
+                                            variant="outline"
                                             onClick={() => setCurrentView(Views.DAY)}
                                         >
                                             Day
@@ -699,7 +656,7 @@ export default function ReactBigCalendar() {
                                     </TabsTrigger>
                                     <TabsTrigger value="week">
                                         <Button
-                                            variant="secondary"
+                                            variant="outline"
                                             onClick={() => setCurrentView(Views.WEEK)}
                                         >
                                             Week
@@ -707,7 +664,7 @@ export default function ReactBigCalendar() {
                                     </TabsTrigger>
                                     <TabsTrigger value="month">
                                         <Button
-                                            variant="secondary"
+                                            variant="outline"
                                             onClick={() => setCurrentView(Views.MONTH)}
                                         >
                                             Month
@@ -717,15 +674,15 @@ export default function ReactBigCalendar() {
                             </div>
                         </Tabs>
 
-                        <div className="flex items-center space-x-2">
-                            <Button variant="secondary">Filters</Button>
-                            <Button variant="secondary">Print</Button>
+                        <div className="flex items-center space-x-1">
+                            <Button variant="outline">Filters</Button>
+                            <Button variant="outline">Print</Button>
                         </div>
                     </div>
 
-                    <div className="flex items-center space-x-2">
+                    <div className="flex items-center space-x-1">
                         <Button
-                            variant="ghost"
+                            variant="default"
                             onClick={() => {
                                 const newDate = moment(currentDate)
                                     .subtract(
@@ -746,7 +703,7 @@ export default function ReactBigCalendar() {
                         </Button>
 
                         <Button
-                            variant="ghost"
+                            variant="default"
                             onClick={() => {
                                 const newDate = moment(currentDate)
                                     .add(
@@ -767,7 +724,7 @@ export default function ReactBigCalendar() {
                         </Button>
 
                         <Button
-                            variant="secondary"
+                            variant="outline"
                             onClick={() => {
                                 console.log("Add Availability clicked");
                                 // Handle add availability logic here
@@ -792,13 +749,12 @@ export default function ReactBigCalendar() {
                     onNavigate={handleNavigate}
                     eventPropGetter={eventStyleGetter}
                     slotPropGetter={slotStyleGetter}
-                    // dayPropGetter={dayPropGetter}
-                    formats={formats}
+                    dayPropGetter={dayPropGetter}
                     components={{
                         event: EventComponent,
                     }}
-                    min={new Date(1970, 1, 1, 7, 0, 0)} // 7 AM
-                    max={new Date(1970, 1, 1, 21, 0, 0)} // 8 PM
+                    min={new Date(1970, 1, 1, 9, 0, 0)} // 9 AM
+                    max={new Date(1970, 1, 1, 22, 0, 0)} // 8 PM
                     step={60} // 1 hour steps
                     timeslots={1}
                     showMultiDayTimes={false}
