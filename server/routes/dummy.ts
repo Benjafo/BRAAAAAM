@@ -30,6 +30,23 @@ type Ride = {
     status: 'unassigned' | 'scheduled' | 'cancelled' | 'completed' | 'withdrawn'
 }
 
+type Role = {
+    name: string
+}
+
+type AuditLogEntry = {
+    user: string;
+    timestamp: string;
+    eventDetails: string;
+};
+
+type Location = {
+    name: string,
+    address: string,
+    city: string,
+    zip: number
+}
+
 const USERS: User[] = [
     { name: 'Smith, John', phoneNumber: '(555) 123-4567', email: 'john.smith@example.com', address: "105 Stark Street", city: "Rochester", zip: 14623, role: 'driver' },
     { name: 'Johnson, Sarah', email: 'sarah.j@example.com', phoneNumber: '(555) 234-5678', address: '200 Main St', city: 'Rochester', zip: 14604, role: 'dispatcher' },
@@ -91,17 +108,89 @@ const RIDES: Ride[] = [
     { date: '2025-10-21', time: '01:00 PM', clientName: 'Perez, Katherine', destinationAddress: '850 Community Health, Rochester NY 14620', dispatcherName: 'Thomas, William', status: 'completed' },
 ]
 
-router.get("/users", (req, res, next) => {
+const ROLES: Role[] = [
+    {name: "Admin"},
+    {name: "Dispatcher"},
+    {name: "Driver"},
+]
+
+const AUDIT_LOG: AuditLogEntry[] = [
+    { user: 'Brown, Michael ', timestamp: 'October 01, 2025 09:15 AM', eventDetails: 'Created org Webster Wasps' },
+    { user: 'Taylor, Robert ', timestamp: 'October 01, 2025 10:30 AM', eventDetails: 'Updated org settings for organization Webster Wasps' },
+    { user: 'Johnson, Sarah ', timestamp: 'October 02, 2025 08:45 AM', eventDetails: 'Created user Smith, John' },
+    { user: 'Martinez, Lisa ', timestamp: 'October 02, 2025 11:20 AM', eventDetails: 'Created client Harris, Christopher' },
+    { user: 'Brown, Michael ', timestamp: 'October 02, 2025 02:30 PM', eventDetails: 'Updated user Johnson, Sarah' },
+    { user: 'Thomas, William ', timestamp: 'October 03, 2025 09:00 AM', eventDetails: 'Created client Moore, Amanda' },
+    { user: 'Taylor, Robert ', timestamp: 'October 03, 2025 10:15 AM', eventDetails: 'Created ride for client Harris, Christopher' },
+    { user: 'Johnson, Sarah ', timestamp: 'October 03, 2025 01:45 PM', eventDetails: 'Updated client Clark, Daniel' },
+    { user: 'Lee, David ', timestamp: 'October 04, 2025 08:30 AM', eventDetails: 'Created user Davis, Emily' },
+    { user: 'Martinez, Lisa ', timestamp: 'October 04, 2025 11:00 AM', eventDetails: 'Created ride for client Moore, Amanda' },
+    { user: 'Brown, Michael ', timestamp: 'October 04, 2025 03:20 PM', eventDetails: 'Updated org settings for organization Webster Wasps' },
+    { user: 'Thomas, William ', timestamp: 'October 05, 2025 09:30 AM', eventDetails: 'Created client Lewis, Michelle' },
+    { user: 'Johnson, Sarah ', timestamp: 'October 05, 2025 12:00 PM', eventDetails: 'Updated ride for client Clark, Daniel' },
+    { user: 'Taylor, Robert ', timestamp: 'October 06, 2025 08:00 AM', eventDetails: 'Created user Wilson, James' },
+    { user: 'Lee, David ', timestamp: 'October 06, 2025 10:45 AM', eventDetails: 'Updated client Hall, Nicole' },
+    { user: 'Martinez, Lisa ', timestamp: 'October 06, 2025 02:15 PM', eventDetails: 'Created ride for client Lewis, Michelle' },
+    { user: 'Brown, Michael ', timestamp: 'October 07, 2025 09:20 AM', eventDetails: 'Created client Allen, Gregory' },
+    { user: 'Thomas, William ', timestamp: 'October 07, 2025 11:30 AM', eventDetails: 'Updated user Martinez, Lisa' },
+    { user: 'Johnson, Sarah ', timestamp: 'October 07, 2025 03:45 PM', eventDetails: 'Updated ride for client Allen, Gregory' },
+    { user: 'Taylor, Robert ', timestamp: 'October 08, 2025 08:50 AM', eventDetails: 'Created user Anderson, Jennifer' },
+    { user: 'Lee, David ', timestamp: 'October 08, 2025 10:30 AM', eventDetails: 'Created client Young, Stephanie' },
+    { user: 'Martinez, Lisa ', timestamp: 'October 08, 2025 01:00 PM', eventDetails: 'Created ride for client Young, Stephanie' },
+    { user: 'Brown, Michael ', timestamp: 'October 08, 2025 04:00 PM', eventDetails: 'Updated org Webster Wasps' },
+    { user: 'Thomas, William ', timestamp: 'October 09, 2025 09:10 AM', eventDetails: 'Updated client King, Raymond' },
+    { user: 'Johnson, Sarah ', timestamp: 'October 09, 2025 11:45 AM', eventDetails: 'Created ride for client King, Raymond' },
+    { user: 'Taylor, Robert ', timestamp: 'October 09, 2025 02:30 PM', eventDetails: 'Updated user Thomas, William' },
+    { user: 'Lee, David ', timestamp: 'October 10, 2025 08:25 AM', eventDetails: 'Created client Scott, Kevin' },
+    { user: 'Martinez, Lisa ', timestamp: 'October 10, 2025 10:50 AM', eventDetails: 'Updated ride for client Scott, Kevin' },
+    { user: 'Brown, Michael ', timestamp: 'October 10, 2025 03:15 PM', eventDetails: 'Updated org settings for organization Webster Wasps' },
+    { user: 'Johnson, Sarah ', timestamp: 'October 11, 2025 09:00 AM', eventDetails: 'Created ride for client Green, Rebecca' }
+]
+
+const LOCATIONS: Location[] = [
+    { name: 'Strong Memorial Hospital', address: '601 Elmwood Ave', city: 'Rochester', zip: 14642 },
+    { name: 'Highland Hospital', address: '1000 South Ave', city: 'Rochester', zip: 14620 },
+    { name: 'Rochester General Hospital', address: '1425 Portland Ave', city: 'Rochester', zip: 14621 },
+    { name: 'Unity Hospital', address: '1555 Long Pond Rd', city: 'Greece', zip: 14626 },
+    { name: 'Wegmans Pittsford', address: '3195 Monroe Ave', city: 'Pittsford', zip: 14618 },
+    { name: 'Tops Friendly Markets', address: '1900 Empire Blvd', city: 'Webster', zip: 14580 },
+    { name: 'CVS Pharmacy Penfield', address: '1902 Penfield Rd', city: 'Penfield', zip: 14526 },
+    { name: 'Walgreens East Ave', address: '3349 East Ave', city: 'Rochester', zip: 14618 },
+    { name: 'RiteAid Victor', address: '825 Eastview Mall Dr', city: 'Victor', zip: 14564 },
+    { name: 'Marketplace Mall', address: '1 Miracle Mile Dr', city: 'Henrietta', zip: 14623 },
+    { name: 'Eastview Mall', address: '7979 Pittsford-Victor Rd', city: 'Victor', zip: 14564 },
+    { name: 'Greece Ridge Mall', address: '271 Greece Ridge Center Dr', city: 'Rochester', zip: 14626 },
+    { name: 'Senior Care of Rochester', address: '2180 Empire Blvd', city: 'Webster', zip: 14580 },
+    { name: 'St. John\'s Meadows Senior Living', address: '1355 Long Pond Rd', city: 'Rochester', zip: 14606 },
+    { name: 'UR Medicine Immediate Care Victor', address: '965 Route 96', city: 'Victor', zip: 14564 },
+    { name: 'Linden Oaks Family Medicine', address: '150 Linden Oaks', city: 'Rochester', zip: 14625 },
+    { name: 'Pluta Cancer Center', address: '95 White Spruce Blvd', city: 'Rochester', zip: 14623 },
+    { name: 'Rochester Dialysis Center', address: '2000 East Henrietta Rd', city: 'Henrietta', zip: 14623 },
+    { name: 'ProHealth Physical Therapy', address: '3140 Monroe Ave', city: 'Rochester', zip: 14618 },
+    { name: 'Webster Community Center', address: '1350 Chiyoda Dr', city: 'Webster', zip: 14580 },
+    { name: 'Greece Community Center', address: '2 Island Cottage Rd', city: 'Rochester', zip: 14612 },
+    { name: 'Fairport Village Landing', address: '1 North Main St', city: 'Fairport', zip: 14450 },
+    { name: 'Brockport Family Care', address: '6265 Brockport-Spencerport Rd', city: 'Brockport', zip: 14420 },
+    { name: 'Gates-Chili Senior Center', address: '3360 Union St', city: 'North Chili', zip: 14514 },
+    { name: 'Brighton Community Center', address: '220 Idlewood Rd', city: 'Rochester', zip: 14618 },
+    { name: 'Irondequoit Public Library', address: '1290 Titus Ave', city: 'Rochester', zip: 14617 },
+    { name: 'Honeoye Falls Village Hall', address: '1 East St', city: 'Honeoye Falls', zip: 14472 },
+    { name: 'Scottsville Free Library', address: '28 Main St', city: 'Scottsville', zip: 14546 },
+    { name: 'YMCA of Greater Rochester', address: '444 East Ave', city: 'Rochester', zip: 14607 },
+    { name: 'Jewish Community Center', address: '1200 Edgewood Ave', city: 'Rochester', zip: 14618 }
+]
+
+const mock = <T> (req, res, next, data) => {
     try {
         // Simulate network delay
         setTimeout(() => {
-            let results = [...USERS]
+            let results = [...data]
 
             // Apply search filter
             const search = (req.query.search as string) || ''
             if (search) {
-                results = results.filter(user =>
-                    Object.values(user).some(value =>
+                results = results.filter(record =>
+                    Object.values(record).some(value =>
                         String(value).toLowerCase().includes(search.toLowerCase())
                     )
                 )
@@ -110,8 +199,8 @@ router.get("/users", (req, res, next) => {
             // Apply column filters (dynamic based on query params)
             Object.entries(req.query).forEach(([key, value]) => {
                 if (key !== 'page' && key !== 'pageSize' && key !== 'sortBy' && key !== 'sortDir' && key !== 'search' && value) {
-                    results = results.filter(user =>
-                        String(user[key as keyof User])
+                    results = results.filter(record =>
+                        String(record[key as keyof T])
                             .toLowerCase()
                             .includes(String(value).toLowerCase())
                     )
@@ -123,8 +212,8 @@ router.get("/users", (req, res, next) => {
             const sortDir = req.query.sortDir as 'asc' | 'desc' | undefined
             if (sortBy && sortDir) {
                 results = [...results].sort((a, b) => {
-                    const aVal = a[sortBy as keyof User]
-                    const bVal = b[sortBy as keyof User]
+                    const aVal = a[sortBy as keyof T]
+                    const bVal = b[sortBy as keyof T]
 
                     if (aVal < bVal) return sortDir === 'asc' ? -1 : 1
                     if (aVal > bVal) return sortDir === 'asc' ? 1 : -1
@@ -149,126 +238,18 @@ router.get("/users", (req, res, next) => {
     } catch (error) {
         next(error)
     }
-});
+}
 
-router.get("/clients", (req, res, next) => {
-    try {
-        // Simulate network delay
-        setTimeout(() => {
-            let results = [...CLIENTS]
+router.get("/users", (req, res, next) => mock<User>(req, res, next, USERS));
 
-            // Apply search filter
-            const search = (req.query.search as string) || ''
-            if (search) {
-                results = results.filter(client =>
-                    Object.values(client).some(value =>
-                        String(value).toLowerCase().includes(search.toLowerCase())
-                    )
-                )
-            }
+router.get("/clients", (req, res, next) => mock<Client>(req, res, next, CLIENTS));
 
-            // Apply column filters (dynamic based on query params)
-            Object.entries(req.query).forEach(([key, value]) => {
-                if (key !== 'page' && key !== 'pageSize' && key !== 'sortBy' && key !== 'sortDir' && key !== 'search' && value) {
-                    results = results.filter(client =>
-                        String(client[key as keyof Client])
-                            .toLowerCase()
-                            .includes(String(value).toLowerCase())
-                    )
-                }
-            })
+router.get("/rides", (req, res, next) => mock<Ride>(req, res, next, RIDES));
 
-            // Apply sorting
-            const sortBy = req.query.sortBy as string
-            const sortDir = req.query.sortDir as 'asc' | 'desc' | undefined
-            if (sortBy && sortDir) {
-                results = [...results].sort((a, b) => {
-                    const aVal = a[sortBy as keyof Client]
-                    const bVal = b[sortBy as keyof Client]
+router.get("/roles", (req, res, next) => mock<Role>(req, res, next, ROLES));
 
-                    if (aVal < bVal) return sortDir === 'asc' ? -1 : 1
-                    if (aVal > bVal) return sortDir === 'asc' ? 1 : -1
-                    return 0
-                })
-            }
+router.get("/audit-log", (req, res, next) => mock<AuditLogEntry>(req, res, next, AUDIT_LOG));
 
-            // Get total before pagination
-            const total = results.length
-
-            // Apply pagination
-            const page = parseInt(req.query.page as string || '0')
-            const pageSize = parseInt(req.query.pageSize as string || '10')
-            const start = page * pageSize
-            const paginatedResults = results.slice(start, start + pageSize)
-
-            res.json({
-                data: paginatedResults,
-                total
-            })
-        }, 300) // 300ms delay to simulate network
-    } catch (error) {
-        next(error)
-    }
-});
-
-router.get("/rides", (req, res, next) => {
-    try {
-        // Simulate network delay
-        setTimeout(() => {
-            let results = [...RIDES]
-
-            // Apply search filter
-            const search = (req.query.search as string) || ''
-            if (search) {
-                results = results.filter(ride =>
-                    Object.values(ride).some(value =>
-                        String(value).toLowerCase().includes(search.toLowerCase())
-                    )
-                )
-            }
-
-            // Apply column filters (dynamic based on query params)
-            Object.entries(req.query).forEach(([key, value]) => {
-                if (key !== 'page' && key !== 'pageSize' && key !== 'sortBy' && key !== 'sortDir' && key !== 'search' && value) {
-                    results = results.filter(ride =>
-                        String(ride[key as keyof Ride])
-                            .toLowerCase()
-                            .includes(String(value).toLowerCase())
-                    )
-                }
-            })
-
-            // Apply sorting
-            const sortBy = req.query.sortBy as string
-            const sortDir = req.query.sortDir as 'asc' | 'desc' | undefined
-            if (sortBy && sortDir) {
-                results = [...results].sort((a, b) => {
-                    const aVal = a[sortBy as keyof Ride]
-                    const bVal = b[sortBy as keyof Ride]
-
-                    if (aVal < bVal) return sortDir === 'asc' ? -1 : 1
-                    if (aVal > bVal) return sortDir === 'asc' ? 1 : -1
-                    return 0
-                })
-            }
-
-            // Get total before pagination
-            const total = results.length
-
-            // Apply pagination
-            const page = parseInt(req.query.page as string || '0')
-            const pageSize = parseInt(req.query.pageSize as string || '10')
-            const start = page * pageSize
-            const paginatedResults = results.slice(start, start + pageSize)
-
-            res.json({
-                data: paginatedResults,
-                total
-            })
-        }, 300) // 300ms delay to simulate network
-    } catch (error) {
-        next(error)
-    }
-});
+router.get("/locations", (req, res, next) => mock<Location>(req, res, next, LOCATIONS))
 
 export default router;
