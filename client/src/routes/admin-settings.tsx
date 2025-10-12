@@ -1,6 +1,9 @@
 import type { AdminGeneralFormRef } from "@/components/form/AdminGeneralForm";
 import AdminGeneralForm from "@/components/form/AdminGeneralForm";
 import { MainNavigation } from "@/components/Navigation";
+import { AuditLogTable } from "@/components/tables/AuditLogTable";
+import { LocationsTable } from "@/components/tables/LocationsTable";
+import { RolesTable } from "@/components/tables/RolesTable";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { createFileRoute } from "@tanstack/react-router";
@@ -115,15 +118,15 @@ function RouteComponent() {
                     </TabsContent>
 
                     <TabsContent value="roles">
-                        <p className="text-muted-foreground">{/* Roles content */}</p>
+                        <RolesTable />
                     </TabsContent>
 
                     <TabsContent value="audit-log">
-                        <p className="text-muted-foreground">{/* Audit log content */}</p>
+                        <AuditLogTable />
                     </TabsContent>
 
                     <TabsContent value="locations">
-                        <p className="text-muted-foreground">{/* Locations content */}</p>
+                        <LocationsTable />
                     </TabsContent>
                 </Tabs>
             </div>
