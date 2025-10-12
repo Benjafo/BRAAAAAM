@@ -3,8 +3,6 @@
 import { z } from "zod";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Calendar } from "@/components/ui/calendar";
-import { Calendar as CalendarIcon } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import {
     Select,
@@ -21,10 +19,8 @@ import {
     FormControl,
     FormMessage,
 } from "@/components/ui/form";
-import { Button } from "@/components/ui/button";
-import { Popover, PopoverContent } from "../ui/popover";
-import { PopoverTrigger } from "@radix-ui/react-popover";
-import { format } from "date-fns";
+
+import { DatePickerInput } from "../ui/datePickerField";
 
 /* --------------------------------- Schema --------------------------------- */
 /* using z.enum for select values that we know are included */
@@ -237,32 +233,10 @@ export default function EditRideForm({ defaultValues, onSubmit }: Props) {
                     control={form.control}
                     name="tripDate"
                     render={({ field }) => (
-                        <FormItem className="w-full">
+                        <FormItem>
                             <FormLabel>Trip Date</FormLabel>
-                            <FormControl className="w-full">
-                                <Popover>
-                                    <PopoverTrigger asChild>
-                                        <Button
-                                            variant="outline"
-                                            data-empty={!field.value}
-                                            className="data-[empty=true]:text-muted-foreground w-full justify-start text-left font-normal"
-                                        >
-                                            <CalendarIcon />
-                                            {field.value ? (
-                                                format(field.value, "PPP")
-                                            ) : (
-                                                <span>Pick a date</span>
-                                            )}
-                                        </Button>
-                                    </PopoverTrigger>
-                                    <PopoverContent className="w-auto p-0" align="start">
-                                        <Calendar
-                                            mode="single"
-                                            selected={field.value}
-                                            onSelect={field.onChange}
-                                        />
-                                    </PopoverContent>
-                                </Popover>
+                            <FormControl>
+                                <DatePickerInput value={field.value} onChange={field.onChange} />
                             </FormControl>
                             <FormMessage />
                         </FormItem>

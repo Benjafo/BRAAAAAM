@@ -15,13 +15,20 @@ import {
 } from "@/components/ui/form";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { toast } from "sonner";
+import { DatePickerInput } from "../ui/datePickerField";
 
 /* ----------------------------- Zod schema ----------------------------- */
+/* Used AI help for the URL -> allows link to start without http/https, and ends with something like .com or .org */
 const newOrganizationSchema = z.object({
     orgName: z
         .string()
         .min(1, "Organization name is required")
         .max(255, "Max characters allowed is 255."),
+    orgNameForMailingAddress: z
+        .string()
+        .min(1, "Organization name is required")
+        .max(255, "Max characters allowed is 255."),
+    orgCreationDate: z.date("Please select a valid date."),
     logo: z.instanceof(File),
     phoneGeneral: z
         .string()
@@ -38,7 +45,33 @@ const newOrganizationSchema = z.object({
             "Please enter a valid US phone number."
         ),
     email: z.email(),
-    website: z.url("Please enter a valid uRL."),
+    website: z
+        .string()
+        .min(1, "Website is required")
+        .transform((val) => {
+            const trimmed = val.trim();
+
+            if (trimmed.startsWith("http://") || trimmed.startsWith("https://")) {
+                return trimmed;
+            }
+
+            return `https://${trimmed}`;
+        })
+        .pipe(z.url("Please enter a valid URL"))
+        .refine(
+            (url) => {
+                try {
+                    const urlObj = new URL(url);
+                    const allowedTLDs = [".com", ".org", ".net", ".edu", ".gov"];
+                    return allowedTLDs.some((tld) => urlObj.hostname.endsWith(tld));
+                } catch {
+                    return false;
+                }
+            },
+            {
+                message: "Website must end with .com, .org, .net, .edu, or .gov",
+            }
+        ),
     mailingAddress: z
         .string()
         .min(1, "Mailing address is required.")
@@ -86,6 +119,8 @@ export default function NewOrganizationForm({ defaultValues, onSubmit }: Props) 
         mode: "onBlur",
         defaultValues: {
             orgName: defaultValues.orgName ?? "",
+            orgNameForMailingAddress: defaultValues.orgNameForMailingAddress ?? "",
+            orgCreationDate: defaultValues.orgCreationDate ?? new Date(),
             logo: defaultValues.logo,
 
             phoneGeneral: defaultValues.phoneGeneral ?? "",
@@ -127,6 +162,36 @@ export default function NewOrganizationForm({ defaultValues, onSubmit }: Props) 
                             <FormLabel>Organization Name</FormLabel>
                             <FormControl>
                                 <Input placeholder="Value" {...field} />
+                            </FormControl>
+                            <FormMessage />
+                        </FormItem>
+                    )}
+                />
+
+                {/* Organization Name */}
+                <FormField
+                    control={form.control}
+                    name="orgNameForMailingAddress"
+                    render={({ field }) => (
+                        <FormItem>
+                            <FormLabel>Organization Name For Mailing Address</FormLabel>
+                            <FormControl>
+                                <Input placeholder="Value" {...field} />
+                            </FormControl>
+                            <FormMessage />
+                        </FormItem>
+                    )}
+                />
+
+                {/* Organization Creation Date */}
+                <FormField
+                    control={form.control}
+                    name="orgCreationDate"
+                    render={({ field }) => (
+                        <FormItem>
+                            <FormLabel>Organization Creation Date</FormLabel>
+                            <FormControl>
+                                <DatePickerInput value={field.value} onChange={field.onChange} />
                             </FormControl>
                             <FormMessage />
                         </FormItem>
@@ -235,7 +300,11 @@ export default function NewOrganizationForm({ defaultValues, onSubmit }: Props) 
                             <FormLabel>Organization Mailing Address</FormLabel>
                             <FormControl>
                                 <div className="relative">
-                                    <Input className="pr-8" placeholder="Value" {...field} />
+                                    <Input
+                                        className="pr-8"
+                                        placeholder="(Replace with Google autocomplete when it's ready)"
+                                        {...field}
+                                    />
                                     <MapPin className="absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
                                 </div>
                             </FormControl>
@@ -255,7 +324,7 @@ export default function NewOrganizationForm({ defaultValues, onSubmit }: Props) 
                                 <div className="relative">
                                     <Input
                                         className="pr-8"
-                                        placeholder="(Clicking here opens Google Maps picker)"
+                                        placeholder="(Replace with Google autocomplete when it's ready)"
                                         {...field}
                                     />
                                     <MapPin className="absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
@@ -274,7 +343,13 @@ export default function NewOrganizationForm({ defaultValues, onSubmit }: Props) 
                         <FormItem>
                             <FormLabel>Organization Address Line 2</FormLabel>
                             <FormControl>
-                                <Input placeholder="Value" {...field} />
+                                <div className="relative">
+                                    <Input
+                                        placeholder="(Replace with Google autocomplete when it's ready)"
+                                        {...field}
+                                    />
+                                    <MapPin className="absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+                                </div>
                             </FormControl>
                             <FormMessage />
                         </FormItem>
@@ -358,7 +433,11 @@ export default function NewOrganizationForm({ defaultValues, onSubmit }: Props) 
                             <FormLabel>Administrator Mailing Address</FormLabel>
                             <FormControl>
                                 <div className="relative">
-                                    <Input className="pr-8" placeholder="Value" {...field} />
+                                    <Input
+                                        className="pr-8"
+                                        placeholder="(Replace with Google autocomplete when it's ready)"
+                                        {...field}
+                                    />
                                     <MapPin className="absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
                                 </div>
                             </FormControl>
@@ -375,7 +454,13 @@ export default function NewOrganizationForm({ defaultValues, onSubmit }: Props) 
                         <FormItem>
                             <FormLabel>Administrator Address Line 2</FormLabel>
                             <FormControl>
-                                <Input placeholder="Value" {...field} />
+                                <div className="relative">
+                                    <Input
+                                        placeholder="(Replace with Google autocomplete when it's ready)"
+                                        {...field}
+                                    />
+                                    <MapPin className="absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+                                </div>
                             </FormControl>
                             <FormMessage />
                         </FormItem>
@@ -421,7 +506,10 @@ export default function NewOrganizationForm({ defaultValues, onSubmit }: Props) 
                             <FormLabel>Secondary Contact Mailing Address</FormLabel>
                             <FormControl>
                                 <div className="relative">
-                                    <Input className="pr-8" placeholder="Value" {...field} />
+                                    <Input
+                                        placeholder="(Replace with Google autocomplete when it's ready)"
+                                        {...field}
+                                    />
                                     <MapPin className="absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
                                 </div>
                             </FormControl>
@@ -438,7 +526,13 @@ export default function NewOrganizationForm({ defaultValues, onSubmit }: Props) 
                         <FormItem>
                             <FormLabel>Secondary Contact Address Line 2</FormLabel>
                             <FormControl>
-                                <Input placeholder="Value" {...field} />
+                                <div className="relative">
+                                    <Input
+                                        placeholder="(Replace with Google autocomplete when it's ready)"
+                                        {...field}
+                                    />
+                                    <MapPin className="absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+                                </div>
                             </FormControl>
                             <FormMessage />
                         </FormItem>

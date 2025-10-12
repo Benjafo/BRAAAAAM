@@ -63,22 +63,3 @@ export interface AuthService {
     forgotPassword(form: { email: string }): Promise<ForgotPasswordResponse>;
     refresh?(refreshToken: string): Promise<RefreshResponse>;
 }
-
-// Creating types for createRideForm
-export type RideModal = {
-    clientName: string;
-    purposeOfTrip: string;
-    tripDate: Date;
-    tripType: string;
-    appointmentType: string;
-    additionalRider: string;
-    additionalRiderFirstName?: string;
-    additionalRiderLastName?: string;
-    relationshipToClient?: string;
-    assignedDriver: string;
-    rideStatus: string;
-    tripDuration?: number;
-    tripDistance?: number;
-    donationType?: string;
-    donationAmount?: number;
-};
