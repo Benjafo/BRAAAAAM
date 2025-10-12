@@ -12,6 +12,7 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as UsersRouteImport } from './routes/users'
 import { Route as ScheduleRouteImport } from './routes/schedule'
 import { Route as ClientsRouteImport } from './routes/clients'
+import { Route as CalendarRouteImport } from './routes/calendar'
 import { Route as AdminSettingsRouteImport } from './routes/admin-settings'
 import { Route as LoginRouteRouteImport } from './routes/_login/route'
 import { Route as AuthRouteRouteImport } from './routes/_auth/route'
@@ -34,6 +35,11 @@ const ScheduleRoute = ScheduleRouteImport.update({
 const ClientsRoute = ClientsRouteImport.update({
   id: '/clients',
   path: '/clients',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const CalendarRoute = CalendarRouteImport.update({
+  id: '/calendar',
+  path: '/calendar',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AdminSettingsRoute = AdminSettingsRouteImport.update({
@@ -78,6 +84,7 @@ const AuthDashboardRoute = AuthDashboardRouteImport.update({
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/admin-settings': typeof AdminSettingsRoute
+  '/calendar': typeof CalendarRoute
   '/clients': typeof ClientsRoute
   '/schedule': typeof ScheduleRoute
   '/users': typeof UsersRoute
@@ -89,6 +96,7 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/admin-settings': typeof AdminSettingsRoute
+  '/calendar': typeof CalendarRoute
   '/clients': typeof ClientsRoute
   '/schedule': typeof ScheduleRoute
   '/users': typeof UsersRoute
@@ -103,6 +111,7 @@ export interface FileRoutesById {
   '/_auth': typeof AuthRouteRouteWithChildren
   '/_login': typeof LoginRouteRouteWithChildren
   '/admin-settings': typeof AdminSettingsRoute
+  '/calendar': typeof CalendarRoute
   '/clients': typeof ClientsRoute
   '/schedule': typeof ScheduleRoute
   '/users': typeof UsersRoute
@@ -116,6 +125,7 @@ export interface FileRouteTypes {
   fullPaths:
     | '/'
     | '/admin-settings'
+    | '/calendar'
     | '/clients'
     | '/schedule'
     | '/users'
@@ -127,6 +137,7 @@ export interface FileRouteTypes {
   to:
     | '/'
     | '/admin-settings'
+    | '/calendar'
     | '/clients'
     | '/schedule'
     | '/users'
@@ -140,6 +151,7 @@ export interface FileRouteTypes {
     | '/_auth'
     | '/_login'
     | '/admin-settings'
+    | '/calendar'
     | '/clients'
     | '/schedule'
     | '/users'
@@ -154,6 +166,7 @@ export interface RootRouteChildren {
   AuthRouteRoute: typeof AuthRouteRouteWithChildren
   LoginRouteRoute: typeof LoginRouteRouteWithChildren
   AdminSettingsRoute: typeof AdminSettingsRoute
+  CalendarRoute: typeof CalendarRoute
   ClientsRoute: typeof ClientsRoute
   ScheduleRoute: typeof ScheduleRoute
   UsersRoute: typeof UsersRoute
@@ -180,6 +193,13 @@ declare module '@tanstack/react-router' {
       path: '/clients'
       fullPath: '/clients'
       preLoaderRoute: typeof ClientsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/calendar': {
+      id: '/calendar'
+      path: '/calendar'
+      fullPath: '/calendar'
+      preLoaderRoute: typeof CalendarRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/admin-settings': {
@@ -274,6 +294,7 @@ const rootRouteChildren: RootRouteChildren = {
   AuthRouteRoute: AuthRouteRouteWithChildren,
   LoginRouteRoute: LoginRouteRouteWithChildren,
   AdminSettingsRoute: AdminSettingsRoute,
+  CalendarRoute: CalendarRoute,
   ClientsRoute: ClientsRoute,
   ScheduleRoute: ScheduleRoute,
   UsersRoute: UsersRoute,
