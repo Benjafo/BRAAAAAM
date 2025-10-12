@@ -1,6 +1,6 @@
-import React, { useState, useMemo, useCallback } from "react";
-import { Calendar, momentLocalizer, Views, type Event } from "react-big-calendar";
 import moment from "moment";
+import { useCallback, useMemo, useState } from "react";
+import { Calendar, momentLocalizer, Views, type Event } from "react-big-calendar";
 import "react-big-calendar/lib/css/react-big-calendar.css";
 
 const localizer = momentLocalizer(moment);
@@ -140,82 +140,82 @@ const sampleEvents: CalendarEvent[] = [
         resource: { status: "scheduled", details: "1 - 5 PM" },
     },
     {
-      id: 16,
-      title: "Scheduled",
-      start: new Date(2025, 9, 13, 9, 0), // Aug 29, 2025, 4:00 PM
-      end: new Date(2025, 9, 13, 10, 0), // Aug 29, 2025, 5:00 PM
-      resource: { status: "scheduled", details: "9 - 10 AM" },
-  },
-  {
-    id: 17,
-    title: "Scheduled",
-    start: new Date(2025, 9, 13, 11, 0), // Aug 29, 2025, 4:00 PM
-    end: new Date(2025, 9, 13, 12, 30), // Aug 29, 2025, 5:00 PM
-    resource: { status: "scheduled", details: "11 - 12:30 PM" },
-  },
-  {
-    id: 18,
-    title: "Scheduled",
-    start: new Date(2025, 9, 13, 13, 30), // Aug 29, 2025, 4:00 PM
-    end: new Date(2025, 9, 13, 14, 30), // Aug 29, 2025, 5:00 PM
-    resource: { status: "scheduled", details: "1:30 - 2:30 PM" },
-  },
-  {
-    id: 19,
-    title: "Scheduled",
-    start: new Date(2025, 9, 14, 14, 30), // Aug 29, 2025, 4:00 PM
-    end: new Date(2025, 9, 14, 15, 30), // Aug 29, 2025, 5:00 PM
-    resource: { status: "scheduled", details: "2:30 - 3:30 PM" },
-  },
-  {
-    id: 20,
-    title: "Cancelled",
-    start: new Date(2025, 9, 14, 18, 30), // Aug 29, 2025, 4:00 PM
-    end: new Date(2025, 9, 14, 19, 30), // Aug 29, 2025, 5:00 PM
-    resource: { status: "cancelled", details: "6:30 - 7:30 PM" },
-  },
-  {
-    id: 21,
-    title: "Scheduled",
-    start: new Date(2025, 9, 15, 10, 30), // Aug 29, 2025, 4:00 PM
-    end: new Date(2025, 9, 15, 11, 30), // Aug 29, 2025, 5:00 PM
-    resource: { status: "scheduled", details: "10:30 - 11:30 AM" },
-  },
-  {
-    id: 22,
-    title: "Scheduled",
-    start: new Date(2025, 9, 15, 15, 0), // Aug 29, 2025, 4:00 PM
-    end: new Date(2025, 9, 15, 18, 0), // Aug 29, 2025, 5:00 PM
-    resource: { status: "scheduled", details: "3:00 - 6:00 PM" },
-  },
-  {
-    id: 23,
-    title: "Withdrawn",
-    start: new Date(2025, 9, 16, 12, 0), // Aug 29, 2025, 4:00 PM
-    end: new Date(2025, 9, 16, 14, 0), // Aug 29, 2025, 5:00 PM
-    resource: { status: "withdrawn", details: "12:00 - 2:00 PM" },
-  },
-  {
-    id: 24,
-    title: "Scheduled",
-    start: new Date(2025, 9, 17, 9, 0), // Aug 29, 2025, 4:00 PM
-    end: new Date(2025, 9, 17, 10, 0), // Aug 29, 2025, 5:00 PM
-    resource: { status: "scheduled", details: "9:00 - 10:00 AM" },
-  },
-  {
-    id: 25,
-    title: "Scheduled",
-    start: new Date(2025, 9, 17, 16, 0), // Aug 29, 2025, 4:00 PM
-    end: new Date(2025, 9, 17, 17, 0), // Aug 29, 2025, 5:00 PM
-    resource: { status: "scheduled", details: "4:00 - 5:00 PM" },
-  },
-  {
-    id: 26,
-    title: "Scheduled",
-    start: new Date(2025, 9, 18, 13, 0), // Aug 29, 2025, 4:00 PM
-    end: new Date(2025, 9, 18, 14, 0), // Aug 29, 2025, 5:00 PM
-    resource: { status: "scheduled", details: "1:00 - 2:00 PM" },
-  },
+        id: 16,
+        title: "Scheduled",
+        start: new Date(2025, 9, 13, 9, 0), // Aug 29, 2025, 4:00 PM
+        end: new Date(2025, 9, 13, 10, 0), // Aug 29, 2025, 5:00 PM
+        resource: { status: "scheduled", details: "9 - 10 AM" },
+    },
+    {
+        id: 17,
+        title: "Scheduled",
+        start: new Date(2025, 9, 13, 11, 0), // Aug 29, 2025, 4:00 PM
+        end: new Date(2025, 9, 13, 12, 30), // Aug 29, 2025, 5:00 PM
+        resource: { status: "scheduled", details: "11 - 12:30 PM" },
+    },
+    {
+        id: 18,
+        title: "Scheduled",
+        start: new Date(2025, 9, 13, 13, 30), // Aug 29, 2025, 4:00 PM
+        end: new Date(2025, 9, 13, 14, 30), // Aug 29, 2025, 5:00 PM
+        resource: { status: "scheduled", details: "1:30 - 2:30 PM" },
+    },
+    {
+        id: 19,
+        title: "Scheduled",
+        start: new Date(2025, 9, 14, 14, 30), // Aug 29, 2025, 4:00 PM
+        end: new Date(2025, 9, 14, 15, 30), // Aug 29, 2025, 5:00 PM
+        resource: { status: "scheduled", details: "2:30 - 3:30 PM" },
+    },
+    {
+        id: 20,
+        title: "Cancelled",
+        start: new Date(2025, 9, 14, 18, 30), // Aug 29, 2025, 4:00 PM
+        end: new Date(2025, 9, 14, 19, 30), // Aug 29, 2025, 5:00 PM
+        resource: { status: "cancelled", details: "6:30 - 7:30 PM" },
+    },
+    {
+        id: 21,
+        title: "Scheduled",
+        start: new Date(2025, 9, 15, 10, 30), // Aug 29, 2025, 4:00 PM
+        end: new Date(2025, 9, 15, 11, 30), // Aug 29, 2025, 5:00 PM
+        resource: { status: "scheduled", details: "10:30 - 11:30 AM" },
+    },
+    {
+        id: 22,
+        title: "Scheduled",
+        start: new Date(2025, 9, 15, 15, 0), // Aug 29, 2025, 4:00 PM
+        end: new Date(2025, 9, 15, 18, 0), // Aug 29, 2025, 5:00 PM
+        resource: { status: "scheduled", details: "3:00 - 6:00 PM" },
+    },
+    {
+        id: 23,
+        title: "Withdrawn",
+        start: new Date(2025, 9, 16, 12, 0), // Aug 29, 2025, 4:00 PM
+        end: new Date(2025, 9, 16, 14, 0), // Aug 29, 2025, 5:00 PM
+        resource: { status: "withdrawn", details: "12:00 - 2:00 PM" },
+    },
+    {
+        id: 24,
+        title: "Scheduled",
+        start: new Date(2025, 9, 17, 9, 0), // Aug 29, 2025, 4:00 PM
+        end: new Date(2025, 9, 17, 10, 0), // Aug 29, 2025, 5:00 PM
+        resource: { status: "scheduled", details: "9:00 - 10:00 AM" },
+    },
+    {
+        id: 25,
+        title: "Scheduled",
+        start: new Date(2025, 9, 17, 16, 0), // Aug 29, 2025, 4:00 PM
+        end: new Date(2025, 9, 17, 17, 0), // Aug 29, 2025, 5:00 PM
+        resource: { status: "scheduled", details: "4:00 - 5:00 PM" },
+    },
+    {
+        id: 26,
+        title: "Scheduled",
+        start: new Date(2025, 9, 18, 13, 0), // Aug 29, 2025, 4:00 PM
+        end: new Date(2025, 9, 18, 14, 0), // Aug 29, 2025, 5:00 PM
+        resource: { status: "scheduled", details: "1:00 - 2:00 PM" },
+    },
 ];
 ("/////////////////////////////////////////////////////////////////////////Buttons////////////////////////////////////////////////////////////////////////////////////////////////////////////////");
 // Custom Button component
@@ -321,29 +321,32 @@ export default function ReactBigCalendar() {
     }, []);
 
     // Custom day style getter for Month view
-    const dayPropGetter = useCallback((date: Date) => {
-        const dayOfWeek = date.getDay(); // 0 = Sunday
-        const isOffRangeMonth = date.getMonth() !== currentDate.getMonth();
+    const dayPropGetter = useCallback(
+        (date: Date) => {
+            const dayOfWeek = date.getDay(); // 0 = Sunday
+            const isOffRangeMonth = date.getMonth() !== currentDate.getMonth();
 
-        // In Month view: off-range days should be black regardless of weekday
-        if (currentView === Views.MONTH && isOffRangeMonth) {
-            return {
-                style: {
-                    backgroundColor: "#2a2a2a",
-                },
-            };
-        }
+            // In Month view: off-range days should be black regardless of weekday
+            if (currentView === Views.MONTH && isOffRangeMonth) {
+                return {
+                    style: {
+                        backgroundColor: "#2a2a2a",
+                    },
+                };
+            }
 
-        // In-range Sundays use slightly lighter dark gray
-        if (dayOfWeek === 0) {
-            return {
-                style: {
-                    backgroundColor: "#2a2a2a",
-                },
-            };
-        }
-        return {};
-    }, [currentDate, currentView]);
+            // In-range Sundays use slightly lighter dark gray
+            if (dayOfWeek === 0) {
+                return {
+                    style: {
+                        backgroundColor: "#2a2a2a",
+                    },
+                };
+            }
+            return {};
+        },
+        [currentDate, currentView]
+    );
 
     // Custom formats
     const formats = useMemo(
@@ -725,17 +728,7 @@ export default function ReactBigCalendar() {
                 <div className="flex justify-between items-center">
                     <div className="flex items-center space-x-4">
                         <div className="flex items-center space-x-2 text-sm text-white">
-                            <span>📅</span>
                             <span>{moment(currentDate).format("MMM DD, YYYY")}</span>
-                        </div>
-
-                        <div className="flex bg-gray-700 rounded overflow-hidden">
-                            <button className="px-3 py-1 text-xs bg-gray-600 text-white border border-gray-500">
-                                List View
-                            </button>
-                            <button className="px-3 py-1 text-xs text-gray-300 hover:text-white hover:bg-black focus:bg-black focus:text-white active:bg-black active:text-white border border-gray-500">
-                                Calendar View
-                            </button>
                         </div>
 
                         <div className="flex bg-gray-700 rounded overflow-hidden">
@@ -814,7 +807,7 @@ export default function ReactBigCalendar() {
 
                         <Button
                             className="bg-gray-300 text-black hover:bg-gray-400 px-4 py-1.5 rounded text-sm font-medium transition-colors"
-                            style={{ color: '#000000' }}
+                            style={{ color: "#000000" }}
                             onClick={() => {
                                 console.log("Add Availability clicked");
                                 // Handle add availability logic here
