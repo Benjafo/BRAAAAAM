@@ -301,7 +301,6 @@ export default function NewOrganizationForm({ defaultValues, onSubmit }: Props) 
                             <FormControl>
                                 <div className="relative">
                                     <Input
-                                        className="pr-8"
                                         placeholder="(Replace with Google autocomplete when it's ready)"
                                         {...field}
                                     />
@@ -323,7 +322,6 @@ export default function NewOrganizationForm({ defaultValues, onSubmit }: Props) 
                             <FormControl>
                                 <div className="relative">
                                     <Input
-                                        className="pr-8"
                                         placeholder="(Replace with Google autocomplete when it's ready)"
                                         {...field}
                                     />
@@ -434,7 +432,6 @@ export default function NewOrganizationForm({ defaultValues, onSubmit }: Props) 
                             <FormControl>
                                 <div className="relative">
                                     <Input
-                                        className="pr-8"
                                         placeholder="(Replace with Google autocomplete when it's ready)"
                                         {...field}
                                     />

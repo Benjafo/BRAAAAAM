@@ -21,12 +21,25 @@ import {
 } from "@/components/ui/form";
 
 import { DatePickerInput } from "../ui/datePickerField";
+import { MapPin } from "lucide-react";
 
 /* --------------------------------- Schema --------------------------------- */
 /* using z.enum for select values that we know are included */
 const createRideSchema = z
     .object({
-        clientName: z.string().min(1, "Please select an option."),
+        clientName: z
+            .string()
+            .min(1, "Please select an option.")
+            .max(255, "Max characters allowed is 255."),
+        clientStreetAddress: z
+            .string()
+            .min(1, "Must have a pickup address.")
+            .max(255, "Max characters allowed is 255."),
+        destinationAddress: z
+            .string()
+            .min(1, "Destination address is required")
+            .max(255, "Max characters allowed is 255."),
+        destinationAddress2: z.string().max(255, "Max characters allowed is 255.").optional(),
         purposeOfTrip: z.string().min(1, "Must have a purpose.").max(255),
         tripDate: z.date("Please select a date."),
         tripType: z.enum(["roundTrip", "oneWay"], {
@@ -144,6 +157,10 @@ export default function EditRideForm({ defaultValues, onSubmit }: Props) {
 
         defaultValues: {
             clientName: defaultValues.clientName ?? "",
+            clientStreetAddress:
+                defaultValues.clientStreetAddress ?? "Populate based off select client ",
+            destinationAddress: defaultValues.destinationAddress ?? "",
+            destinationAddress2: defaultValues.destinationAddress2 ?? "",
             purposeOfTrip: defaultValues.purposeOfTrip ?? "",
             tripDate: defaultValues.tripDate ?? new Date(),
             tripType: defaultValues.tripType,
@@ -185,7 +202,7 @@ export default function EditRideForm({ defaultValues, onSubmit }: Props) {
         <Form {...form}>
             <form
                 id="create-ride-form"
-                className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-6 w-full items-start"
+                className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-6 w-full items-start pt-5"
                 onSubmit={form.handleSubmit(onSubmit)}
             >
                 {/* Client Name, on all the dropdowns, replace with information from API later. */}
@@ -207,6 +224,62 @@ export default function EditRideForm({ defaultValues, onSubmit }: Props) {
                                         <SelectItem value="clientFour">Bobbert Dole</SelectItem>
                                     </SelectContent>
                                 </Select>
+                            </FormControl>
+                            <FormMessage />
+                        </FormItem>
+                    )}
+                />
+                {/* Client Street Access */}
+                <FormField
+                    control={form.control}
+                    name="clientStreetAddress"
+                    render={({ field }) => (
+                        <FormItem className="w-full">
+                            <FormLabel>Client Street Address</FormLabel>
+                            <FormControl className="w-full">
+                                <Input placeholder="Value" {...field} className="w-full" readOnly />
+                            </FormControl>
+                            <FormMessage />
+                        </FormItem>
+                    )}
+                />
+
+                {/* Street Address */}
+                <FormField
+                    control={form.control}
+                    name="destinationAddress"
+                    render={({ field }) => (
+                        <FormItem>
+                            <FormLabel>Organization Street Address</FormLabel>
+                            <FormControl>
+                                <div className="relative">
+                                    <Input
+                                        placeholder="(Replace with Google autocomplete)"
+                                        {...field}
+                                    />
+                                    <MapPin className="absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+                                </div>
+                            </FormControl>
+                            <FormMessage />
+                        </FormItem>
+                    )}
+                />
+
+                {/* Destination Address 2  */}
+                <FormField
+                    control={form.control}
+                    name="destinationAddress2"
+                    render={({ field }) => (
+                        <FormItem>
+                            <FormLabel>Organization Street Address 2</FormLabel>
+                            <FormControl>
+                                <div className="relative">
+                                    <Input
+                                        placeholder="(Replace with Google autocomplete)"
+                                        {...field}
+                                    />
+                                    <MapPin className="absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+                                </div>
                             </FormControl>
                             <FormMessage />
                         </FormItem>
