@@ -347,12 +347,7 @@ export default function EditRideForm({ defaultValues, onSubmit }: Props) {
                         <FormItem className="w-full">
                             <FormLabel>Appointment Time</FormLabel>
                             <FormControl className="w-full">
-                                <Input
-                                    type="time"
-                                    step="1"
-                                    {...field}
-                                    className="w-full bg-background appearance-none [&::-webkit-calendar-picker-indicator]:hidden [&::-webkit-calendar-picker-indicator]:appearance-none"
-                                />
+                                <Input type="time" {...field} />
                             </FormControl>
                             <FormMessage />
                         </FormItem>

@@ -16,51 +16,43 @@ import TempUnavailabilityForm, {
 import RecurringUnavailabilityForm, {
     type RecurringUnavailabilityFormValues,
 } from "@/components/form/recurringUnavailabilityForm";
+import { toast } from "sonner";
 
 type Props = {
-    trigger?: React.ReactNode;
     defaultTab?: "temporary" | "recurring";
     tempInitial?: Partial<TempUnavailabilityFormValues>;
     recurringInitial?: Partial<RecurringUnavailabilityFormValues>;
-    onSaveTemp?: (v: TempUnavailabilityFormValues) => Promise<void> | void;
-    onSaveRecurring?: (v: RecurringUnavailabilityFormValues) => Promise<void> | void;
 };
 
 export default function UnavailabilityModal({
-    trigger,
     defaultTab = "temporary",
     tempInitial,
     recurringInitial,
-    onSaveTemp,
-    onSaveRecurring,
 }: Props) {
     const [open, setOpen] = React.useState(false);
     const [activeTab, setActiveTab] = React.useState<"temporary" | "recurring">(defaultTab);
 
-    async function handleTempSubmit(v: TempUnavailabilityFormValues) {
-        await onSaveTemp?.(v);
+    async function handleTempSubmit(values: TempUnavailabilityFormValues) {
+        // TODO: API logic for handling temp submit
+        console.log(values); // Testing to see if values appear after submit
+        toast.success("Temporary unavailability submitted");
         setOpen(false);
     }
 
-    async function handleRecurringSubmit(v: RecurringUnavailabilityFormValues) {
-        await onSaveRecurring?.(v);
+    async function handleRecurringSubmit(values: RecurringUnavailabilityFormValues) {
+        // TODO: API logic for handling recurring submit
+        console.log(values); // Testing to see if values appear after submit
+        toast.success("Recurring unavailability submitted");
         setOpen(false);
     }
-
-    // Reset to default tab when modal opens. Used AI & ShadCN for the tabs component + combining the two modals together.
-    React.useEffect(() => {
-        if (open) {
-            setActiveTab(defaultTab);
-        }
-    }, [open, defaultTab]);
 
     return (
         <Dialog open={open} onOpenChange={setOpen}>
             <DialogTrigger asChild>
-                {trigger ?? <Button variant="outline">Add Unavailability</Button>}
+                <Button variant="outline">Add Unavailability</Button>
             </DialogTrigger>
             <DialogContent className="!max-w-[388px]">
-                <DialogHeader>
+                <DialogHeader className="pb-2.5">
                     <DialogTitle>Add Unavailability</DialogTitle>
                 </DialogHeader>
 
@@ -88,7 +80,7 @@ export default function UnavailabilityModal({
                     </TabsContent>
                 </Tabs>
 
-                <DialogFooter className="flex justify-end gap-2">
+                <DialogFooter className="flex flex-row justify-end gap-3 mt-3">
                     <Button variant="outline" onClick={() => setOpen(false)}>
                         Cancel
                     </Button>
