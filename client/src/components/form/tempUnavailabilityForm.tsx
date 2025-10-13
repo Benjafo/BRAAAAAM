@@ -17,23 +17,14 @@ import {
 } from "@/components/ui/form";
 import { DatePickerInput } from "../ui/datePickerField";
 
-export type TempUnavailabilityFormValues = {
-    multiDay: boolean;
-    allDay: boolean;
-    startDate: Date;
-    endDate?: Date;
-    startTime: string;
-    endTime: string;
-};
-
 const schema = z
     .object({
         multiDay: z.boolean(),
         allDay: z.boolean(),
         startDate: z.date("Please select a date."),
         endDate: z.date("Please select a date").optional(),
-        startTime: z.string().min(1, "Please select a time."),
-        endTime: z.string().min(1, "Please select a time."),
+        startTime: z.string().min(1, "Please select a time.").optional(),
+        endTime: z.string().min(1, "Please select a time.").optional(),
     })
     .superRefine((data, ctx) => {
         // Validate endDate is required when multiDay is true
@@ -85,13 +76,15 @@ const schema = z
         }
     });
 
+export type TempUnavailabilityFormValues = z.infer<typeof schema>;
+
 type Props = {
     defaultValues?: Partial<TempUnavailabilityFormValues>;
     onSubmit: (values: TempUnavailabilityFormValues) => Promise<void> | void;
 };
 
 export default function TempUnavailabilityForm({ defaultValues, onSubmit }: Props) {
-    const form = useForm<TempUnavailabilityFormValues>({
+    const form = useForm({
         resolver: zodResolver(schema),
         mode: "onBlur",
         defaultValues: {

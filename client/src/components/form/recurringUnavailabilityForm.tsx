@@ -1,7 +1,7 @@
 "use client";
 
 import { z } from "zod";
-import { useForm, type SubmitHandler } from "react-hook-form";
+import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 
 import {
@@ -22,65 +22,77 @@ import {
     SelectItem,
 } from "@/components/ui/select";
 
-/* ----------------------------- Zod Schema ----------------------------- */
-const timeRegex = /^\d{2}:\d{2}$/;
-
 const recurringUnavailabilitySchema = z
     .object({
-        day: z.string().min(1, "Select a day"),
+        day: z.enum(
+            ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"],
+            {
+                message: "Please select a valid day.",
+            }
+        ),
         allDay: z.boolean(),
-        startTime: z.string().optional(),
-        endTime: z.string().optional(),
+        startTime: z.string().min(1, "Please select a time.").optional(),
+        endTime: z.string().min(1, "Please select a time.").optional(),
     })
-    // if not all-day, require both times and basic HH:MM
-    .refine(
-        (v) => {
-            if (v.allDay) return true;
-            return (
-                !!v.startTime &&
-                !!v.endTime &&
-                timeRegex.test(v.startTime) &&
-                timeRegex.test(v.endTime)
-            );
-        },
-        { message: "Provide start and end time (HH:MM)", path: ["startTime"] }
-    );
+    .superRefine((data, ctx) => {
+        // Validate times when not allDay
+        if (!data.allDay) {
+            // Check startTime is not empty
+            if (!data.startTime) {
+                ctx.addIssue({
+                    code: "custom",
+                    path: ["startTime"],
+                    message: "Please select a start time",
+                });
+            }
+
+            // Check endTime is not empty
+            if (!data.endTime) {
+                ctx.addIssue({
+                    code: "custom",
+                    path: ["endTime"],
+                    message: "Please select an end time",
+                });
+            }
+
+            // Check endTime is after startTime
+            if (data.startTime && data.endTime && data.startTime >= data.endTime) {
+                ctx.addIssue({
+                    code: "custom",
+                    path: ["endTime"],
+                    message: "End time must be after start time",
+                });
+            }
+        }
+    });
 
 export type RecurringUnavailabilityFormValues = z.infer<typeof recurringUnavailabilitySchema>;
 
-/* -------------------------------- Props -------------------------------- */
 type Props = {
     defaultValues?: Partial<RecurringUnavailabilityFormValues>;
     onSubmit: (values: RecurringUnavailabilityFormValues) => void | Promise<void>;
-    submitLabel?: string;
 };
 
-/* --------------------------------- Form --------------------------------- */
 export default function RecurringUnavailabilityForm({ defaultValues, onSubmit }: Props) {
-    const form = useForm<RecurringUnavailabilityFormValues>({
+    const form = useForm({
         resolver: zodResolver(recurringUnavailabilitySchema),
         mode: "onBlur",
         defaultValues: {
-            day: "",
+            day: defaultValues?.day,
             allDay: false,
-            startTime: "08:00",
-            endTime: "11:00",
-            ...defaultValues,
+            startTime: defaultValues?.startTime ?? "08:00",
+            endTime: defaultValues?.endTime ?? "10:00",
         },
     });
 
     const allDay = form.watch("allDay");
-
-    const handleSubmit: SubmitHandler<RecurringUnavailabilityFormValues> = async (values) => {
-        await onSubmit(values);
-    };
 
     return (
         <Form {...form}>
             <form
                 id="recurring-unavailability-form"
                 className="space-y-5"
-                onSubmit={form.handleSubmit(handleSubmit)}
+                onSubmit={form.handleSubmit(onSubmit)}
             >
                 {/* Day of week */}
                 <FormField
@@ -92,16 +104,16 @@ export default function RecurringUnavailabilityForm({ defaultValues, onSubmit }:
                             <FormControl>
                                 <Select value={field.value} onValueChange={field.onChange}>
                                     <SelectTrigger className="h-11">
-                                        <SelectValue placeholder="select a day" />
+                                        <SelectValue placeholder="Select a day" />
                                     </SelectTrigger>
                                     <SelectContent>
-                                        <SelectItem value="Mon">Monday</SelectItem>
-                                        <SelectItem value="Tue">Tuesday</SelectItem>
-                                        <SelectItem value="Wed">Wednesday</SelectItem>
-                                        <SelectItem value="Thu">Thursday</SelectItem>
-                                        <SelectItem value="Fri">Friday</SelectItem>
-                                        <SelectItem value="Sat">Saturday</SelectItem>
-                                        <SelectItem value="Sun">Sunday</SelectItem>
+                                        <SelectItem value="Monday">Monday</SelectItem>
+                                        <SelectItem value="Tuesday">Tuesday</SelectItem>
+                                        <SelectItem value="Wednesday">Wednesday</SelectItem>
+                                        <SelectItem value="Thursday">Thursday</SelectItem>
+                                        <SelectItem value="Friday">Friday</SelectItem>
+                                        <SelectItem value="Saturday">Saturday</SelectItem>
+                                        <SelectItem value="Sunday">Sunday</SelectItem>
                                     </SelectContent>
                                 </Select>
                             </FormControl>
@@ -125,6 +137,7 @@ export default function RecurringUnavailabilityForm({ defaultValues, onSubmit }:
                             <FormLabel className="font-normal">
                                 Check if unavailable for entire day
                             </FormLabel>
+                            <FormMessage />
                         </FormItem>
                     )}
                 />
