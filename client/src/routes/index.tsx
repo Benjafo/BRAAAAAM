@@ -1,8 +1,6 @@
 import { MainNavigation } from "@/components/Navigation";
 import { authStore } from "@/components/stores/authStore";
 import { createFileRoute, redirect } from "@tanstack/react-router";
-import GoogleLocator from "@/components/googleLocator";
-import type { Location } from "@/lib/types";
 
 // not sure we need a index here for main navigation? This could be moved elsewhere.
 export const Route = createFileRoute("/")({
