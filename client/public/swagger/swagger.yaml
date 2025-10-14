@@ -229,12 +229,12 @@ paths:
           application/json:
             schema:
               type: object
-              required: [firstName, lastName, Email, Phone]
+              required: [firstName, lastName, email, phone]
               properties:
                 firstName: { type: string }
                 lastName:  { type: string }
-                Email:     { type: string }
-                Phone:     { type: string }
+                email:     { type: string }
+                phone:     { type: string }
       responses:
         '201': { description: Created }
         '401': { $ref: '#/components/responses/Unauthorized' }
@@ -265,11 +265,11 @@ paths:
               properties:
                 firstName:         { type: string }
                 lastName:          { type: string }
-                Email:             { type: string }
-                Phone:             { type: string }
+                email:             { type: string }
+                phone:             { type: string }
                 contactPreference: { type: string }
-                Notes:             { type: string }
-                IsActive:          { type: boolean }
+                notes:             { type: string }
+                isActive:          { type: boolean }
       responses:
         '200': { description: Updated }
     delete:
@@ -349,29 +349,28 @@ paths:
           application/json:
             schema:
               type: object
-              required: [firstName, lastName, contactPreference, vehiclePreferenceType, Notes, Gender]
+              required: [firstName, lastName, contactPreference, vehiclePreferenceType, notes, gender]
               properties:
                 firstName: { type: string }
                 lastName:  { type: string }
-                Email:     { type: string }
-                Phone:     { type: string }
+                email:     { type: string }
+                phone:     { type: string }
                 contactPreference:     { type: string }
-                Addresses:
+                addresses:
                   type: array
                   items:
                     type: object
-                    required: [Address Line 1, City, State, Zip, Country, Is Primary]
+                    required: [addressLine1, city, state, zip, country, isPrimary]
                     properties:
-                      Address Line 1: { type: string }
-                      Address Line 2: { type: string }
-                      City:           { type: string }
-                      State:          { type: string }
-                      Zip:            { type: string }
-                      Country:        { type: string }
-                      Is Primary:     { type: boolean }
+                      addressLine1: { type: string }
+                      city:         { type: string }
+                      state:        { type: string }
+                      zip:          { type: string }
+                      country:      { type: string }
+                      isPrimary:    { type: boolean }
                       vehiclePreferenceType: { type: string }
-                      Notes: { type: string }
-                      Gender: { type: string, enum: [Male, Female] }
+                      notes: { type: string }
+                      gender: { type: string, enum: [Male, Female] }
       responses:
         '201': { description: Created }
   /o/{orgId}/clients/{clientId}:
@@ -401,24 +400,24 @@ paths:
                 id:        { type: string }
                 firstName: { type: string }
                 lastName:  { type: string }
-                Email:     { type: string }
-                Phone:     { type: string }
-                Addresses:
+                email:     { type: string }
+                phone:     { type: string }
+                addresses:
                   type: array
                   items:
                     type: object
-                    required: [id, Address Line 1, City, State, Zip, Country, Is Primary]
+                    required: [id, addressLine1, city, state, zip, country, isPrimary]
                     properties:
                       id:             { type: string }
-                      Address Line 1: { type: string }
-                      Address Line 2: { type: string }
-                      City:           { type: string }
-                      State:          { type: string }
-                      Zip:            { type: string }
-                      Country:        { type: string }
-                      Is Primary:     { type: boolean }
-                      Notes: { type: string }
-                      Gender: { type: string, enum: [Male, Female] }
+                      addressLine1: { type: string }
+                      addressLine2: { type: string }
+                      city:           { type: string }
+                      state:          { type: string }
+                      zip:            { type: string }
+                      country:        { type: string }
+                      isPrimary:     { type: boolean }
+                      notes: { type: string }
+                      gender: { type: string, enum: [Male, Female] }
       responses:
         '200': { description: Updated }
     delete:
@@ -455,21 +454,21 @@ paths:
                     type: object
                     required: [Id, dayOfWeek, startTime, endTime]
                     properties:
-                      Id:        { type: string }
+                      id:        { type: string }
                       dayOfWeek: { type: integer, description: "0-6" }
                       startTime: { type: string }
                       endTime:   { type: string }
-                Name:               { type: string }
-                Logo:               { type: string }
-                Domain:             { type: string }
-                Phone:              { type: string }
-                Email:              { type: string }
-                Street Address 1:   { type: string }
-                Street Address 2:   { type: string }
-                City:               { type: string }
-                State:              { type: string }
-                Zip:                { type: string }
-                Country:            { type: string }
+                name:               { type: string }
+                logo:               { type: string }
+                domain:             { type: string }
+                phone:              { type: string }
+                email:              { type: string }
+                streetAddress1:   { type: string }
+                streetAddress2:   { type: string }
+                city:               { type: string }
+                state:              { type: string }
+                zip:                { type: string }
+                country:            { type: string }
                 postmarkApiKey:     { type: string }
                 googleMapsApiKey:   { type: string }
       responses:
@@ -506,9 +505,9 @@ paths:
                   type: array
                   items:
                     type: object
-                    required: [TypeId, label, dataTarget, position]
+                    required: [typeId, label, dataTarget, position]
                     properties:
-                      TypeId:            { type: string }
+                      typeId:            { type: string }
                       label:             { type: string }
                       dataTarget:        { type: string, description: "storageTarget" }
                       position:          { type: integer }
@@ -544,7 +543,7 @@ paths:
                   items:
                     type: object
                     properties:
-                      TypeId:            { type: string }
+                      typeId:            { type: string }
                       label:             { type: string }
                       dataTarget:        { type: string }
                       position:          { type: integer }
@@ -597,11 +596,11 @@ paths:
           application/json:
             schema:
               type: object
-              required: [roleName, Description, PermissionIds]
+              required: [roleName, description, permissionIds]
               properties:
                 roleName:     { type: string }
-                Description:  { type: string }
-                PermissionIds:
+                description:  { type: string }
+                permissionIds:
                   type: array
                   items: { type: string }
       responses:
@@ -629,11 +628,11 @@ paths:
           application/json:
             schema:
               type: object
-              required: [roleName, Description, PermissionIds]
+              required: [roleName, description, permissionIds]
               properties:
                 roleName:     { type: string }
-                Description:  { type: string }
-                PermissionIds:
+                description:  { type: string }
+                permissionIds:
                   type: array
                   items: { type: string }
       responses:
@@ -667,18 +666,18 @@ paths:
           application/json:
             schema:
               type: object
-              required: [Address, Alias]
+              required: [address, alias]
               properties:
-                Address:
+                address:
                   type: object
-                  required: [Address Line 1, City, State, Zip, Country]
+                  required: [addressLine1, city, state, zip, country]
                   properties:
-                    Address Line 1: { type: string }
-                    Address Line 2: { type: string }
-                    City:           { type: string }
-                    State:          { type: string }
-                    Zip:            { type: string }
-                    Country:        { type: string }
+                    addressLine1: { type: string }
+                    addressLine2: { type: string }
+                    city:           { type: string }
+                    state:          { type: string }
+                    zip:            { type: string }
+                    country:        { type: string }
                 Alias: { type: string }
       responses:
         '201': { description: Created }
@@ -706,18 +705,18 @@ paths:
           application/json:
             schema:
               type: object
-              required: [Address, Alias]
+              required: [address, alias]
               properties:
-                Address:
+                address:
                   type: object
-                  required: [Address Line 1, City, State, Zip, Country]
+                  required: [addressLine1, city, state, zip, country]
                   properties:
-                    Address Line 1: { type: string }
-                    Address Line 2: { type: string }
-                    City:           { type: string }
-                    State:          { type: string }
-                    Zip:            { type: string }
-                    Country:        { type: string }
+                    addressLine1: { type: string }
+                    addressLine2: { type: string }
+                    city:           { type: string }
+                    state:          { type: string }
+                    zip:            { type: string }
+                    country:        { type: string }
                 Alias: { type: string }
       responses:
         '200': { description: Updated }
@@ -749,13 +748,13 @@ paths:
           application/json:
             schema:
               type: object
-              required: [startDate, startTime, estimatedEndDate, estimatedEndTime, Client, pickupLocaton, dropoffLocation, status]
+              required: [startDate, startTime, estimatedEndDate, estimatedEndTime, client, pickupLocation, dropoffLocation, status]
               properties:
                 startDate:         { type: string }
                 startTime:         { type: string }
                 estimatedEndDate:  { type: string }
                 estimatedEndTime:  { type: string }
-                Client:
+                client:
                   type: array
                   items: { type: string, description: "@client id(s)" }
                 pickupLocation:     { type: string, description: "@location id" }
@@ -792,7 +791,7 @@ paths:
                 startTime:        { type: string }
                 estimatedEndDate: { type: string }
                 estimatedEndTime: { type: string }
-                Client:
+                client:
                   type: array
                   items: { type: string, description: "@client id(s)" }
                 pickupLocation:   { type: string, description: "@location id" }
@@ -898,10 +897,10 @@ paths:
           application/json:
             schema:
               type: object
-              required: [Title, Query]
+              required: [title, query]
               properties:
-                Title: { type: string }
-                Query: { type: string }
+                title: { type: string }
+                query: { type: string }
       responses:
         '201': { description: Created }
 
