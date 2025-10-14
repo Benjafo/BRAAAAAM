@@ -15,7 +15,12 @@ const GoogleLocator: React.FC<LocationSelectorProps> = ({
     const [error, setError] = useState<string | null>(null);
     const [inputValue, setInputValue] = useState("");
 
-    // Initialize Google Places API
+    // Initialize Google Places API, some AI logic was used to help set this up
+    // To use locator, you need to initalize function handleLocationSelect, like this for an example:
+    //   const handleLocationSelect = (location: Location | null) => {
+    //    location;
+    // };
+    // Then you call it like this (in the location you want it) : <GoogleLocator onLocationSelect={handleLocationSelect} />
     useEffect(() => {
         const initializeGooglePlaces = async () => {
             try {
@@ -89,7 +94,7 @@ const GoogleLocator: React.FC<LocationSelectorProps> = ({
         if (value === "") onLocationSelect(null);
     };
 
-    // handle error
+    // handle error, AI used to help write this
     if (error) {
         return (
             <div className="relative w-full">
@@ -101,6 +106,7 @@ const GoogleLocator: React.FC<LocationSelectorProps> = ({
         );
     }
 
+    // AI helped with the input fields
     return (
         <div className="relative w-full">
             <div className="relative">
