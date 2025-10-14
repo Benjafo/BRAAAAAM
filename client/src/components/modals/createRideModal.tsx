@@ -25,8 +25,9 @@ export default function CreateRideModal() {
     };
 
     //
-    async function handleSubmit() {
+    async function handleSubmit(values: CreateRideFormValues) {
         // TODO: API logic for sending values
+        console.log(values); // Testing to see if values appear after submit
         toast.success("Ride Created/Altered");
         setOpen(false);
     }

@@ -22,8 +22,9 @@ export default function NewOrganizationModal() {
     const defaultValues: Partial<NewOrganizationFormValues> = {
         status: "Active",
     };
-    async function handleSubmit() {
+    async function handleSubmit(values: NewOrganizationFormValues) {
         // TODO: API logic for new organization information sent
+        console.log(values); // Testing to see if values appear after submit
         toast.success("New Organization Created");
         setOpen(false);
     }
