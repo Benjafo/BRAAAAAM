@@ -10,17 +10,24 @@ export const Route = createFileRoute("/")({
 
         if (isAuthed) {
             throw redirect({
-                to: '/dashboard',
+                to: "/dashboard",
             });
         } else {
             throw redirect({
-                to: '/sign-in'
-            })
+                to: "/sign-in",
+            });
         }
     },
     component: RouteComponent,
 });
 
 function RouteComponent() {
-    return <MainNavigation />;
+    return (
+        <>
+            <MainNavigation />
+            <div className="max-w-md mx-auto mt-8 p-6">
+                <h1 className="font-bold mb-4">Address</h1>
+            </div>
+        </>
+    );
 }
