@@ -21,7 +21,19 @@ import {
 } from "@/components/ui/form";
 
 import { DatePickerInput } from "../ui/datePickerField";
-import { MapPin } from "lucide-react";
+import { Check, ChevronsUpDown, MapPin } from "lucide-react";
+import { Button } from "../ui/button";
+import { Popover, PopoverContent, PopoverTrigger } from "../ui/popover";
+import { useState } from "react";
+import {
+    Command,
+    CommandEmpty,
+    CommandGroup,
+    CommandInput,
+    CommandItem,
+    CommandList,
+} from "../ui/command";
+import { cn } from "@/lib/utils";
 
 /* --------------------------------- Schema --------------------------------- */
 /* using z.enum for select values that we know are included */
@@ -43,7 +55,7 @@ const createRideSchema = z
         purposeOfTrip: z.string().min(1, "Must have a purpose.").max(255),
         tripDate: z.date("Please select a date."),
         tripType: z.enum(["roundTrip", "oneWay"], {
-            message: "Please specifiy the trip type.",
+            message: "Please specify the trip type.",
         }),
         appointmentType: z.string().min(1, "Please select a time."),
         additionalRider: z.enum(["Yes", "No"], {
@@ -67,7 +79,7 @@ const createRideSchema = z
         ),
         tripDuration: z
             .number()
-            .min(0, "Trip duration cannot be negative.")
+            .min(0.25, "Trip duration must be atleast 0.25 hours.")
             .optional()
             .refine(
                 (val) => {
@@ -82,7 +94,7 @@ const createRideSchema = z
             ),
         tripDistance: z
             .number()
-            .min(0, "Trip distance cannot be negative.")
+            .min(0.1, "Trip distance must be atleast 0.1 miles.")
             .optional()
             .refine(
                 (val) => {
@@ -147,10 +159,18 @@ export type CreateRideFormValues = z.infer<typeof createRideSchema>;
 type Props = {
     defaultValues: Partial<CreateRideFormValues>;
     onSubmit: (values: CreateRideFormValues) => void | Promise<void>;
+    // Use these props for AI integration later
+    clients?: Array<{ value: string; label: string }>;
+    drivers?: Array<{ value: string; label: string }>;
 };
 
 /* --------------------------------- Form ----------------------------------- */
-export default function EditRideForm({ defaultValues, onSubmit }: Props) {
+export default function EditRideForm({
+    defaultValues,
+    onSubmit,
+    clients: clientsProp,
+    drivers: driversProp,
+}: Props) {
     const form = useForm<CreateRideFormValues>({
         resolver: zodResolver(createRideSchema),
         mode: "onBlur",
@@ -179,7 +199,7 @@ export default function EditRideForm({ defaultValues, onSubmit }: Props) {
         },
     });
 
-    /* AI said to use form.watch to check if Additional Rider is included - if it is, show additional rider form fields, if not, don't include them. */
+    /* AI said to use form.watch to check if Additional Rider/Ride Status(Completed) is included - if it is, show additional rider form fields, if not, don't include them. */
     const additionalRider = form.watch("additionalRider");
     const rideStatus = form.watch("rideStatus");
 
@@ -198,6 +218,25 @@ export default function EditRideForm({ defaultValues, onSubmit }: Props) {
             const parsed = parseFloat(value);
             field.onChange(isNaN(parsed) ? undefined : parsed);
         };
+
+    /* Client data information, Update with API information later  */
+    const clients = clientsProp ?? [
+        { value: "clientOne", label: "Bob Joel" },
+        { value: "clientTwo", label: "John Smith" },
+        { value: "clientThree", label: "Emily Keller" },
+        { value: "clientFour", label: "Bobbert Dole" },
+    ];
+
+    /* Driver data information, update with API information later */
+    const drivers = driversProp ?? [
+        { value: "driverOne", label: "Bob Smith" },
+        { value: "driverTwo", label: "Samantha Noel" },
+    ];
+
+    /* Controls opening for client, and driver pop ups  */
+    const [clientOpen, setClientOpen] = useState(false);
+    const [driverOpen, setDriverOpen] = useState(false);
+
     return (
         <Form {...form}>
             <form
@@ -205,29 +244,67 @@ export default function EditRideForm({ defaultValues, onSubmit }: Props) {
                 className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-6 w-full items-start pt-5"
                 onSubmit={form.handleSubmit(onSubmit)}
             >
-                {/* Client Name, on all the dropdowns, replace with information from API later. */}
+                {/* Client Name, on all the dropdowns, replace with information from API later. Using ShadCN Combo box. */}
                 <FormField
                     control={form.control}
                     name="clientName"
-                    render={({ field }) => (
-                        <FormItem className="w-full">
-                            <FormLabel>Client</FormLabel>
-                            <FormControl className="w-full">
-                                <Select value={field.value} onValueChange={field.onChange}>
-                                    <SelectTrigger className="w-full">
-                                        <SelectValue placeholder="Select Client" />
-                                    </SelectTrigger>
-                                    <SelectContent>
-                                        <SelectItem value="clientOne">Bob Joel</SelectItem>
-                                        <SelectItem value="clientTwo">John Smith</SelectItem>
-                                        <SelectItem value="clientThree">Emily Keller</SelectItem>
-                                        <SelectItem value="clientFour">Bobbert Dole</SelectItem>
-                                    </SelectContent>
-                                </Select>
-                            </FormControl>
-                            <FormMessage />
-                        </FormItem>
-                    )}
+                    render={({ field }) => {
+                        return (
+                            <FormItem className="w-full">
+                                <FormLabel>Client</FormLabel>
+                                <FormControl className="w-full">
+                                    <Popover open={clientOpen} onOpenChange={setClientOpen}>
+                                        <PopoverTrigger asChild>
+                                            <Button
+                                                variant="outline"
+                                                role="combobox"
+                                                aria-expanded={clientOpen}
+                                                className="w-full justify-between"
+                                            >
+                                                {field.value
+                                                    ? clients.find(
+                                                          (client) => client.value === field.value
+                                                      )?.label
+                                                    : "Select Client"}
+                                                <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                                            </Button>
+                                        </PopoverTrigger>
+                                        <PopoverContent className="w-[var(--radix-popover-trigger-width)] p-0">
+                                            <Command>
+                                                <CommandInput placeholder="Search client..." />
+                                                <CommandList>
+                                                    <CommandEmpty>No client found.</CommandEmpty>
+                                                    <CommandGroup>
+                                                        {clients.map((client) => (
+                                                            <CommandItem
+                                                                key={client.value}
+                                                                value={client.label}
+                                                                onSelect={() => {
+                                                                    field.onChange(client.value);
+                                                                    setClientOpen(false);
+                                                                }}
+                                                            >
+                                                                <Check
+                                                                    className={cn(
+                                                                        "mr-2 h-4 w-4",
+                                                                        field.value === client.value
+                                                                            ? "opacity-100"
+                                                                            : "opacity-0"
+                                                                    )}
+                                                                />
+                                                                {client.label}
+                                                            </CommandItem>
+                                                        ))}
+                                                    </CommandGroup>
+                                                </CommandList>
+                                            </Command>
+                                        </PopoverContent>
+                                    </Popover>
+                                </FormControl>
+                                <FormMessage />
+                            </FormItem>
+                        );
+                    }}
                 />
                 {/* Client Street Access */}
                 <FormField
@@ -243,7 +320,6 @@ export default function EditRideForm({ defaultValues, onSubmit }: Props) {
                         </FormItem>
                     )}
                 />
-
                 {/* Street Address */}
                 <FormField
                     control={form.control}
@@ -264,7 +340,6 @@ export default function EditRideForm({ defaultValues, onSubmit }: Props) {
                         </FormItem>
                     )}
                 />
-
                 {/* Destination Address 2  */}
                 <FormField
                     control={form.control}
@@ -285,7 +360,6 @@ export default function EditRideForm({ defaultValues, onSubmit }: Props) {
                         </FormItem>
                     )}
                 />
-
                 {/* Trip Purpose */}
                 <FormField
                     control={form.control}
@@ -300,7 +374,6 @@ export default function EditRideForm({ defaultValues, onSubmit }: Props) {
                         </FormItem>
                     )}
                 />
-
                 {/* Date of Trip */}
                 <FormField
                     control={form.control}
@@ -315,7 +388,6 @@ export default function EditRideForm({ defaultValues, onSubmit }: Props) {
                         </FormItem>
                     )}
                 />
-
                 {/* Round Trip/One Way */}
                 <FormField
                     control={form.control}
@@ -338,7 +410,6 @@ export default function EditRideForm({ defaultValues, onSubmit }: Props) {
                         </FormItem>
                     )}
                 />
-
                 {/* Appointment Time */}
                 <FormField
                     control={form.control}
@@ -353,7 +424,6 @@ export default function EditRideForm({ defaultValues, onSubmit }: Props) {
                         </FormItem>
                     )}
                 />
-
                 {/* Additional Rider */}
                 <FormField
                     control={form.control}
@@ -376,29 +446,68 @@ export default function EditRideForm({ defaultValues, onSubmit }: Props) {
                         </FormItem>
                     )}
                 />
-                {/* Assigned Driver */}
+                {/* Assigned Driver, select or type from the dropdowns, replace with information from API later. Using ShadCN Combo box.  */}
                 <FormField
                     control={form.control}
                     name="assignedDriver"
-                    render={({ field }) => (
-                        <FormItem className="w-full">
-                            <FormLabel>Assigned Driver</FormLabel>
-                            <FormControl className="w-full">
-                                <Select value={field.value} onValueChange={field.onChange}>
-                                    <SelectTrigger className="w-full">
-                                        <SelectValue placeholder="Select a value" />
-                                    </SelectTrigger>
-                                    <SelectContent>
-                                        <SelectItem value="driverOne">Bob Smith</SelectItem>
-                                        <SelectItem value="driverTwo">Samantha Noel</SelectItem>
-                                    </SelectContent>
-                                </Select>
-                            </FormControl>
-                            <FormMessage />
-                        </FormItem>
-                    )}
+                    render={({ field }) => {
+                        return (
+                            <FormItem className="w-full">
+                                <FormLabel>Assigned Driver</FormLabel>
+                                <FormControl className="w-full">
+                                    <Popover open={driverOpen} onOpenChange={setDriverOpen}>
+                                        <PopoverTrigger asChild>
+                                            <Button
+                                                variant="outline"
+                                                role="combobox"
+                                                aria-expanded={driverOpen}
+                                                className="w-full justify-between"
+                                            >
+                                                {field.value
+                                                    ? drivers.find(
+                                                          (driver) => driver.value === field.value
+                                                      )?.label
+                                                    : "Select Driver"}
+                                                <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                                            </Button>
+                                        </PopoverTrigger>
+                                        <PopoverContent className="w-[var(--radix-popover-trigger-width)] p-0">
+                                            <Command>
+                                                <CommandInput placeholder="Search driver..." />
+                                                <CommandList>
+                                                    <CommandEmpty>No driver found.</CommandEmpty>
+                                                    <CommandGroup>
+                                                        {drivers.map((driver) => (
+                                                            <CommandItem
+                                                                key={driver.value}
+                                                                value={driver.label}
+                                                                onSelect={() => {
+                                                                    field.onChange(driver.value);
+                                                                    setDriverOpen(false);
+                                                                }}
+                                                            >
+                                                                <Check
+                                                                    className={cn(
+                                                                        "mr-2 h-4 w-4",
+                                                                        field.value === driver.value
+                                                                            ? "opacity-100"
+                                                                            : "opacity-0"
+                                                                    )}
+                                                                />
+                                                                {driver.label}
+                                                            </CommandItem>
+                                                        ))}
+                                                    </CommandGroup>
+                                                </CommandList>
+                                            </Command>
+                                        </PopoverContent>
+                                    </Popover>
+                                </FormControl>
+                                <FormMessage />
+                            </FormItem>
+                        );
+                    }}
                 />
-
                 {/* Additional Rider First Name */}
                 {additionalRider === "Yes" && (
                     <FormField
@@ -415,7 +524,6 @@ export default function EditRideForm({ defaultValues, onSubmit }: Props) {
                         )}
                     />
                 )}
-
                 {/* Additional Rider Last Name  */}
                 {additionalRider === "Yes" && (
                     <FormField
@@ -432,7 +540,6 @@ export default function EditRideForm({ defaultValues, onSubmit }: Props) {
                         )}
                     />
                 )}
-
                 {/* Relationship to client */}
                 {additionalRider === "Yes" && (
                     <FormField
@@ -509,7 +616,6 @@ export default function EditRideForm({ defaultValues, onSubmit }: Props) {
                         )}
                     />
                 )}
-
                 {isCompleted && (
                     <FormField
                         control={form.control}
@@ -533,7 +639,6 @@ export default function EditRideForm({ defaultValues, onSubmit }: Props) {
                         )}
                     />
                 )}
-
                 {isCompleted && (
                     <FormField
                         control={form.control}
@@ -560,7 +665,6 @@ export default function EditRideForm({ defaultValues, onSubmit }: Props) {
                         )}
                     />
                 )}
-
                 {isCompleted && (
                     <FormField
                         control={form.control}

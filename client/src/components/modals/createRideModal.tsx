@@ -52,7 +52,7 @@ export default function CreateRideModal() {
                         <CreateRideForm defaultValues={defaultValues} onSubmit={handleSubmit} />
                     </TabsContent>
 
-                    {/* Making fields display as they would when the data is populated */}
+                    {/* Making fields display as they would when the data is populated. Add API integration later so that the client name selected autofills these values.  */}
                     <TabsContent value="client-details">
                         <div className="grid  gap-x-8 gap-y-6 w-full pt-5">
                             <div className="space-y-2">
