@@ -64,7 +64,7 @@ const adminGeneralSchema = z.object({
         .max(255, "Country must not exceed 255 characters"),
 
     // API Keys
-    postmarkApiKey: z
+    emailApiKey: z
         .string()
         .min(1, "Postmark API Key is required")
         .max(255, "API Key must not exceed 255 characters"),
@@ -92,7 +92,7 @@ const testData: AdminGeneralFormData = {
     city: "New York",
     country: "United States",
     state: "NY",
-    postmarkApiKey: "pm_test_1234567890",
+    emailApiKey: "pm_test_1234567890",
     apiDomain: "api.google.com",
 };
 
@@ -558,7 +558,7 @@ export const AdminGeneralForm = forwardRef<AdminGeneralFormRef, AdminGeneralForm
                             <CardContent className="grid gap-6">
                                 <FormField
                                     control={form.control}
-                                    name="postmarkApiKey"
+                                    name="emailApiKey"
                                     render={({ field }) => (
                                         <FormItem className="grid gap-3">
                                             <FormLabel>Postmark API Key</FormLabel>
