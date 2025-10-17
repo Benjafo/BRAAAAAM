@@ -22,5 +22,9 @@ export const Route = createFileRoute("/")({
 });
 
 function RouteComponent() {
-    return <MainNavigation />;
+    return (
+        <>
+            <MainNavigation />
+        </>
+    );
 }
