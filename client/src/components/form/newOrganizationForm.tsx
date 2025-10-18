@@ -1,20 +1,20 @@
 "use client";
 
-import { z } from "zod";
-import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { MapPin } from "lucide-react";
-import { Input } from "@/components/ui/input";
 import {
     Form,
+    FormControl,
     FormField,
     FormItem,
     FormLabel,
-    FormControl,
     FormMessage,
 } from "@/components/ui/form";
+import { Input } from "@/components/ui/input";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { MapPin } from "lucide-react";
+import { useForm } from "react-hook-form";
 import { toast } from "sonner";
+import { z } from "zod";
 import { DatePickerInput } from "../ui/datePickerField";
 
 /* ----------------------------- Zod schema ----------------------------- */
@@ -168,21 +168,6 @@ export default function NewOrganizationForm({ defaultValues, onSubmit }: Props) 
                     )}
                 />
 
-                {/* Organization Name */}
-                <FormField
-                    control={form.control}
-                    name="orgNameForMailingAddress"
-                    render={({ field }) => (
-                        <FormItem>
-                            <FormLabel>Organization Name For Mailing Address</FormLabel>
-                            <FormControl>
-                                <Input placeholder="Value" {...field} />
-                            </FormControl>
-                            <FormMessage />
-                        </FormItem>
-                    )}
-                />
-
                 {/* Organization Creation Date */}
                 <FormField
                     control={form.control}
@@ -291,6 +276,21 @@ export default function NewOrganizationForm({ defaultValues, onSubmit }: Props) 
                     )}
                 />
 
+                {/* Organization Name for mailing address */}
+                <FormField
+                    control={form.control}
+                    name="orgNameForMailingAddress"
+                    render={({ field }) => (
+                        <FormItem>
+                            <FormLabel>Organization Name For Mailing Address</FormLabel>
+                            <FormControl>
+                                <Input placeholder="Value" {...field} />
+                            </FormControl>
+                            <FormMessage />
+                        </FormItem>
+                    )}
+                />
+
                 {/* Mailing Address */}
                 <FormField
                     control={form.control}
@@ -304,6 +304,24 @@ export default function NewOrganizationForm({ defaultValues, onSubmit }: Props) 
                                         placeholder="(Replace with Google autocomplete when it's ready)"
                                         {...field}
                                     />
+                                    <MapPin className="absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+                                </div>
+                            </FormControl>
+                            <FormMessage />
+                        </FormItem>
+                    )}
+                />
+
+                {/* Mailing address Line 2 */}
+                <FormField
+                    control={form.control}
+                    name="address2"
+                    render={({ field }) => (
+                        <FormItem>
+                            <FormLabel>Organization Mailing Address Line 2</FormLabel>
+                            <FormControl>
+                                <div className="relative">
+                                    <Input {...field} />
                                     <MapPin className="absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
                                 </div>
                             </FormControl>
@@ -342,10 +360,7 @@ export default function NewOrganizationForm({ defaultValues, onSubmit }: Props) 
                             <FormLabel>Organization Address Line 2</FormLabel>
                             <FormControl>
                                 <div className="relative">
-                                    <Input
-                                        placeholder="(Replace with Google autocomplete when it's ready)"
-                                        {...field}
-                                    />
+                                    <Input {...field} />
                                     <MapPin className="absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
                                 </div>
                             </FormControl>
@@ -452,10 +467,7 @@ export default function NewOrganizationForm({ defaultValues, onSubmit }: Props) 
                             <FormLabel>Administrator Address Line 2</FormLabel>
                             <FormControl>
                                 <div className="relative">
-                                    <Input
-                                        placeholder="(Replace with Google autocomplete when it's ready)"
-                                        {...field}
-                                    />
+                                    <Input {...field} />
                                     <MapPin className="absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
                                 </div>
                             </FormControl>
@@ -524,10 +536,7 @@ export default function NewOrganizationForm({ defaultValues, onSubmit }: Props) 
                             <FormLabel>Secondary Contact Address Line 2</FormLabel>
                             <FormControl>
                                 <div className="relative">
-                                    <Input
-                                        placeholder="(Replace with Google autocomplete when it's ready)"
-                                        {...field}
-                                    />
+                                    <Input {...field} />
                                     <MapPin className="absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
                                 </div>
                             </FormControl>
