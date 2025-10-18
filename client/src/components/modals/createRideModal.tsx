@@ -1,20 +1,21 @@
 "use client";
 
-import * as React from "react";
-import { toast } from "sonner";
+import CreateRideForm, { type CreateRideFormValues } from "@/components/form/createRideForm";
 import { Button } from "@/components/ui/button";
 import {
     Dialog,
     DialogContent,
+    DialogFooter,
     DialogHeader,
     DialogTitle,
     DialogTrigger,
-    DialogFooter,
 } from "@/components/ui/dialog";
-import CreateRideForm, { type CreateRideFormValues } from "@/components/form/createRideForm";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import * as React from "react";
+import { toast } from "sonner";
 import { Input } from "../ui/input";
 import { Label } from "../ui/label";
+import { Textarea } from "../ui/textarea";
 
 export default function CreateRideModal() {
     const [open, setOpen] = React.useState(false);
@@ -57,89 +58,89 @@ export default function CreateRideModal() {
                         <div className="grid  gap-x-8 gap-y-6 w-full pt-5">
                             <div className="space-y-2">
                                 <Label htmlFor="street-address">Street Address</Label>
-                                <Input id="street-address" placeholder="Value" readOnly />
+                                <Input id="street-address" placeholder="Value" disabled />
                             </div>
                             <div className="space-y-2">
                                 <Label htmlFor="address2">Address 2</Label>
-                                <Input id="address2" placeholder="Value" readOnly />
+                                <Input id="address2" placeholder="Value" disabled />
                             </div>
                             <div className="space-y-2">
                                 <Label htmlFor="zip">ZIP</Label>
-                                <Input id="zip" placeholder="Value" readOnly />
+                                <Input id="zip" placeholder="Value" disabled />
                             </div>
                             <div className="space-y-2">
                                 <Label htmlFor="city">City</Label>
-                                <Input id="city" placeholder="Value" readOnly />
+                                <Input id="city" placeholder="Value" disabled />
                             </div>
                             <div className="space-y-2">
                                 <Label htmlFor="state">State</Label>
-                                <Input id="state" placeholder="Value" readOnly />
+                                <Input id="state" placeholder="Value" disabled />
                             </div>
                             <div className="space-y-2">
                                 <Label htmlFor="type-of-residence">Type of Residence</Label>
-                                <Input id="type-of-residence" placeholder="Value" readOnly />
+                                <Input id="type-of-residence" placeholder="Value" disabled />
                             </div>
                             <div className="space-y-2">
                                 <Label htmlFor="email-address">Email Address</Label>
-                                <Input id="email-address" placeholder="Value" readOnly />
+                                <Input id="email-address" placeholder="Value" disabled />
                             </div>
                             <div className="space-y-2">
                                 <Label htmlFor="primary-phone">Primary Phone</Label>
-                                <Input id="primary-phone" placeholder="Value" readOnly />
+                                <Input id="primary-phone" placeholder="Value" disabled />
                             </div>
                             <div className="space-y-2">
                                 <Label htmlFor="secondary-phone">Secondary Phone</Label>
-                                <Input id="secondary-phone" placeholder="Value" readOnly />
+                                <Input id="secondary-phone" placeholder="Value" disabled />
                             </div>
                             <div className="space-y-2">
                                 <Label htmlFor="emergency-contact-name">
                                     Emergency Contact Name
                                 </Label>
-                                <Input id="emergency-contact-name" placeholder="Value" readOnly />
+                                <Input id="emergency-contact-name" placeholder="Value" disabled />
                             </div>
                             <div className="space-y-2">
                                 <Label htmlFor="emergency-contact-phone">
                                     Emergency Contact Phone
                                 </Label>
-                                <Input id="emergency-contact-phone" placeholder="Value" readOnly />
+                                <Input id="emergency-contact-phone" placeholder="Value" disabled />
                             </div>
                             <div className="space-y-2">
                                 <Label htmlFor="relationship-to-client">
                                     Relationship to Client
                                 </Label>
-                                <Input id="relationship-to-client" placeholder="Value" readOnly />
+                                <Input id="relationship-to-client" placeholder="Value" disabled />
                             </div>
                             <div className="space-y-2">
                                 <Label htmlFor="mobility-assistance">Mobility Assistance</Label>
-                                <Input id="mobility-assistance" placeholder="Value" readOnly />
+                                <Input id="mobility-assistance" placeholder="Value" disabled />
                             </div>
                             <div className="space-y-2">
                                 <Label htmlFor="other-limitations">Other Limitations</Label>
-                                <Input id="other-limitations" placeholder="Value" readOnly />
+                                <Input id="other-limitations" placeholder="Value" disabled />
                             </div>
                             <div className="space-y-2">
                                 <Label htmlFor="vehicle-type-needed">Vehicle Type Needed</Label>
-                                <Input id="vehicle-type-needed" placeholder="Value" readOnly />
+                                <Input id="vehicle-type-needed" placeholder="Value" disabled />
                             </div>
                             <div className="space-y-2">
                                 <Label htmlFor="service-animal">Service Animal</Label>
-                                <Input id="service-animal" placeholder="Value" readOnly />
+                                <Input id="service-animal" placeholder="Value" disabled />
                             </div>
                             <div className="space-y-2">
                                 <Label htmlFor="oxygen">Oxygen</Label>
-                                <Input id="oxygen" placeholder="Value" readOnly />
+                                <Input id="oxygen" placeholder="Value" disabled />
                             </div>
                             <div className="space-y-2">
                                 <Label htmlFor="allergies">Allergies</Label>
-                                <Input id="allergies" placeholder="Value" readOnly />
+                                <Input id="allergies" placeholder="Value" disabled />
                             </div>
                             <div className="space-y-2">
                                 <Label htmlFor="pick-up-instructions">Pick Up Instructions</Label>
-                                <Input id="pick-up-instructions" placeholder="Value" readOnly />
+                                <Input id="pick-up-instructions" placeholder="Value" disabled />
                             </div>
                             <div className="space-y-2">
                                 <Label htmlFor="comments-from-profile">Comments from Profile</Label>
-                                <Input id="comments-from-profile" placeholder="Value" readOnly />
+                                <Textarea id="comments-from-profile" placeholder="Value" disabled />
                             </div>
                         </div>
                     </TabsContent>

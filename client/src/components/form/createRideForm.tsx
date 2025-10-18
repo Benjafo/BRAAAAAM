@@ -1,30 +1,29 @@
 "use client";
 
-import { z } from "zod";
-import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { Input } from "@/components/ui/input";
-import {
-    Select,
-    SelectTrigger,
-    SelectValue,
-    SelectContent,
-    SelectItem,
-} from "@/components/ui/select";
 import {
     Form,
+    FormControl,
     FormField,
     FormItem,
     FormLabel,
-    FormControl,
     FormMessage,
 } from "@/components/ui/form";
+import { Input } from "@/components/ui/input";
+import {
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
+} from "@/components/ui/select";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { useForm } from "react-hook-form";
+import { z } from "zod";
 
-import { DatePickerInput } from "../ui/datePickerField";
+import { cn } from "@/lib/utils";
 import { Check, ChevronsUpDown, MapPin } from "lucide-react";
-import { Button } from "../ui/button";
-import { Popover, PopoverContent, PopoverTrigger } from "../ui/popover";
 import { useState } from "react";
+import { Button } from "../ui/button";
 import {
     Command,
     CommandEmpty,
@@ -33,7 +32,8 @@ import {
     CommandItem,
     CommandList,
 } from "../ui/command";
-import { cn } from "@/lib/utils";
+import { DatePickerInput } from "../ui/datePickerField";
+import { Popover, PopoverContent, PopoverTrigger } from "../ui/popover";
 
 /* --------------------------------- Schema --------------------------------- */
 /* using z.enum for select values that we know are included */
@@ -177,8 +177,8 @@ export default function EditRideForm({
 
         defaultValues: {
             clientName: defaultValues.clientName ?? "",
-            clientStreetAddress:
-                defaultValues.clientStreetAddress ?? "Populate based off select client ",
+            // clientStreetAddress:
+            //     defaultValues.clientStreetAddress ?? "Populate based off select client ",
             destinationAddress: defaultValues.destinationAddress ?? "",
             destinationAddress2: defaultValues.destinationAddress2 ?? "",
             purposeOfTrip: defaultValues.purposeOfTrip ?? "",
@@ -220,11 +220,62 @@ export default function EditRideForm({
         };
 
     /* Client data information, Update with API information later  */
+    // (ai generated sample data)
     const clients = clientsProp ?? [
-        { value: "clientOne", label: "Bob Joel" },
-        { value: "clientTwo", label: "John Smith" },
-        { value: "clientThree", label: "Emily Keller" },
-        { value: "clientFour", label: "Bobbert Dole" },
+        {
+            value: "clientOne",
+            label: "Bob Joel",
+            profile: {
+                address: "123 Park Avenue",
+                zip: "14607",
+                city: "Rochester",
+                state: "NY",
+                typeOfResidence: "Single Family Home",
+                primaryPhone: "(585) 555-1234",
+                vehicleTypeNeeded: "Wheelchair Accessible Van",
+                oxygen: "Yes",
+                allergies: "Penicillin",
+            },
+        },
+        {
+            value: "clientTwo",
+            label: "John Smith",
+            profile: {
+                address: "456 East Main Street",
+                zip: "14618",
+                city: "Brighton",
+                state: "NY",
+                typeOfResidence: "Apartment",
+                primaryPhone: "(585) 555-5678",
+                emergencyContactName: "Sarah Smith",
+                emergencyContactPhone: "(585) 555-8765",
+                relationshipToClient: "Daughter",
+            },
+        },
+        {
+            value: "clientThree",
+            label: "Emily Keller",
+            profile: {
+                address: "789 Winton Road",
+                zip: "14623",
+                city: "Henrietta",
+                state: "NY",
+                typeOfResidence: "Townhouse",
+                primaryPhone: "(585) 555-9012",
+            },
+        },
+        {
+            value: "clientFour",
+            label: "Bobbert Dole",
+            profile: {
+                address: "321 Ridge Road",
+                zip: "14580",
+                city: "Webster",
+                state: "NY",
+                typeOfResidence: "Condo",
+                primaryPhone: "(585) 555-3456",
+            },
+        },
     ];
 
     /* Driver data information, update with API information later */
@@ -307,7 +358,7 @@ export default function EditRideForm({
                     }}
                 />
                 {/* Client Street Access */}
-                <FormField
+                {/* <FormField
                     control={form.control}
                     name="clientStreetAddress"
                     render={({ field }) => (
@@ -319,7 +370,7 @@ export default function EditRideForm({
                             <FormMessage />
                         </FormItem>
                     )}
-                />
+                /> */}
                 {/* Street Address */}
                 <FormField
                     control={form.control}
