@@ -1,223 +1,21 @@
 import { Tabs, TabsList, TabsTrigger } from "@radix-ui/react-tabs";
 import moment from "moment";
-import { useCallback, useState } from "react";
-import { Calendar, momentLocalizer, Views, type Event, type View } from "react-big-calendar";
+import { useCallback, useMemo, useState } from "react";
+import { Calendar, momentLocalizer, Views, type SlotInfo, type View } from "react-big-calendar";
 import "react-big-calendar/lib/css/react-big-calendar.css";
 import { Button } from "./components/ui/button";
+import type { BaseCalendarProps, CalendarEvent, TimeBlock } from "./types/calendar";
 
 const localizer = momentLocalizer(moment);
 
-// Availability status types
-type AvailabilityStatus = "scheduled" | "unassigned" | "cancelled" | "completed" | "withdrawn";
-
-interface CalendarEvent extends Event {
-    id: number;
-    title: string;
-    start: Date;
-    end: Date;
-    resource?: {
-        status: AvailabilityStatus;
-        details?: string;
-        driver?: string;
-        location?: string;
-    };
-}
-
-const sampleEvents: CalendarEvent[] = [
-    // Sunday  - Available blocks
-    {
-        id: 1,
-        title: "Scheduled",
-        start: new Date(2025, 8, 27, 9, 0), // Sep 27, 2025, 9:00 AM
-        end: new Date(2025, 8, 27, 11, 0), // Sep 27, 2025, 11:00 AM
-        resource: { status: "scheduled", details: "9:00 - 11:00 AM" },
-    },
-    {
-        id: 2,
-        title: "Scheduled",
-        start: new Date(2025, 8, 27, 11, 0), // Sep 27, 2025, 11:00 AM
-        end: new Date(2025, 8, 27, 12, 15), // Sep 27, 2025, 12:00 PM
-        resource: { status: "scheduled", details: "11:00 - 12:15 PM" },
-    },
-    {
-        id: 3,
-        title: "Cancelled",
-        start: new Date(2025, 8, 25, 13, 0), // Sep 27, 2025, 1:00 PM
-        end: new Date(2025, 8, 25, 14, 0), // Sep 27, 2025, 2:00 PM
-        resource: { status: "cancelled", details: "1:00 - 2:00 PM" },
-    },
-    {
-        id: 4,
-        title: "Unassigned",
-        start: new Date(2025, 8, 25, 15, 0), // Sep 27, 2025, 3:00 PM
-        end: new Date(2025, 8, 25, 16, 0), // Sep 27, 2025, 4:00 PM
-        resource: { status: "unassigned", details: "3:00 - 4:00 PM" },
-    },
-    {
-        id: 5,
-        title: "Unassigned",
-        start: new Date(2025, 8, 25, 9, 0), // Sep 27, 2025, 9:00 AM
-        end: new Date(2025, 8, 25, 13, 0), // Sep 27, 2025, 1:00 PM
-        resource: { status: "unassigned", details: "9:00 AM - 1:00 PM" },
-    },
-
-    // Tuesday Aug 26 - Scheduled block
-    {
-        id: 6,
-        title: "Completed",
-        start: new Date(2025, 8, 26, 11, 0), // Aug 26, 2025, 11:00 AM
-        end: new Date(2025, 8, 26, 12, 0), // Aug 26, 2025, 12:00 PM
-        resource: { status: "completed", details: "11:00 AM - 12:00 PM" },
-    },
-
-    // Wednesday Aug 27 - Multiple availability blocks
-    {
-        id: 7,
-        title: "Completed",
-        start: new Date(2025, 8, 24, 11, 0), // Aug 27, 2025, 11:00 AM
-        end: new Date(2025, 8, 24, 12, 0), // Aug 27, 2025, 12:00 PM
-        resource: { status: "completed", details: "11:00 AM - 12:00 PM" },
-    },
-    {
-        id: 8,
-        title: "Scheduled",
-        start: new Date(2025, 8, 26, 15, 0), // Aug 27, 2025, 3:00 PM
-        end: new Date(2025, 8, 26, 17, 0), // Aug 27, 2025, 5:00 PM
-        resource: { status: "scheduled", details: "3:00 - 5:00 PM" },
-    },
-
-    // Thursday Aug 28 - Withdrawn block
-    {
-        id: 9,
-        title: "Withrawn",
-        start: new Date(2025, 8, 29, 12, 0), // Aug 28, 2025, 12:00 PM
-        end: new Date(2025, 8, 29, 15, 0), // Aug 28, 2025, 3:00 PM
-        resource: { status: "withdrawn", details: "12:00 - 3:00 PM" },
-    },
-
-    // Friday Aug 29 - Multiple available blocks
-    {
-        id: 10,
-        title: "Withdrawn",
-        start: new Date(2025, 8, 29, 9, 0), // Aug 29, 2025, 9:00 AM
-        end: new Date(2025, 8, 29, 11, 0), // Aug 29, 2025, 11:00 AM
-        resource: { status: "withdrawn", details: "9:00 - 11:00 AM" },
-    },
-    {
-        id: 11,
-        title: "Scheduled",
-        start: new Date(2025, 8, 29, 13, 0), // Aug 29, 2025, 1:00 PM
-        end: new Date(2025, 8, 29, 14, 0), // Aug 29, 2025, 2:00 PM
-        resource: { status: "scheduled", details: "1:00 - 2:00 PM" },
-    },
-    {
-        id: 12,
-        title: "Unassigned",
-        start: new Date(2025, 8, 29, 16, 0), // Aug 29, 2025, 4:00 PM
-        end: new Date(2025, 8, 29, 17, 0), // Aug 29, 2025, 5:00 PM
-        resource: { status: "unassigned", details: "4:00 - 5:00 PM" },
-    },
-    {
-        id: 13,
-        title: "Unassigned",
-        start: new Date(2025, 8, 30, 16, 0), // Aug 29, 2025, 4:00 PM
-        end: new Date(2025, 8, 30, 17, 0), // Aug 29, 2025, 5:00 PM
-        resource: { status: "unassigned", details: "4:00 - 5:00 PM" },
-    },
-    {
-        id: 14,
-        title: "Scheduled",
-        start: new Date(2025, 9, 4, 16, 0), // Aug 29, 2025, 4:00 PM
-        end: new Date(2025, 9, 4, 17, 0), // Aug 29, 2025, 5:00 PM
-        resource: { status: "scheduled", details: "4:00 - 5:00 PM" },
-    },
-    {
-        id: 15,
-        title: "Scheduled",
-        start: new Date(2025, 9, 6, 13, 0), // Aug 29, 2025, 4:00 PM
-        end: new Date(2025, 9, 6, 17, 0), // Aug 29, 2025, 5:00 PM
-        resource: { status: "scheduled", details: "1:00 - 5:00 PM" },
-    },
-    {
-        id: 16,
-        title: "Scheduled",
-        start: new Date(2025, 9, 13, 9, 0), // Aug 29, 2025, 4:00 PM
-        end: new Date(2025, 9, 13, 10, 0), // Aug 29, 2025, 5:00 PM
-        resource: { status: "scheduled", details: "9:00 - 10:00 AM" },
-    },
-    {
-        id: 17,
-        title: "Scheduled",
-        start: new Date(2025, 9, 13, 11, 0), // Aug 29, 2025, 4:00 PM
-        end: new Date(2025, 9, 13, 12, 30), // Aug 29, 2025, 5:00 PM
-        resource: { status: "scheduled", details: "11:00 - 12:30 PM" },
-    },
-    {
-        id: 18,
-        title: "Scheduled",
-        start: new Date(2025, 9, 13, 13, 30), // Aug 29, 2025, 4:00 PM
-        end: new Date(2025, 9, 13, 14, 30), // Aug 29, 2025, 5:00 PM
-        resource: { status: "scheduled", details: "1:30 - 2:30 PM" },
-    },
-    {
-        id: 19,
-        title: "Scheduled",
-        start: new Date(2025, 9, 14, 14, 30), // Aug 29, 2025, 4:00 PM
-        end: new Date(2025, 9, 14, 15, 30), // Aug 29, 2025, 5:00 PM
-        resource: { status: "scheduled", details: "2:30 - 3:30 PM" },
-    },
-    {
-        id: 20,
-        title: "Cancelled",
-        start: new Date(2025, 9, 14, 15, 30), // Aug 29, 2025, 3:30 PM
-        end: new Date(2025, 9, 14, 17, 0), // Aug 29, 2025, 5:00 PM
-        resource: { status: "cancelled", details: "3:30 - 5:00 PM" },
-    },
-    {
-        id: 21,
-        title: "Scheduled",
-        start: new Date(2025, 9, 15, 10, 30), // Aug 29, 2025, 4:00 PM
-        end: new Date(2025, 9, 15, 11, 30), // Aug 29, 2025, 5:00 PM
-        resource: { status: "scheduled", details: "10:30 - 11:30 AM" },
-    },
-    {
-        id: 22,
-        title: "Scheduled",
-        start: new Date(2025, 9, 15, 15, 0), // Aug 29, 2025, 4:00 PM
-        end: new Date(2025, 9, 15, 17, 0), // Aug 29, 2025, 5:00 PM
-        resource: { status: "scheduled", details: "3:00 - 5:00 PM" },
-    },
-    {
-        id: 23,
-        title: "Withdrawn",
-        start: new Date(2025, 9, 16, 12, 0), // Aug 29, 2025, 4:00 PM
-        end: new Date(2025, 9, 16, 14, 0), // Aug 29, 2025, 5:00 PM
-        resource: { status: "withdrawn", details: "12:00 - 2:00 PM" },
-    },
-    {
-        id: 24,
-        title: "Scheduled",
-        start: new Date(2025, 9, 17, 9, 0), // Aug 29, 2025, 4:00 PM
-        end: new Date(2025, 9, 17, 10, 0), // Aug 29, 2025, 5:00 PM
-        resource: { status: "scheduled", details: "9:00 - 10:00 AM" },
-    },
-    {
-        id: 25,
-        title: "Scheduled",
-        start: new Date(2025, 9, 17, 16, 0), // Aug 29, 2025, 4:00 PM
-        end: new Date(2025, 9, 17, 17, 0), // Aug 29, 2025, 5:00 PM
-        resource: { status: "scheduled", details: "4:00 - 5:00 PM" },
-    },
-    {
-        id: 26,
-        title: "Scheduled",
-        start: new Date(2025, 9, 18, 13, 0), // Aug 29, 2025, 4:00 PM
-        end: new Date(2025, 9, 18, 14, 0), // Aug 29, 2025, 5:00 PM
-        resource: { status: "scheduled", details: "1:00 - 2:00 PM" },
-    },
-];
-
-export default function ReactBigCalendar() {
+export default function BaseCalendar({
+    events = [],
+    businessHours,
+    onEventSelect,
+    onSlotSelect,
+    actionButton,
+    eventStyleGetter: customEventStyleGetter,
+}: BaseCalendarProps) {
     const [currentView, setCurrentView] = useState<View>(Views.WEEK);
     const [currentDate, setCurrentDate] = useState(new Date());
 
@@ -227,43 +25,133 @@ export default function ReactBigCalendar() {
         setActiveTab(value);
     }, []);
 
-    // Custom event style getter
-    const eventStyleGetter = useCallback((event: CalendarEvent) => {
-        const status = event.resource?.status || "available";
-
-        return {
-            className: status,
-        };
-    }, []);
-
-    const slotStyleGetter = useCallback((date: Date) => {
-        const hour = date.getHours();
-        const minute = date.getMinutes();
-        const dayOfWeek = date.getDay(); // 0 = Sunday, 1 = Monday, ..., 6 = Saturday
-
-        // Business hours: Mon-Fri 9 AM to 5 PM, Saturday 10:30 AM to 4 PM
-        let isBusinessHours = false;
-
-        if (dayOfWeek >= 1 && dayOfWeek <= 5) {
-            // Monday to Friday: 9 AM to 5 PM
-            isBusinessHours = hour >= 9 && hour < 17;
-        } else if (dayOfWeek === 6) {
-            // Saturday: 10:30 AM to 4 PM
-            const timeInMinutes = hour * 60 + minute;
-            const startTime = 10 * 60 + 30; // 10:30 AM
-            const endTime = 16 * 60; // 4:00 PM
-            isBusinessHours = timeInMinutes >= startTime && timeInMinutes < endTime;
+    // Calculate min and max times from business hours
+    // (ai generated)
+    const { minTime, maxTime } = useMemo(() => {
+        if (!businessHours) {
+            // Default to 9 AM - 6 PM if no business hours configured
+            return {
+                minTime: new Date(1970, 1, 1, 9, 0, 0),
+                maxTime: new Date(1970, 1, 1, 18, 0, 0),
+            };
         }
 
-        // Weekdays and Saturday: business hours are white, otherwise light gray
+        let earliestStart = 24 * 60; // Start with max minutes (midnight next day)
+        let latestEnd = 0; // Start with min minutes (midnight)
+
+        const dayNames: (keyof Omit<typeof businessHours, "timezone">)[] = [
+            "monday",
+            "tuesday",
+            "wednesday",
+            "thursday",
+            "friday",
+            "saturday",
+            "sunday",
+        ];
+
+        // Find the earliest start and latest end across all days
+        dayNames.forEach((day) => {
+            const dayConfig = businessHours[day];
+            if (dayConfig && dayConfig.length > 0) {
+                dayConfig.forEach((block) => {
+                    const [startHour, startMin] = block.start.split(":").map(Number);
+                    const [endHour, endMin] = block.end.split(":").map(Number);
+
+                    const startMinutes = startHour * 60 + startMin;
+                    const endMinutes = endHour * 60 + endMin;
+
+                    earliestStart = Math.min(earliestStart, startMinutes);
+                    latestEnd = Math.max(latestEnd, endMinutes);
+                });
+            }
+        });
+
+        // If no business hours found, use defaults
+        if (earliestStart === 24 * 60 || latestEnd === 0) {
+            return {
+                minTime: new Date(1970, 1, 1, 9, 0, 0),
+                maxTime: new Date(1970, 1, 1, 18, 0, 0),
+            };
+        }
+
+        // Add some padding (30 minutes before earliest, 30 minutes after latest)
+        const paddedStart = Math.max(0, earliestStart - 30);
+        const paddedEnd = Math.min(24 * 60, latestEnd + 30);
+
         return {
-            style: {
-                backgroundColor: isBusinessHours ? "#ffffff" : "#f3f4f6",
-                minHeight: "60px",
-                borderBottom: "1px solid #e5e7eb",
-            },
+            minTime: new Date(1970, 1, 1, Math.floor(paddedStart / 60), paddedStart % 60, 0),
+            maxTime: new Date(1970, 1, 1, Math.floor(paddedEnd / 60), paddedEnd % 60, 0),
         };
-    }, []);
+    }, [businessHours]);
+
+    // Check if a time falls within business hours
+    // (ai generated)
+    const isWithinBusinessHours = useCallback(
+        (date: Date) => {
+            if (!businessHours) return false; // No hours are valid if config is missing
+
+            const dayOfWeek = date.getDay();
+            const dayNames: (keyof typeof businessHours)[] = [
+                "sunday",
+                "monday",
+                "tuesday",
+                "wednesday",
+                "thursday",
+                "friday",
+                "saturday",
+            ];
+            const dayConfig = businessHours[dayNames[dayOfWeek]];
+
+            if (!dayConfig || dayConfig.length === 0) return false; // Closed day or no blocks
+
+            const hour = date.getHours();
+            const minute = date.getMinutes();
+            const timeInMinutes = hour * 60 + minute;
+
+            // Check if time falls within any of the blocks for this day
+            return dayConfig.some((block: TimeBlock) => {
+                const [startHour, startMin] = block.start.split(":").map(Number);
+                const [endHour, endMin] = block.end.split(":").map(Number);
+                const startMinutes = startHour * 60 + startMin;
+                const endMinutes = endHour * 60 + endMin;
+
+                return timeInMinutes >= startMinutes && timeInMinutes < endMinutes;
+            });
+        },
+        [businessHours]
+    );
+
+    // Custom event style getter - use provided one or default
+    const eventStyleGetter = useCallback(
+        (event: CalendarEvent) => {
+            if (customEventStyleGetter) {
+                return customEventStyleGetter(event);
+            }
+
+            // Default style based on status
+            const status = event.resource?.status || "available";
+            return {
+                className: status,
+            };
+        },
+        [customEventStyleGetter]
+    );
+
+    // Slot style getter - colors based on business hours
+    const slotStyleGetter = useCallback(
+        (date: Date) => {
+            const isBusinessHours = isWithinBusinessHours(date);
+
+            return {
+                style: {
+                    backgroundColor: isBusinessHours ? "#ffffff" : "#f3f4f6",
+                    minHeight: "60px",
+                    borderBottom: "1px solid #e5e7eb",
+                },
+            };
+        },
+        [isWithinBusinessHours]
+    );
 
     // Custom day style getter for Month view
     const dayPropGetter = useCallback(
@@ -280,17 +168,39 @@ export default function ReactBigCalendar() {
                 };
             }
 
-            // In-range Sundays use light gray
-            if (dayOfWeek === 0) {
+            // Check if any business hours exist for this day
+            if (businessHours) {
+                const dayNames: (keyof typeof businessHours)[] = [
+                    "sunday",
+                    "monday",
+                    "tuesday",
+                    "wednesday",
+                    "thursday",
+                    "friday",
+                    "saturday",
+                ];
+                const dayConfig = businessHours[dayNames[dayOfWeek]];
+
+                // If no business hours for this day, use light gray
+                if (!dayConfig || dayConfig.length === 0) {
+                    return {
+                        style: {
+                            backgroundColor: "#f3f4f6",
+                        },
+                    };
+                }
+            } else if (dayOfWeek === 0) {
+                // Default behavior if no business hours config: Sundays are light gray
                 return {
                     style: {
                         backgroundColor: "#f3f4f6",
                     },
                 };
             }
+
             return {};
         },
-        [currentDate, currentView]
+        [currentDate, currentView, businessHours]
     );
 
     // Navigation handlers
@@ -301,6 +211,26 @@ export default function ReactBigCalendar() {
     const handleViewChange = useCallback((view: View) => {
         setCurrentView(view);
     }, []);
+
+    // Event selection handler
+    const handleEventSelect = useCallback(
+        (event: CalendarEvent) => {
+            if (onEventSelect) {
+                onEventSelect(event);
+            }
+        },
+        [onEventSelect]
+    );
+
+    // Slot selection handler
+    const handleSlotSelect = useCallback(
+        (slotInfo: SlotInfo) => {
+            if (onSlotSelect) {
+                onSlotSelect(slotInfo);
+            }
+        },
+        [onSlotSelect]
+    );
 
     // Custom event component
     const EventComponent = ({ event }: { event: CalendarEvent }) => (
@@ -322,7 +252,7 @@ export default function ReactBigCalendar() {
       height: 100%;
       border: none;
     }
-    
+
     .rbc-header {
       background-color: #ffffff;
       border-bottom: none; /* remove bottom border */
@@ -337,7 +267,7 @@ export default function ReactBigCalendar() {
       align-items: center;
       justify-content: center;
     }
-    
+
     .rbc-header:last-child {
       border-right: none;
     }
@@ -412,14 +342,14 @@ export default function ReactBigCalendar() {
       min-height: 60px;
       background-color: #ffffff !important;
     }
-    
+
     .rbc-time-slot {
       border-top: none;
       min-height: 60px;
-      
+
 
     }
-    
+
     .rbc-day-slot {
       border-left: 1px solid #e5e7eb;
 
@@ -478,15 +408,15 @@ export default function ReactBigCalendar() {
       background-color: #ffffff !important;
       color: #000000;
     }
-    
+
     .rbc-allday-cell {
       display: none;
     }
-    
+
     .rbc-time-header-content {
       border-left: none;
     }
-    
+
     .rbc-event {
       border: none !important;
       border-radius: 10px;
@@ -496,83 +426,83 @@ export default function ReactBigCalendar() {
       margin: 2px;
       line-height: 1.2;
     }
-    
+
     .rbc-event-content {
       font-size: 11px;
       line-height: 1.2;
     }
-    
+
     .rbc-event.available {
       background-color: #86efac !important;
       color: #166534 !important;
     }
-    
+
     .rbc-event.scheduled {
       background-color: #86efac !important;
       color: #166534 !important;
     }
-    
+
     .rbc-event.withdrawn {
       background-color: #93c5fd !important;
       color: #1e40af !important;
     }
-    
+
     .rbc-event.unavailable {
       background-color: #f8b4cb !important;
       color: #be185d !important;
     }
-    
+
     .rbc-event.unassigned {
       background-color: #fde68a !important;
       color: #92400e !important;
     }
-    
+
     .rbc-event.completed {
       background-color: #e4e4e4ff !important;
       color: #374151 !important;
     }
-    
+
     .rbc-event.cancelled {
       background-color: #fbb6ce !important;
       color: #be185d !important;
     }
-    
+
     .rbc-event-continues-after {
       border-bottom-right-radius: 0;
       border-top-right-radius: 0;
     }
-    
+
     .rbc-event-continues-before {
       border-bottom-left-radius: 0;
       border-top-left-radius: 0;
     }
-    
+
     .rbc-toolbar {
       display: none;
     }
-    
+
     /* Active tabs should be dark gray */
     button.bg-black {
       background-color: #2a2a2a !important;
     }
-    
+
     /* Override any blue highlighting */
     button:focus-visible {
       outline: none !important;
       box-shadow: none !important;
     }
-    
+
     /* Specific override for Add Availability button */
     button.bg-gray-300 {
       background-color: #d1d5db !important;
       color: #000000 !important;
     }
-    
+
     button.bg-gray-300:hover {
       background-color: #9ca3af !important;
       color: #000000 !important;
     }
-    
+
     .rbc-time-slot:hover {
       background-color: #e5e7eb;
     }
@@ -599,8 +529,8 @@ export default function ReactBigCalendar() {
     .rbc-time-content::-webkit-scrollbar-thumb:hover {
       background: #9ca3af;
     }
-    
-    
+
+
     .rbc-time-view .rbc-time-gutter,
     .rbc-time-view .rbc-time-content > * {
       border-left: none;
@@ -625,9 +555,9 @@ export default function ReactBigCalendar() {
     .rbc-off-range-bg {
       background-color: #f3f4f6 !important;
     }
-    
-    
-    
+
+
+
   `;
 
     // ("--------------------------------------------------------------------------------------------------HTML Struct------------------------------------------------------------------------------------------------");
@@ -723,15 +653,11 @@ export default function ReactBigCalendar() {
                             <span>→</span>
                         </Button>
 
-                        <Button
-                            variant="outline"
-                            onClick={() => {
-                                console.log("Add Availability clicked");
-                                // Handle add availability logic here
-                            }}
-                        >
-                            Add Availability
-                        </Button>
+                        {actionButton && (
+                            <Button variant="outline" onClick={actionButton.onClick}>
+                                {actionButton.label}
+                            </Button>
+                        )}
                     </div>
                 </div>
             </div>
@@ -740,7 +666,7 @@ export default function ReactBigCalendar() {
             <div className="flex-1" style={{ height: "calc(100vh - 80px)" }}>
                 <Calendar
                     localizer={localizer}
-                    events={sampleEvents}
+                    events={events}
                     startAccessor="start"
                     endAccessor="end"
                     view={currentView}
@@ -753,23 +679,18 @@ export default function ReactBigCalendar() {
                     components={{
                         event: EventComponent,
                     }}
-                    min={new Date(1970, 1, 1, 9, 0, 0)} // 9 AM
-                    max={new Date(1970, 1, 1, 22, 0, 0)} // 8 PM
-                    step={60} // 1 hour steps
+                    min={minTime}
+                    max={maxTime}
+                    step={30}
                     timeslots={1}
                     showMultiDayTimes={false}
                     toolbar={false}
                     popup={true}
                     views={[Views.DAY, Views.WEEK, Views.MONTH]}
                     defaultView={Views.WEEK}
-                    scrollToTime={new Date(1970, 1, 1, 8, 0, 0)} // Auto scroll to 8 AM
-                    onSelectEvent={(event: Event) => {
-                        console.log("Event clicked:", event);
-                    }}
-                    onSelectSlot={(slotInfo: unknown) => {
-                        console.log("Slot selected:", slotInfo);
-                        // Handle slot selection for creating new availability
-                    }}
+                    scrollToTime={minTime}
+                    onSelectEvent={handleEventSelect}
+                    onSelectSlot={handleSlotSelect}
                     selectable
                 />
             </div>
