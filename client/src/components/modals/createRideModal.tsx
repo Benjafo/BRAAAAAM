@@ -16,29 +16,7 @@ import { toast } from "sonner";
 import { Input } from "../ui/input";
 import { Label } from "../ui/label";
 import { Textarea } from "../ui/textarea";
-
-type ClientProfile = {
-    address: string;
-    address2?: string;
-    zip: string;
-    city: string;
-    state: string;
-    typeOfResidence?: string;
-    emailAddress?: string;
-    primaryPhone: string;
-    secondaryPhone?: string;
-    emergencyContactName?: string;
-    emergencyContactPhone?: string;
-    relationshipToClient?: string;
-    mobilityAssistance?: string;
-    otherLimitations?: string;
-    vehicleTypeNeeded?: string;
-    serviceAnimal?: string;
-    oxygen?: string;
-    allergies?: string;
-    pickUpInstructions?: string;
-    commentsFromProfile?: string;
-};
+import type { ClientProfile } from "@/lib/types";
 
 type Client = {
     value: string;

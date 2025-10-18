@@ -20,6 +20,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 
+import type { ClientProfile } from "@/lib/types";
 import { cn } from "@/lib/utils";
 import { Check, ChevronsUpDown, MapPin } from "lucide-react";
 import { useState } from "react";
@@ -162,7 +163,7 @@ type Props = {
     defaultValues: Partial<CreateRideFormValues>;
     onSubmit: (values: CreateRideFormValues) => void | Promise<void>;
     // Use these props for AI integration later
-    clients?: Array<{ value: string; label: string; profile?: any }>;
+    clients?: Array<{ value: string; label: string; profile?: ClientProfile }>;
     drivers?: Array<{ value: string; label: string }>;
     onClientChange?: (clientValue: string) => void;
 };
