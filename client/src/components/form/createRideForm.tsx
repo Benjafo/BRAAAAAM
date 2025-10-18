@@ -64,19 +64,21 @@ const createRideSchema = z
         additionalRiderFirstName: z.string().max(255).optional(),
         additionalRiderLastName: z.string().max(255).optional(),
         relationshipToClient: z.string().max(255).optional(),
-        assignedDriver: z.string().min(1, "Please select a driver."),
-        rideStatus: z.enum(
-            [
-                "completedRoundTrip",
-                "completedOneWayTo",
-                "completedOneWayFrom",
-                "cancelledClient",
-                "cancelledDriver",
-            ],
-            {
-                message: "Please select a ride status.",
-            }
-        ),
+        assignedDriver: z.string().optional(),
+        rideStatus: z
+            .enum(
+                [
+                    "completedRoundTrip",
+                    "completedOneWayTo",
+                    "completedOneWayFrom",
+                    "cancelledClient",
+                    "cancelledDriver",
+                ],
+                {
+                    message: "Please select a ride status.",
+                }
+            )
+            .optional(),
         tripDuration: z
             .number()
             .min(0.25, "Trip duration must be atleast 0.25 hours.")
@@ -134,7 +136,7 @@ const createRideSchema = z
             }
         }
 
-        if (data.rideStatus.toLowerCase().includes("completed")) {
+        if (data.rideStatus?.toLowerCase().includes("completed")) {
             if (!data.tripDuration || data.tripDuration === 0) {
                 ctx.addIssue({
                     code: "custom",
@@ -160,8 +162,9 @@ type Props = {
     defaultValues: Partial<CreateRideFormValues>;
     onSubmit: (values: CreateRideFormValues) => void | Promise<void>;
     // Use these props for AI integration later
-    clients?: Array<{ value: string; label: string }>;
+    clients?: Array<{ value: string; label: string; profile?: any }>;
     drivers?: Array<{ value: string; label: string }>;
+    onClientChange?: (clientValue: string) => void;
 };
 
 /* --------------------------------- Form ----------------------------------- */
@@ -170,6 +173,7 @@ export default function EditRideForm({
     onSubmit,
     clients: clientsProp,
     drivers: driversProp,
+    onClientChange,
 }: Props) {
     const form = useForm<CreateRideFormValues>({
         resolver: zodResolver(createRideSchema),
@@ -177,8 +181,7 @@ export default function EditRideForm({
 
         defaultValues: {
             clientName: defaultValues.clientName ?? "",
-            // clientStreetAddress:
-            //     defaultValues.clientStreetAddress ?? "Populate based off select client ",
+            clientStreetAddress: defaultValues.clientStreetAddress ?? "",
             destinationAddress: defaultValues.destinationAddress ?? "",
             destinationAddress2: defaultValues.destinationAddress2 ?? "",
             purposeOfTrip: defaultValues.purposeOfTrip ?? "",
@@ -220,63 +223,7 @@ export default function EditRideForm({
         };
 
     /* Client data information, Update with API information later  */
-    // (ai generated sample data)
-    const clients = clientsProp ?? [
-        {
-            value: "clientOne",
-            label: "Bob Joel",
-            profile: {
-                address: "123 Park Avenue",
-                zip: "14607",
-                city: "Rochester",
-                state: "NY",
-                typeOfResidence: "Single Family Home",
-                primaryPhone: "(585) 555-1234",
-                vehicleTypeNeeded: "Wheelchair Accessible Van",
-                oxygen: "Yes",
-                allergies: "Penicillin",
-            },
-        },
-        {
-            value: "clientTwo",
-            label: "John Smith",
-            profile: {
-                address: "456 East Main Street",
-                zip: "14618",
-                city: "Brighton",
-                state: "NY",
-                typeOfResidence: "Apartment",
-                primaryPhone: "(585) 555-5678",
-                emergencyContactName: "Sarah Smith",
-                emergencyContactPhone: "(585) 555-8765",
-                relationshipToClient: "Daughter",
-            },
-        },
-        {
-            value: "clientThree",
-            label: "Emily Keller",
-            profile: {
-                address: "789 Winton Road",
-                zip: "14623",
-                city: "Henrietta",
-                state: "NY",
-                typeOfResidence: "Townhouse",
-                primaryPhone: "(585) 555-9012",
-            },
-        },
-        {
-            value: "clientFour",
-            label: "Bobbert Dole",
-            profile: {
-                address: "321 Ridge Road",
-                zip: "14580",
-                city: "Webster",
-                state: "NY",
-                typeOfResidence: "Condo",
-                primaryPhone: "(585) 555-3456",
-            },
-        },
-    ];
+    const clients = clientsProp ?? [];
 
     /* Driver data information, update with API information later */
     const drivers = driversProp ?? [
@@ -332,6 +279,14 @@ export default function EditRideForm({
                                                                 value={client.label}
                                                                 onSelect={() => {
                                                                     field.onChange(client.value);
+                                                                    onClientChange?.(client.value);
+                                                                    // Set the client's street address from their profile
+                                                                    if (client.profile?.address) {
+                                                                        form.setValue(
+                                                                            "clientStreetAddress",
+                                                                            client.profile.address
+                                                                        );
+                                                                    }
                                                                     setClientOpen(false);
                                                                 }}
                                                             >
@@ -357,20 +312,26 @@ export default function EditRideForm({
                         );
                     }}
                 />
-                {/* Client Street Access */}
-                {/* <FormField
+                {/* Client Street Address - populated from selected client's profile */}
+                <FormField
                     control={form.control}
                     name="clientStreetAddress"
                     render={({ field }) => (
                         <FormItem className="w-full">
                             <FormLabel>Client Street Address</FormLabel>
                             <FormControl className="w-full">
-                                <Input placeholder="Value" {...field} className="w-full" readOnly />
+                                <Input
+                                    placeholder="Select a client to populate"
+                                    {...field}
+                                    className="w-full"
+                                    readOnly
+                                />
                             </FormControl>
                             <FormMessage />
                         </FormItem>
                     )}
-                /> */}
+                    disabled
+                />
                 {/* Street Address */}
                 <FormField
                     control={form.control}
