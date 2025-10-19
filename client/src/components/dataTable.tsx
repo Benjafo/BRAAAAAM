@@ -127,6 +127,7 @@ export function DataTable<T extends Record<string, unknown>>({
         onRowSelectionChange: setRowSelection,
         onGlobalFilterChange: setGlobalFilter,
         onPaginationChange: setPagination,
+        getRowId: (row) => String(row.id),
 
         // Server-side mode configuration
         manualPagination: true,
