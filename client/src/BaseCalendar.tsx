@@ -232,15 +232,32 @@ export default function BaseCalendar({
         [onSlotSelect]
     );
 
-    // Custom event component
-    const EventComponent = ({ event }: { event: CalendarEvent }) => (
-        <div className="text-xs leading-tight">
-            <div className="font-medium">{event.title}</div>
-            {event.resource?.details && (
-                <div className="mt-0.5 text-xs opacity-90">{event.resource.details}</div>
-            )}
-        </div>
-    );
+    // Custom event component that changes based on view
+    const EventComponent = ({ event }: { event: CalendarEvent }) => {
+        const isMonthView = currentView === Views.MONTH;
+        const clientName = event.resource?.clientName || event.title;
+        const driverName = event.resource?.driverName || event.resource?.driver;
+        const purpose = event.resource?.purpose || event.resource?.details;
+
+        if (isMonthView) {
+            // Month view: single line with client and driver
+            return (
+                <div className="text-xs leading-tight truncate px-1">
+                    <span className="font-medium">{clientName}</span>
+                    {driverName && <span> • {driverName}</span>}
+                </div>
+            );
+        }
+
+        // Week/Day view: multi-line with all details
+        return (
+            <div className="text-xs leading-tight px-1 py-1">
+                <div className="font-medium truncate">{clientName}</div>
+                {driverName && <div className="text-xs">{driverName}</div>}
+                {purpose && <div className="text-xs mt-1">{purpose}</div>}
+            </div>
+        );
+    };
 
     // ("------------------------------------------------------------------------------------------Styles-----------------------------------------------------------------------------------------------------");
     // Custom CSS styles for light themed colors
