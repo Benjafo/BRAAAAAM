@@ -1,7 +1,7 @@
-import ReactBigCalendar from "@/calendar";
 import { MainNavigation } from "@/components/Navigation";
 import { RidesTable } from "@/components/tables/RidesTable";
 import { Button } from "@/components/ui/button";
+import Schedule from "@/Schedule";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@radix-ui/react-tabs";
 import { createFileRoute } from "@tanstack/react-router";
 import { useCallback, useState } from "react";
@@ -33,7 +33,7 @@ function RouteComponent() {
                 </div>
 
                 <TabsContent value="calendar">
-                    <ReactBigCalendar />
+                    <Schedule />
                 </TabsContent>
                 <TabsContent value="list">
                     <RidesTable />
