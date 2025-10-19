@@ -3,8 +3,8 @@ import moment from "moment";
 import { useCallback, useMemo, useState } from "react";
 import { Calendar, momentLocalizer, Views, type SlotInfo, type View } from "react-big-calendar";
 import "react-big-calendar/lib/css/react-big-calendar.css";
-import { Button } from "./components/ui/button";
-import type { BaseCalendarProps, CalendarEvent, TimeBlock } from "./types/calendar";
+import type { BaseCalendarProps, CalendarEvent, TimeBlock } from "../../types/rides";
+import { Button } from "../ui/button";
 
 const localizer = momentLocalizer(moment);
 
@@ -105,7 +105,9 @@ const customDayLayoutAlgorithm = ({
             } else {
                 // For 9+ events, use minimum sizes
                 baseWidth = 25;
-                cascadeOffset = Math.floor((availableWidth - baseWidth - 2) / Math.min(groupSize - 1, 10));
+                cascadeOffset = Math.floor(
+                    (availableWidth - baseWidth - 2) / Math.min(groupSize - 1, 10)
+                );
                 cascadeOffset = Math.max(cascadeOffset, 6); // Minimum 6% offset
             }
 
