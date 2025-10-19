@@ -4,13 +4,7 @@ import { z } from "zod";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Input } from "@/components/ui/input";
-import {
-    Select,
-    SelectTrigger,
-    SelectValue,
-    SelectContent,
-    SelectItem,
-} from "@/components/ui/select";
+
 import {
     Form,
     FormField,
@@ -41,7 +35,7 @@ const newClientSchema = z.object({
         .max(255, "Max characters allowed is 255."),
     primaryContactPref: z
         .string()
-        .min(1, "Please select an option.")
+        .min(1, "Write in how you want to be contacted. ")
         .max(255, "Max characters allowed is 255."),
     birthYear: z.date("Please select a date."),
     secondaryContactPref: z.string().max(255, "Max characters allowed is 255.").optional(),
@@ -199,15 +193,7 @@ export default function NewClientForm({ defaultValues, onSubmit }: Props) {
                         <FormItem className="w-full">
                             <FormLabel>Primary Contact Preference</FormLabel>
                             <FormControl className="w-full">
-                                <Select value={field.value} onValueChange={field.onChange}>
-                                    <SelectTrigger className="w-full">
-                                        <SelectValue placeholder="Select a value" />
-                                    </SelectTrigger>
-                                    <SelectContent>
-                                        <SelectItem value="first">Bob Joel</SelectItem>
-                                        <SelectItem value="second">Emily Smith</SelectItem>
-                                    </SelectContent>
-                                </Select>
+                                <Input placeholder="Value" {...field} className="w-full" />
                             </FormControl>
                             <FormMessage />
                         </FormItem>
@@ -237,15 +223,7 @@ export default function NewClientForm({ defaultValues, onSubmit }: Props) {
                         <FormItem className="w-full">
                             <FormLabel>Secondary Contact Preference</FormLabel>
                             <FormControl className="w-full">
-                                <Select value={field.value} onValueChange={field.onChange}>
-                                    <SelectTrigger className="w-full">
-                                        <SelectValue placeholder="Select a value" />
-                                    </SelectTrigger>
-                                    <SelectContent>
-                                        <SelectItem value="NameOne">Bob Joel</SelectItem>
-                                        <SelectItem value="NameTwo">Emily Smith</SelectItem>
-                                    </SelectContent>
-                                </Select>
+                                <Input placeholder="Value" {...field} className="w-full" />
                             </FormControl>
                             <FormMessage />
                         </FormItem>
