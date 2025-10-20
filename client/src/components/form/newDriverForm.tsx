@@ -21,35 +21,50 @@ import { Checkbox } from "../ui/checkbox";
 
 /* --------------------------------- Schema --------------------------------- */
 /* using z.enum for select values that we know are included */
-const newClientSchema = z.object({
+const newDriverSchema = z.object({
     firstName: z
         .string()
         .min(1, "Please enter the first name.")
         .max(255, "Max characters allowed is 255."),
-    livingAlone: z.enum(["Lives alone", "Does not live alone"], {
-        message: "Please specify if the client is living alone or not.",
-    }),
+    vehicleType: z
+        .string()
+        .min(1, "Please enter the vehicle type.")
+        .max(255, "Max characters allowed is 255."),
     lastName: z
         .string()
         .min(1, "Please enter the last name.")
         .max(255, "Max characters allowed is 255."),
+    vehicleColor: z
+        .string()
+        .min(1, "Please enter the vehicle color/details.")
+        .max(255, "Max characters allowed is 255."),
+    maxRides: z
+        .number("Must enter the number of rides, a 0 means no limit.")
+        .min(0, "Rides cannot be less than 0."),
+    homeAddress: z
+        .string()
+        .min(1, "Home address is required.")
+        .max(255, "Max characters allowed is 255."),
+
+    townPreferences: z.string().max(255, "Max characters allowed is 255.").optional(),
+
+    homeAddress2: z.string().max(255, "Max characters allowed is 255.").optional(),
+    destinationLimitations: z.string().max(255, "Max characters allowed is 255."),
+    driverEmail: z.email(),
+    maxRidesDistance: z
+        .number("Must enter the maximum number of miles driver is willing to go.")
+        .min(0, "Rides cannot be less than 0."),
+
+    lifeSpanReimbursement: z.enum(["Yes", "No"], {
+        message: "Please specifiy if there was a reimbursement. ",
+    }),
     primaryContactPref: z
         .string()
         .min(1, "Write in how you want to be contacted. ")
         .max(255, "Max characters allowed is 255."),
     birthDate: z.date("Please select a date."),
     secondaryContactPref: z.string().max(255, "Max characters allowed is 255.").optional(),
-    homeAddress: z
-        .string()
-        .min(1, "Home address is required")
-        .max(255, "Max characters allowed is 255."),
-    clientGender: z.enum(["Male", "Female", "Other"], {
-        message: "Please specify the clients gender.",
-    }),
-    homeAddress2: z.string().max(255, "Max characters allowed is 255.").optional(),
-    clientStatus: z.enum(["Permanent client", "Temporary client"], {
-        message: "Please specify if the client is a permanent or temporary client",
-    }),
+
     primaryPhoneNumber: z
         .string()
         .min(1, "Phone number is required")
@@ -60,7 +75,6 @@ const newClientSchema = z.object({
 
     primaryPhoneIsCellPhone: z.boolean(),
     okToTextPrimaryPhone: z.boolean(),
-    endActiveStatus: z.date("Please select the date the active status for the client ends."),
     secondaryPhoneNumber: z
         .string()
         .regex(
@@ -73,48 +87,62 @@ const newClientSchema = z.object({
     okToTextSecondaryPhone: z.boolean(),
 });
 
-export type NewClientFormValues = z.infer<typeof newClientSchema>;
+export type NewDriverFormValues = z.infer<typeof newDriverSchema>;
 
 /* --------------------------------- Props ---------------------------------- */
 /** Accept Partial so we can provide sane fallbacks when something is missing. */
 type Props = {
-    defaultValues: Partial<NewClientFormValues>;
-    onSubmit: (values: NewClientFormValues) => void | Promise<void>;
+    defaultValues: Partial<NewDriverFormValues>;
+    onSubmit: (values: NewDriverFormValues) => void | Promise<void>;
 };
 
 /* --------------------------------- Form ----------------------------------- */
-export default function NewClientForm({ defaultValues, onSubmit }: Props) {
-    const form = useForm<NewClientFormValues>({
-        resolver: zodResolver(newClientSchema),
+export default function NewDriverForm({ defaultValues, onSubmit }: Props) {
+    const form = useForm<NewDriverFormValues>({
+        resolver: zodResolver(newDriverSchema),
         mode: "onBlur",
 
         defaultValues: {
             firstName: defaultValues.firstName ?? "",
-            livingAlone: defaultValues.livingAlone ?? "Lives alone",
+            vehicleType: defaultValues.vehicleType ?? "",
             lastName: defaultValues.lastName ?? "",
+            vehicleColor: defaultValues.vehicleColor ?? "",
+            maxRides: defaultValues.maxRides,
+            homeAddress: defaultValues.homeAddress ?? "",
+            townPreferences: defaultValues.townPreferences ?? "",
+            homeAddress2: defaultValues.homeAddress2 ?? "",
+            destinationLimitations: defaultValues.destinationLimitations ?? "",
+            driverEmail: defaultValues.driverEmail ?? "",
+            maxRidesDistance: defaultValues.maxRidesDistance,
+            lifeSpanReimbursement: defaultValues.lifeSpanReimbursement ?? "No",
             primaryContactPref: defaultValues.primaryContactPref ?? "",
             birthDate: defaultValues.birthDate ?? new Date(),
             secondaryContactPref: defaultValues.secondaryContactPref ?? "",
-            homeAddress: defaultValues.homeAddress ?? "",
-            clientGender: defaultValues.clientGender ?? "Other",
-            homeAddress2: defaultValues.homeAddress2 ?? "",
-            clientStatus: defaultValues.clientStatus ?? "Permanent client",
             primaryPhoneNumber: defaultValues.primaryPhoneNumber ?? "",
             primaryPhoneIsCellPhone: defaultValues.primaryPhoneIsCellPhone ?? false,
             okToTextPrimaryPhone: defaultValues.okToTextPrimaryPhone ?? false,
-            endActiveStatus: defaultValues.endActiveStatus ?? new Date(),
             secondaryPhoneNumber: defaultValues.secondaryPhoneNumber ?? "",
             secondaryPhoneIsCellPhone: defaultValues.secondaryPhoneIsCellPhone ?? false,
             okToTextSecondaryPhone: defaultValues.okToTextSecondaryPhone ?? false,
         },
     });
 
-    const clientStatus = form.watch("clientStatus");
-
+    // Used to handle number input logic (AI helped on this)
+    const handleNumberChange =
+        (field: { onChange: (value: number | undefined) => void }) =>
+        (e: React.ChangeEvent<HTMLInputElement>) => {
+            const value = e.target.value;
+            if (value === "") {
+                field.onChange(undefined); // Set to undefined when empty
+                return;
+            }
+            const parsed = parseFloat(value);
+            field.onChange(isNaN(parsed) ? undefined : parsed);
+        };
     return (
         <Form {...form}>
             <form
-                id="new-client-form"
+                id="new-driver-form"
                 className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-6 w-full items-start pt-"
                 onSubmit={form.handleSubmit(onSubmit)}
             >
@@ -132,45 +160,22 @@ export default function NewClientForm({ defaultValues, onSubmit }: Props) {
                         </FormItem>
                     )}
                 />
-
-                {/* Living alone / not */}
+                {/* Vehicle Type */}
                 <FormField
                     control={form.control}
-                    name="livingAlone"
+                    name="vehicleType"
                     render={({ field }) => (
-                        <FormItem>
-                            <FormLabel>Living Alone</FormLabel>
-                            <FormControl>
-                                <RadioGroup
-                                    className="flex flex-col gap-2"
-                                    value={field.value}
-                                    onValueChange={field.onChange}
-                                >
-                                    <div className="flex items-center space-x-2">
-                                        <RadioGroupItem id="living-alone" value="Lives alone" />
-                                        <FormLabel htmlFor="living-alone" className="font-normal">
-                                            Lives Alone
-                                        </FormLabel>
-                                    </div>
-                                    <div className="flex items-center space-x-2">
-                                        <RadioGroupItem
-                                            id="not-living-alone"
-                                            value="Does not live alone"
-                                        />
-                                        <FormLabel
-                                            htmlFor="not-living-alone"
-                                            className="font-normal"
-                                        >
-                                            Does not live alone
-                                        </FormLabel>
-                                    </div>
-                                </RadioGroup>
+                        <FormItem className="w-full">
+                            <FormLabel>Vehicle Type</FormLabel>
+                            <FormControl className="w-full">
+                                <Input placeholder="Value" {...field} className="w-full" />
                             </FormControl>
                             <FormMessage />
                         </FormItem>
                     )}
                 />
 
+                {/* Last Name */}
                 <FormField
                     control={form.control}
                     name="lastName"
@@ -185,13 +190,13 @@ export default function NewClientForm({ defaultValues, onSubmit }: Props) {
                     )}
                 />
 
-                {/* Primary contact preference */}
+                {/* Vehicle Color */}
                 <FormField
                     control={form.control}
-                    name="primaryContactPref"
+                    name="vehicleColor"
                     render={({ field }) => (
                         <FormItem className="w-full">
-                            <FormLabel>Primary Contact Preference</FormLabel>
+                            <FormLabel>Vehicle Color/Type</FormLabel>
                             <FormControl className="w-full">
                                 <Input placeholder="Value" {...field} className="w-full" />
                             </FormControl>
@@ -215,15 +220,23 @@ export default function NewClientForm({ defaultValues, onSubmit }: Props) {
                     )}
                 />
 
-                {/* Secondary contact preference */}
+                {/* Trip Distance */}
                 <FormField
                     control={form.control}
-                    name="secondaryContactPref"
+                    name="maxRides"
                     render={({ field }) => (
                         <FormItem className="w-full">
-                            <FormLabel>Secondary Contact Preference</FormLabel>
+                            <FormLabel>Maximum Rides per Week</FormLabel>
                             <FormControl className="w-full">
-                                <Input placeholder="Value" {...field} className="w-full" />
+                                <Input
+                                    type="number"
+                                    step="1"
+                                    min="0"
+                                    placeholder="0"
+                                    value={field.value ?? ""}
+                                    onChange={handleNumberChange(field)}
+                                    className="w-full"
+                                />
                             </FormControl>
                             <FormMessage />
                         </FormItem>
@@ -251,46 +264,22 @@ export default function NewClientForm({ defaultValues, onSubmit }: Props) {
                     )}
                 />
 
-                {/* Living alone / not */}
+                {/* Town Preferences */}
                 <FormField
                     control={form.control}
-                    name="clientGender"
+                    name="townPreferences"
                     render={({ field }) => (
-                        <FormItem>
-                            <FormLabel>Client Gender</FormLabel>
-                            <FormControl>
-                                <RadioGroup
-                                    className="flex flex-col gap-2"
-                                    value={field.value}
-                                    onValueChange={field.onChange}
-                                >
-                                    <div className="flex items-center space-x-2">
-                                        <RadioGroupItem id="male" value="Male" />
-                                        <FormLabel htmlFor="male" className="font-normal">
-                                            Male
-                                        </FormLabel>
-                                    </div>
-                                    <div className="flex items-center space-x-2">
-                                        <RadioGroupItem id="female" value="Female" />
-                                        <FormLabel htmlFor="female" className="font-normal">
-                                            Female
-                                        </FormLabel>
-                                    </div>
-
-                                    <div className="flex items-center space-x-2">
-                                        <RadioGroupItem id="other" value="Other" />
-                                        <FormLabel htmlFor="other" className="font-normal">
-                                            Other
-                                        </FormLabel>
-                                    </div>
-                                </RadioGroup>
+                        <FormItem className="w-full">
+                            <FormLabel>Town Preferences</FormLabel>
+                            <FormControl className="w-full">
+                                <Input placeholder="Value" {...field} className="w-full" />
                             </FormControl>
                             <FormMessage />
                         </FormItem>
                     )}
                 />
 
-                {/* Home Address 2 */}
+                {/* Address Line 2 */}
                 <FormField
                     control={form.control}
                     name="homeAddress2"
@@ -311,44 +300,53 @@ export default function NewClientForm({ defaultValues, onSubmit }: Props) {
                     )}
                 />
 
-                {/* Client Status */}
+                {/* Destination Limitations */}
                 <FormField
                     control={form.control}
-                    name="clientStatus"
+                    name="destinationLimitations"
+                    render={({ field }) => (
+                        <FormItem className="w-full">
+                            <FormLabel>Destination Limitations</FormLabel>
+                            <FormControl className="w-full">
+                                <Input placeholder="Value" {...field} className="w-full" />
+                            </FormControl>
+                            <FormMessage />
+                        </FormItem>
+                    )}
+                />
+
+                {/* Email */}
+                <FormField
+                    control={form.control}
+                    name="driverEmail"
                     render={({ field }) => (
                         <FormItem>
-                            <FormLabel>Client Status</FormLabel>
+                            <FormLabel>Email</FormLabel>
                             <FormControl>
-                                <RadioGroup
-                                    className="flex flex-col gap-2"
-                                    value={field.value}
-                                    onValueChange={field.onChange}
-                                >
-                                    <div className="flex items-center space-x-2">
-                                        <RadioGroupItem
-                                            id="permanent-client"
-                                            value="Permanent client"
-                                        />
-                                        <FormLabel
-                                            htmlFor="permanent-client"
-                                            className="font-normal"
-                                        >
-                                            Permanent Client
-                                        </FormLabel>
-                                    </div>
-                                    <div className="flex items-center space-x-2">
-                                        <RadioGroupItem
-                                            id="temporary-client"
-                                            value="Temporary client"
-                                        />
-                                        <FormLabel
-                                            htmlFor="temporary-client"
-                                            className="font-normal"
-                                        >
-                                            Temporary Client
-                                        </FormLabel>
-                                    </div>
-                                </RadioGroup>
+                                <Input placeholder="Value" {...field} />
+                            </FormControl>
+                            <FormMessage />
+                        </FormItem>
+                    )}
+                />
+
+                {/* Trip Distance */}
+                <FormField
+                    control={form.control}
+                    name="maxRidesDistance"
+                    render={({ field }) => (
+                        <FormItem className="w-full">
+                            <FormLabel>Maximum Ride Distance (In Miles) </FormLabel>
+                            <FormControl className="w-full">
+                                <Input
+                                    type="number"
+                                    step="1"
+                                    min="0"
+                                    placeholder="0"
+                                    value={field.value ?? ""}
+                                    onChange={handleNumberChange(field)}
+                                    className="w-full"
+                                />
                             </FormControl>
                             <FormMessage />
                         </FormItem>
@@ -413,25 +411,37 @@ export default function NewClientForm({ defaultValues, onSubmit }: Props) {
                     />
                 </div>
 
-                {/* End date of active status */}
-                {clientStatus === "Temporary client" && (
-                    <FormField
-                        control={form.control}
-                        name="endActiveStatus"
-                        render={({ field }) => (
-                            <FormItem>
-                                <FormLabel>End Date of Active Status</FormLabel>
-                                <FormControl>
-                                    <DatePickerInput
-                                        value={field.value}
-                                        onChange={field.onChange}
-                                    />
-                                </FormControl>
-                                <FormMessage />
-                            </FormItem>
-                        )}
-                    />
-                )}
+                {/* Lifespan Reimbursement */}
+                <FormField
+                    control={form.control}
+                    name="lifeSpanReimbursement"
+                    render={({ field }) => (
+                        <FormItem>
+                            <FormLabel>Lifespan Mileage Reimbursement</FormLabel>
+                            <FormControl>
+                                <RadioGroup
+                                    className="flex flex-col gap-2"
+                                    value={field.value}
+                                    onValueChange={field.onChange}
+                                >
+                                    <div className="flex items-center space-x-2">
+                                        <RadioGroupItem id="yes" value="Yes" />
+                                        <FormLabel htmlFor="yes" className="font-normal">
+                                            Yes
+                                        </FormLabel>
+                                    </div>
+                                    <div className="flex items-center space-x-2">
+                                        <RadioGroupItem id="no" value="No" />
+                                        <FormLabel htmlFor="no" className="font-normal">
+                                            No
+                                        </FormLabel>
+                                    </div>
+                                </RadioGroup>
+                            </FormControl>
+                            <FormMessage />
+                        </FormItem>
+                    )}
+                />
 
                 {/* Secondary Phone, adding div to make checkboxes align underneath secondary phone number. */}
                 <div className="space-y-4">
@@ -490,6 +500,36 @@ export default function NewClientForm({ defaultValues, onSubmit }: Props) {
                         )}
                     />
                 </div>
+
+                {/* Primary contact preference */}
+                <FormField
+                    control={form.control}
+                    name="primaryContactPref"
+                    render={({ field }) => (
+                        <FormItem className="w-full">
+                            <FormLabel>Primary Contact Preference</FormLabel>
+                            <FormControl className="w-full">
+                                <Input placeholder="Value" {...field} className="w-full" />
+                            </FormControl>
+                            <FormMessage />
+                        </FormItem>
+                    )}
+                />
+
+                {/* Secondary contact preference */}
+                <FormField
+                    control={form.control}
+                    name="secondaryContactPref"
+                    render={({ field }) => (
+                        <FormItem className="w-full">
+                            <FormLabel>Secondary Contact Preference</FormLabel>
+                            <FormControl className="w-full">
+                                <Input placeholder="Value" {...field} className="w-full" />
+                            </FormControl>
+                            <FormMessage />
+                        </FormItem>
+                    )}
+                />
             </form>
         </Form>
     );
