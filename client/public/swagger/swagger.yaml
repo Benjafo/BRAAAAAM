@@ -470,7 +470,7 @@ paths:
                 State:              { type: string }
                 Zip:                { type: string }
                 Country:            { type: string }
-                postmarkApiKey:     { type: string }
+                emailApiKey:     { type: string }
                 googleMapsApiKey:   { type: string }
       responses:
         '200': { description: Updated }
