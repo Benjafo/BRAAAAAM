@@ -10,17 +10,21 @@ export const Route = createFileRoute("/")({
 
         if (isAuthed) {
             throw redirect({
-                to: '/dashboard',
+                to: "/dashboard",
             });
         } else {
             throw redirect({
-                to: '/sign-in'
-            })
+                to: "/sign-in",
+            });
         }
     },
     component: RouteComponent,
 });
 
 function RouteComponent() {
-    return <MainNavigation />;
+    return (
+        <>
+            <MainNavigation />
+        </>
+    );
 }

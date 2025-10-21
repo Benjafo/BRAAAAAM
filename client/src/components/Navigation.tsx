@@ -1,11 +1,11 @@
-import { Avatar, AvatarFallback, AvatarImage } from "./ui/avatar";
-import WebsterLogo from "../../public/WebsterBeeLogo.png";
-import { Link, useNavigate } from "@tanstack/react-router";
-import { Button } from "./ui/button";
-import { PERMISSIONS } from "@/lib/permissions";
-import { LogOut } from "lucide-react";
-import { useAuthStore } from "./stores/authStore";
 import { useLogout } from "@/hooks/useAuth";
+import { PERMISSIONS } from "@/lib/permissions";
+import { Link, useNavigate } from "@tanstack/react-router";
+import { LogOut } from "lucide-react";
+import WebsterLogo from "../../public/WebsterBeeLogo.png";
+import { useAuthStore } from "./stores/authStore";
+import { Avatar, AvatarFallback, AvatarImage } from "./ui/avatar";
+import { Button } from "./ui/button";
 
 /**
  * A generic navigation layout component that can be used to create different types of navigation bars.
@@ -129,7 +129,7 @@ export const MainNavigation = ({
         },
         {
             text: "Settings",
-            link: "/settings",
+            link: "/admin-settings",
             permission: PERMISSIONS.VIEW_SETTINGS,
         },
         {
@@ -141,18 +141,16 @@ export const MainNavigation = ({
     const navigate = useNavigate();
     const user = useAuthStore((s) => s.user);
     //maybe check for isAuthed, possibly not required.
-    const logout = useLogout()
+    const logout = useLogout();
     /**
      * @TODO Add useUser() hook to get user information
      */
 
     const handleSignOut = async () => {
-
-
         logout.mutate(undefined, {
             onSettled: () => {
-                navigate({to: '/sign-in'})
-            }
+                navigate({ to: "/sign-in" });
+            },
         });
         // try {
         //     if(isAuthed) logout.mutate()
@@ -186,7 +184,7 @@ export const MainNavigation = ({
             }
             rightNavItems={
                 <Button size="sm" onClick={handleSignOut}>
-                    {user ? (`${user.firstName} ${user.lastName}`) : ("User")}
+                    {user ? `${user.firstName} ${user.lastName}` : "User"}
                     <LogOut />
                 </Button>
             }

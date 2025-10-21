@@ -24,7 +24,7 @@ const onUnauthorized = async () => {
 };
 
 const http = createHttpClient({
-  baseUrl: 'http://localhost:3000/',
+  baseUrl: import.meta.env.BASE_URL,
   getAccessToken: () => authStore.getState().accessToken,
   onUnauthorized: () => onUnauthorized(),
 });
