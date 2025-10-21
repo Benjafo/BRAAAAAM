@@ -14,29 +14,34 @@ import type { NewClientFormValues } from "../form/newClientForm";
 import { toast } from "sonner";
 import NewClientForm from "../form/newClientForm";
 
-export default function NewClientModal() {
+type NewClientModalProps = {
+    defaultValues?: Partial<NewClientFormValues>;
+    triggerButton?: React.ReactNode;
+};
+export default function NewClientModal({ defaultValues = {}, triggerButton }: NewClientModalProps) {
     const [open, setOpen] = React.useState(false);
 
-    // Test default values for now - don't know if we want to use it for anything yet, just using one thing right now to make sure it works
-    const defaultValues: Partial<NewClientFormValues> = {
-        livingAlone: "Lives alone",
-    };
+    // Determine if we're editing based on whether firstName is populated (AI made this)
+    const isEditing = Boolean(defaultValues.firstName);
+    const modalTitle = isEditing ? "Edit Client" : "New Client";
+    const successMessage = isEditing ? "Client Updated" : "New Client Created";
+
     async function handleSubmit(values: NewClientFormValues) {
         // TODO: API logic for new client information sent
         console.log(values); // Testing to see if values appear after submit
-        toast.success("New Client Created");
+        toast.success(successMessage);
         setOpen(false);
     }
 
     return (
         <Dialog open={open} onOpenChange={setOpen}>
             <DialogTrigger asChild>
-                <Button variant="outline">New Client</Button>
+                {triggerButton ?? <Button variant="outline">New Client</Button>}
             </DialogTrigger>
 
             <DialogContent className="!max-w-[692px] max-h-[90vh] overflow-y-auto scroll-smooth p-6">
                 <DialogHeader className="mb-4">
-                    <DialogTitle>New Client</DialogTitle>
+                    <DialogTitle>{modalTitle}</DialogTitle>
                 </DialogHeader>
 
                 <NewClientForm onSubmit={handleSubmit} defaultValues={defaultValues} />
