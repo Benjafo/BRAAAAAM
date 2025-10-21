@@ -50,7 +50,7 @@ export default function NewClientModal({ defaultValues = {}, triggerButton }: Ne
                         Cancel
                     </Button>
                     <Button type="submit" form="new-client-form">
-                        Create
+                        Save
                     </Button>
                 </DialogFooter>
             </DialogContent>
