@@ -59,11 +59,21 @@ const newDriverSchema = z.object({
         .min(1, "Home address is required.")
         .max(255, "Max characters allowed is 255."),
 
-    townPreferences: z.string().max(255, "Max characters allowed is 255.").optional(),
+    townPreferences: z
+        .string()
+        .min(1, "Please enter any town preferences.")
+        .max(255, "Max characters allowed is 255."),
 
-    homeAddress2: z.string().max(255, "Max characters allowed is 255.").optional(),
-    destinationLimitations: z.string().max(255, "Max characters allowed is 255."),
-    driverEmail: z.email(),
+    homeAddress2: z
+        .string()
+        .max(255, "Max characters allowed is 255.")
+        .optional()
+        .or(z.literal("")),
+    destinationLimitations: z
+        .string()
+        .min(1, "Please enter any destination limitations.")
+        .max(255, "Max characters allowed is 255."),
+    driverEmail: z.email("Please enter a valid email address.").optional().or(z.literal("")),
     maxRidesDistance: z
         .number("Must enter the maximum number of miles driver is willing to go.")
         .min(0, "Rides cannot be less than 0."),
@@ -79,7 +89,11 @@ const newDriverSchema = z.object({
         .min(1, "Write in how you want to be contacted. ")
         .max(255, "Max characters allowed is 255."),
 
-    secondaryContactPref: z.string().max(255, "Max characters allowed is 255.").optional(),
+    secondaryContactPref: z
+        .string()
+        .max(255, "Max characters allowed is 255.")
+        .optional()
+        .or(z.literal("")),
 
     primaryPhoneNumber: z
         .string()
@@ -112,6 +126,26 @@ type Props = {
     onSubmit: (values: NewDriverFormValues) => void | Promise<void>;
 };
 
+// Months and Years values, from AI
+const MONTHS = [
+    { value: "01", label: "January" },
+    { value: "02", label: "February" },
+    { value: "03", label: "March" },
+    { value: "04", label: "April" },
+    { value: "05", label: "May" },
+    { value: "06", label: "June" },
+    { value: "07", label: "July" },
+    { value: "08", label: "August" },
+    { value: "09", label: "September" },
+    { value: "10", label: "October" },
+    { value: "11", label: "November" },
+    { value: "12", label: "December" },
+] as const;
+
+const YEARS = Array.from({ length: 100 }, (_, i) => {
+    const year = new Date().getFullYear() - i;
+    return { value: String(year), label: String(year) };
+});
 /* --------------------------------- Form ----------------------------------- */
 export default function NewDriverForm({ defaultValues, onSubmit }: Props) {
     const form = useForm<NewDriverFormValues>({
@@ -162,25 +196,6 @@ export default function NewDriverForm({ defaultValues, onSubmit }: Props) {
     const [monthOpen, setMonthOpen] = useState(false);
     const [yearOpen, setYearOpen] = useState(false);
 
-    const MONTHS = [
-        { value: "01", label: "January" },
-        { value: "02", label: "February" },
-        { value: "03", label: "March" },
-        { value: "04", label: "April" },
-        { value: "05", label: "May" },
-        { value: "06", label: "June" },
-        { value: "07", label: "July" },
-        { value: "08", label: "August" },
-        { value: "09", label: "September" },
-        { value: "10", label: "October" },
-        { value: "11", label: "November" },
-        { value: "12", label: "December" },
-    ];
-
-    const YEARS = Array.from({ length: 100 }, (_, i) => {
-        const year = new Date().getFullYear() - i;
-        return { value: String(year), label: String(year) };
-    });
     return (
         <Form {...form}>
             <form

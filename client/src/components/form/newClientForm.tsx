@@ -53,7 +53,11 @@ const newClientSchema = z
             .max(255, "Max characters allowed is 255."),
         birthMonth: z.string().min(1, "Please select a month."),
         birthYear: z.string().min(1, "Please select a year."),
-        secondaryContactPref: z.string().max(255, "Max characters allowed is 255.").optional(),
+        secondaryContactPref: z
+            .string()
+            .max(255, "Max characters allowed is 255.")
+            .optional()
+            .or(z.literal("")),
         homeAddress: z
             .string()
             .min(1, "Home address is required")
@@ -61,7 +65,11 @@ const newClientSchema = z
         clientGender: z.enum(["Male", "Female", "Other"], {
             message: "Please specify the clients gender.",
         }),
-        homeAddress2: z.string().max(255, "Max characters allowed is 255.").optional(),
+        homeAddress2: z
+            .string()
+            .max(255, "Max characters allowed is 255.")
+            .optional()
+            .or(z.literal("")),
         clientStatus: z.enum(["Permanent client", "Temporary client"], {
             message: "Please specify if the client is a permanent or temporary client",
         }),
@@ -72,7 +80,7 @@ const newClientSchema = z
         inactiveSince: z.date().optional(),
         awayFrom: z.date().optional(),
         awayTo: z.date().optional(),
-        clientEmail: z.email().optional().or(z.literal("")),
+        clientEmail: z.email("Please enter a valid email address.").optional().or(z.literal("")),
         primaryPhoneNumber: z
             .string()
             .min(1, "Phone number is required")
@@ -143,6 +151,27 @@ type Props = {
     onSubmit: (values: NewClientFormValues) => void | Promise<void>;
 };
 
+// Months and Years values, from AI
+
+const MONTHS = [
+    { value: "01", label: "January" },
+    { value: "02", label: "February" },
+    { value: "03", label: "March" },
+    { value: "04", label: "April" },
+    { value: "05", label: "May" },
+    { value: "06", label: "June" },
+    { value: "07", label: "July" },
+    { value: "08", label: "August" },
+    { value: "09", label: "September" },
+    { value: "10", label: "October" },
+    { value: "11", label: "November" },
+    { value: "12", label: "December" },
+] as const;
+
+const YEARS = Array.from({ length: 100 }, (_, i) => {
+    const year = new Date().getFullYear() - i;
+    return { value: String(year), label: String(year) };
+});
 /* --------------------------------- Form ----------------------------------- */
 export default function NewClientForm({ defaultValues, onSubmit }: Props) {
     const form = useForm<NewClientFormValues>({
@@ -170,7 +199,7 @@ export default function NewClientForm({ defaultValues, onSubmit }: Props) {
             primaryPhoneNumber: defaultValues.primaryPhoneNumber ?? "",
             primaryPhoneIsCellPhone: defaultValues.primaryPhoneIsCellPhone ?? false,
             okToTextPrimaryPhone: defaultValues.okToTextPrimaryPhone ?? false,
-            endActiveStatus: defaultValues.endActiveStatus ?? new Date(),
+            endActiveStatus: defaultValues.endActiveStatus,
             secondaryPhoneNumber: defaultValues.secondaryPhoneNumber ?? "",
             secondaryPhoneIsCellPhone: defaultValues.secondaryPhoneIsCellPhone ?? false,
             okToTextSecondaryPhone: defaultValues.okToTextSecondaryPhone ?? false,
@@ -183,26 +212,6 @@ export default function NewClientForm({ defaultValues, onSubmit }: Props) {
     const [monthOpen, setMonthOpen] = useState(false);
     const [yearOpen, setYearOpen] = useState(false);
 
-    const MONTHS = [
-        { value: "01", label: "January" },
-        { value: "02", label: "February" },
-        { value: "03", label: "March" },
-        { value: "04", label: "April" },
-        { value: "05", label: "May" },
-        { value: "06", label: "June" },
-        { value: "07", label: "July" },
-        { value: "08", label: "August" },
-        { value: "09", label: "September" },
-        { value: "10", label: "October" },
-        { value: "11", label: "November" },
-        { value: "12", label: "December" },
-    ];
-
-    const YEARS = Array.from({ length: 100 }, (_, i) => {
-        const year = new Date().getFullYear() - i;
-        return { value: String(year), label: String(year) };
-    });
-
     return (
         <Form {...form}>
             <form
@@ -210,7 +219,7 @@ export default function NewClientForm({ defaultValues, onSubmit }: Props) {
                 className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-6 w-full items-start pt-"
                 onSubmit={form.handleSubmit(onSubmit)}
             >
-                {/* First Name */}
+                {/* First name */}
                 <FormField
                     control={form.control}
                     name="firstName"
@@ -262,7 +271,7 @@ export default function NewClientForm({ defaultValues, onSubmit }: Props) {
                         </FormItem>
                     )}
                 />
-
+                {/* Last name */}
                 <FormField
                     control={form.control}
                     name="lastName"
@@ -590,7 +599,7 @@ export default function NewClientForm({ defaultValues, onSubmit }: Props) {
                         name="volunteeringStatus"
                         render={({ field }) => (
                             <FormItem className="w-full">
-                                <FormLabel>Additional Rider</FormLabel>
+                                <FormLabel>Status</FormLabel>
                                 <FormControl className="w-full">
                                     <Select value={field.value} onValueChange={field.onChange}>
                                         <SelectTrigger className="w-full">
