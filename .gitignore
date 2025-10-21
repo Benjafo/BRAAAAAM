@@ -22,3 +22,10 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+
+# Drizzle
+server/drizzle/org/meta
+server/drizzle/org/*.sql
+
+server/drizzle/sys/meta
+server/drizzle/sys/*.sql
