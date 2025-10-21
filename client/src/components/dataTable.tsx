@@ -153,18 +153,18 @@ export function DataTable<T extends Record<string, unknown>>({
                 // Add sorting
                 if (sorting.length > 0) {
                     const sort = sorting[0];
-                    params.set("sortBy", sort.id);
-                    params.set("sortDir", sort.desc ? "desc" : "asc");
+                    params.sortBy = sort.id;
+                    params.sortDir = sort.desc ? "desc" : "asc";
                 }
 
                 // Add global search
                 if (globalFilter) {
-                    params.set("search", globalFilter);
+                    params.search = globalFilter;
                 }
 
                 // Add column filters
                 columnFilters.forEach((filter) => {
-                    params.set(filter.id, String(filter.value));
+                    params[filter.id] = String(filter.value);
                 });
 
                 // Sync search params in the URL
