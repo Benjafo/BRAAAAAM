@@ -6,7 +6,7 @@ type AuditLogEntry = {
     eventDetails: string;
 };
 
-const API_AUDIT_LOG_ENDPOINT = `${import.meta.env.BASE_URL}/dummy/audit-log`; //TODO fix this
+const API_AUDIT_LOG_ENDPOINT = `http://localhost:3000/dummy/audit-log`; //TODO fix this
 
 export function AuditLogTable() {
     const fetchAuditLogEntries = async (params: URLSearchParams) => {

@@ -4,7 +4,7 @@ type Role = {
     name: string;
 };
 
-const API_ROLES_ENDPOINT = `${import.meta.env.BASE_URL}/dummy/roles`; //TODO fix this
+const API_ROLES_ENDPOINT = `http://localhost:3000/dummy/roles`; //TODO fix this
 
 export function RolesTable() {
     const fetchRoles = async (params: URLSearchParams) => {

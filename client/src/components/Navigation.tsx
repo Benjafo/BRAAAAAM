@@ -108,6 +108,14 @@ export const MainNavigation = ({
             permission: PERMISSIONS.VIEW_SCHEDULE,
         },
         {
+            text: "Unassigned Rides",
+            link: "/unassigned-rides",
+        },
+        {
+            text: "Unvailability",
+            link: "/unavailability",
+        },
+        {
             text: "Notifications",
             link: "/notifications",
             permission: PERMISSIONS.VIEW_NOTIFICATIONS,

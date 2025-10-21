@@ -7,7 +7,7 @@ type Location = {
     zip: number;
 };
 
-const API_LOCATIONS_ENDPOINT = `${import.meta.env.BASE_URL}/dummy/locations`; //TODO fix this
+const API_LOCATIONS_ENDPOINT = `http://localhost:3000/dummy/locations`; //TODO fix this
 
 export function LocationsTable() {
     const fetchLocations = async (params: URLSearchParams) => {

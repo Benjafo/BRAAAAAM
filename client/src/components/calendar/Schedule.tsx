@@ -19,7 +19,7 @@ type RideFromAPI = {
     status: "unassigned" | "scheduled" | "cancelled" | "completed" | "withdrawn";
 };
 
-const API_RIDES_ENDPOINT = `${import.meta.env.BASE_URL}/dummy/rides`;
+const API_RIDES_ENDPOINT = `http://localhost:3000/dummy/rides`;
 
 // Transform API ride data to CalendarEvent format
 // ai helped with this data transformation
