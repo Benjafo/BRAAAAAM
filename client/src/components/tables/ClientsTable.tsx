@@ -12,8 +12,14 @@ type Client = {
 const API_CLIENTS_ENDPOINT = `http://localhost:3000/dummy/clients`; //TODO fix this
 
 export function ClientsTable() {
-    const fetchClients = async (params: URLSearchParams) => {
-        const response = await fetch(`${API_CLIENTS_ENDPOINT}?${params}`);
+    const fetchClients = async (params: Record<string, any>) => {
+        const searchParams = new URLSearchParams();
+        Object.entries(params).forEach(([key, value]) => {
+            if (value !== undefined && value !== null) {
+                searchParams.set(key, String(value));
+            }
+        });
+        const response = await fetch(`${API_CLIENTS_ENDPOINT}?${searchParams}`);
         const res = await response.json();
         return res;
     };

@@ -12,8 +12,14 @@ type Ride = {
 const API_RIDES_ENDPOINT = `http://localhost:3000/dummy/rides`; //TODO fix this
 
 export function RidesTable() {
-    const fetchRides = async (params: URLSearchParams) => {
-        const response = await fetch(`${API_RIDES_ENDPOINT}?${params}`);
+    const fetchRides = async (params: Record<string, any>) => {
+        const searchParams = new URLSearchParams();
+        Object.entries(params).forEach(([key, value]) => {
+            if (value !== undefined && value !== null) {
+                searchParams.set(key, String(value));
+            }
+        });
+        const response = await fetch(`${API_RIDES_ENDPOINT}?${searchParams}`);
         const res = await response.json();
         return res;
     };

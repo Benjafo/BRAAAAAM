@@ -13,8 +13,14 @@ type User = {
 const API_USERS_ENDPOINT = `http://localhost:3000/dummy/users`; //TODO fix this
 
 export function UsersTable() {
-    const fetchUsers = async (params: URLSearchParams) => {
-        const response = await fetch(`${API_USERS_ENDPOINT}?${params}`);
+    const fetchUsers = async (params: Record<string, any>) => {
+        const searchParams = new URLSearchParams();
+        Object.entries(params).forEach(([key, value]) => {
+            if (value !== undefined && value !== null) {
+                searchParams.set(key, String(value));
+            }
+        });
+        const response = await fetch(`${API_USERS_ENDPOINT}?${searchParams}`);
         const res = await response.json();
         return res;
     };

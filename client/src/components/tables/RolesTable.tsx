@@ -7,8 +7,14 @@ type Role = {
 const API_ROLES_ENDPOINT = `http://localhost:3000/dummy/roles`; //TODO fix this
 
 export function RolesTable() {
-    const fetchRoles = async (params: URLSearchParams) => {
-        const response = await fetch(`${API_ROLES_ENDPOINT}?${params}`);
+    const fetchRoles = async (params: Record<string, any>) => {
+        const searchParams = new URLSearchParams();
+        Object.entries(params).forEach(([key, value]) => {
+            if (value !== undefined && value !== null) {
+                searchParams.set(key, String(value));
+            }
+        });
+        const response = await fetch(`${API_ROLES_ENDPOINT}?${searchParams}`);
         const res = await response.json();
         return res;
     };
