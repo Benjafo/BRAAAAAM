@@ -1,5 +1,3 @@
-"use client";
-
 import * as React from "react";
 import { Button } from "@/components/ui/button";
 import {
@@ -10,36 +8,39 @@ import {
     DialogTitle,
     DialogTrigger,
 } from "@/components/ui/dialog";
-
 import { toast } from "sonner";
 import type { NewDriverFormValues } from "../form/newDriverForm";
 import NewDriverForm from "../form/newDriverForm";
 
-export default function NewDriverModal() {
+type NewDriverModalProps = {
+    defaultValues?: Partial<NewDriverFormValues>;
+    triggerButton?: React.ReactNode;
+};
+
+export default function NewDriverModal({ defaultValues = {}, triggerButton }: NewDriverModalProps) {
     const [open, setOpen] = React.useState(false);
 
-    // Test default values for now - don't know if we want to use it for anything yet, just using one thing right now to make sure it works
-    const defaultValues: Partial<NewDriverFormValues> = {
-        vehicleType: "",
-    };
+    // Determine if we're editing based on whether firstName is populated (AI made this)
+    const isEditing = Boolean(defaultValues.firstName);
+    const modalTitle = isEditing ? "Edit Driver" : "New Driver";
+    const successMessage = isEditing ? "Driver Updated" : "New Driver Created";
+
     async function handleSubmit(values: NewDriverFormValues) {
-        // TODO: API logic for new client information sent
-        console.log(values); // Testing to see if values appear after submit
-        toast.success("New Driver Created");
+        // TODO: API logic for new/edit driver information
+        console.log(values);
+        toast.success(successMessage);
         setOpen(false);
     }
 
     return (
         <Dialog open={open} onOpenChange={setOpen}>
             <DialogTrigger asChild>
-                <Button variant="outline">New Driver</Button>
+                {triggerButton ?? <Button variant="outline">New Driver</Button>}
             </DialogTrigger>
-
             <DialogContent className="!max-w-[692px] max-h-[90vh] overflow-y-auto scroll-smooth p-6">
                 <DialogHeader className="mb-4">
-                    <DialogTitle>New Driver</DialogTitle>
+                    <DialogTitle>{modalTitle}</DialogTitle>
                 </DialogHeader>
-
                 <NewDriverForm onSubmit={handleSubmit} defaultValues={defaultValues} />
                 <DialogFooter className="flex flex-row justify-end gap-3 mt-3">
                     <Button type="button" variant="outline" onClick={() => setOpen(false)}>

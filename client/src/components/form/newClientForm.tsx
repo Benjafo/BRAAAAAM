@@ -34,26 +34,6 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 /* --------------------------------- Schema --------------------------------- */
 /* using z.enum for select values that we know are included */
 
-const MONTHS = [
-    { value: "01", label: "January" },
-    { value: "02", label: "February" },
-    { value: "03", label: "March" },
-    { value: "04", label: "April" },
-    { value: "05", label: "May" },
-    { value: "06", label: "June" },
-    { value: "07", label: "July" },
-    { value: "08", label: "August" },
-    { value: "09", label: "September" },
-    { value: "10", label: "October" },
-    { value: "11", label: "November" },
-    { value: "12", label: "December" },
-];
-
-const YEARS = Array.from({ length: 100 }, (_, i) => {
-    const year = new Date().getFullYear() - i;
-    return { value: String(year), label: String(year) };
-});
-
 const newClientSchema = z
     .object({
         firstName: z
@@ -71,7 +51,6 @@ const newClientSchema = z
             .string()
             .min(1, "Write in how you want to be contacted. ")
             .max(255, "Max characters allowed is 255."),
-        birthDate: z.date("Please select a date."),
         birthMonth: z.string().min(1, "Please select a month."),
         birthYear: z.string().min(1, "Please select a year."),
         secondaryContactPref: z.string().max(255, "Max characters allowed is 255.").optional(),
@@ -117,6 +96,7 @@ const newClientSchema = z
         okToTextSecondaryPhone: z.boolean(),
     })
     .superRefine((data, ctx) => {
+        // AI helped on the super refine
         // If volunteering status is "On leave", onLeaveUntil must be provided
         if (data.volunteeringStatus === "On leave" && !data.onLeaveUntil) {
             ctx.addIssue({
@@ -165,9 +145,6 @@ type Props = {
 
 /* --------------------------------- Form ----------------------------------- */
 export default function NewClientForm({ defaultValues, onSubmit }: Props) {
-    const [monthOpen, setMonthOpen] = useState(false);
-    const [yearOpen, setYearOpen] = useState(false);
-
     const form = useForm<NewClientFormValues>({
         resolver: zodResolver(newClientSchema),
         mode: "onBlur",
@@ -177,7 +154,6 @@ export default function NewClientForm({ defaultValues, onSubmit }: Props) {
             livingAlone: defaultValues.livingAlone ?? "Lives alone",
             lastName: defaultValues.lastName ?? "",
             primaryContactPref: defaultValues.primaryContactPref ?? "",
-            birthDate: defaultValues.birthDate ?? new Date(),
             birthMonth: defaultValues.birthMonth ?? "",
             birthYear: defaultValues.birthYear ?? "",
             secondaryContactPref: defaultValues.secondaryContactPref ?? "",
@@ -203,6 +179,29 @@ export default function NewClientForm({ defaultValues, onSubmit }: Props) {
 
     const clientStatus = form.watch("clientStatus");
     const volunteeringStatus = form.watch("volunteeringStatus");
+
+    const [monthOpen, setMonthOpen] = useState(false);
+    const [yearOpen, setYearOpen] = useState(false);
+
+    const MONTHS = [
+        { value: "01", label: "January" },
+        { value: "02", label: "February" },
+        { value: "03", label: "March" },
+        { value: "04", label: "April" },
+        { value: "05", label: "May" },
+        { value: "06", label: "June" },
+        { value: "07", label: "July" },
+        { value: "08", label: "August" },
+        { value: "09", label: "September" },
+        { value: "10", label: "October" },
+        { value: "11", label: "November" },
+        { value: "12", label: "December" },
+    ];
+
+    const YEARS = Array.from({ length: 100 }, (_, i) => {
+        const year = new Date().getFullYear() - i;
+        return { value: String(year), label: String(year) };
+    });
 
     return (
         <Form {...form}>
@@ -293,7 +292,7 @@ export default function NewClientForm({ defaultValues, onSubmit }: Props) {
                     )}
                 />
 
-                {/* Birth Month */}
+                {/* Birth Month, AI helped create this  */}
                 <FormField
                     control={form.control}
                     name="birthMonth"
@@ -372,7 +371,7 @@ export default function NewClientForm({ defaultValues, onSubmit }: Props) {
                     )}
                 />
 
-                {/* Birth Year */}
+                {/* Birth Year, AI helped create this  */}
                 <FormField
                     control={form.control}
                     name="birthYear"

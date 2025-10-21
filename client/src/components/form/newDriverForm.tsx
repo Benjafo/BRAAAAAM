@@ -14,10 +14,21 @@ import {
     FormMessage,
 } from "@/components/ui/form";
 
-import { DatePickerInput } from "../ui/datePickerField";
-import { MapPin } from "lucide-react";
+import { Check, ChevronsUpDown, MapPin } from "lucide-react";
 import { RadioGroup, RadioGroupItem } from "../ui/radio-group";
 import { Checkbox } from "../ui/checkbox";
+import { Popover, PopoverContent, PopoverTrigger } from "../ui/popover";
+import { Button } from "../ui/button";
+import {
+    Command,
+    CommandEmpty,
+    CommandGroup,
+    CommandInput,
+    CommandItem,
+    CommandList,
+} from "../ui/command";
+import { cn } from "@/lib/utils";
+import { useState } from "react";
 
 /* --------------------------------- Schema --------------------------------- */
 /* using z.enum for select values that we know are included */
@@ -38,6 +49,8 @@ const newDriverSchema = z.object({
         .string()
         .min(1, "Please enter the vehicle color/details.")
         .max(255, "Max characters allowed is 255."),
+    birthMonth: z.string().min(1, "Please select a month."),
+    birthYear: z.string().min(1, "Please select a year."),
     maxRides: z
         .number("Must enter the number of rides, a 0 means no limit.")
         .min(0, "Rides cannot be less than 0."),
@@ -54,6 +67,9 @@ const newDriverSchema = z.object({
     maxRidesDistance: z
         .number("Must enter the maximum number of miles driver is willing to go.")
         .min(0, "Rides cannot be less than 0."),
+    distanceLimitation: z
+        .number("Must enter the maximum number of miles the driver is willing to go.")
+        .min(0, "Cannot be 0 miles."),
 
     lifeSpanReimbursement: z.enum(["Yes", "No"], {
         message: "Please specifiy if there was a reimbursement. ",
@@ -62,7 +78,7 @@ const newDriverSchema = z.object({
         .string()
         .min(1, "Write in how you want to be contacted. ")
         .max(255, "Max characters allowed is 255."),
-    birthDate: z.date("Please select a date."),
+
     secondaryContactPref: z.string().max(255, "Max characters allowed is 255.").optional(),
 
     primaryPhoneNumber: z
@@ -107,6 +123,8 @@ export default function NewDriverForm({ defaultValues, onSubmit }: Props) {
             vehicleType: defaultValues.vehicleType ?? "",
             lastName: defaultValues.lastName ?? "",
             vehicleColor: defaultValues.vehicleColor ?? "",
+            birthMonth: defaultValues.birthMonth ?? "",
+            birthYear: defaultValues.birthYear ?? "",
             maxRides: defaultValues.maxRides,
             homeAddress: defaultValues.homeAddress ?? "",
             townPreferences: defaultValues.townPreferences ?? "",
@@ -114,9 +132,10 @@ export default function NewDriverForm({ defaultValues, onSubmit }: Props) {
             destinationLimitations: defaultValues.destinationLimitations ?? "",
             driverEmail: defaultValues.driverEmail ?? "",
             maxRidesDistance: defaultValues.maxRidesDistance,
+            distanceLimitation: defaultValues.distanceLimitation,
             lifeSpanReimbursement: defaultValues.lifeSpanReimbursement ?? "No",
             primaryContactPref: defaultValues.primaryContactPref ?? "",
-            birthDate: defaultValues.birthDate ?? new Date(),
+
             secondaryContactPref: defaultValues.secondaryContactPref ?? "",
             primaryPhoneNumber: defaultValues.primaryPhoneNumber ?? "",
             primaryPhoneIsCellPhone: defaultValues.primaryPhoneIsCellPhone ?? false,
@@ -139,11 +158,34 @@ export default function NewDriverForm({ defaultValues, onSubmit }: Props) {
             const parsed = parseFloat(value);
             field.onChange(isNaN(parsed) ? undefined : parsed);
         };
+
+    const [monthOpen, setMonthOpen] = useState(false);
+    const [yearOpen, setYearOpen] = useState(false);
+
+    const MONTHS = [
+        { value: "01", label: "January" },
+        { value: "02", label: "February" },
+        { value: "03", label: "March" },
+        { value: "04", label: "April" },
+        { value: "05", label: "May" },
+        { value: "06", label: "June" },
+        { value: "07", label: "July" },
+        { value: "08", label: "August" },
+        { value: "09", label: "September" },
+        { value: "10", label: "October" },
+        { value: "11", label: "November" },
+        { value: "12", label: "December" },
+    ];
+
+    const YEARS = Array.from({ length: 100 }, (_, i) => {
+        const year = new Date().getFullYear() - i;
+        return { value: String(year), label: String(year) };
+    });
     return (
         <Form {...form}>
             <form
                 id="new-driver-form"
-                className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-6 w-full items-start pt-"
+                className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-6 w-full items-start"
                 onSubmit={form.handleSubmit(onSubmit)}
             >
                 {/* First Name */}
@@ -196,7 +238,7 @@ export default function NewDriverForm({ defaultValues, onSubmit }: Props) {
                     name="vehicleColor"
                     render={({ field }) => (
                         <FormItem className="w-full">
-                            <FormLabel>Vehicle Color/Type</FormLabel>
+                            <FormLabel>Vehicle Color</FormLabel>
                             <FormControl className="w-full">
                                 <Input placeholder="Value" {...field} className="w-full" />
                             </FormControl>
@@ -205,16 +247,150 @@ export default function NewDriverForm({ defaultValues, onSubmit }: Props) {
                     )}
                 />
 
-                {/* Month/Year of Birth */}
+                {/* Birth Month, AI helped create this  */}
                 <FormField
                     control={form.control}
-                    name="birthDate"
+                    name="birthMonth"
                     render={({ field }) => (
-                        <FormItem>
-                            <FormLabel>Month/Year of Birth</FormLabel>
-                            <FormControl>
-                                <DatePickerInput value={field.value} onChange={field.onChange} />
+                        <FormItem className="flex flex-col">
+                            <FormLabel>Birth Month</FormLabel>
+                            <Popover open={monthOpen} onOpenChange={setMonthOpen}>
+                                <PopoverTrigger asChild>
+                                    <FormControl>
+                                        <Button
+                                            variant="outline"
+                                            role="combobox"
+                                            aria-expanded={monthOpen}
+                                            className={cn(
+                                                "w-full justify-between",
+                                                !field.value && "text-muted-foreground"
+                                            )}
+                                        >
+                                            {field.value
+                                                ? MONTHS.find(
+                                                      (month) => month.value === field.value
+                                                  )?.label
+                                                : "Select month"}
+                                            <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                                        </Button>
+                                    </FormControl>
+                                </PopoverTrigger>
+                                <PopoverContent className="w-[var(--radix-popover-trigger-width)] p-0">
+                                    <Command>
+                                        <CommandInput placeholder="Search month..." />
+                                        <CommandList>
+                                            <CommandEmpty>No month found.</CommandEmpty>
+                                            <CommandGroup>
+                                                {MONTHS.map((month) => (
+                                                    <CommandItem
+                                                        key={month.value}
+                                                        value={month.label}
+                                                        onSelect={() => {
+                                                            field.onChange(month.value);
+                                                            setMonthOpen(false);
+                                                        }}
+                                                    >
+                                                        <Check
+                                                            className={cn(
+                                                                "mr-2 h-4 w-4",
+                                                                month.value === field.value
+                                                                    ? "opacity-100"
+                                                                    : "opacity-0"
+                                                            )}
+                                                        />
+                                                        {month.label}
+                                                    </CommandItem>
+                                                ))}
+                                            </CommandGroup>
+                                        </CommandList>
+                                    </Command>
+                                </PopoverContent>
+                            </Popover>
+                            <FormMessage />
+                        </FormItem>
+                    )}
+                />
+
+                <FormField
+                    control={form.control}
+                    name="distanceLimitation"
+                    render={({ field }) => (
+                        <FormItem className="w-full">
+                            <FormLabel>Maximum Distance Willing to go (In Miles) </FormLabel>
+                            <FormControl className="w-full">
+                                <Input
+                                    type="number"
+                                    step="1"
+                                    min="0"
+                                    placeholder="0"
+                                    value={field.value ?? ""}
+                                    onChange={handleNumberChange(field)}
+                                    className="w-full"
+                                />
                             </FormControl>
+                            <FormMessage />
+                        </FormItem>
+                    )}
+                />
+
+                {/* Birth Year, AI helped create this  */}
+                <FormField
+                    control={form.control}
+                    name="birthYear"
+                    render={({ field }) => (
+                        <FormItem className="flex flex-col">
+                            <FormLabel>Birth Year</FormLabel>
+                            <Popover open={yearOpen} onOpenChange={setYearOpen}>
+                                <PopoverTrigger asChild>
+                                    <FormControl>
+                                        <Button
+                                            variant="outline"
+                                            role="combobox"
+                                            aria-expanded={yearOpen}
+                                            className={cn(
+                                                "w-full justify-between",
+                                                !field.value && "text-muted-foreground"
+                                            )}
+                                        >
+                                            {field.value
+                                                ? YEARS.find((year) => year.value === field.value)
+                                                      ?.label
+                                                : "Select year"}
+                                            <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                                        </Button>
+                                    </FormControl>
+                                </PopoverTrigger>
+                                <PopoverContent className="w-[var(--radix-popover-trigger-width)] p-0">
+                                    <Command>
+                                        <CommandInput placeholder="Search year..." />
+                                        <CommandList>
+                                            <CommandEmpty>No year found.</CommandEmpty>
+                                            <CommandGroup>
+                                                {YEARS.map((year) => (
+                                                    <CommandItem
+                                                        key={year.value}
+                                                        value={year.label}
+                                                        onSelect={() => {
+                                                            field.onChange(year.value);
+                                                            setYearOpen(false);
+                                                        }}
+                                                    >
+                                                        <Check
+                                                            className={cn(
+                                                                "mr-2 h-4 w-4",
+                                                                year.value === field.value
+                                                                    ? "opacity-100"
+                                                                    : "opacity-0"
+                                                            )}
+                                                        />
+                                                        {year.label}
+                                                    </CommandItem>
+                                                ))}
+                                            </CommandGroup>
+                                        </CommandList>
+                                    </Command>
+                                </PopoverContent>
+                            </Popover>
                             <FormMessage />
                         </FormItem>
                     )}
@@ -502,34 +678,36 @@ export default function NewDriverForm({ defaultValues, onSubmit }: Props) {
                 </div>
 
                 {/* Primary contact preference */}
-                <FormField
-                    control={form.control}
-                    name="primaryContactPref"
-                    render={({ field }) => (
-                        <FormItem className="w-full">
-                            <FormLabel>Primary Contact Preference</FormLabel>
-                            <FormControl className="w-full">
-                                <Input placeholder="Value" {...field} className="w-full" />
-                            </FormControl>
-                            <FormMessage />
-                        </FormItem>
-                    )}
-                />
+                <div className="space-y-4">
+                    <FormField
+                        control={form.control}
+                        name="primaryContactPref"
+                        render={({ field }) => (
+                            <FormItem className="w-full">
+                                <FormLabel>Primary Contact Preference</FormLabel>
+                                <FormControl className="w-full">
+                                    <Input placeholder="Value" {...field} className="w-full" />
+                                </FormControl>
+                                <FormMessage />
+                            </FormItem>
+                        )}
+                    />
 
-                {/* Secondary contact preference */}
-                <FormField
-                    control={form.control}
-                    name="secondaryContactPref"
-                    render={({ field }) => (
-                        <FormItem className="w-full">
-                            <FormLabel>Secondary Contact Preference</FormLabel>
-                            <FormControl className="w-full">
-                                <Input placeholder="Value" {...field} className="w-full" />
-                            </FormControl>
-                            <FormMessage />
-                        </FormItem>
-                    )}
-                />
+                    {/* Secondary contact preference */}
+                    <FormField
+                        control={form.control}
+                        name="secondaryContactPref"
+                        render={({ field }) => (
+                            <FormItem className="w-full">
+                                <FormLabel>Secondary Contact Preference</FormLabel>
+                                <FormControl className="w-full">
+                                    <Input placeholder="Value" {...field} className="w-full" />
+                                </FormControl>
+                                <FormMessage />
+                            </FormItem>
+                        )}
+                    />
+                </div>
             </form>
         </Form>
     );
