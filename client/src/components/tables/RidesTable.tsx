@@ -9,7 +9,7 @@ type Ride = {
     status: "unassigned" | "scheduled" | "cancelled" | "completed" | "withdrawn";
 };
 
-const API_RIDES_ENDPOINT = `http://localhost:3000/dummy/rides`; //TODO fix this
+const API_RIDES_ENDPOINT = `${import.meta.env.BASE_URL}/dummy/rides`; //TODO fix this
 
 export function RidesTable() {
     const fetchRides = async (params: URLSearchParams) => {

@@ -25,6 +25,7 @@ type Client = {
 type Ride = {
     date: string
     time: string
+    duration: number // duration in minutes
     clientName: string
     destinationAddress: string
     dispatcherName: string
@@ -46,6 +47,17 @@ type Location = {
     address: string,
     city: string,
     zip: number
+}
+
+type UnavailabilityBlock = {
+    id: number
+    startDate: string // e.g., '2025-10-15'
+    startTime: string // e.g., '08:30 AM'
+    endDate: string // e.g., '2025-10-15'
+    endTime: string // e.g., '05:30 PM'
+    reason?: string
+    recurring?: boolean
+    recurringPattern?: 'daily' | 'weekly' | 'monthly'
 }
 
 const USERS: User[] = [
@@ -92,21 +104,46 @@ const CLIENTS: Client[] = [
 ]
 
 const RIDES: Ride[] = [
-    { date: '2025-10-15', time: '08:30 AM', clientName: 'Harris, Christopher', destinationAddress: '1000 Medical Center Dr, Rochester NY 14623', dispatcherName: 'Johnson, Sarah', status: 'completed' },
-    { date: '2025-10-15', time: '10:00 AM', clientName: 'Moore, Amanda', destinationAddress: '500 Grocery Plaza, Rochester NY 14604', dispatcherName: 'Martinez, Lisa', status: 'completed' },
-    { date: '2025-10-16', time: '09:15 AM', clientName: 'Clark, Daniel', destinationAddress: '350 Pharmacy Way, Victor NY 14564', dispatcherName: 'Thomas, William', status: 'scheduled' },
-    { date: '2025-10-16', time: '11:30 AM', clientName: 'Lewis, Michelle', destinationAddress: '2400 Hospital Rd, Rochester NY 14620', dispatcherName: 'Johnson, Sarah', status: 'scheduled' },
-    { date: '2025-10-16', time: '02:00 PM', clientName: 'Hall, Nicole', destinationAddress: '800 Shopping Center, Rochester NY 14612', dispatcherName: 'Martinez, Lisa', status: 'unassigned' },
-    { date: '2025-10-17', time: '08:00 AM', clientName: 'Allen, Gregory', destinationAddress: '150 Clinic Ave, Pittsford NY 14534', dispatcherName: 'Thomas, William', status: 'scheduled' },
-    { date: '2025-10-17', time: '01:30 PM', clientName: 'Young, Stephanie', destinationAddress: '900 Wellness Center, Henrietta NY 14467', dispatcherName: 'Johnson, Sarah', status: 'unassigned' },
-    { date: '2025-10-18', time: '10:30 AM', clientName: 'King, Raymond', destinationAddress: '450 Specialist Office, Rush NY 14543', dispatcherName: 'Martinez, Lisa', status: 'cancelled' },
-    { date: '2025-10-18', time: '03:00 PM', clientName: 'Scott, Kevin', destinationAddress: '700 Therapy Center, Brockport NY 14420', dispatcherName: 'Thomas, William', status: 'scheduled' },
-    { date: '2025-10-19', time: '09:00 AM', clientName: 'Green, Rebecca', destinationAddress: '1200 Dental Clinic, Webster NY 14580', dispatcherName: 'Johnson, Sarah', status: 'completed' },
-    { date: '2025-10-19', time: '11:00 AM', clientName: 'Baker, Timothy', destinationAddress: '600 Eye Center, Rochester NY 14607', dispatcherName: 'Martinez, Lisa', status: 'withdrawn' },
-    { date: '2025-10-20', time: '08:45 AM', clientName: 'Nelson, Richard', destinationAddress: '300 Physical Therapy, Penfield NY 14526', dispatcherName: 'Thomas, William', status: 'scheduled' },
-    { date: '2025-10-20', time: '02:30 PM', clientName: 'Carter, Elizabeth', destinationAddress: '1500 Urgent Care, Rochester NY 14604', dispatcherName: 'Johnson, Sarah', status: 'unassigned' },
-    { date: '2025-10-21', time: '10:15 AM', clientName: 'Mitchell, Andrew', destinationAddress: '2000 Senior Center, Gates NY 14624', dispatcherName: 'Martinez, Lisa', status: 'scheduled' },
-    { date: '2025-10-21', time: '01:00 PM', clientName: 'Perez, Katherine', destinationAddress: '850 Community Health, Rochester NY 14620', dispatcherName: 'Thomas, William', status: 'completed' },
+    // Monday, October 13, 2025 - 8 rides all at 11:00 AM (stress test for overlapping events)
+    { date: '2025-10-13', time: '11:00 AM', duration: 60, clientName: 'Harris, Christopher', destinationAddress: '1000 Medical Center Dr, Rochester NY 14623', dispatcherName: 'Johnson, Sarah', status: 'scheduled' },
+    { date: '2025-10-13', time: '11:00 AM', duration: 60, clientName: 'Moore, Amanda', destinationAddress: '500 Pharmacy Plaza, Rochester NY 14604', dispatcherName: 'Martinez, Lisa', status: 'scheduled' },
+    { date: '2025-10-13', time: '11:00 AM', duration: 90, clientName: 'Clark, Daniel', destinationAddress: '350 Lab Services Way, Victor NY 14564', dispatcherName: 'Thomas, William', status: 'scheduled' },
+    { date: '2025-10-13', time: '11:00 AM', duration: 120, clientName: 'Lewis, Michelle', destinationAddress: '2400 Hospital Rd, Rochester NY 14620', dispatcherName: 'Davis, Emily', status: 'unassigned' },
+    { date: '2025-10-13', time: '11:00 AM', duration: 180, clientName: 'Hall, Nicole', destinationAddress: '800 Dialysis Center, Rochester NY 14612', dispatcherName: 'Wilson, James', status: 'scheduled' },
+    { date: '2025-10-13', time: '11:00 AM', duration: 60, clientName: 'Allen, Gregory', destinationAddress: '150 Clinic Ave, Pittsford NY 14534', dispatcherName: 'Anderson, Jennifer', status: 'scheduled' },
+    { date: '2025-10-13', time: '11:00 AM', duration: 150, clientName: 'Young, Stephanie', destinationAddress: '900 Wellness Center, Henrietta NY 14467', dispatcherName: 'Garcia, Maria', status: 'scheduled' },
+    { date: '2025-10-13', time: '11:00 AM', duration: 30, clientName: 'King, Raymond', destinationAddress: '450 Specialist Office, Rush NY 14543', dispatcherName: 'White, Jessica', status: 'scheduled' },
+
+    // Tuesday, October 14, 2025 - 12 rides throughout the day
+    { date: '2025-10-14', time: '09:00 AM', duration: 60, clientName: 'Wright, Patricia', destinationAddress: '300 Morning Clinic, Rochester NY 14623', dispatcherName: 'Johnson, Sarah', status: 'scheduled' },
+    { date: '2025-10-14', time: '09:00 AM', duration: 90, clientName: 'Scott, Kevin', destinationAddress: '700 Therapy Center, Brockport NY 14420', dispatcherName: 'Thomas, William', status: 'scheduled' },
+    { date: '2025-10-14', time: '09:30 AM', duration: 60, clientName: 'Green, Rebecca', destinationAddress: '1200 Dental Clinic, Webster NY 14580', dispatcherName: 'Johnson, Sarah', status: 'scheduled' },
+    { date: '2025-10-14', time: '09:30 AM', duration: 45, clientName: 'Baker, Timothy', destinationAddress: '600 Eye Center, Rochester NY 14607', dispatcherName: 'Martinez, Lisa', status: 'scheduled' },
+    { date: '2025-10-14', time: '10:00 AM', duration: 120, clientName: 'Adams, Samantha', destinationAddress: '3000 Factory St Medical, Rochester NY 14611', dispatcherName: 'Davis, Emily', status: 'scheduled' },
+    { date: '2025-10-14', time: '11:00 AM', duration: 60, clientName: 'Nelson, Richard', destinationAddress: '200 Wellness Way, Penfield NY 14526', dispatcherName: 'Wilson, James', status: 'scheduled' },
+    { date: '2025-10-14', time: '12:00 PM', duration: 90, clientName: 'Carter, Elizabeth', destinationAddress: '900 Downtown Plaza Medical, Rochester NY 14604', dispatcherName: 'Anderson, Jennifer', status: 'scheduled' },
+    { date: '2025-10-14', time: '01:00 PM', duration: 60, clientName: 'Mitchell, Andrew', destinationAddress: '1500 Delivery Dr Clinic, Gates NY 14624', dispatcherName: 'Garcia, Maria', status: 'unassigned' },
+    { date: '2025-10-14', time: '02:00 PM', duration: 120, clientName: 'Perez, Katherine', destinationAddress: '550 Finance Blvd Medical, Rochester NY 14620', dispatcherName: 'White, Jessica', status: 'scheduled' },
+    { date: '2025-10-14', time: '02:00 PM', duration: 180, clientName: 'Roberts, Jeffrey', destinationAddress: '2200 Construction Ave Health, Fairport NY 14450', dispatcherName: 'Johnson, Sarah', status: 'scheduled' },
+    { date: '2025-10-14', time: '03:30 PM', duration: 90, clientName: 'Turner, Rachel', destinationAddress: '4000 Server Farm Rd Clinic, Henrietta NY 14467', dispatcherName: 'Martinez, Lisa', status: 'scheduled' },
+    { date: '2025-10-14', time: '04:00 PM', duration: 60, clientName: 'Phillips, Matthew', destinationAddress: '700 Property Ln Medical, Pittsford NY 14534', dispatcherName: 'Thomas, William', status: 'scheduled' },
+
+    // Wednesday - Friday rides (original schedule continues)
+    { date: '2025-10-15', time: '09:00 AM', duration: 90, clientName: 'Campbell, Victoria', destinationAddress: '1800 Box St Medical, Churchville NY 14428', dispatcherName: 'Johnson, Sarah', status: 'scheduled' },
+    { date: '2025-10-15', time: '10:00 AM', duration: 60, clientName: 'Parker, Benjamin', destinationAddress: '350 Wealth Way Clinic, Rochester NY 14618', dispatcherName: 'Martinez, Lisa', status: 'completed' },
+    { date: '2025-10-16', time: '09:15 AM', duration: 75, clientName: 'Evans, Angela', destinationAddress: '5000 Showroom Rd Medical, Greece NY 14626', dispatcherName: 'Thomas, William', status: 'scheduled' },
+    { date: '2025-10-16', time: '11:30 AM', duration: 120, clientName: 'Edwards, Nathan', destinationAddress: '2800 Rental Plaza Health, Spencerport NY 14559', dispatcherName: 'Johnson, Sarah', status: 'scheduled' },
+    { date: '2025-10-16', time: '02:00 PM', duration: 180, clientName: 'Harris, Christopher', destinationAddress: '800 Shopping Center, Rochester NY 14612', dispatcherName: 'Martinez, Lisa', status: 'unassigned' },
+    { date: '2025-10-17', time: '09:00 AM', duration: 60, clientName: 'Moore, Amanda', destinationAddress: '150 Clinic Ave, Pittsford NY 14534', dispatcherName: 'Thomas, William', status: 'scheduled' },
+    { date: '2025-10-17', time: '01:30 PM', duration: 90, clientName: 'Clark, Daniel', destinationAddress: '900 Wellness Center, Henrietta NY 14467', dispatcherName: 'Johnson, Sarah', status: 'unassigned' },
+    { date: '2025-10-18', time: '10:30 AM', duration: 45, clientName: 'Lewis, Michelle', destinationAddress: '450 Specialist Office, Rush NY 14543', dispatcherName: 'Martinez, Lisa', status: 'cancelled' },
+    { date: '2025-10-18', time: '03:00 PM', duration: 120, clientName: 'Hall, Nicole', destinationAddress: '700 Therapy Center, Brockport NY 14420', dispatcherName: 'Thomas, William', status: 'scheduled' },
+    { date: '2025-10-19', time: '09:00 AM', duration: 60, clientName: 'Allen, Gregory', destinationAddress: '1200 Dental Clinic, Webster NY 14580', dispatcherName: 'Johnson, Sarah', status: 'completed' },
+    { date: '2025-10-19', time: '11:00 AM', duration: 30, clientName: 'Young, Stephanie', destinationAddress: '600 Eye Center, Rochester NY 14607', dispatcherName: 'Martinez, Lisa', status: 'withdrawn' },
+    { date: '2025-10-20', time: '09:00 AM', duration: 90, clientName: 'King, Raymond', destinationAddress: '300 Physical Therapy, Penfield NY 14526', dispatcherName: 'Thomas, William', status: 'scheduled' },
+    { date: '2025-10-20', time: '02:30 PM', duration: 150, clientName: 'Wright, Patricia', destinationAddress: '1500 Urgent Care, Rochester NY 14604', dispatcherName: 'Johnson, Sarah', status: 'unassigned' },
+    { date: '2025-10-21', time: '10:15 AM', duration: 60, clientName: 'Scott, Kevin', destinationAddress: '2000 Senior Center, Gates NY 14624', dispatcherName: 'Martinez, Lisa', status: 'scheduled' },
+    { date: '2025-10-21', time: '01:00 PM', duration: 120, clientName: 'Green, Rebecca', destinationAddress: '850 Community Health, Rochester NY 14620', dispatcherName: 'Thomas, William', status: 'completed' },
 ]
 
 const ROLES: Role[] = [
@@ -181,6 +218,101 @@ const LOCATIONS: Location[] = [
     { name: 'Jewish Community Center', address: '1200 Edgewood Ave', city: 'Rochester', zip: 14618 }
 ]
 
+const UNAVAILABILITY_BLOCKS: UnavailabilityBlock[] = [
+    {
+        id: 1,
+        startDate: '2025-10-20',
+        startTime: '09:00 AM',
+        endDate: '2025-10-20',
+        endTime: '12:00 PM',
+        reason: 'Doctor Appointment',
+        recurring: false,
+    },
+    {
+        id: 2,
+        startDate: '2025-10-22',
+        startTime: '02:00 PM',
+        endDate: '2025-10-22',
+        endTime: '05:00 PM',
+        reason: 'Personal',
+        recurring: false,
+    },
+    {
+        id: 3,
+        startDate: '2025-10-25',
+        startTime: '09:00 AM',
+        endDate: '2025-10-25',
+        endTime: '05:00 PM',
+        reason: 'Vacation',
+        recurring: false,
+    },
+    {
+        id: 4,
+        startDate: '2025-10-21',
+        startTime: '01:00 PM',
+        endDate: '2025-10-21',
+        endTime: '03:00 PM',
+        reason: 'Vehicle Maintenance',
+        recurring: false,
+    },
+    {
+        id: 5,
+        startDate: '2025-10-23',
+        startTime: '10:00 AM',
+        endDate: '2025-10-23',
+        endTime: '02:00 PM',
+        reason: 'Family Emergency',
+        recurring: false,
+    },
+    {
+        id: 6,
+        startDate: '2025-10-24',
+        startTime: '09:00 AM',
+        endDate: '2025-10-24',
+        endTime: '10:00 AM',
+        reason: 'Medical Appointment',
+        recurring: false,
+    },
+    {
+        id: 7,
+        startDate: '2025-10-26',
+        startTime: '09:00 AM',
+        endDate: '2025-10-28',
+        endTime: '05:00 PM',
+        reason: 'Out of Town',
+        recurring: false,
+    },
+    {
+        id: 8,
+        startDate: '2025-10-19',
+        startTime: '03:00 PM',
+        endDate: '2025-10-19',
+        endTime: '05:00 PM',
+        reason: 'Training Session',
+        recurring: true,
+        recurringPattern: 'weekly',
+    },
+    {
+        id: 9,
+        startDate: '2025-10-27',
+        startTime: '11:00 AM',
+        endDate: '2025-10-27',
+        endTime: '01:00 PM',
+        reason: 'Lunch Break',
+        recurring: true,
+        recurringPattern: 'daily',
+    },
+    {
+        id: 10,
+        startDate: '2025-10-29',
+        startTime: '08:00 AM',
+        endDate: '2025-10-29',
+        endTime: '12:00 PM',
+        reason: 'Court Appearance',
+        recurring: false,
+    },
+]
+
 const mock = <T> (req, res, next, data) => {
     try {
         // Simulate network delay
@@ -252,5 +384,7 @@ router.get("/roles", (req, res, next) => mock<Role>(req, res, next, ROLES));
 router.get("/audit-log", (req, res, next) => mock<AuditLogEntry>(req, res, next, AUDIT_LOG));
 
 router.get("/locations", (req, res, next) => mock<Location>(req, res, next, LOCATIONS))
+
+router.get("/unavailability", (req, res, next) => mock<UnavailabilityBlock>(req, res, next, UNAVAILABILITY_BLOCKS))
 
 export default router;

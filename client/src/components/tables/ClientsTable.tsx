@@ -9,7 +9,7 @@ type Client = {
     status: "active" | "inactive";
 };
 
-const API_CLIENTS_ENDPOINT = `http://localhost:3000/dummy/clients`; //TODO fix this
+const API_CLIENTS_ENDPOINT = `${import.meta.env.BASE_URL}/dummy/clients`; //TODO fix this
 
 export function ClientsTable() {
     const fetchClients = async (params: URLSearchParams) => {

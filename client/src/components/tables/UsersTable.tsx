@@ -10,7 +10,7 @@ type User = {
     role: "driver" | "dispatcher" | "admin";
 };
 
-const API_USERS_ENDPOINT = `http://localhost:3000/dummy/users`; //TODO fix this
+const API_USERS_ENDPOINT = `${import.meta.env.BASE_URL}/dummy/users`; //TODO fix this
 
 export function UsersTable() {
     const fetchUsers = async (params: URLSearchParams) => {
