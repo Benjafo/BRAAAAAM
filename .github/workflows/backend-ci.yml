@@ -44,12 +44,12 @@ jobs:
       - name: Generate migrations
         working-directory: ./server
         run: |
-          npx drizzle-kit generate --config ./drizzle.sys.config.ts
-          npx drizzle-kit generate --config ./drizzle.org.config.ts
+          npx drizzle-kit generate --config --name init ./drizzle.sys.config.ts
+          npx drizzle-kit generate --config --name init ./drizzle.org.config.ts
 
       - name: Run migrations
         working-directory: ./server
-        run: npx ts-node ./drizzle/migrate.ts
+        run: npx tsx ./drizzle/migrate.ts
         env:
           SYS_DATABASE_URL: postgresql://braaaaam:password@localhost:5432/sys
           ORG_DATABASE_URL: postgresql://braaaaam:password@localhost:5432/org
