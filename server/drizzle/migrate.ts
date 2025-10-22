@@ -56,7 +56,7 @@ async function runMigrations() {
     const { SYS_DATABASE_URL, ORG_DATABASE_URL } = process.env;
 
     if (!SYS_DATABASE_URL || !ORG_DATABASE_URL) {
-        console.error("DATABASE_URL is not set");
+        console.error("SYS_DATABASE_URL and or ORG_DATABASE_URL is not set");
         process.exit(1);
     }
 

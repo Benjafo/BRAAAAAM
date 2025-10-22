@@ -49,7 +49,7 @@ jobs:
 
       - name: Run migrations
         working-directory: ./server
-        run: tsx ./drizzle/migrate.ts
+        run: npx ts-node ./drizzle/migrate.ts
         env:
           SYS_DATABASE_URL: postgresql://braaaaam:password@localhost:5432/sys
           ORG_DATABASE_URL: postgresql://braaaaam:password@localhost:5432/org
