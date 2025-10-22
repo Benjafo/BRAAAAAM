@@ -16,6 +16,7 @@ import { Route as LoginSignInRouteImport } from './routes/_login/sign-in'
 import { Route as LoginResetPasswordRouteImport } from './routes/_login/reset-password'
 import { Route as LoginForgetPasswordRouteImport } from './routes/_login/forget-password'
 import { Route as AuthDashboardRouteImport } from './routes/_auth/dashboard'
+import { Route as AuthAdminSettingsRouteImport } from './routes/_auth/admin-settings'
 
 const LoginRouteRoute = LoginRouteRouteImport.update({
   id: '/_login',
@@ -50,9 +51,15 @@ const AuthDashboardRoute = AuthDashboardRouteImport.update({
   path: '/dashboard',
   getParentRoute: () => AuthRouteRoute,
 } as any)
+const AuthAdminSettingsRoute = AuthAdminSettingsRouteImport.update({
+  id: '/admin-settings',
+  path: '/admin-settings',
+  getParentRoute: () => AuthRouteRoute,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/admin-settings': typeof AuthAdminSettingsRoute
   '/dashboard': typeof AuthDashboardRoute
   '/forget-password': typeof LoginForgetPasswordRoute
   '/reset-password': typeof LoginResetPasswordRoute
@@ -60,6 +67,7 @@ export interface FileRoutesByFullPath {
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/admin-settings': typeof AuthAdminSettingsRoute
   '/dashboard': typeof AuthDashboardRoute
   '/forget-password': typeof LoginForgetPasswordRoute
   '/reset-password': typeof LoginResetPasswordRoute
@@ -70,6 +78,7 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/_auth': typeof AuthRouteRouteWithChildren
   '/_login': typeof LoginRouteRouteWithChildren
+  '/_auth/admin-settings': typeof AuthAdminSettingsRoute
   '/_auth/dashboard': typeof AuthDashboardRoute
   '/_login/forget-password': typeof LoginForgetPasswordRoute
   '/_login/reset-password': typeof LoginResetPasswordRoute
@@ -79,17 +88,25 @@ export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
+    | '/admin-settings'
     | '/dashboard'
     | '/forget-password'
     | '/reset-password'
     | '/sign-in'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/dashboard' | '/forget-password' | '/reset-password' | '/sign-in'
+  to:
+    | '/'
+    | '/admin-settings'
+    | '/dashboard'
+    | '/forget-password'
+    | '/reset-password'
+    | '/sign-in'
   id:
     | '__root__'
     | '/'
     | '/_auth'
     | '/_login'
+    | '/_auth/admin-settings'
     | '/_auth/dashboard'
     | '/_login/forget-password'
     | '/_login/reset-password'
@@ -153,14 +170,23 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthDashboardRouteImport
       parentRoute: typeof AuthRouteRoute
     }
+    '/_auth/admin-settings': {
+      id: '/_auth/admin-settings'
+      path: '/admin-settings'
+      fullPath: '/admin-settings'
+      preLoaderRoute: typeof AuthAdminSettingsRouteImport
+      parentRoute: typeof AuthRouteRoute
+    }
   }
 }
 
 interface AuthRouteRouteChildren {
+  AuthAdminSettingsRoute: typeof AuthAdminSettingsRoute
   AuthDashboardRoute: typeof AuthDashboardRoute
 }
 
 const AuthRouteRouteChildren: AuthRouteRouteChildren = {
+  AuthAdminSettingsRoute: AuthAdminSettingsRoute,
   AuthDashboardRoute: AuthDashboardRoute,
 }
 
