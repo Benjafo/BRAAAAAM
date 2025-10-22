@@ -9,6 +9,7 @@
         "format:check": "prettier --check \"**/*.ts\"",
         "build": "tsc",
         "start": "node ./dist/server/bin/www.js",
+        "migrate:run": "node ./dist/server/drizzle/migrate.js",
         "dev": "tsx watch ./bin/www.ts",
         "typecheck": "tsc --noEmit",
         "test": "NODE_ENV=test jest --runInBand --coverage --detectOpenHandles"

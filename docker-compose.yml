@@ -26,7 +26,7 @@ services:
     environment:
       - NODE_ENV=development
       - CHOKIDAR_USEPOLLING=true
-      - DATABASE_URL=postgresql://braaaaam:password@postgres:5432/braaaaam
+      - DATABASE_URL=postgresql://braaaaam:password@postgres:5432/sys
       - ENABLE_PGADMIN=true
     volumes:
       - ./server:/app/server
@@ -42,12 +42,15 @@ services:
       context: .
       dockerfile: server/Dockerfile
       target: runner
+      # Optional --build-arg is GENERATE_MIGRATIONS (true/false)
     ports:
       - "3000:3000"
     environment:
       - NODE_ENV=production
-      - DATABASE_URL=postgresql://braaaaam:password@postgres:5432/braaaaam
-      - ENABLE_PGADMIN=${ENABLE_PGADMIN:-false}
+      - SYS_DATABASE_URL=postgresql://braaaaam:password@postgres:5432/sys
+      - ORG_DATABASE_URL=postgresql://braaaaam:password@postgres:5432/org
+      - ENABLE_PGADMIN=${ENABLE_PGADMIN:-true}
+      - MIGRATE_ON_START=${MIGRATE_ON_START:-false} # <-- set to false to skip applying migrations on start
     depends_on:
       postgres:
         condition: service_healthy
@@ -59,14 +62,14 @@ services:
     ports:
       - "5432:5432"
     environment:
-      - POSTGRES_DB=braaaaam
+      - POSTGRES_DB=sys
       - POSTGRES_USER=braaaaam
       - POSTGRES_PASSWORD=password
     volumes:
       - postgres_data:/var/lib/postgresql/data
     profiles: ["development", "staging", "production"]
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U braaaaam -d braaaaam"]
+      test: ["CMD-SHELL", "pg_isready -U braaaaam -d sys"]
       interval: 10s
       timeout: 5s
       retries: 5

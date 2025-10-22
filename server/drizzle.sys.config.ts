@@ -5,9 +5,9 @@ export default defineConfig({
     dialect: 'postgresql',
     out: './drizzle/sys',
 
-    // dbCredentials: {
-    //     url: 'postgresql://braaaaam:password@localhost:5432/sys'
-    // },
+    dbCredentials: {
+        url: 'postgresql://braaaaam:password@localhost:5432/sys'
+    },
 
     introspect: {
         casing: 'camel'
