@@ -1,16 +1,16 @@
-import { defineConfig } from 'drizzle-kit';
+import { defineConfig } from "drizzle-kit";
 
 export default defineConfig({
-    schema: './drizzle/sys/schema.ts',
-    dialect: 'postgresql',
-    out: './drizzle/sys',
+    schema: "./drizzle/sys/schema.ts",
+    dialect: "postgresql",
+    out: "./drizzle/sys",
 
     dbCredentials: {
-        url: 'postgresql://braaaaam:password@localhost:5432/sys'
+        url: "postgresql://braaaaam:password@localhost:5432/sys",
     },
 
     introspect: {
-        casing: 'camel'
+        casing: "camel",
     },
 
     verbose: true,
