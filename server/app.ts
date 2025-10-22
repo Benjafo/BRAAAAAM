@@ -10,7 +10,7 @@ import sseRouter from "./routes/sse.js";
 // org-scoped
 import usersRouter from "./routes/users.js";
 import clientsRouter from "./routes/clients.js";
-import orgSettingsRouter from "./routes/orgSettings.js";
+import orgSettingsRouter from "./routes/org-settings.js";
 import rolesRouter from "./routes/roles.js";
 import locationsRouter from "./routes/locations.js";
 import appointmentsRouter from "./routes/appointments.js";
@@ -19,7 +19,7 @@ import reportsRouter from "./routes/reports.js";
 
 // system-scoped
 import organizationsRouter from "./routes/organizations.js";
-import sysSettingsRouter from "./routes/sysSettings.js";
+import sysSettingsRouter from "./routes/sys-settings.js";
 
 import { NextFunction, Request, Response } from "express";
 

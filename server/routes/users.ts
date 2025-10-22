@@ -1,5 +1,5 @@
 import express, { Router } from "express";
-import * as users from "../controllers/usersController";
+import * as users from "../controllers/users.controller";
 
 const router: Router = express.Router({ mergeParams: true });
 
