@@ -9,7 +9,6 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
-import { Route as AdminSettingsRouteImport } from './routes/admin-settings'
 import { Route as LoginRouteRouteImport } from './routes/_login/route'
 import { Route as AuthRouteRouteImport } from './routes/_auth/route'
 import { Route as IndexRouteImport } from './routes/index'
@@ -17,12 +16,8 @@ import { Route as LoginSignInRouteImport } from './routes/_login/sign-in'
 import { Route as LoginResetPasswordRouteImport } from './routes/_login/reset-password'
 import { Route as LoginForgetPasswordRouteImport } from './routes/_login/forget-password'
 import { Route as AuthDashboardRouteImport } from './routes/_auth/dashboard'
+import { Route as AuthAdminSettingsRouteImport } from './routes/_auth/admin-settings'
 
-const AdminSettingsRoute = AdminSettingsRouteImport.update({
-  id: '/admin-settings',
-  path: '/admin-settings',
-  getParentRoute: () => rootRouteImport,
-} as any)
 const LoginRouteRoute = LoginRouteRouteImport.update({
   id: '/_login',
   getParentRoute: () => rootRouteImport,
@@ -56,10 +51,15 @@ const AuthDashboardRoute = AuthDashboardRouteImport.update({
   path: '/dashboard',
   getParentRoute: () => AuthRouteRoute,
 } as any)
+const AuthAdminSettingsRoute = AuthAdminSettingsRouteImport.update({
+  id: '/admin-settings',
+  path: '/admin-settings',
+  getParentRoute: () => AuthRouteRoute,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
-  '/admin-settings': typeof AdminSettingsRoute
+  '/admin-settings': typeof AuthAdminSettingsRoute
   '/dashboard': typeof AuthDashboardRoute
   '/forget-password': typeof LoginForgetPasswordRoute
   '/reset-password': typeof LoginResetPasswordRoute
@@ -67,7 +67,7 @@ export interface FileRoutesByFullPath {
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
-  '/admin-settings': typeof AdminSettingsRoute
+  '/admin-settings': typeof AuthAdminSettingsRoute
   '/dashboard': typeof AuthDashboardRoute
   '/forget-password': typeof LoginForgetPasswordRoute
   '/reset-password': typeof LoginResetPasswordRoute
@@ -78,7 +78,7 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/_auth': typeof AuthRouteRouteWithChildren
   '/_login': typeof LoginRouteRouteWithChildren
-  '/admin-settings': typeof AdminSettingsRoute
+  '/_auth/admin-settings': typeof AuthAdminSettingsRoute
   '/_auth/dashboard': typeof AuthDashboardRoute
   '/_login/forget-password': typeof LoginForgetPasswordRoute
   '/_login/reset-password': typeof LoginResetPasswordRoute
@@ -106,7 +106,7 @@ export interface FileRouteTypes {
     | '/'
     | '/_auth'
     | '/_login'
-    | '/admin-settings'
+    | '/_auth/admin-settings'
     | '/_auth/dashboard'
     | '/_login/forget-password'
     | '/_login/reset-password'
@@ -117,18 +117,10 @@ export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AuthRouteRoute: typeof AuthRouteRouteWithChildren
   LoginRouteRoute: typeof LoginRouteRouteWithChildren
-  AdminSettingsRoute: typeof AdminSettingsRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
-    '/admin-settings': {
-      id: '/admin-settings'
-      path: '/admin-settings'
-      fullPath: '/admin-settings'
-      preLoaderRoute: typeof AdminSettingsRouteImport
-      parentRoute: typeof rootRouteImport
-    }
     '/_login': {
       id: '/_login'
       path: ''
@@ -178,14 +170,23 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthDashboardRouteImport
       parentRoute: typeof AuthRouteRoute
     }
+    '/_auth/admin-settings': {
+      id: '/_auth/admin-settings'
+      path: '/admin-settings'
+      fullPath: '/admin-settings'
+      preLoaderRoute: typeof AuthAdminSettingsRouteImport
+      parentRoute: typeof AuthRouteRoute
+    }
   }
 }
 
 interface AuthRouteRouteChildren {
+  AuthAdminSettingsRoute: typeof AuthAdminSettingsRoute
   AuthDashboardRoute: typeof AuthDashboardRoute
 }
 
 const AuthRouteRouteChildren: AuthRouteRouteChildren = {
+  AuthAdminSettingsRoute: AuthAdminSettingsRoute,
   AuthDashboardRoute: AuthDashboardRoute,
 }
 
@@ -213,7 +214,6 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AuthRouteRoute: AuthRouteRouteWithChildren,
   LoginRouteRoute: LoginRouteRouteWithChildren,
-  AdminSettingsRoute: AdminSettingsRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
