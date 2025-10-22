@@ -30,6 +30,7 @@ import {
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { DatePickerInput } from "../ui/datePickerField";
 import { Checkbox } from "../ui/checkbox";
+import { RadioGroup, RadioGroupItem } from "../ui/radio-group";
 
 /* --------------------------------- Schema --------------------------------- */
 
@@ -125,11 +126,9 @@ const newUserSchema = z
             .or(z.literal("")),
         distanceLimitation: z
             .number("Must enter the maximum number of miles the driver is willing to go.")
-            .min(0, "Cannot be 0 miles.")
+            .min(0.1, "Cannot be 0 miles.")
             .optional(),
-        lifeSpanReimbursement: z.enum(["Yes", "No"], {
-            message: "Please specifiy if there was a reimbursement. ",
-        }),
+        lifeSpanReimbursement: z.enum(["Yes", "No"]).optional(),
     })
     .superRefine((data, ctx) => {
         // AI helped on the super refine
@@ -185,7 +184,7 @@ const newUserSchema = z
                     path: ["vehicleColor"],
                 });
             }
-            if (data.maxRides === undefined || data.maxRides < 0) {
+            if (data.maxRides === undefined) {
                 ctx.addIssue({
                     code: "custom",
                     message: "Must enter the number of rides, a 0 means no limit.",
@@ -206,11 +205,19 @@ const newUserSchema = z
                     path: ["destinationLimitations"],
                 });
             }
-            if (data.distanceLimitation === undefined || data.distanceLimitation <= 0) {
+            if (data.distanceLimitation === undefined || data.distanceLimitation < 0.1) {
                 ctx.addIssue({
                     code: "custom",
                     message: "Must enter the maximum number of miles driver is willing to go.",
                     path: ["distanceLimitation"],
+                });
+            }
+
+            if (!data.lifeSpanReimbursement) {
+                ctx.addIssue({
+                    code: "custom",
+                    message: "Please specify if there was a reimbursement.",
+                    path: ["lifeSpanReimbursement"],
                 });
             }
         }
@@ -288,11 +295,23 @@ export default function NewUserForm({ defaultValues, onSubmit }: Props) {
     const [monthOpen, setMonthOpen] = useState(false);
     const [yearOpen, setYearOpen] = useState(false);
 
+    const handleNumberChange =
+        (field: { onChange: (value: number | undefined) => void }) =>
+        (e: React.ChangeEvent<HTMLInputElement>) => {
+            const value = e.target.value;
+            if (value === "") {
+                field.onChange(undefined);
+                return;
+            }
+            const parsed = parseFloat(value);
+            field.onChange(isNaN(parsed) ? undefined : parsed);
+        };
+
     return (
         <Form {...form}>
             <form
                 id="new-user-form"
-                className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-6 w-full items-start pt-"
+                className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-6 w-full items-start"
                 onSubmit={form.handleSubmit(onSubmit)}
             >
                 {/* First name */}
@@ -799,21 +818,147 @@ export default function NewUserForm({ defaultValues, onSubmit }: Props) {
                     )}
                 />
 
-                {/* Vehicle Type */}
+                {/* Driver-specific fields - only shown when userRole is "Driver" */}
                 {userRole === "Driver" && (
-                    <FormField
-                        control={form.control}
-                        name="vehicleType"
-                        render={({ field }) => (
-                            <FormItem className="w-full">
-                                <FormLabel>Vehicle Type</FormLabel>
-                                <FormControl className="w-full">
-                                    <Input placeholder="Value" {...field} className="w-full" />
-                                </FormControl>
-                                <FormMessage />
-                            </FormItem>
-                        )}
-                    />
+                    <>
+                        {/* Vehicle Type */}
+                        <FormField
+                            control={form.control}
+                            name="vehicleType"
+                            render={({ field }) => (
+                                <FormItem className="w-full">
+                                    <FormLabel>Vehicle Type</FormLabel>
+                                    <FormControl className="w-full">
+                                        <Input placeholder="Value" {...field} className="w-full" />
+                                    </FormControl>
+                                    <FormMessage />
+                                </FormItem>
+                            )}
+                        />
+
+                        {/* Vehicle Color */}
+                        <FormField
+                            control={form.control}
+                            name="vehicleColor"
+                            render={({ field }) => (
+                                <FormItem className="w-full">
+                                    <FormLabel>Vehicle Color</FormLabel>
+                                    <FormControl className="w-full">
+                                        <Input placeholder="Value" {...field} className="w-full" />
+                                    </FormControl>
+                                    <FormMessage />
+                                </FormItem>
+                            )}
+                        />
+
+                        {/* Maximum Rides per Week */}
+                        <FormField
+                            control={form.control}
+                            name="maxRides"
+                            render={({ field }) => (
+                                <FormItem className="w-full">
+                                    <FormLabel>Maximum Rides per Week</FormLabel>
+                                    <FormControl className="w-full">
+                                        <Input
+                                            type="number"
+                                            step="1"
+                                            min="0"
+                                            placeholder="0"
+                                            value={field.value ?? ""}
+                                            onChange={handleNumberChange(field)}
+                                            className="w-full"
+                                        />
+                                    </FormControl>
+                                    <FormMessage />
+                                </FormItem>
+                            )}
+                        />
+
+                        {/* Town Preferences */}
+                        <FormField
+                            control={form.control}
+                            name="townPreferences"
+                            render={({ field }) => (
+                                <FormItem className="w-full">
+                                    <FormLabel>Town Preferences</FormLabel>
+                                    <FormControl className="w-full">
+                                        <Input placeholder="Value" {...field} className="w-full" />
+                                    </FormControl>
+                                    <FormMessage />
+                                </FormItem>
+                            )}
+                        />
+
+                        {/* Destination Limitations */}
+                        <FormField
+                            control={form.control}
+                            name="destinationLimitations"
+                            render={({ field }) => (
+                                <FormItem className="w-full">
+                                    <FormLabel>Destination Limitations</FormLabel>
+                                    <FormControl className="w-full">
+                                        <Input placeholder="Value" {...field} className="w-full" />
+                                    </FormControl>
+                                    <FormMessage />
+                                </FormItem>
+                            )}
+                        />
+
+                        {/* Lifespan Reimbursement */}
+                        <FormField
+                            control={form.control}
+                            name="lifeSpanReimbursement"
+                            render={({ field }) => (
+                                <FormItem>
+                                    <FormLabel>Lifespan Mileage Reimbursement</FormLabel>
+                                    <FormControl>
+                                        <RadioGroup
+                                            className="flex flex-col gap-2"
+                                            value={field.value}
+                                            onValueChange={field.onChange}
+                                        >
+                                            <div className="flex items-center space-x-2">
+                                                <RadioGroupItem id="yes" value="Yes" />
+                                                <FormLabel htmlFor="yes" className="font-normal">
+                                                    Yes
+                                                </FormLabel>
+                                            </div>
+                                            <div className="flex items-center space-x-2">
+                                                <RadioGroupItem id="no" value="No" />
+                                                <FormLabel htmlFor="no" className="font-normal">
+                                                    No
+                                                </FormLabel>
+                                            </div>
+                                        </RadioGroup>
+                                    </FormControl>
+                                    <FormMessage />
+                                </FormItem>
+                            )}
+                        />
+
+                        {/* Distance Limitation */}
+                        <FormField
+                            control={form.control}
+                            name="distanceLimitation"
+                            render={({ field }) => (
+                                <FormItem className="w-full">
+                                    <FormLabel>Maximum Distance Willing to Go (In Miles)</FormLabel>
+                                    <FormControl className="w-full">
+                                        <Input
+                                            type="number"
+                                            step="1"
+                                            min="0.1"
+                                            placeholder="0.1"
+                                            value={field.value ?? ""}
+                                            onChange={handleNumberChange(field)}
+                                            className="w-full"
+                                        />
+                                    </FormControl>
+                                    <FormMessage />
+                                </FormItem>
+                            )}
+                        />
+                    </>
                 )}
             </form>
         </Form>
