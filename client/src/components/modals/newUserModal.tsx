@@ -22,7 +22,7 @@ export default function NewUserModal({ defaultValues = {}, triggerButton }: NewU
     const [open, setOpen] = React.useState(false);
 
     // Determine if we're editing based on whether address is populated (AI worked on this)
-    const isEditing = Boolean(defaultValues.locationName);
+    const isEditing = Boolean(defaultValues.firstName);
     const modalTitle = isEditing ? "Edit User" : "New User";
     const successMessage = isEditing ? "User Updated" : "New User Created";
 
@@ -36,9 +36,9 @@ export default function NewUserModal({ defaultValues = {}, triggerButton }: NewU
     return (
         <Dialog open={open} onOpenChange={setOpen}>
             <DialogTrigger asChild>
-                {triggerButton ?? <Button variant="outline">New Location</Button>}
+                {triggerButton ?? <Button variant="outline">New User</Button>}
             </DialogTrigger>
-            <DialogContent className="!max-w-[388px] max-h-[90vh] overflow-y-auto scroll-smooth p-6">
+            <DialogContent className="!max-w-[692px] max-h-[90vh] overflow-y-auto scroll-smooth p-6">
                 <DialogHeader className="mb-4">
                     <DialogTitle>{modalTitle}</DialogTitle>
                 </DialogHeader>

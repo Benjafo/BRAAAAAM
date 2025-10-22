@@ -1,9 +1,12 @@
 "use client";
 
+import { useState } from "react";
 import { z } from "zod";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Input } from "@/components/ui/input";
+import { Check, ChevronsUpDown } from "lucide-react";
+import { cn } from "@/lib/utils";
 
 import {
     Form,
@@ -14,57 +17,291 @@ import {
     FormMessage,
 } from "@/components/ui/form";
 import { MapPin } from "lucide-react";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../ui/select";
+import { Button } from "@/components/ui/button";
+import {
+    Command,
+    CommandEmpty,
+    CommandGroup,
+    CommandInput,
+    CommandItem,
+    CommandList,
+} from "@/components/ui/command";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { DatePickerInput } from "../ui/datePickerField";
+import { Checkbox } from "../ui/checkbox";
 
 /* --------------------------------- Schema --------------------------------- */
-/* using z.enum for select values that we know are included */
-const newUserSchema = z.object({
-    locationName: z
-        .string()
-        .min(1, "Please enter the location name.")
-        .max(255, "Max characters allowed is 255."),
-    newAddress: z
-        .string()
-        .min(1, "New address is required")
-        .max(255, "Max characters allowed is 255."),
-    newAddress2: z.string().max(255, "Max characters allowed is 255.").optional(),
-});
+
+const newUserSchema = z
+    .object({
+        firstName: z
+            .string()
+            .min(1, "Please enter the first name.")
+            .max(255, "Max characters allowed is 255."),
+        userRole: z.enum(["Driver", "Admin", "Dispatcher"], {
+            message: "Please specify the users role.",
+        }),
+        lastName: z
+            .string()
+            .min(1, "Please enter the last name.")
+            .max(255, "Max characters allowed is 255."),
+        userID: z
+            .string()
+            .min(1, "Please enter the User ID.")
+            .max(255, "Max characters allowed is 255."),
+        birthMonth: z.string().min(1, "Please select a month."),
+        birthYear: z.string().min(1, "Please select a year."),
+        streetAddress: z
+            .string()
+            .min(1, "Street address is required")
+            .max(255, "Max characters allowed is 255."),
+        streetAddress2: z
+            .string()
+            .max(255, "Max characters allowed is 255.")
+            .optional()
+            .or(z.literal("")),
+        volunteeringStatus: z.enum(["Active", "On leave", "Inactive", "Away"], {
+            message: "Please specify the volunteering status.",
+        }),
+        onLeaveUntil: z.date().optional(),
+        inactiveSince: z.date().optional(),
+        awayFrom: z.date().optional(),
+        awayTo: z.date().optional(),
+        clientEmail: z.email("Please enter a valid email address.").optional().or(z.literal("")),
+        primaryPhoneNumber: z
+            .string()
+            .min(1, "Phone number is required")
+            .regex(
+                /^(\+1\s?)?(\([0-9]{3}\)\s?|[0-9]{3}[-.\s]?)[0-9]{3}[-.\s]?[0-9]{4}$/,
+                "Please enter a valid US phone number."
+            ),
+
+        primaryPhoneIsCellPhone: z.boolean(),
+        okToTextPrimaryPhone: z.boolean(),
+        primaryContactPref: z
+            .string()
+            .min(1, "Write in how you want to be contacted. ")
+            .max(255, "Max characters allowed is 255."),
+
+        secondaryPhoneNumber: z
+            .string()
+            .regex(
+                /^(\+1\s?)?(\([0-9]{3}\)\s?|[0-9]{3}[-.\s]?)[0-9]{3}[-.\s]?[0-9]{4}$/,
+                "Please enter a valid US phone number."
+            )
+            .or(z.literal(""))
+            .optional(),
+        secondaryPhoneIsCellPhone: z.boolean(),
+        okToTextSecondaryPhone: z.boolean(),
+        secondaryContactPref: z
+            .string()
+            .max(255, "Max characters allowed is 255.")
+            .optional()
+            .or(z.literal("")),
+        vehicleType: z
+            .string()
+            .max(255, "Max characters allowed is 255.")
+            .optional()
+            .or(z.literal("")),
+        vehicleColor: z
+            .string()
+            .max(255, "Max characters allowed is 255.")
+            .optional()
+            .or(z.literal("")),
+        maxRides: z
+            .number("Must enter the number of rides, a 0 means no limit.")
+            .min(0, "Rides cannot be less than 0.")
+            .optional(),
+        townPreferences: z
+            .string()
+            .max(255, "Max characters allowed is 255.")
+            .optional()
+            .or(z.literal("")),
+        destinationLimitations: z
+            .string()
+            .max(255, "Max characters allowed is 255.")
+            .optional()
+            .or(z.literal("")),
+        distanceLimitation: z
+            .number("Must enter the maximum number of miles the driver is willing to go.")
+            .min(0, "Cannot be 0 miles.")
+            .optional(),
+        lifeSpanReimbursement: z.enum(["Yes", "No"], {
+            message: "Please specifiy if there was a reimbursement. ",
+        }),
+    })
+    .superRefine((data, ctx) => {
+        // AI helped on the super refine
+        // If volunteering status is "On leave", onLeaveUntil must be provided
+        if (data.volunteeringStatus === "On leave" && !data.onLeaveUntil) {
+            ctx.addIssue({
+                code: "custom",
+                message: "Please select the date when the leave ends.",
+                path: ["onLeaveUntil"],
+            });
+        }
+
+        // If volunteering status is "Inactive", inactiveSince must be provided
+        if (data.volunteeringStatus === "Inactive" && !data.inactiveSince) {
+            ctx.addIssue({
+                code: "custom",
+                message: "Please select the date when the client became inactive.",
+                path: ["inactiveSince"],
+            });
+        }
+
+        // If volunteering status is "Away", both awayFrom and awayTo must be provided
+        if (data.volunteeringStatus === "Away") {
+            if (!data.awayFrom) {
+                ctx.addIssue({
+                    code: "custom",
+                    message: "Please select the start date.",
+                    path: ["awayFrom"],
+                });
+            }
+            if (!data.awayTo) {
+                ctx.addIssue({
+                    code: "custom",
+                    message: "Please select the end date.",
+                    path: ["awayTo"],
+                });
+            }
+        }
+
+        // Driver-specific validation
+        if (data.userRole === "Driver") {
+            if (!data.vehicleType) {
+                ctx.addIssue({
+                    code: "custom",
+                    message: "Please enter the vehicle type.",
+                    path: ["vehicleType"],
+                });
+            }
+            if (!data.vehicleColor) {
+                ctx.addIssue({
+                    code: "custom",
+                    message: "Please enter the vehicle color/details.",
+                    path: ["vehicleColor"],
+                });
+            }
+            if (data.maxRides === undefined || data.maxRides < 0) {
+                ctx.addIssue({
+                    code: "custom",
+                    message: "Must enter the number of rides, a 0 means no limit.",
+                    path: ["maxRides"],
+                });
+            }
+            if (!data.townPreferences) {
+                ctx.addIssue({
+                    code: "custom",
+                    message: "Please enter any town preferences.",
+                    path: ["townPreferences"],
+                });
+            }
+            if (!data.destinationLimitations) {
+                ctx.addIssue({
+                    code: "custom",
+                    message: "Please enter any destination limitations.",
+                    path: ["destinationLimitations"],
+                });
+            }
+            if (data.distanceLimitation === undefined || data.distanceLimitation <= 0) {
+                ctx.addIssue({
+                    code: "custom",
+                    message: "Must enter the maximum number of miles driver is willing to go.",
+                    path: ["distanceLimitation"],
+                });
+            }
+        }
+    });
 
 export type NewUserFormValues = z.infer<typeof newUserSchema>;
 
 /* --------------------------------- Props ---------------------------------- */
-/** Accept Partial so we can provide sane fallbacks when something is missing. */
 type Props = {
     defaultValues: Partial<NewUserFormValues>;
     onSubmit: (values: NewUserFormValues) => void | Promise<void>;
 };
 
+const MONTHS = [
+    { value: "01", label: "January" },
+    { value: "02", label: "February" },
+    { value: "03", label: "March" },
+    { value: "04", label: "April" },
+    { value: "05", label: "May" },
+    { value: "06", label: "June" },
+    { value: "07", label: "July" },
+    { value: "08", label: "August" },
+    { value: "09", label: "September" },
+    { value: "10", label: "October" },
+    { value: "11", label: "November" },
+    { value: "12", label: "December" },
+] as const;
+
+const YEARS = Array.from({ length: 100 }, (_, i) => {
+    const year = new Date().getFullYear() - i;
+    return { value: String(year), label: String(year) };
+});
+
 /* --------------------------------- Form ----------------------------------- */
-export default function NewLocationForm({ defaultValues, onSubmit }: Props) {
+export default function NewUserForm({ defaultValues, onSubmit }: Props) {
     const form = useForm<NewUserFormValues>({
         resolver: zodResolver(newUserSchema),
         mode: "onBlur",
 
         defaultValues: {
-            locationName: defaultValues.locationName ?? "",
-            newAddress: defaultValues.newAddress ?? "",
-            newAddress2: defaultValues.newAddress2 ?? "",
+            firstName: defaultValues.firstName ?? "",
+            userRole: defaultValues.userRole ?? "Dispatcher",
+            lastName: defaultValues.lastName ?? "",
+            userID: defaultValues.userID ?? "",
+            birthMonth: defaultValues.birthMonth ?? "",
+            birthYear: defaultValues.birthYear ?? "",
+            streetAddress: defaultValues.streetAddress ?? "",
+            streetAddress2: defaultValues.streetAddress2 ?? "",
+            volunteeringStatus: defaultValues.volunteeringStatus ?? "Active",
+            onLeaveUntil: defaultValues.onLeaveUntil,
+            inactiveSince: defaultValues.inactiveSince,
+            awayFrom: defaultValues.awayFrom,
+            awayTo: defaultValues.awayTo,
+            clientEmail: defaultValues.clientEmail ?? "",
+            primaryPhoneNumber: defaultValues.primaryPhoneNumber ?? "",
+            primaryPhoneIsCellPhone: defaultValues.primaryPhoneIsCellPhone ?? false,
+            okToTextPrimaryPhone: defaultValues.okToTextPrimaryPhone ?? false,
+            primaryContactPref: defaultValues.primaryContactPref ?? "",
+            secondaryPhoneNumber: defaultValues.secondaryPhoneNumber ?? "",
+            secondaryPhoneIsCellPhone: defaultValues.secondaryPhoneIsCellPhone ?? false,
+            okToTextSecondaryPhone: defaultValues.okToTextSecondaryPhone ?? false,
+            secondaryContactPref: defaultValues.secondaryContactPref ?? "",
+            vehicleType: defaultValues.vehicleType ?? "",
+            vehicleColor: defaultValues.vehicleColor ?? "",
+            maxRides: defaultValues.maxRides,
+            townPreferences: defaultValues.townPreferences ?? "",
+            destinationLimitations: defaultValues.destinationLimitations ?? "",
+            distanceLimitation: defaultValues.distanceLimitation,
+            lifeSpanReimbursement: defaultValues.lifeSpanReimbursement ?? "No",
         },
     });
+
+    const volunteeringStatus = form.watch("volunteeringStatus");
+    const userRole = form.watch("userRole");
+    const [monthOpen, setMonthOpen] = useState(false);
+    const [yearOpen, setYearOpen] = useState(false);
 
     return (
         <Form {...form}>
             <form
                 id="new-user-form"
-                className="grid grid-cols-1 gap-x-8 gap-y-6"
+                className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-6 w-full items-start pt-"
                 onSubmit={form.handleSubmit(onSubmit)}
             >
-                {/* First Name */}
+                {/* First name */}
                 <FormField
                     control={form.control}
-                    name="locationName"
+                    name="firstName"
                     render={({ field }) => (
                         <FormItem className="w-full">
-                            <FormLabel>Location Name</FormLabel>
+                            <FormLabel>First Name</FormLabel>
                             <FormControl className="w-full">
                                 <Input placeholder="Value" {...field} className="w-full" />
                             </FormControl>
@@ -73,13 +310,131 @@ export default function NewLocationForm({ defaultValues, onSubmit }: Props) {
                     )}
                 />
 
-                {/* Address */}
+                {/* User role */}
                 <FormField
                     control={form.control}
-                    name="newAddress"
+                    name="userRole"
+                    render={({ field }) => (
+                        <FormItem className="w-full">
+                            <FormLabel>User Role</FormLabel>
+                            <FormControl className="w-full">
+                                <Select value={field.value} onValueChange={field.onChange}>
+                                    <SelectTrigger className="w-full">
+                                        <SelectValue placeholder="User Role" />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        <SelectItem value="Admin">Admin</SelectItem>
+                                        <SelectItem value="Driver">Driver</SelectItem>
+                                        <SelectItem value="Dispatcher">Dispatcher</SelectItem>
+                                    </SelectContent>
+                                </Select>
+                            </FormControl>
+                            <FormMessage />
+                        </FormItem>
+                    )}
+                />
+
+                {/* Last name */}
+                <FormField
+                    control={form.control}
+                    name="lastName"
+                    render={({ field }) => (
+                        <FormItem className="w-full">
+                            <FormLabel>Last Name</FormLabel>
+                            <FormControl className="w-full">
+                                <Input placeholder="Value" {...field} className="w-full" />
+                            </FormControl>
+                            <FormMessage />
+                        </FormItem>
+                    )}
+                />
+
+                {/* User ID */}
+                <FormField
+                    control={form.control}
+                    name="userID"
+                    render={({ field }) => (
+                        <FormItem className="w-full">
+                            <FormLabel>User ID</FormLabel>
+                            <FormControl className="w-full">
+                                <Input placeholder="Value" {...field} className="w-full" />
+                            </FormControl>
+                            <FormMessage />
+                        </FormItem>
+                    )}
+                />
+
+                {/* Birth Month */}
+                <FormField
+                    control={form.control}
+                    name="birthMonth"
+                    render={({ field }) => (
+                        <FormItem className="flex flex-col">
+                            <FormLabel>Birth Month</FormLabel>
+                            <Popover open={monthOpen} onOpenChange={setMonthOpen}>
+                                <PopoverTrigger asChild>
+                                    <FormControl>
+                                        <Button
+                                            variant="outline"
+                                            role="combobox"
+                                            aria-expanded={monthOpen}
+                                            className={cn(
+                                                "w-full justify-between",
+                                                !field.value && "text-muted-foreground"
+                                            )}
+                                        >
+                                            {field.value
+                                                ? MONTHS.find(
+                                                      (month) => month.value === field.value
+                                                  )?.label
+                                                : "Select month"}
+                                            <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                                        </Button>
+                                    </FormControl>
+                                </PopoverTrigger>
+                                <PopoverContent className="w-[var(--radix-popover-trigger-width)] p-0">
+                                    <Command>
+                                        <CommandInput placeholder="Search month..." />
+                                        <CommandList>
+                                            <CommandEmpty>No month found.</CommandEmpty>
+                                            <CommandGroup>
+                                                {MONTHS.map((month) => (
+                                                    <CommandItem
+                                                        key={month.value}
+                                                        value={month.label}
+                                                        onSelect={() => {
+                                                            field.onChange(month.value);
+                                                            setMonthOpen(false);
+                                                        }}
+                                                    >
+                                                        <Check
+                                                            className={cn(
+                                                                "mr-2 h-4 w-4",
+                                                                month.value === field.value
+                                                                    ? "opacity-100"
+                                                                    : "opacity-0"
+                                                            )}
+                                                        />
+                                                        {month.label}
+                                                    </CommandItem>
+                                                ))}
+                                            </CommandGroup>
+                                        </CommandList>
+                                    </Command>
+                                </PopoverContent>
+                            </Popover>
+                            <FormMessage />
+                        </FormItem>
+                    )}
+                />
+
+                {/* Street Address */}
+                <FormField
+                    control={form.control}
+                    name="streetAddress"
                     render={({ field }) => (
                         <FormItem>
-                            <FormLabel>Address</FormLabel>
+                            <FormLabel>Street Address</FormLabel>
                             <FormControl>
                                 <div className="relative">
                                     <Input
@@ -93,13 +448,77 @@ export default function NewLocationForm({ defaultValues, onSubmit }: Props) {
                         </FormItem>
                     )}
                 />
-                {/* Address 2*/}
+
+                {/* Birth Year */}
                 <FormField
                     control={form.control}
-                    name="newAddress2"
+                    name="birthYear"
+                    render={({ field }) => (
+                        <FormItem className="flex flex-col">
+                            <FormLabel>Birth Year</FormLabel>
+                            <Popover open={yearOpen} onOpenChange={setYearOpen}>
+                                <PopoverTrigger asChild>
+                                    <FormControl>
+                                        <Button
+                                            variant="outline"
+                                            role="combobox"
+                                            aria-expanded={yearOpen}
+                                            className={cn(
+                                                "w-full justify-between",
+                                                !field.value && "text-muted-foreground"
+                                            )}
+                                        >
+                                            {field.value
+                                                ? YEARS.find((year) => year.value === field.value)
+                                                      ?.label
+                                                : "Select year"}
+                                            <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                                        </Button>
+                                    </FormControl>
+                                </PopoverTrigger>
+                                <PopoverContent className="w-[var(--radix-popover-trigger-width)] p-0">
+                                    <Command>
+                                        <CommandInput placeholder="Search year..." />
+                                        <CommandList>
+                                            <CommandEmpty>No year found.</CommandEmpty>
+                                            <CommandGroup>
+                                                {YEARS.map((year) => (
+                                                    <CommandItem
+                                                        key={year.value}
+                                                        value={year.label}
+                                                        onSelect={() => {
+                                                            field.onChange(year.value);
+                                                            setYearOpen(false);
+                                                        }}
+                                                    >
+                                                        <Check
+                                                            className={cn(
+                                                                "mr-2 h-4 w-4",
+                                                                year.value === field.value
+                                                                    ? "opacity-100"
+                                                                    : "opacity-0"
+                                                            )}
+                                                        />
+                                                        {year.label}
+                                                    </CommandItem>
+                                                ))}
+                                            </CommandGroup>
+                                        </CommandList>
+                                    </Command>
+                                </PopoverContent>
+                            </Popover>
+                            <FormMessage />
+                        </FormItem>
+                    )}
+                />
+
+                {/* Street Address 2 */}
+                <FormField
+                    control={form.control}
+                    name="streetAddress2"
                     render={({ field }) => (
                         <FormItem>
-                            <FormLabel>Address 2</FormLabel>
+                            <FormLabel>Street Address 2</FormLabel>
                             <FormControl>
                                 <div className="relative">
                                     <Input
@@ -113,6 +532,289 @@ export default function NewLocationForm({ defaultValues, onSubmit }: Props) {
                         </FormItem>
                     )}
                 />
+
+                {/* Additional Rider with conditional date pickers */}
+                <div className="space-y-4">
+                    <FormField
+                        control={form.control}
+                        name="volunteeringStatus"
+                        render={({ field }) => (
+                            <FormItem className="w-full">
+                                <FormLabel>Status</FormLabel>
+                                <FormControl className="w-full">
+                                    <Select value={field.value} onValueChange={field.onChange}>
+                                        <SelectTrigger className="w-full">
+                                            <SelectValue placeholder="Volunteer Status" />
+                                        </SelectTrigger>
+                                        <SelectContent>
+                                            <SelectItem value="Active">Active</SelectItem>
+                                            <SelectItem value="On leave">On Leave</SelectItem>
+                                            <SelectItem value="Inactive">Inactive</SelectItem>
+                                            <SelectItem value="Away">Away From</SelectItem>
+                                        </SelectContent>
+                                    </Select>
+                                </FormControl>
+                                <FormMessage />
+                            </FormItem>
+                        )}
+                    />
+
+                    {/* On Leave Until Date Picker - conditionally rendered */}
+                    {volunteeringStatus === "On leave" && (
+                        <FormField
+                            control={form.control}
+                            name="onLeaveUntil"
+                            render={({ field }) => (
+                                <FormItem>
+                                    <FormLabel>On Leave Until</FormLabel>
+                                    <FormControl>
+                                        <DatePickerInput
+                                            value={field.value}
+                                            onChange={field.onChange}
+                                        />
+                                    </FormControl>
+                                    <FormMessage />
+                                </FormItem>
+                            )}
+                        />
+                    )}
+
+                    {/* Inactive Since Date Picker - conditionally rendered */}
+                    {volunteeringStatus === "Inactive" && (
+                        <FormField
+                            control={form.control}
+                            name="inactiveSince"
+                            render={({ field }) => (
+                                <FormItem>
+                                    <FormLabel>Inactive Since</FormLabel>
+                                    <FormControl>
+                                        <DatePickerInput
+                                            value={field.value}
+                                            onChange={field.onChange}
+                                        />
+                                    </FormControl>
+                                    <FormMessage />
+                                </FormItem>
+                            )}
+                        />
+                    )}
+
+                    {/* Away From Date Pickers */}
+                    {volunteeringStatus === "Away" && (
+                        <>
+                            <FormField
+                                control={form.control}
+                                name="awayFrom"
+                                render={({ field }) => (
+                                    <FormItem>
+                                        <FormLabel>Away From</FormLabel>
+                                        <FormControl>
+                                            <DatePickerInput
+                                                value={field.value}
+                                                onChange={field.onChange}
+                                            />
+                                        </FormControl>
+                                        <FormMessage />
+                                    </FormItem>
+                                )}
+                            />
+                            <FormField
+                                control={form.control}
+                                name="awayTo"
+                                render={({ field }) => (
+                                    <FormItem>
+                                        <FormLabel>To</FormLabel>
+                                        <FormControl>
+                                            <DatePickerInput
+                                                value={field.value}
+                                                onChange={field.onChange}
+                                            />
+                                        </FormControl>
+                                        <FormMessage />
+                                    </FormItem>
+                                )}
+                            />
+                        </>
+                    )}
+                </div>
+
+                {/* Email */}
+                <FormField
+                    control={form.control}
+                    name="clientEmail"
+                    render={({ field }) => (
+                        <FormItem>
+                            <FormLabel>Email</FormLabel>
+                            <FormControl>
+                                <Input placeholder="Value" {...field} />
+                            </FormControl>
+                            <FormMessage />
+                        </FormItem>
+                    )}
+                />
+
+                {/* Primary Phone, adding div to make checkboxes align underneath primary phone number. */}
+                <div className="space-y-4">
+                    <FormField
+                        control={form.control}
+                        name="primaryPhoneNumber"
+                        render={({ field }) => (
+                            <FormItem>
+                                <FormLabel>Primary Phone Number</FormLabel>
+                                <FormControl>
+                                    <Input placeholder="Value" {...field} />
+                                </FormControl>
+                                <FormMessage />
+                            </FormItem>
+                        )}
+                    />
+
+                    {/* Primary Phone is Cell Phone Checkbox */}
+                    <FormField
+                        control={form.control}
+                        name="primaryPhoneIsCellPhone"
+                        render={({ field }) => (
+                            <FormItem className="flex flex-row items-start">
+                                <FormControl>
+                                    <Checkbox
+                                        checked={field.value}
+                                        onCheckedChange={field.onChange}
+                                    />
+                                </FormControl>
+                                <div className="space-y-1 leading-none">
+                                    <FormLabel className="font-normal">
+                                        Primary phone is a cell phone
+                                    </FormLabel>
+                                </div>
+                            </FormItem>
+                        )}
+                    />
+
+                    <FormField
+                        control={form.control}
+                        name="okToTextPrimaryPhone"
+                        render={({ field }) => (
+                            <FormItem className="flex flex-row items-start">
+                                <FormControl>
+                                    <Checkbox
+                                        checked={field.value}
+                                        onCheckedChange={field.onChange}
+                                    />
+                                </FormControl>
+                                <div className="space-y-1 leading-none">
+                                    <FormLabel className="font-normal">
+                                        OK to text primary phone
+                                    </FormLabel>
+                                </div>
+                            </FormItem>
+                        )}
+                    />
+                </div>
+
+                {/* Primary contact preference */}
+                <FormField
+                    control={form.control}
+                    name="primaryContactPref"
+                    render={({ field }) => (
+                        <FormItem className="w-full">
+                            <FormLabel>Primary Contact Preference</FormLabel>
+                            <FormControl className="w-full">
+                                <Input placeholder="Value" {...field} className="w-full" />
+                            </FormControl>
+                            <FormMessage />
+                        </FormItem>
+                    )}
+                />
+
+                {/* Secondary Phone, adding div to make checkboxes align underneath secondary phone number. */}
+                <div className="space-y-4">
+                    <FormField
+                        control={form.control}
+                        name="secondaryPhoneNumber"
+                        render={({ field }) => (
+                            <FormItem>
+                                <FormLabel>Secondary Phone Number</FormLabel>
+                                <FormControl>
+                                    <Input placeholder="Value" {...field} />
+                                </FormControl>
+                                <FormMessage />
+                            </FormItem>
+                        )}
+                    />
+
+                    {/* Secondary Phone is Cell Phone Checkbox */}
+                    <FormField
+                        control={form.control}
+                        name="secondaryPhoneIsCellPhone"
+                        render={({ field }) => (
+                            <FormItem className="flex flex-row items-start">
+                                <FormControl>
+                                    <Checkbox
+                                        checked={field.value}
+                                        onCheckedChange={field.onChange}
+                                    />
+                                </FormControl>
+                                <div className="space-y-1 leading-none">
+                                    <FormLabel className="font-normal">
+                                        Secondary phone is a cell phone
+                                    </FormLabel>
+                                </div>
+                            </FormItem>
+                        )}
+                    />
+
+                    <FormField
+                        control={form.control}
+                        name="okToTextSecondaryPhone"
+                        render={({ field }) => (
+                            <FormItem className="flex flex-row items-start">
+                                <FormControl>
+                                    <Checkbox
+                                        checked={field.value}
+                                        onCheckedChange={field.onChange}
+                                    />
+                                </FormControl>
+                                <div className="space-y-1 leading-none">
+                                    <FormLabel className="font-normal">
+                                        OK to text secondary phone
+                                    </FormLabel>
+                                </div>
+                            </FormItem>
+                        )}
+                    />
+                </div>
+
+                {/* Secondary contact preference */}
+                <FormField
+                    control={form.control}
+                    name="secondaryContactPref"
+                    render={({ field }) => (
+                        <FormItem className="w-full">
+                            <FormLabel>Secondary Contact Preference</FormLabel>
+                            <FormControl className="w-full">
+                                <Input placeholder="Value" {...field} className="w-full" />
+                            </FormControl>
+                            <FormMessage />
+                        </FormItem>
+                    )}
+                />
+
+                {/* Vehicle Type */}
+                {userRole === "Driver" && (
+                    <FormField
+                        control={form.control}
+                        name="vehicleType"
+                        render={({ field }) => (
+                            <FormItem className="w-full">
+                                <FormLabel>Vehicle Type</FormLabel>
+                                <FormControl className="w-full">
+                                    <Input placeholder="Value" {...field} className="w-full" />
+                                </FormControl>
+                                <FormMessage />
+                            </FormItem>
+                        )}
+                    />
+                )}
             </form>
         </Form>
     );
