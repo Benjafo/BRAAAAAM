@@ -84,18 +84,6 @@ async function runMigrations() {
             const targetDbName = dbUrl.pathname.slice(1);
             console.log(`[migrate] Applying migrations to database "${targetDbName}"…`);
             await migrate(db, { migrationsFolder: `drizzle/${targetDbName}` });
-
-            // Support one or many migration folders (comma-separated)
-            // const dirs = (MIGRATION_DIRS ?? `drizzle/sys,drizzle/org`)
-            //     .split(',')
-            //     .map((s) => s.trim())
-            //     .filter(Boolean);
-
-            // for (const dir of dirs) {
-            //     console.log(`[migrate] Applying migrations from "${dir}"…`);
-            //     await migrate(db, { migrationsFolder: dir });
-            // }
-
             
         } finally {
             await pool.end();
@@ -103,26 +91,6 @@ async function runMigrations() {
     }
 
     console.log('[migrate] All migrations applied.');
-
-    // const pool = new Pool({ connectionString: DATABASE_URL });
-    // try {
-    //     const db = drizzle(pool);
-
-    //     // Support one or many migration folders (comma-separated)
-    //     const dirs = (MIGRATION_DIRS ?? `drizzle/sys,drizzle/org`)
-    //         .split(',')
-    //         .map((s) => s.trim())
-    //         .filter(Boolean);
-
-    //     for (const dir of dirs) {
-    //         console.log(`[migrate] Applying migrations from "${dir}"…`);
-    //         await migrate(db, { migrationsFolder: dir });
-    //     }
-
-    //     console.log('[migrate] All migrations applied.');
-    // } finally {
-    //     await pool.end();
-    // }
 }
 
 
