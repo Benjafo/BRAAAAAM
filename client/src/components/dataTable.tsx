@@ -35,7 +35,7 @@ import { useNavigate } from "@tanstack/react-router";
 
 // Component Props
 export type DataTableProps<T extends Record<string, unknown>> = {
-    fetchData: (params: Record<string, any>) => Promise<{ data: T[]; total: number }>;
+    fetchData: (params: Record<string, unknown>) => Promise<{ data: T[]; total: number }>;
     columns?: ColumnDef<T, unknown>[];
     caption?: React.ReactNode;
     className?: string;
@@ -145,7 +145,7 @@ export function DataTable<T extends Record<string, unknown>>({
         const loadData = async () => {
             setIsLoading(true);
             try {
-                const params: Record<string, any> = {
+                const params: Record<string, unknown> = {
                     page: pagination.pageIndex,
                     pageSize: pagination.pageSize,
                 };
@@ -170,7 +170,7 @@ export function DataTable<T extends Record<string, unknown>>({
                 // Sync search params in the URL
                 navigate({
                     to: ".",
-                    search: (prev) => ({ ...prev, ...params }),
+                    search: (prev: Record<string, unknown>) => ({ ...prev, ...params }),
                 });
 
                 const result = await fetchData(params);
