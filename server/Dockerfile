@@ -21,8 +21,8 @@ COPY client client
 RUN if [ "$GENERATE_MIGRATIONS" = "true" ]; then \
       echo "Running drizzle-kit generate..."; \
       cd server; \
-      npx drizzle-kit generate --config drizzle.sys.config.ts; \
-      npx drizzle-kit generate --config drizzle.org.config.ts; \
+      npx drizzle-kit generate --name=init --config=drizzle.sys.config.ts; \
+      npx drizzle-kit generate --name=init --config drizzle.org.config.ts; \
     else \
       echo "Skipping drizzle-kit generate"; \
     fi

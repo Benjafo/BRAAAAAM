@@ -44,8 +44,8 @@ jobs:
       - name: Generate migrations
         working-directory: ./server
         run: |
-          npx drizzle-kit generate --config --name init ./drizzle.sys.config.ts
-          npx drizzle-kit generate --config --name init ./drizzle.org.config.ts
+          npx drizzle-kit generate --name=init --config=./drizzle.sys.config.ts
+          npx drizzle-kit generate --name=init --config=./drizzle.org.config.ts
 
       - name: Run migrations
         working-directory: ./server
