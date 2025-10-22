@@ -1,5 +1,5 @@
 import express, { Router } from "express";
-import * as clients from "../controllers/clients.controller";
+import * as clients from "../controllers/clients.controller.js";
 
 const router: Router = express.Router({ mergeParams: true });
 

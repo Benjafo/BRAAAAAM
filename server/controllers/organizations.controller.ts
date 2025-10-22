@@ -1,14 +1,14 @@
 import { Request, Response } from "express";
 
-interface Organization {
-    id: string;
-    name: string;
-    domain?: string;
-    createdAt?: string;
-    updatedAt?: string;
-}
+// interface Organization {
+//     id: string;
+//     name: string;
+//     domain?: string;
+//     createdAt?: string;
+//     updatedAt?: string;
+// }
 
-const organizations: Organization[] = [];
+// const organizations: Organization[] = [];
 
 
 // TODO: For future Controllers, make stubs without logic. Just return res.status(500) for now...

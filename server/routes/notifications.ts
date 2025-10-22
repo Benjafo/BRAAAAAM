@@ -1,5 +1,5 @@
 import express, { Router } from "express";
-import * as notifications from "../controllers/notifications.controller";
+import * as notifications from "../controllers/notifications.controller.js";
 
 const router: Router = express.Router({ mergeParams: true });
 

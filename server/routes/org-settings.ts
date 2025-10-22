@@ -1,5 +1,5 @@
 import express, { Router } from "express";
-import * as settings from "../controllers/org-settings.controller";
+import * as settings from "../controllers/org-settings.controller.js";
 
 const router: Router = express.Router({ mergeParams: true });
 

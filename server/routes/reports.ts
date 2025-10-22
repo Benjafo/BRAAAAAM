@@ -1,5 +1,5 @@
 import express, { Router } from "express";
-import * as reports from "../controllers/reports.controller";
+import * as reports from "../controllers/reports.controller.js";
 
 const router: Router = express.Router({ mergeParams: true });
 

@@ -1,31 +1,31 @@
 import { Request, Response } from "express";
 
-interface HoursOfOperation {
-    id: string;
-    dayOfWeek: number; // 0–6
-    startTime: string;
-    endTime: string;
-}
+// interface HoursOfOperation {
+//     id: string;
+//     dayOfWeek: number; // 0–6
+//     startTime: string;
+//     endTime: string;
+// }
 
-interface OrgSettings {
-    id: string;
-    name?: string;
-    logo?: string;
-    domain?: string;
-    phone?: string;
-    email?: string;
-    streetAddress1?: string;
-    streetAddress2?: string;
-    city?: string;
-    state?: string;
-    zip?: string;
-    country?: string;
-    postmarkApiKey?: string;
-    googleMapsApiKey?: string;
-    hoursOfOperation?: HoursOfOperation[];
-}
+// interface OrgSettings {
+//     id: string;
+//     name?: string;
+//     logo?: string;
+//     domain?: string;
+//     phone?: string;
+//     email?: string;
+//     streetAddress1?: string;
+//     streetAddress2?: string;
+//     city?: string;
+//     state?: string;
+//     zip?: string;
+//     country?: string;
+//     postmarkApiKey?: string;
+//     googleMapsApiKey?: string;
+//     hoursOfOperation?: HoursOfOperation[];
+// }
 
-const orgSettings: OrgSettings[] = [];
+// const _orgSettings: OrgSettings[] = [];
 
 
 // TODO: For future Controllers, make stubs without logic. Just return res.status(500) for now...
