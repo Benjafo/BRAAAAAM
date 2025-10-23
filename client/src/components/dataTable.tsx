@@ -83,6 +83,7 @@ export function DataTable<T extends Record<string, unknown>>({
     initialPageSize = 10,
     pageSizes = [5, 10, 25, 50],
     selectable = true,
+    onRowSelectionChange,
 }: DataTableProps<T>) {
     // Internal state
     const [data, setData] = React.useState<T[]>([]);
@@ -188,6 +189,16 @@ export function DataTable<T extends Record<string, unknown>>({
         globalFilter,
         fetchData,
     ]);
+
+    // Notify parent of selection changes
+    // (ai made this function)
+    React.useEffect(() => {
+        if (onRowSelectionChange) {
+            const selectedIndices = Object.keys(rowSelection);
+            const selectedData = selectedIndices.map(idx => data[parseInt(idx)]).filter(Boolean);
+            onRowSelectionChange(selectedData);
+        }
+    }, [rowSelection, data, onRowSelectionChange]);
 
     // Columns that can be filtered
     const filterableCols = table.getAllColumns().filter((col) => col.getCanFilter());

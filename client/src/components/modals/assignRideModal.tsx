@@ -19,14 +19,18 @@ type Driver = {
 
 export default function AssignRideModal() {
     const [open, setOpen] = React.useState(false);
+    const [selectedDrivers, setSelectedDrivers] = React.useState<Driver[]>([]);
 
-    const fetchDrivers = async () => {
-        const drivers: Driver[] = [{ name: "one", phoneNumber: "123" }];
+    const fetchDrivers = React.useCallback(async () => {
+        const drivers: Driver[] = [
+            { name: "one", phoneNumber: "123" },
+            { name: "two", phoneNumber: "234" },
+        ];
         return {
             data: drivers,
-            total: 1,
+            total: drivers.length,
         };
-    };
+    }, []);
     return (
         <Dialog open={open} onOpenChange={setOpen}>
             <DialogTrigger asChild>
@@ -44,13 +48,20 @@ export default function AssignRideModal() {
                     </p>
                 </DialogHeader>
                 <div className="flex flex-row justify-end">
-                    <Button variant="outline" className="mr-2">
+                    <Button
+                        variant="outline"
+                        className="mr-2"
+                        disabled={selectedDrivers.length === 0}
+                    >
                         Notify Drivers
                     </Button>
-                    <Button variant="default">Assign Driver</Button>
+                    <Button variant="default" disabled={selectedDrivers.length !== 1}>
+                        Assign Driver
+                    </Button>
                 </div>
                 <DataTable
                     fetchData={fetchDrivers}
+                    onRowSelectionChange={setSelectedDrivers}
                     columns={[
                         { header: "Name", accessorKey: "name", enableSorting: false },
                         { header: "Phone", accessorKey: "phoneNumber", enableSorting: false },
