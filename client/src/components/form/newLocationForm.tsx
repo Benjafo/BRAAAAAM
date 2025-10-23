@@ -1,16 +1,16 @@
 "use client";
 
-import { z } from "zod";
-import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
 import { Input } from "@/components/ui/input";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { useForm } from "react-hook-form";
+import { z } from "zod";
 
 import {
     Form,
+    FormControl,
     FormField,
     FormItem,
     FormLabel,
-    FormControl,
     FormMessage,
 } from "@/components/ui/form";
 import { MapPin } from "lucide-react";
@@ -93,19 +93,16 @@ export default function NewLocationForm({ defaultValues, onSubmit }: Props) {
                         </FormItem>
                     )}
                 />
-                {/* Address 2*/}
+                {/* Unit/Apartment/Suite */}
                 <FormField
                     control={form.control}
                     name="newAddress2"
                     render={({ field }) => (
                         <FormItem>
-                            <FormLabel>Address 2</FormLabel>
+                            <FormLabel>Unit/Apartment/Suite</FormLabel>
                             <FormControl>
                                 <div className="relative">
-                                    <Input
-                                        placeholder="(Replace with Google autocomplete)"
-                                        {...field}
-                                    />
+                                    <Input {...field} />
                                     <MapPin className="absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
                                 </div>
                             </FormControl>

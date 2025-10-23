@@ -1,24 +1,24 @@
 "use client";
 
-import { z } from "zod";
-import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
 import { Input } from "@/components/ui/input";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { useForm } from "react-hook-form";
+import { z } from "zod";
 
 import {
     Form,
+    FormControl,
     FormField,
     FormItem,
     FormLabel,
-    FormControl,
     FormMessage,
 } from "@/components/ui/form";
 
+import { cn } from "@/lib/utils";
 import { Check, ChevronsUpDown, MapPin } from "lucide-react";
-import { RadioGroup, RadioGroupItem } from "../ui/radio-group";
-import { Checkbox } from "../ui/checkbox";
-import { Popover, PopoverContent, PopoverTrigger } from "../ui/popover";
+import { useState } from "react";
 import { Button } from "../ui/button";
+import { Checkbox } from "../ui/checkbox";
 import {
     Command,
     CommandEmpty,
@@ -27,8 +27,8 @@ import {
     CommandItem,
     CommandList,
 } from "../ui/command";
-import { cn } from "@/lib/utils";
-import { useState } from "react";
+import { Popover, PopoverContent, PopoverTrigger } from "../ui/popover";
+import { RadioGroup, RadioGroupItem } from "../ui/radio-group";
 
 /* --------------------------------- Schema --------------------------------- */
 /* using z.enum for select values that we know are included */
@@ -470,13 +470,13 @@ export default function NewDriverForm({ defaultValues, onSubmit }: Props) {
                     )}
                 />
 
-                {/* Address Line 2 */}
+                {/* Unit/Apartment/Suite */}
                 <FormField
                     control={form.control}
                     name="homeAddress2"
                     render={({ field }) => (
                         <FormItem>
-                            <FormLabel>Address 2</FormLabel>
+                            <FormLabel>Unit/Apartment/Suite</FormLabel>
                             <FormControl>
                                 <div className="relative">
                                     <Input

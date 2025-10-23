@@ -312,13 +312,13 @@ export default function NewOrganizationForm({ defaultValues, onSubmit }: Props) 
                     )}
                 />
 
-                {/* Mailing address Line 2 */}
+                {/* Mailing Unit/Apartment/Suite */}
                 <FormField
                     control={form.control}
                     name="address2"
                     render={({ field }) => (
                         <FormItem>
-                            <FormLabel>Organization Mailing Address Line 2</FormLabel>
+                            <FormLabel>Organization Mailing Unit/Apartment/Suite</FormLabel>
                             <FormControl>
                                 <div className="relative">
                                     <Input {...field} />
@@ -351,13 +351,13 @@ export default function NewOrganizationForm({ defaultValues, onSubmit }: Props) 
                     )}
                 />
 
-                {/* Address Line 2 */}
+                {/* Unit/Apartment/Suite */}
                 <FormField
                     control={form.control}
                     name="address2"
                     render={({ field }) => (
                         <FormItem>
-                            <FormLabel>Organization Address Line 2</FormLabel>
+                            <FormLabel>Organization Unit/Apartment/Suite</FormLabel>
                             <FormControl>
                                 <div className="relative">
                                     <Input {...field} />
@@ -458,13 +458,13 @@ export default function NewOrganizationForm({ defaultValues, onSubmit }: Props) 
                     )}
                 />
 
-                {/* Admin Address Line 2 */}
+                {/* Admin Unit/Apartment/Suite */}
                 <FormField
                     control={form.control}
                     name="adminAddress2"
                     render={({ field }) => (
                         <FormItem>
-                            <FormLabel>Administrator Address Line 2</FormLabel>
+                            <FormLabel>Administrator Unit/Apartment/Suite</FormLabel>
                             <FormControl>
                                 <div className="relative">
                                     <Input {...field} />
@@ -527,13 +527,13 @@ export default function NewOrganizationForm({ defaultValues, onSubmit }: Props) 
                     )}
                 />
 
-                {/* Secondary Address Line 2 */}
+                {/* Secondary Unit/Apartment/Suite */}
                 <FormField
                     control={form.control}
                     name="secondaryAddress2"
                     render={({ field }) => (
                         <FormItem>
-                            <FormLabel>Secondary Contact Address Line 2</FormLabel>
+                            <FormLabel>Secondary Contact Unit/Apartment/Suite </FormLabel>
                             <FormControl>
                                 <div className="relative">
                                     <Input {...field} />
