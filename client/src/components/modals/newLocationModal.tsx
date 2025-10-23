@@ -25,7 +25,7 @@ export default function NewLocationModal({
     const [open, setOpen] = React.useState(false);
 
     // Determine if we're editing based on whether address is populated (AI worked on this)
-    const isEditing = Boolean(defaultValues.locationName);
+    const isEditing = defaultValues.locationName !== undefined;
     const modalTitle = isEditing ? "Edit Location" : "New Location";
     const successMessage = isEditing ? "Location Updated" : "New Location Created";
 
