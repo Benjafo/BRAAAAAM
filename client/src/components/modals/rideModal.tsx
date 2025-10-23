@@ -1,6 +1,6 @@
 "use client";
 
-import CreateRideForm, { type CreateRideFormValues } from "@/components/form/rideForm";
+import RideForm, { type RideFormValues } from "@/components/form/rideForm";
 import { Button } from "@/components/ui/button";
 import {
     Dialog,
@@ -11,12 +11,12 @@ import {
     DialogTrigger,
 } from "@/components/ui/dialog";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import type { ClientProfile } from "@/lib/types";
 import * as React from "react";
 import { toast } from "sonner";
 import { Input } from "../ui/input";
 import { Label } from "../ui/label";
 import { Textarea } from "../ui/textarea";
-import type { ClientProfile } from "@/lib/types";
 
 type Client = {
     value: string;
@@ -24,7 +24,7 @@ type Client = {
     profile: ClientProfile;
 };
 
-export default function CreateRideModal() {
+export default function RideModal() {
     const [open, setOpen] = React.useState(false);
     const [selectedClientValue, setSelectedClientValue] = React.useState<string>("");
 
@@ -92,7 +92,7 @@ export default function CreateRideModal() {
     const profile = selectedClient?.profile;
 
     // Provide the form, passing in one default value for now to make sure this works
-    const defaultValues: Partial<CreateRideFormValues> = {
+    const defaultValues: Partial<RideFormValues> = {
         additionalRider: "No",
     };
 
@@ -102,7 +102,7 @@ export default function CreateRideModal() {
     }
 
     //
-    async function handleSubmit(values: CreateRideFormValues) {
+    async function handleSubmit(values: RideFormValues) {
         // TODO: API logic for sending values
         console.log(values); // Testing to see if values appear after submit
         toast.success("Ride Saved");
@@ -132,7 +132,7 @@ export default function CreateRideModal() {
                         forceMount
                         className="data-[state=inactive]:hidden"
                     >
-                        <CreateRideForm
+                        <RideForm
                             defaultValues={defaultValues}
                             onSubmit={handleSubmit}
                             clients={clients}

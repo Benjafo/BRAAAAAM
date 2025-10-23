@@ -1,24 +1,24 @@
 "use client";
 
-import { z } from "zod";
-import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
 import { Input } from "@/components/ui/input";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { useForm } from "react-hook-form";
+import { z } from "zod";
 
 import {
     Form,
+    FormControl,
     FormField,
     FormItem,
     FormLabel,
-    FormControl,
     FormMessage,
 } from "@/components/ui/form";
 
+import { cn } from "@/lib/utils";
 import { Check, ChevronsUpDown, MapPin } from "lucide-react";
-import { RadioGroup, RadioGroupItem } from "../ui/radio-group";
-import { Checkbox } from "../ui/checkbox";
-import { Popover, PopoverContent, PopoverTrigger } from "../ui/popover";
+import { useState } from "react";
 import { Button } from "../ui/button";
+import { Checkbox } from "../ui/checkbox";
 import {
     Command,
     CommandEmpty,
@@ -27,12 +27,12 @@ import {
     CommandItem,
     CommandList,
 } from "../ui/command";
-import { cn } from "@/lib/utils";
-import { useState } from "react";
+import { Popover, PopoverContent, PopoverTrigger } from "../ui/popover";
+import { RadioGroup, RadioGroupItem } from "../ui/radio-group";
 
 /* --------------------------------- Schema --------------------------------- */
 /* using z.enum for select values that we know are included */
-const newDriverSchema = z.object({
+const driverSchema = z.object({
     firstName: z
         .string()
         .min(1, "Please enter the first name.")
@@ -117,13 +117,13 @@ const newDriverSchema = z.object({
     okToTextSecondaryPhone: z.boolean(),
 });
 
-export type NewDriverFormValues = z.infer<typeof newDriverSchema>;
+export type DriverFormValues = z.infer<typeof driverSchema>;
 
 /* --------------------------------- Props ---------------------------------- */
 /** Accept Partial so we can provide sane fallbacks when something is missing. */
 type Props = {
-    defaultValues: Partial<NewDriverFormValues>;
-    onSubmit: (values: NewDriverFormValues) => void | Promise<void>;
+    defaultValues: Partial<DriverFormValues>;
+    onSubmit: (values: DriverFormValues) => void | Promise<void>;
 };
 
 // Months and Years values, from AI
@@ -147,9 +147,9 @@ const YEARS = Array.from({ length: 100 }, (_, i) => {
     return { value: String(year), label: String(year) };
 });
 /* --------------------------------- Form ----------------------------------- */
-export default function NewDriverForm({ defaultValues, onSubmit }: Props) {
-    const form = useForm<NewDriverFormValues>({
-        resolver: zodResolver(newDriverSchema),
+export default function DriverForm({ defaultValues, onSubmit }: Props) {
+    const form = useForm<DriverFormValues>({
+        resolver: zodResolver(driverSchema),
         mode: "onBlur",
 
         defaultValues: {

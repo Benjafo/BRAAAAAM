@@ -1,5 +1,4 @@
 "use client";
-import * as React from "react";
 import { Button } from "@/components/ui/button";
 import {
     Dialog,
@@ -9,12 +8,13 @@ import {
     DialogTitle,
     DialogTrigger,
 } from "@/components/ui/dialog";
+import * as React from "react";
 import { toast } from "sonner";
-import type { NewLocationFormValues } from "../form/locationForm";
+import type { LocationFormValues } from "../form/locationForm";
 import NewLocationForm from "../form/locationForm";
 
 type NewLocationModalProps = {
-    defaultValues?: Partial<NewLocationFormValues>;
+    defaultValues?: Partial<LocationFormValues>;
     triggerButton?: React.ReactNode;
 };
 
@@ -29,7 +29,7 @@ export default function NewLocationModal({
     const modalTitle = isEditing ? "Edit Location" : "New Location";
     const successMessage = isEditing ? "Location Updated" : "New Location Created";
 
-    async function handleSubmit(values: NewLocationFormValues) {
+    async function handleSubmit(values: LocationFormValues) {
         // TODO: API logic for new/edit location form values
         console.log(values);
         toast.success(successMessage);

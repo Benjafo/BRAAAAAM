@@ -1,6 +1,5 @@
 "use client";
 
-import * as React from "react";
 import { Button } from "@/components/ui/button";
 import {
     Dialog,
@@ -10,15 +9,16 @@ import {
     DialogTitle,
     DialogTrigger,
 } from "@/components/ui/dialog";
-import type { NewClientFormValues } from "../form/newClientForm";
+import * as React from "react";
 import { toast } from "sonner";
-import NewClientForm from "../form/newClientForm";
+import type { ClientFormValues } from "../form/clientForm";
+import ClientForm from "../form/clientForm";
 
 type NewClientModalProps = {
-    defaultValues?: Partial<NewClientFormValues>;
+    defaultValues?: Partial<ClientFormValues>;
     triggerButton?: React.ReactNode;
 };
-export default function NewClientModal({ defaultValues = {}, triggerButton }: NewClientModalProps) {
+export default function ClientModal({ defaultValues = {}, triggerButton }: NewClientModalProps) {
     const [open, setOpen] = React.useState(false);
 
     // Determine if we're editing based on whether firstName is populated (AI made this)
@@ -26,7 +26,7 @@ export default function NewClientModal({ defaultValues = {}, triggerButton }: Ne
     const modalTitle = isEditing ? "Edit Client" : "New Client";
     const successMessage = isEditing ? "Client Updated" : "New Client Created";
 
-    async function handleSubmit(values: NewClientFormValues) {
+    async function handleSubmit(values: ClientFormValues) {
         // TODO: API logic for new client information sent
         console.log(values); // Testing to see if values appear after submit
         toast.success(successMessage);
@@ -44,7 +44,7 @@ export default function NewClientModal({ defaultValues = {}, triggerButton }: Ne
                     <DialogTitle>{modalTitle}</DialogTitle>
                 </DialogHeader>
 
-                <NewClientForm onSubmit={handleSubmit} defaultValues={defaultValues} />
+                <ClientForm onSubmit={handleSubmit} defaultValues={defaultValues} />
                 <DialogFooter className="flex flex-row justify-end gap-3 mt-3">
                     <Button type="button" variant="outline" onClick={() => setOpen(false)}>
                         Cancel

@@ -1,23 +1,23 @@
 "use client";
 
-import { z } from "zod";
-import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
 import { Input } from "@/components/ui/input";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { useForm } from "react-hook-form";
+import { z } from "zod";
 
 import {
     Form,
+    FormControl,
     FormField,
     FormItem,
     FormLabel,
-    FormControl,
     FormMessage,
 } from "@/components/ui/form";
 import { MapPin } from "lucide-react";
 
 /* --------------------------------- Schema --------------------------------- */
 /* using z.enum for select values that we know are included */
-const newLocationSchema = z.object({
+const locationSchema = z.object({
     locationName: z
         .string()
         .min(1, "Please enter the location name.")
@@ -29,19 +29,19 @@ const newLocationSchema = z.object({
     newAddress2: z.string().max(255, "Max characters allowed is 255.").optional(),
 });
 
-export type NewLocationFormValues = z.infer<typeof newLocationSchema>;
+export type LocationFormValues = z.infer<typeof locationSchema>;
 
 /* --------------------------------- Props ---------------------------------- */
 /** Accept Partial so we can provide sane fallbacks when something is missing. */
 type Props = {
-    defaultValues: Partial<NewLocationFormValues>;
-    onSubmit: (values: NewLocationFormValues) => void | Promise<void>;
+    defaultValues: Partial<LocationFormValues>;
+    onSubmit: (values: LocationFormValues) => void | Promise<void>;
 };
 
 /* --------------------------------- Form ----------------------------------- */
-export default function NewLocationForm({ defaultValues, onSubmit }: Props) {
-    const form = useForm<NewLocationFormValues>({
-        resolver: zodResolver(newLocationSchema),
+export default function LocationForm({ defaultValues, onSubmit }: Props) {
+    const form = useForm<LocationFormValues>({
+        resolver: zodResolver(locationSchema),
         mode: "onBlur",
 
         defaultValues: {

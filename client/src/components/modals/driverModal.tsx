@@ -1,4 +1,3 @@
-import * as React from "react";
 import { Button } from "@/components/ui/button";
 import {
     Dialog,
@@ -8,16 +7,17 @@ import {
     DialogTitle,
     DialogTrigger,
 } from "@/components/ui/dialog";
+import * as React from "react";
 import { toast } from "sonner";
-import type { NewDriverFormValues } from "../form/newDriverForm";
-import NewDriverForm from "../form/newDriverForm";
+import type { DriverFormValues } from "../form/driverForm";
+import DriverForm from "../form/driverForm";
 
-type NewDriverModalProps = {
-    defaultValues?: Partial<NewDriverFormValues>;
+type DriverModalProps = {
+    defaultValues?: Partial<DriverFormValues>;
     triggerButton?: React.ReactNode;
 };
 
-export default function NewDriverModal({ defaultValues = {}, triggerButton }: NewDriverModalProps) {
+export default function DriverModal({ defaultValues = {}, triggerButton }: DriverModalProps) {
     const [open, setOpen] = React.useState(false);
 
     // Determine if we're editing based on whether firstName is populated (AI made this)
@@ -25,7 +25,7 @@ export default function NewDriverModal({ defaultValues = {}, triggerButton }: Ne
     const modalTitle = isEditing ? "Edit Driver" : "New Driver";
     const successMessage = isEditing ? "Driver Updated" : "New Driver Created";
 
-    async function handleSubmit(values: NewDriverFormValues) {
+    async function handleSubmit(values: DriverFormValues) {
         // TODO: API logic for new/edit driver information
         console.log(values);
         toast.success(successMessage);
@@ -41,7 +41,7 @@ export default function NewDriverModal({ defaultValues = {}, triggerButton }: Ne
                 <DialogHeader className="mb-4">
                     <DialogTitle>{modalTitle}</DialogTitle>
                 </DialogHeader>
-                <NewDriverForm onSubmit={handleSubmit} defaultValues={defaultValues} />
+                <DriverForm onSubmit={handleSubmit} defaultValues={defaultValues} />
                 <DialogFooter className="flex flex-row justify-end gap-3 mt-3">
                     <Button type="button" variant="outline" onClick={() => setOpen(false)}>
                         Cancel

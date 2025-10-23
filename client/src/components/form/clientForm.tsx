@@ -1,25 +1,20 @@
-import { useState } from "react";
-import { z } from "zod";
-import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
 import { Input } from "@/components/ui/input";
-import { Check, ChevronsUpDown } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { Check, ChevronsUpDown } from "lucide-react";
+import { useState } from "react";
+import { useForm } from "react-hook-form";
+import { z } from "zod";
 
 import {
     Form,
+    FormControl,
     FormField,
     FormItem,
     FormLabel,
-    FormControl,
     FormMessage,
 } from "@/components/ui/form";
 
-import { DatePickerInput } from "../ui/datePickerField";
-import { MapPin } from "lucide-react";
-import { RadioGroup, RadioGroupItem } from "../ui/radio-group";
-import { Checkbox } from "../ui/checkbox";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../ui/select";
 import { Button } from "@/components/ui/button";
 import {
     Command,
@@ -30,11 +25,16 @@ import {
     CommandList,
 } from "@/components/ui/command";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { MapPin } from "lucide-react";
+import { Checkbox } from "../ui/checkbox";
+import { DatePickerInput } from "../ui/datePickerField";
+import { RadioGroup, RadioGroupItem } from "../ui/radio-group";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../ui/select";
 
 /* --------------------------------- Schema --------------------------------- */
 /* using z.enum for select values that we know are included */
 
-const newClientSchema = z
+const clientSchema = z
     .object({
         firstName: z
             .string()
@@ -142,13 +142,13 @@ const newClientSchema = z
         }
     });
 
-export type NewClientFormValues = z.infer<typeof newClientSchema>;
+export type ClientFormValues = z.infer<typeof clientSchema>;
 
 /* --------------------------------- Props ---------------------------------- */
 /** Accept Partial so we can provide sane fallbacks when something is missing. */
 type Props = {
-    defaultValues: Partial<NewClientFormValues>;
-    onSubmit: (values: NewClientFormValues) => void | Promise<void>;
+    defaultValues: Partial<ClientFormValues>;
+    onSubmit: (values: ClientFormValues) => void | Promise<void>;
 };
 
 // Months and Years values, from AI
@@ -173,9 +173,9 @@ const YEARS = Array.from({ length: 100 }, (_, i) => {
     return { value: String(year), label: String(year) };
 });
 /* --------------------------------- Form ----------------------------------- */
-export default function NewClientForm({ defaultValues, onSubmit }: Props) {
-    const form = useForm<NewClientFormValues>({
-        resolver: zodResolver(newClientSchema),
+export default function ClientForm({ defaultValues, onSubmit }: Props) {
+    const form = useForm<ClientFormValues>({
+        resolver: zodResolver(clientSchema),
         mode: "onBlur",
 
         defaultValues: {

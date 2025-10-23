@@ -34,7 +34,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from ".
 
 /* --------------------------------- Schema --------------------------------- */
 
-const newUserSchema = z
+const userSchema = z
     .object({
         firstName: z
             .string()
@@ -209,12 +209,12 @@ const newUserSchema = z
         }
     });
 
-export type NewUserFormValues = z.infer<typeof newUserSchema>;
+export type UserFormValues = z.infer<typeof userSchema>;
 
 /* --------------------------------- Props ---------------------------------- */
 type Props = {
-    defaultValues: Partial<NewUserFormValues>;
-    onSubmit: (values: NewUserFormValues) => void | Promise<void>;
+    defaultValues: Partial<UserFormValues>;
+    onSubmit: (values: UserFormValues) => void | Promise<void>;
 };
 
 const MONTHS = [
@@ -239,8 +239,8 @@ const YEARS = Array.from({ length: 100 }, (_, i) => {
 
 /* --------------------------------- Form ----------------------------------- */
 export default function NewUserForm({ defaultValues, onSubmit }: Props) {
-    const form = useForm<NewUserFormValues>({
-        resolver: zodResolver(newUserSchema),
+    const form = useForm<UserFormValues>({
+        resolver: zodResolver(userSchema),
         mode: "onBlur",
 
         defaultValues: {
