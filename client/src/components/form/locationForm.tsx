@@ -93,13 +93,13 @@ export default function LocationForm({ defaultValues, onSubmit }: Props) {
                         </FormItem>
                     )}
                 />
-                {/* Address 2*/}
+                {/* Unit/Apartment/Suite*/}
                 <FormField
                     control={form.control}
                     name="newAddress2"
                     render={({ field }) => (
                         <FormItem>
-                            <FormLabel>Address 2</FormLabel>
+                            <FormLabel>Unit/Apartment/Suite</FormLabel>
                             <FormControl>
                                 <div className="relative">
                                     <Input

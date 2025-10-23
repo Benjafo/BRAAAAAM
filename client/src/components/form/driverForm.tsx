@@ -476,7 +476,7 @@ export default function DriverForm({ defaultValues, onSubmit }: Props) {
                     name="homeAddress2"
                     render={({ field }) => (
                         <FormItem>
-                            <FormLabel>Address 2</FormLabel>
+                            <FormLabel>Unit/Apartment/Suite</FormLabel>
                             <FormControl>
                                 <div className="relative">
                                     <Input

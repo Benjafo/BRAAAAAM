@@ -153,7 +153,7 @@ export default function RideModal() {
                                 />
                             </div>
                             <div className="space-y-2">
-                                <Label htmlFor="address2">Address 2</Label>
+                                <Label htmlFor="address2">Unit/Apartment/Suite</Label>
                                 <Input id="address2" value={profile?.address2 ?? ""} disabled />
                             </div>
                             <div className="space-y-2">

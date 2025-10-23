@@ -571,13 +571,13 @@ export default function ClientForm({ defaultValues, onSubmit }: Props) {
                     </div>
                 </div>
 
-                {/* Home Address 2 */}
+                {/* Home Unit/Apartment/Suite */}
                 <FormField
                     control={form.control}
                     name="homeAddress2"
                     render={({ field }) => (
                         <FormItem>
-                            <FormLabel>Address 2</FormLabel>
+                            <FormLabel>Unit/Apartment/Suite</FormLabel>
                             <FormControl>
                                 <div className="relative">
                                     <Input

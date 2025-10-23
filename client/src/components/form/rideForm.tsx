@@ -353,13 +353,13 @@ export default function EditRideForm({
                         </FormItem>
                     )}
                 />
-                {/* Destination Address 2  */}
+                {/* Destination Unit/Apartment/Suite  */}
                 <FormField
                     control={form.control}
                     name="destinationAddress2"
                     render={({ field }) => (
                         <FormItem>
-                            <FormLabel>Organization Street Address 2</FormLabel>
+                            <FormLabel>Organization Street Unit/Apartment/Suite</FormLabel>
                             <FormControl>
                                 <div className="relative">
                                     <Input

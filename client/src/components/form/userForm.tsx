@@ -518,13 +518,13 @@ export default function NewUserForm({ defaultValues, onSubmit }: Props) {
                     )}
                 />
 
-                {/* Street Address 2 */}
+                {/* Street Unit/Apartment/Suite */}
                 <FormField
                     control={form.control}
                     name="streetAddress2"
                     render={({ field }) => (
                         <FormItem>
-                            <FormLabel>Street Address 2</FormLabel>
+                            <FormLabel>Street Unit/Apartment/Suite</FormLabel>
                             <FormControl>
                                 <div className="relative">
                                     <Input
