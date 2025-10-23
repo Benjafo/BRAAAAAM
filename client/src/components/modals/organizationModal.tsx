@@ -37,7 +37,7 @@ export default function NewOrganizationModal() {
 
             <DialogContent className="max-w-[720px] max-h-[90vh] overflow-y-auto scroll-smooth p-6">
                 <DialogHeader className="mb-4">
-                    <DialogTistle>New Organization</DialogTistle>
+                    <DialogTitle>New Organization</DialogTitle>
                 </DialogHeader>
 
                 <OrganizationForm defaultValues={defaultValues} onSubmit={handleSubmit} />
