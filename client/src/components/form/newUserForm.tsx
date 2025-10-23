@@ -1,23 +1,13 @@
 "use client";
 
-import { useState } from "react";
-import { z } from "zod";
-import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
 import { Input } from "@/components/ui/input";
-import { Check, ChevronsUpDown } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { Check, ChevronsUpDown } from "lucide-react";
+import { useState } from "react";
+import { useForm } from "react-hook-form";
+import { z } from "zod";
 
-import {
-    Form,
-    FormField,
-    FormItem,
-    FormLabel,
-    FormControl,
-    FormMessage,
-} from "@/components/ui/form";
-import { MapPin } from "lucide-react";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../ui/select";
 import { Button } from "@/components/ui/button";
 import {
     Command,
@@ -27,10 +17,20 @@ import {
     CommandItem,
     CommandList,
 } from "@/components/ui/command";
+import {
+    Form,
+    FormControl,
+    FormField,
+    FormItem,
+    FormLabel,
+    FormMessage,
+} from "@/components/ui/form";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { DatePickerInput } from "../ui/datePickerField";
+import { MapPin } from "lucide-react";
 import { Checkbox } from "../ui/checkbox";
+import { DatePickerInput } from "../ui/datePickerField";
 import { RadioGroup, RadioGroupItem } from "../ui/radio-group";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../ui/select";
 
 /* --------------------------------- Schema --------------------------------- */
 
@@ -47,10 +47,7 @@ const newUserSchema = z
             .string()
             .min(1, "Please enter the last name.")
             .max(255, "Max characters allowed is 255."),
-        userID: z
-            .string()
-            .min(1, "Please enter the User ID.")
-            .max(255, "Max characters allowed is 255."),
+        clientEmail: z.email("Please enter a valid email address."),
         birthMonth: z.string().min(1, "Please select a month."),
         birthYear: z.string().min(1, "Please select a year."),
         streetAddress: z
@@ -69,7 +66,6 @@ const newUserSchema = z
         inactiveSince: z.date().optional(),
         awayFrom: z.date().optional(),
         awayTo: z.date().optional(),
-        clientEmail: z.email("Please enter a valid email address.").optional().or(z.literal("")),
         primaryPhoneNumber: z
             .string()
             .min(1, "Phone number is required")
@@ -77,14 +73,9 @@ const newUserSchema = z
                 /^(\+1\s?)?(\([0-9]{3}\)\s?|[0-9]{3}[-.\s]?)[0-9]{3}[-.\s]?[0-9]{4}$/,
                 "Please enter a valid US phone number."
             ),
-
         primaryPhoneIsCellPhone: z.boolean(),
         okToTextPrimaryPhone: z.boolean(),
-        primaryContactPref: z
-            .string()
-            .min(1, "Write in how you want to be contacted. ")
-            .max(255, "Max characters allowed is 255."),
-
+        contactPreference: z.enum(["Phone", "Email"]),
         secondaryPhoneNumber: z
             .string()
             .regex(
@@ -95,11 +86,6 @@ const newUserSchema = z
             .optional(),
         secondaryPhoneIsCellPhone: z.boolean(),
         okToTextSecondaryPhone: z.boolean(),
-        secondaryContactPref: z
-            .string()
-            .max(255, "Max characters allowed is 255.")
-            .optional()
-            .or(z.literal("")),
         vehicleType: z
             .string()
             .max(255, "Max characters allowed is 255.")
@@ -261,7 +247,6 @@ export default function NewUserForm({ defaultValues, onSubmit }: Props) {
             firstName: defaultValues.firstName ?? "",
             userRole: defaultValues.userRole ?? "Dispatcher",
             lastName: defaultValues.lastName ?? "",
-            userID: defaultValues.userID ?? "",
             birthMonth: defaultValues.birthMonth ?? "",
             birthYear: defaultValues.birthYear ?? "",
             streetAddress: defaultValues.streetAddress ?? "",
@@ -275,11 +260,10 @@ export default function NewUserForm({ defaultValues, onSubmit }: Props) {
             primaryPhoneNumber: defaultValues.primaryPhoneNumber ?? "",
             primaryPhoneIsCellPhone: defaultValues.primaryPhoneIsCellPhone ?? false,
             okToTextPrimaryPhone: defaultValues.okToTextPrimaryPhone ?? false,
-            primaryContactPref: defaultValues.primaryContactPref ?? "",
+            contactPreference: defaultValues.contactPreference ?? "Phone",
             secondaryPhoneNumber: defaultValues.secondaryPhoneNumber ?? "",
             secondaryPhoneIsCellPhone: defaultValues.secondaryPhoneIsCellPhone ?? false,
             okToTextSecondaryPhone: defaultValues.okToTextSecondaryPhone ?? false,
-            secondaryContactPref: defaultValues.secondaryContactPref ?? "",
             vehicleType: defaultValues.vehicleType ?? "",
             vehicleColor: defaultValues.vehicleColor ?? "",
             maxRides: defaultValues.maxRides,
@@ -291,6 +275,9 @@ export default function NewUserForm({ defaultValues, onSubmit }: Props) {
     });
 
     const volunteeringStatus = form.watch("volunteeringStatus");
+    const primaryPhoneIsCellPhone = form.watch("primaryPhoneIsCellPhone");
+    const secondaryPhoneIsCellPhone = form.watch("secondaryPhoneIsCellPhone");
+
     const userRole = form.watch("userRole");
     const [monthOpen, setMonthOpen] = useState(false);
     const [yearOpen, setYearOpen] = useState(false);
@@ -368,15 +355,15 @@ export default function NewUserForm({ defaultValues, onSubmit }: Props) {
                     )}
                 />
 
-                {/* User ID */}
+                {/* Email */}
                 <FormField
                     control={form.control}
-                    name="userID"
+                    name="clientEmail"
                     render={({ field }) => (
-                        <FormItem className="w-full">
-                            <FormLabel>User ID</FormLabel>
-                            <FormControl className="w-full">
-                                <Input placeholder="Value" {...field} className="w-full" />
+                        <FormItem>
+                            <FormLabel>Email</FormLabel>
+                            <FormControl>
+                                <Input placeholder="Value" {...field} />
                             </FormControl>
                             <FormMessage />
                         </FormItem>
@@ -657,21 +644,6 @@ export default function NewUserForm({ defaultValues, onSubmit }: Props) {
                     )}
                 </div>
 
-                {/* Email */}
-                <FormField
-                    control={form.control}
-                    name="clientEmail"
-                    render={({ field }) => (
-                        <FormItem>
-                            <FormLabel>Email</FormLabel>
-                            <FormControl>
-                                <Input placeholder="Value" {...field} />
-                            </FormControl>
-                            <FormMessage />
-                        </FormItem>
-                    )}
-                />
-
                 {/* Primary Phone, adding div to make checkboxes align underneath primary phone number. */}
                 <div className="space-y-4">
                     <FormField
@@ -689,25 +661,27 @@ export default function NewUserForm({ defaultValues, onSubmit }: Props) {
                     />
 
                     {/* Primary Phone is Cell Phone Checkbox */}
-                    <FormField
-                        control={form.control}
-                        name="primaryPhoneIsCellPhone"
-                        render={({ field }) => (
-                            <FormItem className="flex flex-row items-start">
-                                <FormControl>
-                                    <Checkbox
-                                        checked={field.value}
-                                        onCheckedChange={field.onChange}
-                                    />
-                                </FormControl>
-                                <div className="space-y-1 leading-none">
-                                    <FormLabel className="font-normal">
-                                        Primary phone is a cell phone
-                                    </FormLabel>
-                                </div>
-                            </FormItem>
-                        )}
-                    />
+                    {primaryPhoneIsCellPhone && (
+                        <FormField
+                            control={form.control}
+                            name="primaryPhoneIsCellPhone"
+                            render={({ field }) => (
+                                <FormItem className="flex flex-row items-start">
+                                    <FormControl>
+                                        <Checkbox
+                                            checked={field.value}
+                                            onCheckedChange={field.onChange}
+                                        />
+                                    </FormControl>
+                                    <div className="space-y-1 leading-none">
+                                        <FormLabel className="font-normal">
+                                            Primary phone is a cell phone
+                                        </FormLabel>
+                                    </div>
+                                </FormItem>
+                            )}
+                        />
+                    )}
 
                     <FormField
                         control={form.control}
@@ -730,15 +704,23 @@ export default function NewUserForm({ defaultValues, onSubmit }: Props) {
                     />
                 </div>
 
-                {/* Primary contact preference */}
+                {/* Contact preference */}
                 <FormField
                     control={form.control}
-                    name="primaryContactPref"
+                    name="contactPreference"
                     render={({ field }) => (
                         <FormItem className="w-full">
-                            <FormLabel>Primary Contact Preference</FormLabel>
+                            <FormLabel>Contact Preference</FormLabel>
                             <FormControl className="w-full">
-                                <Input placeholder="Value" {...field} className="w-full" />
+                                <Select value={field.value} onValueChange={field.onChange}>
+                                    <SelectTrigger className="w-full">
+                                        <SelectValue placeholder="Contact Preference" />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        <SelectItem value="Phone">Phone</SelectItem>
+                                        <SelectItem value="Email">Email</SelectItem>
+                                    </SelectContent>
+                                </Select>
                             </FormControl>
                             <FormMessage />
                         </FormItem>
@@ -762,25 +744,27 @@ export default function NewUserForm({ defaultValues, onSubmit }: Props) {
                     />
 
                     {/* Secondary Phone is Cell Phone Checkbox */}
-                    <FormField
-                        control={form.control}
-                        name="secondaryPhoneIsCellPhone"
-                        render={({ field }) => (
-                            <FormItem className="flex flex-row items-start">
-                                <FormControl>
-                                    <Checkbox
-                                        checked={field.value}
-                                        onCheckedChange={field.onChange}
-                                    />
-                                </FormControl>
-                                <div className="space-y-1 leading-none">
-                                    <FormLabel className="font-normal">
-                                        Secondary phone is a cell phone
-                                    </FormLabel>
-                                </div>
-                            </FormItem>
-                        )}
-                    />
+                    {secondaryPhoneIsCellPhone && (
+                        <FormField
+                            control={form.control}
+                            name="secondaryPhoneIsCellPhone"
+                            render={({ field }) => (
+                                <FormItem className="flex flex-row items-start">
+                                    <FormControl>
+                                        <Checkbox
+                                            checked={field.value}
+                                            onCheckedChange={field.onChange}
+                                        />
+                                    </FormControl>
+                                    <div className="space-y-1 leading-none">
+                                        <FormLabel className="font-normal">
+                                            Secondary phone is a cell phone
+                                        </FormLabel>
+                                    </div>
+                                </FormItem>
+                            )}
+                        />
+                    )}
 
                     <FormField
                         control={form.control}
@@ -802,21 +786,6 @@ export default function NewUserForm({ defaultValues, onSubmit }: Props) {
                         )}
                     />
                 </div>
-
-                {/* Secondary contact preference */}
-                <FormField
-                    control={form.control}
-                    name="secondaryContactPref"
-                    render={({ field }) => (
-                        <FormItem className="w-full">
-                            <FormLabel>Secondary Contact Preference</FormLabel>
-                            <FormControl className="w-full">
-                                <Input placeholder="Value" {...field} className="w-full" />
-                            </FormControl>
-                            <FormMessage />
-                        </FormItem>
-                    )}
-                />
 
                 {/* Driver-specific fields - only shown when userRole is "Driver" */}
                 {userRole === "Driver" && (
