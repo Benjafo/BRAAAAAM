@@ -1,6 +1,5 @@
 "use client";
 
-import * as React from "react";
 import { Button } from "@/components/ui/button";
 import {
     Dialog,
@@ -10,6 +9,7 @@ import {
     DialogTitle,
     DialogTrigger,
 } from "@/components/ui/dialog";
+import * as React from "react";
 import { DataTable } from "../dataTable";
 
 type Driver = {
@@ -43,31 +43,40 @@ export default function AssignRideModal() {
                         displayed in order of how well they match this ride's constraints.
                     </p>
                 </DialogHeader>
+                <div className="flex flex-row justify-end">
+                    <Button variant="outline" className="mr-2">
+                        Notify Drivers
+                    </Button>
+                    <Button variant="default">Assign Driver</Button>
+                </div>
                 <DataTable
                     fetchData={fetchDrivers}
                     columns={[
-                        { header: "Name", accessorKey: "name" },
-                        { header: "Phone", accessorKey: "phoneNumber" },
-                        {
-                            header: "",
-                            cell: () => (
-                                <a href={`/`} className="hover:underline">
-                                    Notify this Driver
-                                </a>
-                            ),
-                            accessorKey: "assignDriver",
-                        },
-                        {
-                            header: "",
-                            cell: () => (
-                                <a href={`/`} className="hover:underline">
-                                    Assign this Driver
-                                </a>
-                            ),
-                            accessorKey: "notifiyDriver",
-                        },
+                        { header: "Name", accessorKey: "name", enableSorting: false },
+                        { header: "Phone", accessorKey: "phoneNumber", enableSorting: false },
+                        // {
+                        //     header: "",
+                        //     cell: () => (
+                        //         <a href={`/`} className="hover:underline">
+                        //             Notify this Driver
+                        //         </a>
+                        //     ),
+                        //     accessorKey: "assignDriver",
+                        //     enableSorting: false,
+                        // },
+                        // {
+                        //     header: "",
+                        //     cell: () => (
+                        //         <a href={`/`} className="hover:underline">
+                        //             Assign this Driver
+                        //         </a>
+                        //     ),
+                        //     accessorKey: "notifiyDriver",
+                        //     enableSorting: false,
+                        // },
                     ]}
                     showFilters={false}
+                    usePagination={false}
                 />
                 <DialogFooter className="flex flex-row justify-end gap-3 mt-3">
                     <Button type="button" variant="outline" onClick={() => setOpen(false)}>
