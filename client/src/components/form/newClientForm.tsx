@@ -1,25 +1,20 @@
-import { useState } from "react";
-import { z } from "zod";
-import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
 import { Input } from "@/components/ui/input";
-import { Check, ChevronsUpDown } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { Check, ChevronsUpDown } from "lucide-react";
+import { useState } from "react";
+import { useForm } from "react-hook-form";
+import { z } from "zod";
 
 import {
     Form,
+    FormControl,
     FormField,
     FormItem,
     FormLabel,
-    FormControl,
     FormMessage,
 } from "@/components/ui/form";
 
-import { DatePickerInput } from "../ui/datePickerField";
-import { MapPin } from "lucide-react";
-import { RadioGroup, RadioGroupItem } from "../ui/radio-group";
-import { Checkbox } from "../ui/checkbox";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../ui/select";
 import { Button } from "@/components/ui/button";
 import {
     Command,
@@ -30,6 +25,11 @@ import {
     CommandList,
 } from "@/components/ui/command";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { MapPin } from "lucide-react";
+import { Checkbox } from "../ui/checkbox";
+import { DatePickerInput } from "../ui/datePickerField";
+import { RadioGroup, RadioGroupItem } from "../ui/radio-group";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../ui/select";
 
 /* --------------------------------- Schema --------------------------------- */
 /* using z.enum for select values that we know are included */
@@ -208,6 +208,8 @@ export default function NewClientForm({ defaultValues, onSubmit }: Props) {
 
     const clientStatus = form.watch("clientStatus");
     const volunteeringStatus = form.watch("volunteeringStatus");
+    const primaryPhoneIsCellPhone = form.watch("primaryPhoneIsCellPhone");
+    const secondaryPhoneIsCellPhone = form.watch("secondaryPhoneIsCellPhone");
 
     const [monthOpen, setMonthOpen] = useState(false);
     const [yearOpen, setYearOpen] = useState(false);
@@ -734,25 +736,27 @@ export default function NewClientForm({ defaultValues, onSubmit }: Props) {
                         )}
                     />
 
-                    <FormField
-                        control={form.control}
-                        name="okToTextPrimaryPhone"
-                        render={({ field }) => (
-                            <FormItem className="flex flex-row items-start">
-                                <FormControl>
-                                    <Checkbox
-                                        checked={field.value}
-                                        onCheckedChange={field.onChange}
-                                    />
-                                </FormControl>
-                                <div className="space-y-1 leading-none">
-                                    <FormLabel className="font-normal">
-                                        OK to text primary phone
-                                    </FormLabel>
-                                </div>
-                            </FormItem>
-                        )}
-                    />
+                    {primaryPhoneIsCellPhone && (
+                        <FormField
+                            control={form.control}
+                            name="okToTextPrimaryPhone"
+                            render={({ field }) => (
+                                <FormItem className="flex flex-row items-start">
+                                    <FormControl>
+                                        <Checkbox
+                                            checked={field.value}
+                                            onCheckedChange={field.onChange}
+                                        />
+                                    </FormControl>
+                                    <div className="space-y-1 leading-none">
+                                        <FormLabel className="font-normal">
+                                            OK to text primary phone
+                                        </FormLabel>
+                                    </div>
+                                </FormItem>
+                            )}
+                        />
+                    )}
                 </div>
 
                 {/* Email */}
@@ -807,25 +811,27 @@ export default function NewClientForm({ defaultValues, onSubmit }: Props) {
                         )}
                     />
 
-                    <FormField
-                        control={form.control}
-                        name="okToTextSecondaryPhone"
-                        render={({ field }) => (
-                            <FormItem className="flex flex-row items-start">
-                                <FormControl>
-                                    <Checkbox
-                                        checked={field.value}
-                                        onCheckedChange={field.onChange}
-                                    />
-                                </FormControl>
-                                <div className="space-y-1 leading-none">
-                                    <FormLabel className="font-normal">
-                                        OK to text secondary phone
-                                    </FormLabel>
-                                </div>
-                            </FormItem>
-                        )}
-                    />
+                    {secondaryPhoneIsCellPhone && (
+                        <FormField
+                            control={form.control}
+                            name="okToTextSecondaryPhone"
+                            render={({ field }) => (
+                                <FormItem className="flex flex-row items-start">
+                                    <FormControl>
+                                        <Checkbox
+                                            checked={field.value}
+                                            onCheckedChange={field.onChange}
+                                        />
+                                    </FormControl>
+                                    <div className="space-y-1 leading-none">
+                                        <FormLabel className="font-normal">
+                                            OK to text secondary phone
+                                        </FormLabel>
+                                    </div>
+                                </FormItem>
+                            )}
+                        />
+                    )}
                 </div>
             </form>
         </Form>
