@@ -12,7 +12,7 @@ import {
 } from "@/components/ui/dialog";
 import NewOrganizationForm, {
     type NewOrganizationFormValues,
-} from "@/components/form/newOrganizationForm";
+} from "@/components/form/organizationForm";
 import { toast } from "sonner";
 
 export default function NewOrganizationModal() {

@@ -1,6 +1,6 @@
 "use client";
 
-import CreateRideForm, { type CreateRideFormValues } from "@/components/form/createRideForm";
+import CreateRideForm, { type CreateRideFormValues } from "@/components/form/rideForm";
 import { Button } from "@/components/ui/button";
 import {
     Dialog,
