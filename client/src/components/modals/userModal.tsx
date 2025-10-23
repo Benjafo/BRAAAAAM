@@ -10,11 +10,11 @@ import {
     DialogTrigger,
 } from "@/components/ui/dialog";
 import { toast } from "sonner";
-import type { NewUserFormValues } from "../form/userForm";
+import type { UserFormValues } from "../form/userForm";
 import NewUserForm from "../form/userForm";
 
 type NewUserModalProps = {
-    defaultValues?: Partial<NewUserFormValues>;
+    defaultValues?: Partial<UserFormValues>;
     triggerButton?: React.ReactNode;
 };
 
@@ -26,7 +26,7 @@ export default function NewUserModal({ defaultValues = {}, triggerButton }: NewU
     const modalTitle = isEditing ? "Edit User" : "New User";
     const successMessage = isEditing ? "User Updated" : "New User Created";
 
-    async function handleSubmit(values: NewUserFormValues) {
+    async function handleSubmit(values: UserFormValues) {
         // TODO: API logic for new/edit location form values
         console.log(values);
         toast.success(successMessage);
