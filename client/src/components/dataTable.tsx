@@ -31,9 +31,11 @@ import type {
     VisibilityState,
 } from "@tanstack/react-table";
 
+import { useNavigate } from "@tanstack/react-router";
+
 // Component Props
 export type DataTableProps<T extends Record<string, unknown>> = {
-    fetchData: (params: URLSearchParams) => Promise<{ data: T[]; total: number }>;
+    fetchData: (params: Record<string, any>) => Promise<{ data: T[]; total: number }>;
     columns?: ColumnDef<T, unknown>[];
     caption?: React.ReactNode;
     className?: string;
@@ -129,6 +131,7 @@ export function DataTable<T extends Record<string, unknown>>({
         onRowSelectionChange: setRowSelection,
         onGlobalFilterChange: setGlobalFilter,
         onPaginationChange: setPagination,
+        getRowId: (row) => String(row.id),
 
         // Server-side mode configuration
         manualPagination: true,
@@ -139,33 +142,39 @@ export function DataTable<T extends Record<string, unknown>>({
         getCoreRowModel: getCoreRowModel(),
     });
 
-    // Fetch data when table state changes
+    const navigate = useNavigate();
+
+    // Fetch data and sync state with URL when table changes
     React.useEffect(() => {
         const loadData = async () => {
             setIsLoading(true);
             try {
-                // Build URLSearchParams from local state
-                const params = new URLSearchParams();
-
-                // Add pagination
-                params.set("page", String(pagination.pageIndex));
-                params.set("pageSize", String(pagination.pageSize));
+                const params: Record<string, any> = {
+                    page: pagination.pageIndex,
+                    pageSize: pagination.pageSize,
+                };
 
                 // Add sorting
                 if (sorting.length > 0) {
                     const sort = sorting[0];
-                    params.set("sortBy", sort.id);
-                    params.set("sortDir", sort.desc ? "desc" : "asc");
+                    params.sortBy = sort.id;
+                    params.sortDir = sort.desc ? "desc" : "asc";
                 }
 
                 // Add global search
                 if (globalFilter) {
-                    params.set("search", globalFilter);
+                    params.search = globalFilter;
                 }
 
                 // Add column filters
                 columnFilters.forEach((filter) => {
-                    params.set(filter.id, String(filter.value));
+                    params[filter.id] = String(filter.value);
+                });
+
+                // Sync search params in the URL
+                navigate({
+                    to: ".",
+                    search: (prev) => ({ ...prev, ...params }),
                 });
 
                 const result = await fetchData(params);
@@ -188,6 +197,7 @@ export function DataTable<T extends Record<string, unknown>>({
         columnFilters,
         globalFilter,
         fetchData,
+        navigate
     ]);
 
     // Notify parent of selection changes
