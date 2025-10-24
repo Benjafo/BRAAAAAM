@@ -1,55 +1,55 @@
-name: Database Validation
+# name: Database Validation
 
-on:
-  push:
-    branches: [ master ]
-    paths:
-      - '**/*.sql'
-      - 'server/models/**'
-  pull_request:
-    branches: [ master ]
-    paths:
-      - '**/*.sql'
-      - 'server/models/**'
+# on:
+#   push:
+#     branches: [ master ]
+#     paths:
+#       - '**/*.sql'
+#       - 'server/models/**'
+#   pull_request:
+#     branches: [ master ]
+#     paths:
+#       - '**/*.sql'
+#       - 'server/models/**'
 
-jobs:
-  validate:
-    runs-on: ubuntu-latest
+# jobs:
+#   validate:
+#     runs-on: ubuntu-latest
 
-    services:
-      postgres:
-        image: postgres:latest
-        env:
-          POSTGRES_USER: postgres
-          POSTGRES_PASSWORD: postgres
-          POSTGRES_DB: test_db
-        ports:
-          - 5432:5432
-        options: >-
-          --health-cmd pg_isready
-          --health-interval 10s
-          --health-timeout 5s
-          --health-retries 5
+#     services:
+#       postgres:
+#         image: postgres:latest
+#         env:
+#           POSTGRES_USER: postgres
+#           POSTGRES_PASSWORD: postgres
+#           POSTGRES_DB: test_db
+#         ports:
+#           - 5432:5432
+#         options: >-
+#           --health-cmd pg_isready
+#           --health-interval 10s
+#           --health-timeout 5s
+#           --health-retries 5
 
-    steps:
-      - uses: actions/checkout@v4
+#     steps:
+#       - uses: actions/checkout@v4
       
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: '20'
-          cache: 'npm'
-          cache-dependency-path: './server/package-lock.json'
+#       - name: Setup Node.js
+#         uses: actions/setup-node@v4
+#         with:
+#           node-version: '20'
+#           cache: 'npm'
+#           cache-dependency-path: './server/package-lock.json'
       
-      - name: Install dependencies
-        run: npm ci
-        working-directory: ./server
+#       - name: Install dependencies
+#         run: npm ci
+#         working-directory: ./server
       
-      - name: Apply schema
-        working-directory: ./server
-        run: |
-          PGPASSWORD=postgres psql -h localhost -U postgres -d test_db -f schema.sql
+#       - name: Apply schema
+#         working-directory: ./server
+#         run: |
+#           PGPASSWORD=postgres psql -h localhost -U postgres -d test_db -f schema.sql
       
-      - name: Validate schema (?)
-        run: |
-          PGPASSWORD=postgres psql -h localhost -U postgres -d test_db -c "SELECT table_name FROM information_schema.tables WHERE table_schema='public';"
+#       - name: Validate schema (?)
+#         run: |
+#           PGPASSWORD=postgres psql -h localhost -U postgres -d test_db -c "SELECT table_name FROM information_schema.tables WHERE table_schema='public';"

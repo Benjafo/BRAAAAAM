@@ -22,6 +22,7 @@ export default [
             "@typescript-eslint": typescript,
         },
         rules: {
+            "no-unused-vars": "off",
             ...typescript.configs.recommended.rules,
             "@typescript-eslint/no-require-imports": "off",
             "@typescript-eslint/no-explicit-any": "error",
@@ -29,6 +30,9 @@ export default [
             "@typescript-eslint/no-unused-vars": [
                 "error",
                 {
+                    vars: "all",
+                    args: "after-used",
+                    ignoreRestSiblings: true,
                     argsIgnorePattern: "^_",
                     varsIgnorePattern: "^_",
                     caughtErrorsIgnorePattern: "^_",
