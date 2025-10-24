@@ -1,26 +1,49 @@
-import React, { useCallback, useEffect, useRef, useState } from "react";
-import { Loader } from "@googlemaps/js-api-loader";
-import { Input } from "./ui/input";
 import type { Location, LocationSelectorProps } from "@/lib/types";
-import { MapPin, Loader2, AlertCircle } from "lucide-react";
+import { Loader } from "@googlemaps/js-api-loader";
+import { AlertCircle, Loader2, MapPin } from "lucide-react";
+import React, { useCallback, useEffect, useRef, useState } from "react";
+import { Input } from "./ui/input";
 
 const GoogleLocator: React.FC<LocationSelectorProps> = ({
     onLocationSelect,
     placeholder = "Search for a location...",
+    // (ai was used for the controlled value prop)
+    // we need this so that we can use input field in this component as the street
+    // address field, and have autocomplete fill out the other address component
+    // fields in the GoogleAddressFields component
+    value,
+    onChange,
 }) => {
     const inputRef = useRef<HTMLInputElement>(null);
     const autocompleteRef = useRef<google.maps.places.Autocomplete | null>(null);
     const [isLoaded, setIsLoaded] = useState(false);
     const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
-    const [inputValue, setInputValue] = useState("");
+    const [internalValue, setInternalValue] = useState("");
+
+    // Use controlled value if provided, otherwise use internal state
+    const inputValue = value !== undefined ? value : internalValue;
 
     // Initialize Google Places API, some AI logic was used to help set this up
-    // To use locator, you need to initalize function handleLocationSelect, like this for an example:
-    //   const handleLocationSelect = (location: Location | null) => {
-    //    location;
-    // };
-    // Then you call it like this (in the location you want it) : <GoogleLocator onLocationSelect={handleLocationSelect} />
+
+    // Here's an example of how to use it in a form:
+
+    // 1. Define form fields for address, city, state, and zip code in your schema
+    //    We'd probably do some better validation here, this is bare minimum
+
+    //  const schema = z.object({
+    //      (...other fields...)
+    //      address: z.string(),
+    //      city: z.string(),
+    //      state: z.string(),
+    //      zip: z.string(),
+    //  });
+
+    // 2. Use the <GoogleAddressFields /> component within your form
+    //    Pass in the form's control and setValue functions as props
+    //
+    //  <GoogleAddressFields control={form.control} setValue={form.setValue} />
+
     useEffect(() => {
         const initializeGooglePlaces = async () => {
             try {
@@ -55,7 +78,17 @@ const GoogleLocator: React.FC<LocationSelectorProps> = ({
 
     const handlePlaceChanged = useCallback(() => {
         const place = autocompleteRef.current?.getPlace();
+        console.log(place);
         if (place && place.place_id && place.geometry?.location) {
+            // Parse address components from Google Places API
+            const components = place.address_components || [];
+            const getComponent = (type: string) =>
+                components.find((c) => c.types.includes(type))?.long_name || "";
+
+            const streetNumber = getComponent("street_number");
+            const route = getComponent("route");
+            const street = [streetNumber, route].filter(Boolean).join(" ");
+
             const location: Location = {
                 placeId: place.place_id,
                 address: place.formatted_address || "",
@@ -63,18 +96,32 @@ const GoogleLocator: React.FC<LocationSelectorProps> = ({
                     lat: place.geometry.location.lat(),
                     lng: place.geometry.location.lng(),
                 },
+                addressComponents: {
+                    street: street,
+                    city: getComponent("locality"),
+                    state: getComponent("administrative_area_level_1"),
+                    zip: getComponent("postal_code"),
+                },
             };
-            setInputValue(place.formatted_address || "");
+
+            // Update the input value - use controlled onChange if provided
+            if (onChange) {
+                onChange(street);
+            } else {
+                setInternalValue(street);
+            }
+
+            // Notify parent about full location data
             onLocationSelect(location);
         }
-    }, [onLocationSelect]);
+    }, [onLocationSelect, onChange]);
 
     // Initialize autocomplete when API is loaded
     useEffect(() => {
         if (!isLoaded || !inputRef.current || autocompleteRef.current) return;
 
         autocompleteRef.current = new google.maps.places.Autocomplete(inputRef.current, {
-            fields: ["place_id", "formatted_address", "geometry.location"],
+            fields: ["place_id", "formatted_address", "geometry.location", "address_components"],
             componentRestrictions: { country: "us" },
         });
 
@@ -89,9 +136,19 @@ const GoogleLocator: React.FC<LocationSelectorProps> = ({
     }, [isLoaded, handlePlaceChanged]);
 
     const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        const value = e.target.value;
-        setInputValue(value);
-        if (value === "") onLocationSelect(null);
+        const newValue = e.target.value;
+
+        // Update value - use controlled onChange if provided
+        if (onChange) {
+            onChange(newValue);
+        } else {
+            setInternalValue(newValue);
+        }
+
+        // Clear location if input is cleared
+        if (newValue === "") {
+            onLocationSelect(null);
+        }
     };
 
     // handle error, AI used to help write this
