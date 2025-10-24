@@ -19,7 +19,7 @@ import { DatePickerInput } from "../ui/datePickerField";
 
 /* ----------------------------- Zod schema ----------------------------- */
 /* Used AI help for the URL -> allows link to start without http/https, and ends with something like .com or .org */
-const newOrganizationSchema = z.object({
+const organizationSchema = z.object({
     orgName: z
         .string()
         .min(1, "Organization name is required")
@@ -104,18 +104,18 @@ const newOrganizationSchema = z.object({
     secondaryAddress2: z.string().max(255, "Max characters allowed is 255.").optional(),
 });
 
-export type NewOrganizationFormValues = z.infer<typeof newOrganizationSchema>;
+export type OrganizationFormValues = z.infer<typeof organizationSchema>;
 
 /* -------------------------------- Props -------------------------------- */
 type Props = {
-    defaultValues: Partial<NewOrganizationFormValues>;
-    onSubmit: (values: NewOrganizationFormValues) => void | Promise<void>;
+    defaultValues: Partial<OrganizationFormValues>;
+    onSubmit: (values: OrganizationFormValues) => void | Promise<void>;
 };
 
 /* --------------------------------- Form -------------------------------- */
-export default function NewOrganizationForm({ defaultValues, onSubmit }: Props) {
-    const form = useForm<NewOrganizationFormValues>({
-        resolver: zodResolver(newOrganizationSchema),
+export default function OrganizationForm({ defaultValues, onSubmit }: Props) {
+    const form = useForm<OrganizationFormValues>({
+        resolver: zodResolver(organizationSchema),
         mode: "onBlur",
         defaultValues: {
             orgName: defaultValues.orgName ?? "",

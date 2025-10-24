@@ -8,6 +8,21 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 
 const DATE_FORMAT = "MMMM dd, yyyy";
 
+// Array of date formats to try parsing
+const DATE_FORMATS_TO_TRY = [
+    "MMMM dd, yyyy", // November 5, 2025
+    "MMMM dd yyyy", // November 5 2025
+    "MMMM d, yyyy", // November 5, 2025 (single digit day)
+    "MMMM d yyyy", // November 5 2025 (single digit day)
+    "MMM dd, yyyy", // Nov 5, 2025
+    "MMM dd yyyy", // Nov 5 2025
+    "MMM d, yyyy", // Nov 5, 2025 (single digit day)
+    "MMM d yyyy", // Nov 5 2025 (single digit day)
+    "MM/dd/yyyy", // 11/05/2025
+    "M/d/yyyy", // 11/5/2025
+    "yyyy-MM-dd", // 2025-11-05
+];
+
 function formatDate(date: Date | undefined): string {
     if (!date || !isValid(date)) {
         return "";
@@ -20,8 +35,22 @@ function parseDate(dateString: string): Date | undefined {
         return undefined;
     }
 
-    const parsed = parse(dateString, DATE_FORMAT, new Date());
-    return isValid(parsed) ? parsed : undefined;
+    // Only try to parse if the string looks reasonably complete
+    // Check if it contains at least 4 consecutive digits (year)
+    const hasYear = /\d{4}/.test(dateString);
+    if (!hasYear) {
+        return undefined;
+    }
+
+    // Try each format until one works
+    for (const formatStr of DATE_FORMATS_TO_TRY) {
+        const parsed = parse(dateString, formatStr, new Date());
+        if (isValid(parsed)) {
+            return parsed;
+        }
+    }
+
+    return undefined;
 }
 
 interface DatePickerInputProps {

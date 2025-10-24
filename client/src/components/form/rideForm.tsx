@@ -38,7 +38,7 @@ import { Popover, PopoverContent, PopoverTrigger } from "../ui/popover";
 
 /* --------------------------------- Schema --------------------------------- */
 /* using z.enum for select values that we know are included */
-const createRideSchema = z
+const rideSchema = z
     .object({
         clientName: z
             .string()
@@ -155,13 +155,13 @@ const createRideSchema = z
         }
     });
 
-export type CreateRideFormValues = z.infer<typeof createRideSchema>;
+export type RideFormValues = z.infer<typeof rideSchema>;
 
 /* --------------------------------- Props ---------------------------------- */
 /** Accept Partial so we can provide sane fallbacks when something is missing. */
 type Props = {
-    defaultValues: Partial<CreateRideFormValues>;
-    onSubmit: (values: CreateRideFormValues) => void | Promise<void>;
+    defaultValues: Partial<RideFormValues>;
+    onSubmit: (values: RideFormValues) => void | Promise<void>;
     // Use these props for AI integration later
     clients?: Array<{ value: string; label: string; profile?: ClientProfile }>;
     drivers?: Array<{ value: string; label: string }>;
@@ -176,8 +176,8 @@ export default function EditRideForm({
     drivers: driversProp,
     onClientChange,
 }: Props) {
-    const form = useForm<CreateRideFormValues>({
-        resolver: zodResolver(createRideSchema),
+    const form = useForm<RideFormValues>({
+        resolver: zodResolver(rideSchema),
         mode: "onBlur",
 
         defaultValues: {
@@ -353,13 +353,13 @@ export default function EditRideForm({
                         </FormItem>
                     )}
                 />
-                {/* Destination Address 2  */}
+                {/* Destination Unit/Apartment/Suite  */}
                 <FormField
                     control={form.control}
                     name="destinationAddress2"
                     render={({ field }) => (
                         <FormItem>
-                            <FormLabel>Organization Street Address 2</FormLabel>
+                            <FormLabel>Organization Street Unit/Apartment/Suite</FormLabel>
                             <FormControl>
                                 <div className="relative">
                                     <Input
