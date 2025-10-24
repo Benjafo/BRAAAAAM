@@ -10,19 +10,19 @@ import {
     DialogTitle,
     DialogTrigger,
 } from "@/components/ui/dialog";
-import NewOrganizationForm, {
-    type NewOrganizationFormValues,
-} from "@/components/form/newOrganizationForm";
+import OrganizationForm, {
+    type OrganizationFormValues,
+} from "@/components/form/organizationForm";
 import { toast } from "sonner";
 
 export default function NewOrganizationModal() {
     const [open, setOpen] = React.useState(false);
 
     // Test default values for now - don't know if we want to use it for anything yet, just using one thing right now to make sure it works
-    const defaultValues: Partial<NewOrganizationFormValues> = {
+    const defaultValues: Partial<OrganizationFormValues> = {
         status: "Active",
     };
-    async function handleSubmit(values: NewOrganizationFormValues) {
+    async function handleSubmit(values: OrganizationFormValues) {
         // TODO: API logic for new organization information sent
         console.log(values); // Testing to see if values appear after submit
         toast.success("New Organization Created");
@@ -40,7 +40,7 @@ export default function NewOrganizationModal() {
                     <DialogTitle>New Organization</DialogTitle>
                 </DialogHeader>
 
-                <NewOrganizationForm defaultValues={defaultValues} onSubmit={handleSubmit} />
+                <OrganizationForm defaultValues={defaultValues} onSubmit={handleSubmit} />
                 <DialogFooter className="flex flex-row justify-end gap-3 mt-3">
                     <Button type="button" variant="outline" onClick={() => setOpen(false)}>
                         Cancel

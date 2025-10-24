@@ -44,10 +44,12 @@ export type DataTableProps<T extends Record<string, unknown>> = {
     showSearch?: boolean;
     showFilters?: boolean;
     searchPlaceholder?: string;
+    usePagination?: boolean;
     onRowClick?: (row: T, index: number) => void;
     initialPageSize?: number;
     pageSizes?: number[];
     selectable?: boolean;
+    onRowSelectionChange?: (selectedRows: T[]) => void;
 };
 
 // Convert camelCase variables into nice format - firstName -> First Name
@@ -78,10 +80,12 @@ export function DataTable<T extends Record<string, unknown>>({
     showSearch = true,
     showFilters = true,
     searchPlaceholder = "Search…",
+    usePagination = true,
     onRowClick,
     initialPageSize = 10,
     pageSizes = [5, 10, 25, 50],
     selectable = true,
+    onRowSelectionChange,
 }: DataTableProps<T>) {
     // Internal state
     const [data, setData] = React.useState<T[]>([]);
@@ -195,6 +199,16 @@ export function DataTable<T extends Record<string, unknown>>({
         fetchData,
         navigate,
     ]);
+
+    // Notify parent of selection changes
+    // (ai made this function)
+    React.useEffect(() => {
+        if (onRowSelectionChange) {
+            const selectedIndices = Object.keys(rowSelection);
+            const selectedData = selectedIndices.map(idx => data[parseInt(idx)]).filter(Boolean);
+            onRowSelectionChange(selectedData);
+        }
+    }, [rowSelection, data, onRowSelectionChange]);
 
     // Columns that can be filtered
     const filterableCols = table.getAllColumns().filter((col) => col.getCanFilter());
@@ -411,35 +425,37 @@ export function DataTable<T extends Record<string, unknown>>({
                         {table.getFilteredSelectedRowModel().rows.length} of {totalRows} row(s)
                         selected.
                     </div>
-                    <div className="flex items-center gap-2">
-                        <select
-                            className="h-9 rounded-md border px-2 text-sm"
-                            value={table.getState().pagination.pageSize}
-                            onChange={(e) => table.setPageSize(Number(e.target.value))}
-                        >
-                            {pageSizes.map((s) => (
-                                <option key={s} value={s}>
-                                    {s}
-                                </option>
-                            ))}
-                        </select>
-                        <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={() => table.previousPage()}
-                            disabled={!table.getCanPreviousPage()}
-                        >
-                            Previous
-                        </Button>
-                        <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={() => table.nextPage()}
-                            disabled={!table.getCanNextPage()}
-                        >
-                            Next
-                        </Button>
-                    </div>
+                    {usePagination && (
+                        <div className="flex items-center gap-2">
+                            <select
+                                className="h-9 rounded-md border px-2 text-sm"
+                                value={table.getState().pagination.pageSize}
+                                onChange={(e) => table.setPageSize(Number(e.target.value))}
+                            >
+                                {pageSizes.map((s) => (
+                                    <option key={s} value={s}>
+                                        {s}
+                                    </option>
+                                ))}
+                            </select>
+                            <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={() => table.previousPage()}
+                                disabled={!table.getCanPreviousPage()}
+                            >
+                                Previous
+                            </Button>
+                            <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={() => table.nextPage()}
+                                disabled={!table.getCanNextPage()}
+                            >
+                                Next
+                            </Button>
+                        </div>
+                    )}
                 </div>
             </CardContent>
         </Card>
