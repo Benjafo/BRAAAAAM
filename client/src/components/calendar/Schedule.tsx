@@ -7,6 +7,7 @@ import { useEffect, useState } from "react";
 import type { SlotInfo } from "react-big-calendar";
 import type { BusinessHoursConfig, CalendarEvent } from "../../types/rides";
 import BaseCalendar from "./BaseCalendar";
+import RideModal from "../modals/rideModal";
 
 // Type matching the API response
 type RideFromAPI = {
@@ -78,6 +79,7 @@ const businessHours: BusinessHoursConfig = {
 export default function Schedule() {
     const [rides, setRides] = useState<CalendarEvent[]>([]);
     const [loading, setLoading] = useState(true);
+    const [isRideModalOpen, setIsRideModalOpen] = useState(false);
 
     // Fetch rides from API
     useEffect(() => {
@@ -129,7 +131,7 @@ export default function Schedule() {
     // Handle create ride button click
     const handleCreateRide = () => {
         console.log("Create Ride button clicked");
-        alert("Create Ride modal would open here");
+        setIsRideModalOpen(true);
     };
 
     // Show loading state
@@ -156,6 +158,7 @@ export default function Schedule() {
                 onEventSelect={handleRideSelect}
                 onSlotSelect={handleSlotSelect}
             />
+            <RideModal open={isRideModalOpen} onOpenChange={setIsRideModalOpen} />
         </div>
     );
 }
