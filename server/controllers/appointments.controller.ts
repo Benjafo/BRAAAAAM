@@ -1,4 +1,6 @@
 import { Request, Response } from "express";
+import { eq } from "drizzle-orm";
+import { appointments } from "../drizzle/org/schema";
 
 /*
  * Example Output
@@ -16,145 +18,113 @@ import { Request, Response } from "express";
     }
  */
 
-interface Appointment {
-    id: string;
-    startDate: string;
-    startTime: string;
-    estimatedEndDate: string;
-    estimatedEndTime: string;
-    client: string[];
-    pickupLocation: string;
-    dropoffLocation: string;
-    status: string;
-}
+export const listAppointments = async (req: Request, res: Response): Promise<Response> => {
+    try {
+        // Use based on org DB
+        const db = req.org?.db;
+        if (!db) return res.status(400).json({ message: "Organization context missing" });
 
-interface Tag {
-    id: string;
-    name: string;
-}
-
-const appointments: Appointment[] = [];
-const tags: Tag[] = [];
-
-
-export const listAppointments = (req: Request, res: Response): Response => {
-    return res.status(200).json(appointments);
-    // return res.status(500).send();
+        const allAppointments = await db.select().from(appointments);
+        return res.status(200).json(allAppointments);
+    } catch (err) {
+        console.error("Error listing appointments:", err);
+        return res.status(500).send();
+    }
 };
 
-export const createAppointment = (req: Request, res: Response): Response => {
+
+
+export const createAppointment = async (req: Request, res: Response): Promise<Response> => {
     const data = req.body;
     if (
         !data.startDate ||
         !data.startTime ||
-        !data.estimatedEndDate ||
-        !data.estimatedEndTime ||
-        !data.client ||
+        !data.clientId ||
+        !data.dispatcherId ||
         !data.pickupLocation ||
-        !data.dropoffLocation ||
-        !data.status
+        !data.destinationLocation
     ) {
         return res.status(400).json({ message: "Missing required fields" });
     }
 
-    const newAppointment: Appointment = {
-        id: (appointments.length + 1).toString(),
-        startDate: data.startDate,
-        startTime: data.startTime,
-        estimatedEndDate: data.estimatedEndDate,
-        estimatedEndTime: data.estimatedEndTime,
-        client: data.client,
-        pickupLocation: data.pickupLocation,
-        dropoffLocation: data.dropoffLocation,
-        status: data.status,
-    };
-    appointments.push(newAppointment);
-    return res.status(201).json(newAppointment);
-    // return res.status(500).send();
+    try {
+        const db = req.org?.db;
+        if (!db) return res.status(400).json({ message: "Organization context missing" });
+
+        const [newAppointment] = await db
+            .insert(appointments)
+            .values({
+                clientId: data.clientId,
+                driverId: data.driverId || null,
+                dispatcherId: data.dispatcherId,
+                createdByUserId: data.createdByUserId,
+                status: data.status || "Unassigned",
+                startDate: data.startDate,
+                startTime: data.startTime,
+                estimatedDurationMinutes: data.estimatedDurationMinutes || null,
+                pickupLocation: data.pickupLocation,
+                destinationLocation: data.destinationLocation,
+                tripCount: data.tripCount || 1,
+                tripPurpose: data.tripPurpose || null,
+                notes: data.notes || null,
+                donationType: data.donationType || "None",
+                donationAmount: data.donationAmount || null,
+                milesDriven: data.milesDriven || null,
+            })
+            .returning();
+
+        return res.status(201).json(newAppointment);
+    } catch (err) {
+        console.error("Error creating appointment:", err);
+        return res.status(500).send();
+    }
 };
 
-export const getAppointment = (req: Request, res: Response): Response => {
+export const getAppointment = async (req: Request, res: Response): Promise<Response> => {
     const { appointmentId } = req.params;
-    const appointment = appointments.find((a) => a.id === appointmentId);
 
-    if (!appointment) {
-        return res.status(404).json({ message: "Appointment not found" });
+    try {
+        const db = req.org?.db;
+        if (!db) return res.status(400).json({ message: "Organization context missing" });
+
+        const [appointment] = await db
+            .select()
+            .from(appointments)
+            .where(eq(appointments.id, appointmentId));
+
+        if (!appointment) {
+            return res.status(404).json({ message: "Appointment not found" });
+        }
+
+        return res.status(200).json(appointment);
+    } catch (err) {
+        console.error("Error fetching appointment:", err);
+        return res.status(500).send();
     }
-
-    return res.status(200).json(appointment);
-    // return res.status(500).send();
 };
 
-export const updateAppointment = (req: Request, res: Response): Response => {
+export const updateAppointment = async (req: Request, res: Response): Promise<Response> => {
     const { appointmentId } = req.params;
     const data = req.body;
 
-    const index = appointments.findIndex((a) => a.id === appointmentId);
+    try {
+        const db = req.org?.db;
+        if (!db) return res.status(400).json({ message: "Organization context missing" });
 
-    // No appointment with fetched ID
-    if (index === -1) {
-        return res.status(404).json({ message: "Appointment not found" });
+        const [updated] = await db
+            .update(appointments)
+            .set(data)
+            .where(eq(appointments.id, appointmentId))
+            .returning();
+
+        // No appointment with fetched ID
+        if (!updated) {
+            return res.status(404).json({ message: "Appointment not found" });
+        }
+
+        return res.status(200).json(updated);
+    } catch (err) {
+        console.error("Error updating appointment:", err);
+        return res.status(500).send();
     }
-
-    appointments[index] = { ...appointments[index], ...data };
-    return res.status(200).json(appointments[index]);
-    // return res.status(500).send();
-};
-
-export const listTags = (req: Request, res: Response): Response => {
-    return res.status(200).json(tags);
-    // return res.status(500).send();
-};
-
-export const createTag = (req: Request, res: Response): Response => {
-    const data = req.body;
-
-    if (!data.name) {
-        return res.status(400).json({ message: "Tag name is required" });
-    }
-
-    // If no ID is given or it's invalid/not found, create one from tags.length + 1
-    if (!data.id || !tags.find((t) => t.id === data.id)) {
-        data.id = (tags.length + 1).toString();
-    }
-
-    const newTag: Tag = {
-        id: data.id,
-        name: data.name,
-    };
-
-    tags.push(newTag);
-    return res.status(201).json(newTag);
-};
-
-
-export const updateTag = (req: Request, res: Response): Response => {
-    const { tagId } = req.params;
-    const data = req.body;
-
-    const index = tags.findIndex((t) => t.id === tagId);
-    if (index === -1) {
-        return res.status(404).json({ message: "Tag not found" });
-    }
-
-    if (!data.name) {
-        return res.status(400).json({ message: "Tag name is required" });
-    }
-
-    tags[index].name = data.name;
-    return res.status(200).json(tags[index]);
-    // return res.status(500).send();
-};
-
-export const deleteTag = (req: Request, res: Response): Response => {
-    const { tagId } = req.params;
-    const index = tags.findIndex((t) => t.id === tagId);
-
-    if (index === -1) {
-        return res.status(404).json({ message: "Tag not found" });
-    }
-
-    tags.splice(index, 1);
-    return res.status(204).send();
-    // return res.status(500).send();
-};
+}

@@ -1,4 +1,6 @@
 import { Request, Response } from "express";
+import { clients, locations } from "../drizzle/org/schema";
+import { eq } from "drizzle-orm";
 
 /*
  * Example Client Output
@@ -24,112 +26,191 @@ import { Request, Response } from "express";
   }
  */
 
-interface Address {
-  id: string;
-  addressLine1: string;
-  addressLine2?: string;
-  city: string;
-  state: string;
-  zip: string;
-  country: string;
-  isPrimary: boolean;
-  vehiclePreferenceType?: string;
-  notes?: string;
-  gender?: "Male" | "Female";
-}
+export const listClients = async (req: Request, res: Response): Promise<Response> => {
+  try {
+    const db = req.org?.db;
+    // Does org DB Connection exist?
+    if (!db) return res.status(500).json({ error: "Database not initialized" });
 
-interface Client {
-  id: string;
-  firstName: string;
-  lastName: string;
-  email?: string;
-  phone?: string;
-  contactPreference: string;
-  addresses: Address[];
-}
+    // Join clients with their associated location records
+    const data = await db
+      .select({
+        id: clients.id,
+        firstName: clients.firstName,
+        lastName: clients.lastName,
+        email: clients.email,
+        phone: clients.phone,
+        contactPreference: clients.contactPreference,
+        gender: clients.gender,
+        livesAlone: clients.livesAlone,
+        isActive: clients.isActive,
+        address: {
+          id: locations.id,
+          addressLine1: locations.addressLine1,
+          addressLine2: locations.addressLine2,
+          city: locations.city,
+          state: locations.state,
+          zip: locations.zip,
+          country: locations.country,
+        },
+      })
+      .from(clients)
+      .leftJoin(locations, eq(clients.addressLocation, locations.id)); // One-to-One join via foreign key
 
-const clients: Client[] = [];
-
-
-export const listClients = (req: Request, res: Response): Response => {
-  return res.status(200).json(clients);
-  // return res.status(500).send();
+    return res.status(200).json(data);
+  } catch (err) {
+    console.error("Error listing clients:", err);
+    return res.status(500).json({ error: "Internal server error" });
+  }
 };
 
-export const createClient = (req: Request, res: Response): Response => {
-  const data = req.body;
+export const createClient = async (req: Request, res: Response): Promise<Response> => {
+  try {
+    const db = req.org?.db;
+    if (!db) return res.status(500).json({ error: "Database not initialized" });
 
-  if (!data.firstName || !data.lastName || !data.contactPreference) {
-    return res.status(400).json({ message: "Missing required fields" });
+    const { firstName, lastName, email, phone, gender, contactPreference, address } = req.body;
+
+    // Validate all required fields are provided
+    if (!firstName || !lastName || !phone || !gender) {
+      return res.status(400).json({ message: "Missing required fields" });
+    }
+
+    // Create or reuse a location record if provided
+    let addressId: string | null = null;
+    if (address) {
+      const [newLocation] = await db
+        .insert(locations)
+        .values({
+          addressLine1: address.addressLine1,
+          addressLine2: address.addressLine2,
+          city: address.city,
+          state: address.state,
+          zip: address.zip,
+          country: address.country,
+        })
+        .returning({ id: locations.id });
+
+      addressId = newLocation.id;
+    }
+
+    // Create client record and link to addressLocation if it exists
+    const [newClient] = await db
+      .insert(clients)
+      .values({
+        firstName,
+        lastName,
+        email,
+        phone,
+        gender,
+        contactPreference,
+        livesAlone: false, // Currently defaulted, can be passed from front-end if needed
+        addressLocation: addressId!,
+      })
+      .returning(); // Return full client row
+
+    return res.status(201).json(newClient);
+  } catch (err) {
+    console.error("Error creating client:", err);
+    return res.status(500).json({ error: "Internal server error" });
   }
-
-  // If no ID is given or it's already used, create one from clients.length + 1
-  if (!data.id || clients.find((c) => c.id === data.id)) {
-    data.id = (clients.length + 1).toString();
-  }
-
-  // Each address gets its own ID if missing or duplicated
-  if (data.addresses && Array.isArray(data.addresses)) {
-    data.addresses.forEach((a: Address, index: number) => {
-      if (!a.id || data.addresses.some((x: Address, i: number) => i !== index && x.id === a.id)) {
-        a.id = `${data.id}-${index + 1}`;
-      }
-    });
-  }
-
-  const newClient: Client = {
-    id: data.id,
-    firstName: data.firstName,
-    lastName: data.lastName,
-    email: data.email,
-    phone: data.phone,
-    contactPreference: data.contactPreference,
-    addresses: data.addresses || [],
-  };
-
-  clients.push(newClient);
-  return res.status(201).json(newClient);
-  // return res.status(500).send();
 };
 
-export const getClient = (req: Request, res: Response): Response => {
-  const { clientId } = req.params;
-  const client = clients.find((c) => c.id === clientId);
+export const getClient = async (req: Request, res: Response): Promise<Response> => {
+  try {
+    const db = req.org?.db;
+    if (!db) return res.status(500).json({ error: "Database not initialized" });
 
-  if (!client) {
-    return res.status(404).json({ message: "Client not found" });
+    const { clientId } = req.params;
+
+    // Select client by ID & join with its location
+    const [clientData] = await db
+      .select({
+        id: clients.id,
+        firstName: clients.firstName,
+        lastName: clients.lastName,
+        email: clients.email,
+        phone: clients.phone,
+        contactPreference: clients.contactPreference,
+        gender: clients.gender,
+        livesAlone: clients.livesAlone,
+        address: {
+          id: locations.id,
+          addressLine1: locations.addressLine1,
+          city: locations.city,
+          state: locations.state,
+          zip: locations.zip,
+          country: locations.country,
+        },
+      })
+      .from(clients)
+      .leftJoin(locations, eq(clients.addressLocation, locations.id))
+      .where(eq(clients.id, clientId));
+
+    // If no client found, return 404
+    if (!clientData) {
+      return res.status(404).json({ message: "Client not found" });
+    }
+
+    return res.status(200).json(clientData);
+  } catch (err) {
+    console.error("Error fetching client:", err);
+    return res.status(500).json({ error: "Internal server error" });
   }
-
-  return res.status(200).json(client);
-  // return res.status(500).send();
 };
 
-export const updateClient = (req: Request, res: Response): Response => {
-  const { clientId } = req.params;
-  const data = req.body;
+export const updateClient = async (req: Request, res: Response): Promise<Response> => {
+  try {
+    const db = req.org?.db;
+    if (!db) return res.status(500).json({ error: "Database not initialized" });
 
-  const index = clients.findIndex((c) => c.id === clientId);
-  // No client with fetched ID
-  if (index === -1) {
-    return res.status(404).json({ message: "Client not found" });
+    const { clientId } = req.params;
+    const data = req.body;
+
+    const [updatedClient] = await db
+      .update(clients)
+      .set({
+        firstName: data.firstName,
+        lastName: data.lastName,
+        email: data.email,
+        phone: data.phone,
+        contactPreference: data.contactPreference,
+        gender: data.gender,
+        updatedAt: new Date().toISOString(), // Update timestamp manually
+      })
+      .where(eq(clients.id, clientId))
+      .returning();
+
+    // No client found
+    if (!updatedClient) {
+      return res.status(404).json({ message: "Client not found" });
+    }
+
+    return res.status(200).json(updatedClient);
+  } catch (err) {
+    console.error("Error updating client:", err);
+    return res.status(500).json({ error: "Internal server error" });
   }
-
-  // Merge existing client data with the new fields sent in req.body
-  clients[index] = { ...clients[index], ...data };
-
-  return res.status(200).json(clients[index]);
-  // return res.status(500).send();
 };
 
-export const deleteClient = (req: Request, res: Response): Response => {
-  const { clientId } = req.params;
+export const deleteClient = async (req: Request, res: Response): Promise<Response> => {
+  try {
+    const db = req.org?.db;
+    if (!db) return res.status(500).json({ error: "Database not initialized" });
 
-  const index = clients.findIndex((c) => c.id === clientId);
-  if (index === -1) {
-    return res.status(404).json({ message: "Client not found" });
+    const { clientId } = req.params;
+
+    // Delete client by ID
+    const result = await db.delete(clients).where(eq(clients.id, clientId));
+
+    // Ensure data was deleted
+    if (result.rowCount === 0) {
+      return res.status(404).json({ message: "Client not found" });
+    }
+
+    return res.status(204).send();
+  } catch (err) {
+    console.error("Error deleting client:", err);
+    return res.status(500).json({ error: "Internal server error" });
   }
-
-  clients.splice(index, 1);
-  return res.status(204).send();
-  // return res.status(500).send();
 };
