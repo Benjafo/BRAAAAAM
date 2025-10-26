@@ -23,7 +23,9 @@ type UnavailabilityBlock = {
 const API_UNAVAILABILITY_ENDPOINT = `http://localhost:3000/dummy/unavailability`;
 
 // Transform API unavailability data to CalendarEvent format
-const transformUnavailabilityToCalendarEvents = (blocks: UnavailabilityBlock[]): CalendarEvent[] => {
+const transformUnavailabilityToCalendarEvents = (
+    blocks: UnavailabilityBlock[]
+): CalendarEvent[] => {
     return blocks.map((block) => {
         // Parse start date and time
         const [startYear, startMonth, startDay] = block.startDate.split("-").map(Number);
@@ -120,10 +122,12 @@ export default function Unavailability() {
     // Handle add unavailability button click
     const handleAddUnavailability = () => {
         console.log("Add Unavailability button clicked");
-        alert("Add Unavailability modal would open here with options for:\n- Date/Time selection\n- Reason\n- Recurring options");
+        alert(
+            "Add Unavailability modal would open here with options for:\n- Date/Time selection\n- Reason\n- Recurring options"
+        );
     };
 
-    const eventStyleGetter = (event: CalendarEvent) => {
+    const eventStyleGetter = (_event: CalendarEvent) => {
         // All unavailability blocks are shown in pink/red color
         return {
             className: "unavailable",
