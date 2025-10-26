@@ -50,6 +50,10 @@ export type DataTableProps<T extends Record<string, unknown>> = {
     pageSizes?: number[];
     selectable?: boolean;
     onRowSelectionChange?: (selectedRows: T[]) => void;
+    actionButton?: {
+        label: string;
+        onClick: () => void;
+    } | null;
 };
 
 // Convert camelCase variables into nice format - firstName -> First Name
@@ -86,6 +90,7 @@ export function DataTable<T extends Record<string, unknown>>({
     pageSizes = [5, 10, 25, 50],
     selectable = true,
     onRowSelectionChange,
+    actionButton,
 }: DataTableProps<T>) {
     // Internal state
     const [data, setData] = React.useState<T[]>([]);
@@ -197,7 +202,7 @@ export function DataTable<T extends Record<string, unknown>>({
         columnFilters,
         globalFilter,
         fetchData,
-        navigate
+        navigate,
     ]);
 
     // Notify parent of selection changes
@@ -205,7 +210,7 @@ export function DataTable<T extends Record<string, unknown>>({
     React.useEffect(() => {
         if (onRowSelectionChange) {
             const selectedIndices = Object.keys(rowSelection);
-            const selectedData = selectedIndices.map(idx => data[parseInt(idx)]).filter(Boolean);
+            const selectedData = selectedIndices.map((idx) => data[parseInt(idx)]).filter(Boolean);
             onRowSelectionChange(selectedData);
         }
     }, [rowSelection, data, onRowSelectionChange]);
@@ -291,6 +296,12 @@ export function DataTable<T extends Record<string, unknown>>({
                             />
                         )}
                     </div>
+
+                    {actionButton && (
+                        <Button variant="default" onClick={actionButton.onClick}>
+                            {actionButton.label}
+                        </Button>
+                    )}
                 </div>
 
                 {/* Table */}

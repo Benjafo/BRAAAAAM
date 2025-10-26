@@ -91,7 +91,7 @@ const clientSchema = z
 
         primaryPhoneIsCellPhone: z.boolean(),
         okToTextPrimaryPhone: z.boolean(),
-        endActiveStatus: z.date("Please select the date the active status for the client ends."),
+        endActiveStatus: z.date().optional(),
         secondaryPhoneNumber: z
             .string()
             .regex(
@@ -105,6 +105,15 @@ const clientSchema = z
     })
     .superRefine((data, ctx) => {
         // AI helped on the super refine
+        // If client status is "Temporary client", endActiveStatus must be provided
+        if (data.clientStatus === "Temporary client" && !data.endActiveStatus) {
+            ctx.addIssue({
+                code: "custom",
+                message: "Please select the date the active status for the client ends.",
+                path: ["endActiveStatus"],
+            });
+        }
+
         // If volunteering status is "On leave", onLeaveUntil must be provided
         if (data.volunteeringStatus === "On leave" && !data.onLeaveUntil) {
             ctx.addIssue({

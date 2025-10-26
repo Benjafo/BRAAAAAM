@@ -7,10 +7,10 @@ import {
     DialogHeader,
     DialogTitle,
 } from "@/components/ui/dialog";
+import ky from "ky";
 import { toast } from "sonner";
 import type { ClientFormValues } from "../form/clientForm";
 import ClientForm from "../form/clientForm";
-import ky from "ky";
 
 type NewClientModalProps = {
     defaultValues?: Partial<ClientFormValues>;
@@ -28,35 +28,39 @@ export default function ClientModal({
     const successMessage = isEditing ? "Client Updated" : "New Client Created";
 
     async function handleSubmit(values: ClientFormValues) {
-        // TODO: API logic for new client information sent
         try {
-            console.log("Form values:", values);
-
-            const orgID = window.location.href.split("//")[1].split(/[..]/)[0];
+            // const orgID = window.location.href.split("//")[1].split(/[..]/)[0];
+            const orgID = "braaaaam";
 
             // Map form values to API structure
             const requestBody = {
                 firstName: values.firstName,
                 lastName: values.lastName,
-                email: values.clientEmail,
-                phone: values.primaryPhoneNumber,
+                email: values.clientEmail || null,
+                phone: `+1${values.primaryPhoneNumber}`,
                 gender: values.clientGender,
                 contactPreference: values.primaryContactPref,
                 livesAlone: values.livingAlone === "Does not live alone",
-                addressLocation:
-                    values.homeAddress + (values.homeAddress2 ? `, ${values.homeAddress2}` : ""),
+                address: {
+                    addressLine1: values.homeAddress,
+                    addressLine2: values.homeAddress2 || null,
+                    // TODO: Parse from Google autocomplete
+                    city: "Rochester",
+                    state: "NY",
+                    zip: "14623",
+                    country: "USA",
+                },
             };
 
-            console.log("Sending to API:", requestBody);
-
             // Make API call with form data
-            const response = await ky
+            await ky
                 .post(`/o/${orgID}/clients`, {
                     json: requestBody,
+                    headers: {
+                        "x-org-subdomain": orgID,
+                    },
                 })
                 .json();
-
-            console.log("API response:", response);
             toast.success(successMessage);
             onOpenChange(false);
         } catch (error) {
