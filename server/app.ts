@@ -4,22 +4,26 @@ import express from "express";
 import createError from "http-errors";
 import logger from "morgan";
 
-import authRouter from "./routes/auth.js";
+// import authRouter from "./routes/auth.js";
 import sseRouter from "./routes/sse.js";
 
 // org-scoped
-import usersRouter from "./routes/users.js";
-import clientsRouter from "./routes/clients.js";
-import orgSettingsRouter from "./routes/org-settings.js";
-import rolesRouter from "./routes/roles.js";
-import locationsRouter from "./routes/locations.js";
-import appointmentsRouter from "./routes/appointments.js";
-import notificationsRouter from "./routes/notifications.js";
-import reportsRouter from "./routes/reports.js";
+import usersRouter from "./routes/api.org.users.js";
+import clientsRouter from "./routes/api.org.clients.js";
+import orgSettingsRouter from "./routes/api.org.settings.js";
+import rolesRouter from "./routes/api.org.roles.js";
+import locationsRouter from "./routes/api.org.locations.js";
+import appointmentsRouter from "./routes/api.org.appointments.js";
+import notificationsRouter from "./routes/api.org.notifications.js";
+import reportsRouter from "./routes/api.org.reports.js";
+
+import orgAuthRouter from './routes/api.org.auth.js';
 
 // system-scoped
-import organizationsRouter from "./routes/organizations.js";
-import sysSettingsRouter from "./routes/sys-settings.js";
+import organizationsRouter from "./routes/api.sys.organizations.js";
+import sysSettingsRouter from "./routes/api.sys.settings.js";
+
+import apiRouter from "./routes/api.js";
 
 import { NextFunction, Request, Response } from "express";
 
@@ -115,7 +119,10 @@ app.get("/test/o/:orgId/users", withOrg, async (req: Request, res: Response) => 
 });
 
 // API routes
-app.use("/auth", authRouter);
+app.use('/api', apiRouter);
+
+// app.use("/auth", authRouter);
+app.use("/auth", withOrg, orgAuthRouter)
 app.use("/o/:orgId/users", usersRouter);
 app.use("/o/:orgId/clients", clientsRouter);
 app.use("/o/:orgId/settings", orgSettingsRouter);

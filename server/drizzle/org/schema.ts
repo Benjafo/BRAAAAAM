@@ -79,12 +79,10 @@ export const permissions = pgTable(
         description: text().notNull(),
     },
     (table) => [
-        // Let Postgres pick correct opclasses (text for resource, enum for action),
-        // or make action explicit with enum_ops.
         index("idx_permissions_resource_action").using(
             "btree",
             table.resource.asc().nullsLast(),
-            table.action.asc().nullsLast() // or `.op("enum_ops")`
+            table.action.asc().nullsLast()
         ),
         unique("permissions_perm_key_key").on(table.permKey),
         check("permissions_perm_key_slug_format", sql`perm_key ~ '^[a-z0-9][a-z0-9.-]*$'::text`),
@@ -107,7 +105,7 @@ export const users = pgTable(
         phone: text("phone"),
         contactPreference: contactPreference("contact_preference").default("email").notNull(),
         passwordHash: varchar("password_hash", { length: 255 }),
-        role: uuid(),
+        roleId: uuid("role_id"),
         isDriver: boolean("is_driver").default(false),
         isActive: boolean("is_active").default(true),
         isDeleted: boolean("is_deleted").default(false),
@@ -120,7 +118,7 @@ export const users = pgTable(
     },
     (table) => [
         foreignKey({
-            columns: [table.role],
+            columns: [table.roleId],
             foreignColumns: [roles.id],
             name: "users_role_fkey",
         }).onDelete("set null"),
@@ -298,7 +296,6 @@ export const clients = pgTable(
     ]
 );
 
-// Define callLogTypes BEFORE call_logs to avoid runtime ReferenceError.
 export const callLogTypes = pgTable("call_log_types", {
     id: uuid().defaultRandom().primaryKey().notNull(),
     title: varchar({ length: 50 }).notNull(),
@@ -407,7 +404,7 @@ export const notifications = pgTable("notifications", {
     id: uuid().defaultRandom().primaryKey().notNull(),
     userId: uuid("user_id"),
     title: varchar({ length: 255 }).notNull(),
-    description: text(), // fixed typo
+    description: text(),
     isDismissed: boolean("is_dismissed").default(false),
     createdAt: timestamp("created_at", { withTimezone: true, mode: "string" })
         .defaultNow()

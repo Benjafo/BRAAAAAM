@@ -51,7 +51,7 @@ services:
       - NODE_ENV=production
       - SYS_DATABASE_URL=postgresql://braaaaam:password@postgres:5432/sys
       - ORG_DATABASE_URL=postgresql://braaaaam:password@postgres:5432/org
-      - MIGRATE_ON_START=${MIGRATE_ON_START:-false} # <-- set to false to skip applying migrations on start
+      - MIGRATE_ON_START=${MIGRATE_ON_START:-true} # <-- set to false to skip applying migrations on start
       - ENABLE_PGADMIN=${ENABLE_PGADMIN:-true}
     depends_on:
       postgres:
