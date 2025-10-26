@@ -1,18 +1,42 @@
 import { DataTable } from "@/components/dataTable";
+import ky from "ky";
+import { useState } from "react";
+import type { UserFormValues } from "../form/userForm";
+import NewUserModal from "../modals/userModal";
 
 type User = {
-    name: string;
-    phoneNumber: string;
+    id: string;
+    firstName: string;
+    lastName: string;
     email: string;
-    address: string;
-    city: string;
-    zip: number;
-    role: "driver" | "dispatcher" | "admin";
+    phone: string;
+    contactPreference: string | null;
+    isActive: boolean;
+    isDriver: boolean;
 };
 
-const API_USERS_ENDPOINT = `http://localhost:3000/dummy/users`; //TODO fix this
+// Helper function to map API User to form values
+// derived from the mapClientToFormValues from ai
+function mapUserToFormValues(user: User): Partial<UserFormValues> & { id: string } {
+    return {
+        id: user.id, // Include ID for edit detection
+        firstName: user.firstName,
+        lastName: user.lastName,
+        clientEmail: user.email || "",
+        primaryPhoneNumber: user.phone?.replace("+1", "") || "",
+        contactPreference: (user.contactPreference as "Phone" | "Email") || "Phone",
+        volunteeringStatus: user.isActive ? "Active" : "Inactive",
+        userRole: user.isDriver ? "Driver" : "Dispatcher",
+        // TODO: add other fields from api?? not 100% but im pretty sure some are missing
+    };
+}
 
 export function UsersTable() {
+    const [isUserModalOpen, setIsUserModalOpen] = useState(false);
+    const [selectedUserData, setSelectedUserData] = useState<Partial<UserFormValues> & { id?: string }>(
+        {}
+    );
+
     const fetchUsers = async (params: Record<string, any>) => {
         const searchParams = new URLSearchParams();
         Object.entries(params).forEach(([key, value]) => {
@@ -20,28 +44,83 @@ export function UsersTable() {
                 searchParams.set(key, String(value));
             }
         });
-        const response = await fetch(`${API_USERS_ENDPOINT}?${searchParams}`);
-        const res = await response.json();
-        return res;
+
+        const orgID = "braaaaam";
+        const response = (await ky
+            .get(`/o/${orgID}/users`, {
+                headers: {
+                    "x-org-subdomain": orgID,
+                },
+            })
+            .json()) as User[];
+        console.log("Fetched users:", response);
+        return {
+            data: response,
+            total: response.length,
+        };
+    };
+
+    const handleCreateUser = () => {
+        setSelectedUserData({});
+        setIsUserModalOpen(true);
     };
 
     const handleEditUser = (user: User) => {
-        console.log("User selected:", user);
+        setSelectedUserData(mapUserToFormValues(user));
+        setIsUserModalOpen(true);
     };
 
     return (
-        <DataTable
-            fetchData={fetchUsers}
-            columns={[
-                { header: "Name", accessorKey: "name" },
-                { header: "Phone", accessorKey: "phoneNumber" },
-                { header: "Email", accessorKey: "email" },
-                { header: "Address", accessorKey: "address" },
-                { header: "City", accessorKey: "city" },
-                { header: "Zip Code", accessorKey: "zip" },
-                { header: "Role", accessorKey: "role" },
-            ]}
-            onRowClick={handleEditUser}
-        />
+        <>
+            <DataTable
+                fetchData={fetchUsers}
+                columns={[
+                    {
+                        header: "Name",
+                        accessorFn: (row) => `${row.firstName} ${row.lastName}`,
+                        id: "name",
+                    },
+                    {
+                        header: "Phone",
+                        accessorKey: "phone",
+                        cell: ({ getValue }) => getValue() || "N/A",
+                    },
+                    {
+                        header: "Email",
+                        accessorKey: "email",
+                    },
+                    {
+                        header: "Address",
+                        accessorFn: () => "1 Lomb Memorial Drive",
+                        id: "address",
+                    },
+                    {
+                        header: "City",
+                        accessorFn: () => "Rochester",
+                        id: "city",
+                    },
+                    {
+                        header: "Zip Code",
+                        accessorFn: () => "14623",
+                        id: "zip",
+                    },
+                    {
+                        header: "Role",
+                        accessorFn: (row) => (row.isDriver ? "Driver" : "Dispatcher"),
+                        id: "role",
+                    },
+                ]}
+                onRowClick={handleEditUser}
+                actionButton={{
+                    label: "Create User",
+                    onClick: handleCreateUser,
+                }}
+            />
+            <NewUserModal
+                open={isUserModalOpen}
+                onOpenChange={setIsUserModalOpen}
+                defaultValues={selectedUserData}
+            />
+        </>
     );
 }

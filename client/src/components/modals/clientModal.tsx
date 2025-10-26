@@ -13,7 +13,7 @@ import type { ClientFormValues } from "../form/clientForm";
 import ClientForm from "../form/clientForm";
 
 type NewClientModalProps = {
-    defaultValues?: Partial<ClientFormValues>;
+    defaultValues?: Partial<ClientFormValues> & { id?: string };
     open: boolean;
     onOpenChange: (open: boolean) => void;
 };
@@ -22,14 +22,12 @@ export default function ClientModal({
     open,
     onOpenChange,
 }: NewClientModalProps) {
-    // Determine if we're editing based on whether firstName is populated (AI made this)
-    const isEditing = Boolean(defaultValues.firstName);
+    const isEditing = Boolean(defaultValues.id);
     const modalTitle = isEditing ? "Edit Client" : "New Client";
     const successMessage = isEditing ? "Client Updated" : "New Client Created";
 
     async function handleSubmit(values: ClientFormValues) {
         try {
-            // const orgID = window.location.href.split("//")[1].split(/[..]/)[0];
             const orgID = "braaaaam";
 
             // Map form values to API structure
@@ -52,19 +50,31 @@ export default function ClientModal({
                 },
             };
 
-            // Make API call with form data
-            await ky
-                .post(`/o/${orgID}/clients`, {
-                    json: requestBody,
-                    headers: {
-                        "x-org-subdomain": orgID,
-                    },
-                })
-                .json();
+            // Make API call based on editing status
+            if (isEditing) {
+                await ky
+                    .put(`/o/${orgID}/clients/${defaultValues.id}`, {
+                        json: requestBody,
+                        headers: {
+                            "x-org-subdomain": orgID,
+                        },
+                    })
+                    .json();
+            } else {
+                await ky
+                    .post(`/o/${orgID}/clients`, {
+                        json: requestBody,
+                        headers: {
+                            "x-org-subdomain": orgID,
+                        },
+                    })
+                    .json();
+            }
+
             toast.success(successMessage);
             onOpenChange(false);
         } catch (error) {
-            console.error("Failed to create client:", error);
+            console.error("Failed to save client:", error);
             toast.error("Failed to save client. Please try again.");
         }
     }

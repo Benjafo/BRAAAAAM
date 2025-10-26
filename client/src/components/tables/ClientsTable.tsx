@@ -26,8 +26,9 @@ type Client = {
 
 // Helper function to map API Client to form values
 // ai made this
-function mapClientToFormValues(client: Client): Partial<ClientFormValues> {
+function mapClientToFormValues(client: Client): Partial<ClientFormValues> & { id: string } {
     return {
+        id: client.id,
         firstName: client.firstName,
         lastName: client.lastName,
         clientEmail: client.email || "",
@@ -45,7 +46,9 @@ function mapClientToFormValues(client: Client): Partial<ClientFormValues> {
 
 export function ClientsTable() {
     const [isClientModalOpen, setIsClientModalOpen] = useState(false);
-    const [selectedClientData, setSelectedClientData] = useState<Partial<ClientFormValues>>({});
+    const [selectedClientData, setSelectedClientData] = useState<
+        Partial<ClientFormValues> & { id?: string }
+    >({});
 
     const fetchClients = async (params: Record<string, any>) => {
         const searchParams = new URLSearchParams();
@@ -57,7 +60,7 @@ export function ClientsTable() {
 
         const orgID = "braaaaam";
         const response = (await ky
-            .get(`http://localhost:3000/o/${orgID}/clients`, {
+            .get(`/o/${orgID}/clients`, {
                 headers: {
                     "x-org-subdomain": orgID,
                 },
