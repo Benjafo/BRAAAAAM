@@ -1,100 +1,176 @@
 import { Request, Response } from "express";
+import { locations } from "../drizzle/org/schema";
+import { eq } from "drizzle-orm";
 
 /*
  * Example Location Output
-  type Address = {
-     "Address Line 1": string;
-     "Address Line 2": string;
-     City: string;
-     State: string;
-     Zip: string;
-     Country: string;
-   }
-
+  {
+    "aliasName": "Office HQ",
+    "addressLine1": "123 Main St",
+    "addressLine2": "Suite 400",
+    "city": "Rochester",
+    "state": "NY",
+    "zip": "14623",
+    "country": "USA"
+  }
  */
 
-interface LocationAddress {
-  addressLine1: string;
-  addressLine2?: string;
-  city: string;
-  state: string;
-  zip: string;
-  country: string;
-}
+export const listLocations = async (req: Request, res: Response): Promise<Response> => {
+  try {
+    const db = req.org?.db;
+    // Does org DB Connection exist?
+    if (!db) return res.status(500).json({ error: "Database not initialized" });
 
-interface Location {
-  id: string;
-  alias: string;
-  address: LocationAddress;
-}
+    // Select all location records
+    const data = await db
+      .select({
+        id: locations.id,
+        aliasName: locations.aliasName,
+        addressLine1: locations.addressLine1,
+        addressLine2: locations.addressLine2,
+        city: locations.city,
+        state: locations.state,
+        zip: locations.zip,
+        country: locations.country,
+        addressValidated: locations.addressValidated,
+        createdAt: locations.createdAt,
+        updatedAt: locations.updatedAt,
+      })
+      .from(locations);
 
-const locations: Location[] = [];
-
-export const listLocations = (req: Request, res: Response): Response => {
-  return res.status(200).json(locations);
+    return res.status(200).json(data);
+  } catch (err) {
+    console.error("Error listing locations:", err);
+    return res.status(500).json({ error: "Internal server error" });
+  }
 };
 
-export const createLocation = (req: Request, res: Response): Response => {
-  const data = req.body;
+export const createLocation = async (req: Request, res: Response): Promise<Response> => {
+  try {
+    const db = req.org?.db;
+    if (!db) return res.status(500).json({ error: "Database not initialized" });
 
-  if (!data.address || !data.alias) {
-    return res.status(400).json({ message: "Missing required fields" });
+    const { aliasName, addressLine1, addressLine2, city, state, zip, country } = req.body;
+
+    // Validate all required fields are provided
+    if (!aliasName || !addressLine1 || !city || !state || !zip || !country) {
+      return res.status(400).json({ message: "Missing required fields" });
+    }
+
+    // Insert new location record
+    const [newLocation] = await db
+      .insert(locations)
+      .values({
+        aliasName,
+        addressLine1,
+        addressLine2,
+        city,
+        state,
+        zip,
+        country,
+        addressValidated: false, // Defaulted; can be updated later if validated externally
+      })
+      .returning();
+
+    return res.status(201).json(newLocation);
+  } catch (err) {
+    console.error("Error creating location:", err);
+    return res.status(500).json({ error: "Internal server error" });
   }
-
-  // If no ID is given or it's already used, create one from locations.length + 1
-  if (!data.id || locations.find((l) => l.id === data.id)) {
-    data.id = (locations.length + 1).toString();
-  }
-
-  const newLocation: Location = {
-    id: data.id,
-    address: data.address,
-    alias: data.alias,
-  };
-
-  locations.push(newLocation);
-  return res.status(201).json(newLocation);
-  // return res.status(500).send();
 };
 
-export const getLocation = (req: Request, res: Response): Response => {
-  const { locationId } = req.params;
-  const location = locations.find((l) => l.id === locationId);
+export const getLocation = async (req: Request, res: Response): Promise<Response> => {
+  try {
+    const db = req.org?.db;
+    if (!db) return res.status(500).json({ error: "Database not initialized" });
 
-  if (!location) {
-    return res.status(404).json({ message: "Location not found" });
+    const { locationId } = req.params;
+
+    // Fetch location by ID
+    const [locationData] = await db
+      .select({
+        id: locations.id,
+        aliasName: locations.aliasName,
+        addressLine1: locations.addressLine1,
+        addressLine2: locations.addressLine2,
+        city: locations.city,
+        state: locations.state,
+        zip: locations.zip,
+        country: locations.country,
+        addressValidated: locations.addressValidated,
+        createdAt: locations.createdAt,
+        updatedAt: locations.updatedAt,
+      })
+      .from(locations)
+      .where(eq(locations.id, locationId));
+
+    // If not found, return 404
+    if (!locationData) {
+      return res.status(404).json({ message: "Location not found" });
+    }
+
+    return res.status(200).json(locationData);
+  } catch (err) {
+    console.error("Error fetching location:", err);
+    return res.status(500).json({ error: "Internal server error" });
   }
-
-  return res.status(200).json(location);
-  // return res.status(500).send();
 };
 
-export const updateLocation = (req: Request, res: Response): Response => {
-  const { locationId } = req.params;
-  const data = req.body;
+export const updateLocation = async (req: Request, res: Response): Promise<Response> => {
+  try {
+    const db = req.org?.db;
+    if (!db) return res.status(500).json({ error: "Database not initialized" });
 
-  const index = locations.findIndex((l) => l.id === locationId);
-  // No location with fetched ID
-  if (index === -1) {
-    return res.status(404).json({ message: "Location not found" });
+    const { locationId } = req.params;
+    const data = req.body;
+
+    // Update only provided fields
+    const [updatedLocation] = await db
+      .update(locations)
+      .set({
+        aliasName: data.aliasName,
+        addressLine1: data.addressLine1,
+        addressLine2: data.addressLine2,
+        city: data.city,
+        state: data.state,
+        zip: data.zip,
+        country: data.country,
+        addressValidated: data.addressValidated,
+        updatedAt: new Date().toISOString(), // Update timestamp manually
+      })
+      .where(eq(locations.id, locationId))
+      .returning();
+
+    // No matching record found
+    if (!updatedLocation) {
+      return res.status(404).json({ message: "Location not found" });
+    }
+
+    return res.status(200).json(updatedLocation);
+  } catch (err) {
+    console.error("Error updating location:", err);
+    return res.status(500).json({ error: "Internal server error" });
   }
-
-  // Merge existing location data with new data
-  locations[index] = { ...locations[index], ...data };
-
-  return res.status(200).json(locations[index]);
-  // return res.status(500).send();
 };
 
-export const deleteLocation = (req: Request, res: Response): Response => {
-  const { locationId } = req.params;
+export const deleteLocation = async (req: Request, res: Response): Promise<Response> => {
+  try {
+    const db = req.org?.db;
+    if (!db) return res.status(500).json({ error: "Database not initialized" });
 
-  const index = locations.findIndex((l) => l.id === locationId);
-  if (index === -1) {
-    return res.status(404).json({ message: "Location not found" });
+    const { locationId } = req.params;
+
+    // Delete record by ID
+    const result = await db.delete(locations).where(eq(locations.id, locationId));
+
+    // Ensure record actually deleted
+    if (result.rowCount === 0) {
+      return res.status(404).json({ message: "Location not found" });
+    }
+
+    return res.status(204).send();
+  } catch (err) {
+    console.error("Error deleting location:", err);
+    return res.status(500).json({ error: "Internal server error" });
   }
-
-  locations.splice(index, 1);
-  return res.status(204).send();
-  // return res.status(500).send();
 };

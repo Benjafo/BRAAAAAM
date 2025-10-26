@@ -29,6 +29,10 @@ import { NextFunction, Request, Response } from "express";
 import { createProxyMiddleware } from "http-proxy-middleware";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
+import { users } from "./drizzle/org/schema.js";
+import { createOrgDbFromTemplate, preloadOrgPools } from "./drizzle/pool-manager.js";
+import { getSysDb } from "./drizzle/sys-client.js";
+import { withOrg } from "./middleware/with-org.js";
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
@@ -72,8 +76,44 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 app.use(cookieParser());
 
+// Preload system and organization database pools on server start
+// Note: this only creates the pools once, other calls reuse them.
+(async () => {
+    getSysDb();
+    await preloadOrgPools();
+})().catch((e) => {
+    console.error("Startup error:", e);
+    process.exit(1);
+});
+
 // Serve static files from frontend build
 app.use(express.static(path.join(__dirname, "..", "public")));
+
+app.get("/test/create-org-db", async (req: Request, res: Response) => {
+    const { subdomain, name, pocEmail } = req.query;
+
+    if (typeof subdomain !== "string" || typeof name !== "string" || typeof pocEmail !== "string") {
+        return res.status(400).json({ error: "Missing or invalid query parameters" });
+    }
+
+    try {
+        await createOrgDbFromTemplate(subdomain, name, pocEmail);
+        return res.json({ message: `Organization database '${subdomain}' created successfully.` });
+    } catch (error) {
+        console.error("Error creating organization database:", error);
+        return res.status(500).json({ error: "Internal server error" });
+    }
+});
+
+app.get("/test/o/:orgId/users", withOrg, async (req: Request, res: Response) => {
+    try {
+        const orgUsers = await req.org?.db.select().from(users);
+        return res.json({ orgUsers });
+    } catch (error) {
+        console.error("Error fetching users:", error);
+        return res.status(500).json({ error: "Internal server error" });
+    }
+});
 
 // API routes
 app.use("/auth", authRouter);

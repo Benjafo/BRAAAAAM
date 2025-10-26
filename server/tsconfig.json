@@ -23,7 +23,8 @@
         "declaration": true,
         "declarationMap": true,
         "sourceMap": true,
-        "noEmit": false
+        "noEmit": false,
+        "typeRoots": ["./node_modules/@types", "./types"]
     },
     "include": ["./**/*.ts", "./**/*.tsx"],
     "exclude": ["node_modules", "dist", "**/*.spec.ts", "**/*.test.ts"],
