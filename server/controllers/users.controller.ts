@@ -1,12 +1,14 @@
 import { Request, Response } from "express";
+import { users } from "../drizzle/org/schema";
+import { eq } from "drizzle-orm";
 
 /*
  * Example User Output
     {
         "firstName": "string",
         "lastName": "string",
-        "Email": "string",
-        "Phone": "string"
+        "email": "string",
+        "phone": "string"
     }
  * Example Unavailability Output
     {
@@ -17,6 +19,7 @@ import { Request, Response } from "express";
     }
  */
 
+// Interfaces for documentation and typing (still fine to keep for clarity)
 interface Unavailability {
     id: string;
     startDate: string;
@@ -37,155 +40,185 @@ interface User {
     unavailability?: Unavailability[];
 }
 
-const users: User[] = [];
+// -----------------------------
+//  User CRUD
+// -----------------------------
 
+export const listUsers = async (req: Request, res: Response): Promise<Response> => {
+    try {
+        const db = req.org?.db;
+        if (!db) return res.status(500).json({ error: "Database not initialized" });
 
-export const listUsers = (req: Request, res: Response): Response => {
-    return res.status(200).json(users);
-    // return res.status(500).send();
+        const data = await db
+            .select({
+                id: users.id,
+                firstName: users.firstName,
+                lastName: users.lastName,
+                email: users.email,
+                phone: users.phone,
+                contactPreference: users.contactPreference,
+                isActive: users.isActive,
+                isDriver: users.isDriver,
+            })
+            .from(users);
+
+        return res.status(200).json(data);
+    } catch (err) {
+        console.error("Error listing users:", err);
+        return res.status(500).json({ error: "Internal server error" });
+    }
 };
 
-export const createUser = (req: Request, res: Response): Response => {
-    const data = req.body;
+export const createUser = async (req: Request, res: Response): Promise<Response> => {
+    try {
+        const db = req.org?.db;
+        if (!db) return res.status(500).json({ error: "Database not initialized" });
 
-    if (!data.firstName || !data.lastName || !data.email || !data.phone) {
-        return res.status(400).json({ message: "Missing required fields" });
+        const { firstName, lastName, email, phone, contactPreference, notes, isActive } = req.body;
+
+        if (!firstName || !lastName || !email || !phone) {
+            return res.status(400).json({ message: "Missing required fields" });
+        }
+
+        const [newUser] = await db
+            .insert(users)
+            .values({
+                firstName,
+                lastName,
+                email,
+                phone,
+                contactPreference,
+                isActive: isActive ?? true,
+                isDriver: false,
+                isDeleted: false,
+            })
+            .returning();
+
+        return res.status(201).json(newUser);
+    } catch (err) {
+        console.error("Error creating user:", err);
+        return res.status(500).json({ error: "Internal server error" });
     }
-
-    // If no ID is given or it's already used, create one
-    if (!data.id || users.find((u) => u.id === data.id)) {
-        data.id = (users.length + 1).toString();
-    }
-
-    const newUser: User = {
-        id: data.id,
-        firstName: data.firstName,
-        lastName: data.lastName,
-        email: data.email,
-        phone: data.phone,
-        contactPreference: data.contactPreference,
-        notes: data.notes,
-        isActive: data.isActive ?? true,
-        unavailability: [],
-    };
-
-    users.push(newUser);
-    return res.status(201).json(newUser);
-    // return res.status(500).send();
 };
 
-export const getUser = (req: Request, res: Response): Response => {
-    const { userId } = req.params;
-    const user = users.find((u) => u.id === userId);
+export const getUser = async (req: Request, res: Response): Promise<Response> => {
+    try {
+        const db = req.org?.db;
+        if (!db) return res.status(500).json({ error: "Database not initialized" });
 
-    if (!user) {
-        return res.status(404).json({ message: "User not found" });
+        const { userId } = req.params;
+
+        const [userData] = await db
+            .select({
+                id: users.id,
+                firstName: users.firstName,
+                lastName: users.lastName,
+                email: users.email,
+                phone: users.phone,
+                contactPreference: users.contactPreference,
+                isActive: users.isActive,
+                isDriver: users.isDriver,
+            })
+            .from(users)
+            .where(eq(users.id, userId));
+
+        if (!userData) {
+            return res.status(404).json({ message: "User not found" });
+        }
+
+        return res.status(200).json(userData);
+    } catch (err) {
+        console.error("Error fetching user:", err);
+        return res.status(500).json({ error: "Internal server error" });
     }
-
-    return res.status(200).json(user);
-    // return res.status(500).send();
 };
 
-export const updateUser = (req: Request, res: Response): Response => {
-    const { userId } = req.params;
-    const data = req.body;
+export const updateUser = async (req: Request, res: Response): Promise<Response> => {
+    try {
+        const db = req.org?.db;
+        if (!db) return res.status(500).json({ error: "Database not initialized" });
 
-    const index = users.findIndex((u) => u.id === userId);
-    if (index === -1) {
-        return res.status(404).json({ message: "User not found" });
+        const { userId } = req.params;
+        const data = req.body;
+
+        const [updatedUser] = await db
+            .update(users)
+            .set({
+                firstName: data.firstName,
+                lastName: data.lastName,
+                email: data.email,
+                phone: data.phone,
+                contactPreference: data.contactPreference,
+                isActive: data.isActive,
+                updatedAt: new Date().toISOString(),
+            })
+            .where(eq(users.id, userId))
+            .returning();
+
+        if (!updatedUser) {
+            return res.status(404).json({ message: "User not found" });
+        }
+
+        return res.status(200).json(updatedUser);
+    } catch (err) {
+        console.error("Error updating user:", err);
+        return res.status(500).json({ error: "Internal server error" });
     }
-
-    users[index] = { ...users[index], ...data };
-    return res.status(200).json(users[index]);
-    // return res.status(500).send();
 };
 
-export const deleteUser = (req: Request, res: Response): Response => {
-    const { userId } = req.params;
+export const deleteUser = async (req: Request, res: Response): Promise<Response> => {
+    try {
+        const db = req.org?.db;
+        if (!db) return res.status(500).json({ error: "Database not initialized" });
 
-    const index = users.findIndex((u) => u.id === userId);
-    if (index === -1) {
-        return res.status(404).json({ message: "User not found" });
+        const { userId } = req.params;
+
+        const result = await db.delete(users).where(eq(users.id, userId));
+
+        if (result.rowCount === 0) {
+            return res.status(404).json({ message: "User not found" });
+        }
+
+        return res.status(204).send();
+    } catch (err) {
+        console.error("Error deleting user:", err);
+        return res.status(500).json({ error: "Internal server error" });
     }
-
-    users.splice(index, 1);
-    return res.status(204).send();
-    // return res.status(500).send();
 };
 
-export const createUnavailability = (req: Request, res: Response): Response => {
-    const { userId } = req.params;
-    const data = req.body;
-
-    const user = users.find((u) => u.id === userId);
-    if (!user) {
-        return res.status(404).json({ message: "User not found" });
+//  Unavailability - Stubs; not in Drizzle Schema?
+export const createUnavailability = async (req: Request, res: Response): Promise<Response> => {
+    try {
+        return res.status(500).json({ message: "Not implemented" });
+    } catch (err) {
+        console.error("Error creating unavailability:", err);
+        return res.status(500).json({ error: "Internal server error" });
     }
-
-    if (!data.startDate || !data.endDate) {
-        return res.status(400).json({ message: "Missing required fields" });
-    }
-
-    const newUnavailability: Unavailability = {
-        id: (user.unavailability?.length || 0 + 1).toString(),
-        startDate: data.startDate,
-        startTime: data.startTime,
-        endDate: data.endDate,
-        endTime: data.endTime,
-    };
-
-    user.unavailability = user.unavailability || [];
-    user.unavailability.push(newUnavailability);
-
-    return res.status(201).json(newUnavailability);
-    // return res.status(500).send();
 };
 
-export const listUnavailability = (req: Request, res: Response): Response => {
-    const { userId } = req.params;
-    const user = users.find((u) => u.id === userId);
-
-    if (!user) {
-        return res.status(404).json({ message: "User not found" });
+export const listUnavailability = async (req: Request, res: Response): Promise<Response> => {
+    try {
+        return res.status(500).json({ message: "Not implemented" });
+    } catch (err) {
+        console.error("Error listing unavailability:", err);
+        return res.status(500).json({ error: "Internal server error" });
     }
-
-    return res.status(200).json(user.unavailability || []);
-    // return res.status(500).send();
 };
 
-export const updateUnavailability = (req: Request, res: Response): Response => {
-    const { userId, unavailabilityId } = req.params;
-    const data = req.body;
-
-    const user = users.find((u) => u.id === userId);
-    if (!user || !user.unavailability) {
-        return res.status(404).json({ message: "User or unavailability not found" });
+export const updateUnavailability = async (req: Request, res: Response): Promise<Response> => {
+    try {
+        return res.status(500).json({ message: "Not implemented" });
+    } catch (err) {
+        console.error("Error updating unavailability:", err);
+        return res.status(500).json({ error: "Internal server error" });
     }
-
-    const index = user.unavailability.findIndex((u) => u.id === unavailabilityId);
-    if (index === -1) {
-        return res.status(404).json({ message: "Unavailability not found" });
-    }
-
-    user.unavailability[index] = { ...user.unavailability[index], ...data };
-    return res.status(200).json(user.unavailability[index]);
-    // return res.status(500).send();
 };
 
-export const deleteUnavailability = (req: Request, res: Response): Response => {
-    const { userId, unavailabilityId } = req.params;
-
-    const user = users.find((u) => u.id === userId);
-    if (!user || !user.unavailability) {
-        return res.status(404).json({ message: "User or unavailability not found" });
+export const deleteUnavailability = async (req: Request, res: Response): Promise<Response> => {
+    try {
+        return res.status(500).json({ message: "Not implemented" });
+    } catch (err) {
+        console.error("Error deleting unavailability:", err);
+        return res.status(500).json({ error: "Internal server error" });
     }
-
-    const index = user.unavailability.findIndex((u) => u.id === unavailabilityId);
-    if (index === -1) {
-        return res.status(404).json({ message: "Unavailability not found" });
-    }
-
-    user.unavailability.splice(index, 1);
-    return res.status(204).send();
-    // return res.status(500).send();
 };
