@@ -661,31 +661,9 @@ export default function NewUserForm({ defaultValues, onSubmit }: Props) {
                     />
 
                     {/* Primary Phone is Cell Phone Checkbox */}
-                    {primaryPhoneIsCellPhone && (
-                        <FormField
-                            control={form.control}
-                            name="primaryPhoneIsCellPhone"
-                            render={({ field }) => (
-                                <FormItem className="flex flex-row items-start">
-                                    <FormControl>
-                                        <Checkbox
-                                            checked={field.value}
-                                            onCheckedChange={field.onChange}
-                                        />
-                                    </FormControl>
-                                    <div className="space-y-1 leading-none">
-                                        <FormLabel className="font-normal">
-                                            Primary phone is a cell phone
-                                        </FormLabel>
-                                    </div>
-                                </FormItem>
-                            )}
-                        />
-                    )}
-
                     <FormField
                         control={form.control}
-                        name="okToTextPrimaryPhone"
+                        name="primaryPhoneIsCellPhone"
                         render={({ field }) => (
                             <FormItem className="flex flex-row items-start">
                                 <FormControl>
@@ -696,12 +674,34 @@ export default function NewUserForm({ defaultValues, onSubmit }: Props) {
                                 </FormControl>
                                 <div className="space-y-1 leading-none">
                                     <FormLabel className="font-normal">
-                                        OK to text primary phone
+                                        Primary phone is a cell phone
                                     </FormLabel>
                                 </div>
                             </FormItem>
                         )}
                     />
+
+                    {primaryPhoneIsCellPhone && (
+                        <FormField
+                            control={form.control}
+                            name="okToTextPrimaryPhone"
+                            render={({ field }) => (
+                                <FormItem className="flex flex-row items-start">
+                                    <FormControl>
+                                        <Checkbox
+                                            checked={field.value}
+                                            onCheckedChange={field.onChange}
+                                        />
+                                    </FormControl>
+                                    <div className="space-y-1 leading-none">
+                                        <FormLabel className="font-normal">
+                                            OK to text primary phone
+                                        </FormLabel>
+                                    </div>
+                                </FormItem>
+                            )}
+                        />
+                    )}
                 </div>
 
                 {/* Contact preference */}
@@ -744,31 +744,9 @@ export default function NewUserForm({ defaultValues, onSubmit }: Props) {
                     />
 
                     {/* Secondary Phone is Cell Phone Checkbox */}
-                    {secondaryPhoneIsCellPhone && (
-                        <FormField
-                            control={form.control}
-                            name="secondaryPhoneIsCellPhone"
-                            render={({ field }) => (
-                                <FormItem className="flex flex-row items-start">
-                                    <FormControl>
-                                        <Checkbox
-                                            checked={field.value}
-                                            onCheckedChange={field.onChange}
-                                        />
-                                    </FormControl>
-                                    <div className="space-y-1 leading-none">
-                                        <FormLabel className="font-normal">
-                                            Secondary phone is a cell phone
-                                        </FormLabel>
-                                    </div>
-                                </FormItem>
-                            )}
-                        />
-                    )}
-
                     <FormField
                         control={form.control}
-                        name="okToTextSecondaryPhone"
+                        name="secondaryPhoneIsCellPhone"
                         render={({ field }) => (
                             <FormItem className="flex flex-row items-start">
                                 <FormControl>
@@ -779,12 +757,34 @@ export default function NewUserForm({ defaultValues, onSubmit }: Props) {
                                 </FormControl>
                                 <div className="space-y-1 leading-none">
                                     <FormLabel className="font-normal">
-                                        OK to text secondary phone
+                                        Secondary phone is a cell phone
                                     </FormLabel>
                                 </div>
                             </FormItem>
                         )}
                     />
+
+                    {secondaryPhoneIsCellPhone && (
+                        <FormField
+                            control={form.control}
+                            name="okToTextSecondaryPhone"
+                            render={({ field }) => (
+                                <FormItem className="flex flex-row items-start">
+                                    <FormControl>
+                                        <Checkbox
+                                            checked={field.value}
+                                            onCheckedChange={field.onChange}
+                                        />
+                                    </FormControl>
+                                    <div className="space-y-1 leading-none">
+                                        <FormLabel className="font-normal">
+                                            OK to text secondary phone
+                                        </FormLabel>
+                                    </div>
+                                </FormItem>
+                            )}
+                        />
+                    )}
                 </div>
 
                 {/* Driver-specific fields - only shown when userRole is "Driver" */}

@@ -37,7 +37,7 @@ export default function ClientModal({
                 email: values.clientEmail || null,
                 phone: `+1${values.primaryPhoneNumber}`,
                 gender: values.clientGender,
-                contactPreference: values.primaryContactPref,
+                contactPreference: values.contactPref.toLowerCase(),
                 livesAlone: values.livingAlone === "Does not live alone",
                 address: {
                     addressLine1: values.homeAddress,

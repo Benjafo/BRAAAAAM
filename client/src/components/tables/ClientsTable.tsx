@@ -34,7 +34,7 @@ function mapClientToFormValues(client: Client): Partial<ClientFormValues> & { id
         clientEmail: client.email || "",
         primaryPhoneNumber: client.phone?.replace("+1", "") || "",
         clientGender: client.gender as "Male" | "Female" | "Other",
-        primaryContactPref: client.contactPreference,
+        contactPref: client.contactPreference,
         livingAlone: client.livesAlone ? "Lives alone" : "Does not live alone",
         homeAddress: client.address.addressLine1,
         homeAddress2: client.address.addressLine2 || "",
