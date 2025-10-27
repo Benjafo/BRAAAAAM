@@ -1,6 +1,6 @@
+import { eq } from "drizzle-orm";
 import { Request, Response } from "express";
 import { users } from "../drizzle/org/schema.js";
-import { eq } from "drizzle-orm";
 
 /*
  * Example User Output
