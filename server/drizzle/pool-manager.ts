@@ -1,14 +1,14 @@
 // src/db/poolManager.ts
-import { Pool } from "pg";
+import { DatabaseError, Pool } from "pg";
 import { drizzle } from "drizzle-orm/node-postgres";
 import type { NodePgDatabase } from "drizzle-orm/node-postgres";
 import { getSysDb } from "./sys-client.js";
 import { organizations } from "./sys/schema.js";
 import * as orgSchema from "./org/schema.js";
-import { sql } from "drizzle-orm";
+import { DrizzleQueryError, sql } from "drizzle-orm";
 import { createInsertSchema } from "drizzle-zod";
 
-type OrgDb = NodePgDatabase<typeof orgSchema>;;
+type OrgDb = NodePgDatabase<typeof orgSchema>;
 type OrgPoolEntry = { pool: Pool; db: OrgDb };
 
 const orgPools = new Map<string, OrgPoolEntry>();
@@ -74,10 +74,14 @@ export async function createOrgDbFromTemplate(subdomain: string, name: string, p
         await sysDb.execute(
             sql.raw(`CREATE DATABASE "${subdomain}" WITH TEMPLATE "${template}";`)
         );
-    } catch (error: any) {
+    } catch (error) {
 
-        if(!(error.code === '42P04' || /already exists/i.test(String(error?.message))))
+      if (error instanceof DrizzleQueryError && error.cause instanceof DatabaseError) {
+        
+        if(!(error.cause.code === '42P04' || /already exists/i.test(String(error?.message))))
             throw error;
+        
+      }
     }
 
     await sysDb

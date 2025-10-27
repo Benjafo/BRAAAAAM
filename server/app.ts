@@ -4,25 +4,26 @@ import express from "express";
 import createError from "http-errors";
 import logger from "morgan";
 
-import authRouter from "./routes/auth.js";
-
-import dummyRouter from "./routes/dummy.js";
-
+// import authRouter from "./routes/auth.js";
 import sseRouter from "./routes/sse.js";
 
 // org-scoped
-import appointmentsRouter from "./routes/appointments.js";
-import clientsRouter from "./routes/clients.js";
-import locationsRouter from "./routes/locations.js";
-import notificationsRouter from "./routes/notifications.js";
-import orgSettingsRouter from "./routes/org-settings.js";
-import reportsRouter from "./routes/reports.js";
-import rolesRouter from "./routes/roles.js";
-import usersRouter from "./routes/users.js";
+import appointmentsRouter from "./routes/api.org.appointments.js";
+import clientsRouter from "./routes/api.org.clients.js";
+import locationsRouter from "./routes/api.org.locations.js";
+import notificationsRouter from "./routes/api.org.notifications.js";
+import reportsRouter from "./routes/api.org.reports.js";
+import rolesRouter from "./routes/api.org.roles.js";
+import orgSettingsRouter from "./routes/api.org.settings.js";
+import usersRouter from "./routes/api.org.users.js";
+
+import orgAuthRouter from "./routes/api.org.auth.js";
 
 // system-scoped
-import organizationsRouter from "./routes/organizations.js";
-import sysSettingsRouter from "./routes/sys-settings.js";
+import organizationsRouter from "./routes/api.sys.organizations.js";
+import sysSettingsRouter from "./routes/api.sys.settings.js";
+
+import apiRouter from "./routes/api.js";
 
 import { NextFunction, Request, Response } from "express";
 
@@ -116,18 +117,20 @@ app.get("/test/o/:orgId/users", withOrg, async (req: Request, res: Response) => 
 });
 
 // API routes
-app.use("/auth", authRouter);
-app.use("/dummy", dummyRouter);
-app.use("/o/:orgId/users", usersRouter);
-app.use("/o/:orgId/clients", clientsRouter);
-app.use("/o/:orgId/settings", orgSettingsRouter);
+app.use("/api", apiRouter);
+
+// app.use("/auth", authRouter);
+app.use("/auth", withOrg, orgAuthRouter);
+app.use("/o/:orgId/users", withOrg, usersRouter);
+app.use("/o/:orgId/clients", withOrg, clientsRouter);
+app.use("/o/:orgId/settings", withOrg, orgSettingsRouter);
 app.use("/s/settings", sysSettingsRouter);
-app.use("/o/:orgId/appointments", appointmentsRouter);
-app.use("/o/:orgId/notifications", notificationsRouter);
-app.use("/o/:orgId/reports", reportsRouter);
+app.use("/o/:orgId/appointments", withOrg, appointmentsRouter);
+app.use("/o/:orgId/notifications", withOrg, notificationsRouter);
+app.use("/o/:orgId/reports", withOrg, reportsRouter);
 app.use("/s/organizations", organizationsRouter);
-app.use("/o/:orgId/settings/roles", rolesRouter);
-app.use("/o/:orgId/settings/locations", locationsRouter);
+app.use("/o/:orgId/settings/roles", withOrg, rolesRouter);
+app.use("/o/:orgId/settings/locations", withOrg, locationsRouter);
 app.use("/sse", sseRouter);
 
 // Catch-all route - serve React app for any non-API routes

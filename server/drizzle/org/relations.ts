@@ -17,7 +17,7 @@ import {
 
 export const usersRelations = relations(users, ({ one, many }) => ({
     role: one(roles, {
-        fields: [users.role],
+        fields: [users.roleId],
         references: [roles.id],
     }),
     auditLogs: many(auditLogs),

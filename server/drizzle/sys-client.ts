@@ -1,9 +1,9 @@
-import { drizzle } from "drizzle-orm/node-postgres";
+import { drizzle, NodePgDatabase } from "drizzle-orm/node-postgres";
 import { Pool } from "pg";
 import * as schema from "./sys/schema.js";
 
 let _pool: Pool | null = null;
-let _db: ReturnType<typeof drizzle> | null = null;
+let _db: NodePgDatabase<typeof schema> | null = null;
 
 export function getSysDb() {
   if (_db) return _db;

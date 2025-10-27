@@ -1,6 +1,6 @@
 import { Request, Response } from "express";
 import { eq } from "drizzle-orm";
-import { appointments } from "../drizzle/org/schema";
+import { appointments } from "../drizzle/org/schema.js";
 
 /*
  * Example Output

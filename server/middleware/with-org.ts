@@ -1,7 +1,10 @@
 import { NextFunction, Request, RequestHandler, Response } from 'express';
 import { getOrCreateOrgDb } from '../drizzle/pool-manager.js';
+import { getSysDb } from '../drizzle/sys-client.js';
+import { organizations } from '../drizzle/sys/schema.js';
+import { eq } from 'drizzle-orm';
 
-export const withOrg: RequestHandler = (req: Request, res: Response, next: NextFunction) => {
+export const withOrg: RequestHandler = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
     const header = req.header('x-org-subdomain');
     let subdomain = header;
 
@@ -20,10 +23,25 @@ export const withOrg: RequestHandler = (req: Request, res: Response, next: NextF
     }
 
     try {
-        const db = getOrCreateOrgDb(subdomain);
-        req.org = { subdomain, db }
+        const sysDb = getSysDb();
+        const organization = await sysDb.query.organizations.findFirst({
+            where: eq(organizations.subdomain, subdomain)
+        });
+
+        if(!organization) {
+            res.status(400).json({
+                error: "Invalid x-org-subdomain"
+            })
+            return;
+        }
+
+        const db = getOrCreateOrgDb(organization.subdomain);
+        req.org = { subdomain: organization.subdomain, db }
         next();
-    } catch (error: any) {
-        next(error);
+    } catch {
+        res.status(500).json({
+            error: "Internal server error"
+        });
+        return;
     }
 }

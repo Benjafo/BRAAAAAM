@@ -25,19 +25,20 @@ export interface LoginResponse {
     user: User;
 }
 
-export interface UserPayload {
-    id: number;
+export interface TokenPayload {
+    id: string;
     email: string;
+    db: string;
 }
 
 export interface PasswordResetPayload {
-    userId: number;
+    userId: string;
     email: string;
     password: string;
 }
 
 export interface AuthRequest extends Request {
-    user?: UserPayload;
+    user?: TokenPayload;
 }
 
 export interface TokenData {

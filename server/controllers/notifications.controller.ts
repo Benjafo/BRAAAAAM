@@ -1,5 +1,5 @@
 import { Request, Response } from "express";
-import { notifications } from "../drizzle/org/schema";
+import { notifications } from "../drizzle/org/schema.js";
 import { eq } from "drizzle-orm";
 
 /*
