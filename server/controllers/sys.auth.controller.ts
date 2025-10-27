@@ -170,6 +170,8 @@ const requestPasswordReset = async (req: Request, res: Response) => {
          * to the found email address.
          */
 
+        console.log('requestResetPassword link:', `?token=${resetToken}&id=${user.id}`)
+
         return res.json({
             message: "If the email exists, a password reset link has been sent"
         });

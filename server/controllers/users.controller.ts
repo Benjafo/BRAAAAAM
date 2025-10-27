@@ -1,5 +1,5 @@
 import { Request, Response } from "express";
-import { users } from "../drizzle/org/schema";
+import { users } from "../drizzle/org/schema.js";
 import { eq } from "drizzle-orm";
 
 /*
@@ -20,25 +20,25 @@ import { eq } from "drizzle-orm";
  */
 
 // Interfaces for documentation and typing (still fine to keep for clarity)
-interface Unavailability {
-    id: string;
-    startDate: string;
-    startTime?: string;
-    endDate: string;
-    endTime?: string;
-}
+// interface Unavailability {
+//     id: string;
+//     startDate: string;
+//     startTime?: string;
+//     endDate: string;
+//     endTime?: string;
+// }
 
-interface User {
-    id: string;
-    firstName: string;
-    lastName: string;
-    email: string;
-    phone: string;
-    contactPreference?: string;
-    notes?: string;
-    isActive?: boolean;
-    unavailability?: Unavailability[];
-}
+// interface User {
+//     id: string;
+//     firstName: string;
+//     lastName: string;
+//     email: string;
+//     phone: string;
+//     contactPreference?: string;
+//     notes?: string;
+//     isActive?: boolean;
+//     unavailability?: Unavailability[];
+// }
 
 // -----------------------------
 //  User CRUD
@@ -74,11 +74,15 @@ export const createUser = async (req: Request, res: Response): Promise<Response>
         const db = req.org?.db;
         if (!db) return res.status(500).json({ error: "Database not initialized" });
 
-        const { firstName, lastName, email, phone, contactPreference, notes, isActive } = req.body;
+        const { firstName, lastName, email, phone, contactPreference, _notes, isActive } = req.body;
 
         if (!firstName || !lastName || !email || !phone) {
             return res.status(400).json({ message: "Missing required fields" });
         }
+
+        /**
+         * @TODO Add notes to users org schema and include in below query
+         */
 
         const [newUser] = await db
             .insert(users)

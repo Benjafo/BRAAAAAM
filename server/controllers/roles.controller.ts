@@ -1,5 +1,5 @@
 import { Request, Response } from "express";
-import { roles, rolePermissions } from "../drizzle/org/schema";
+import { roles, rolePermissions } from "../drizzle/org/schema.js";
 import { eq } from "drizzle-orm";
 
 /*

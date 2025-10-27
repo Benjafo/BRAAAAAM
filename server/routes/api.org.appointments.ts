@@ -12,9 +12,9 @@ router.get("/:appointmentId", appt.getAppointment);
 router.put("/:appointmentId", appt.updateAppointment);
 
 // /o/:orgId/appointments/tags
-router.get("/tags", appt.listTags);
-router.post("/tags", appt.createTag);
-router.put("/tags/:tagId", appt.updateTag);
-router.delete("/tags/:tagId", appt.deleteTag);
+// router.get("/tags", appt.listTags);
+// router.post("/tags", appt.createTag);
+// router.put("/tags/:tagId", appt.updateTag);
+// router.delete("/tags/:tagId", appt.deleteTag);
 
 export default router;
