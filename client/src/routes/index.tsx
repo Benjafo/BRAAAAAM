@@ -25,9 +25,6 @@ function RouteComponent() {
     return (
         <>
             <MainNavigation />
-            <div className="max-w-md mx-auto mt-8 p-6">
-                <h1 className="font-bold mb-4">Address</h1>
-            </div>
         </>
     );
 }

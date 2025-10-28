@@ -1,983 +1,1011 @@
 openapi: 3.0.3
 info:
-  title: BRAAAAAM API
-  version: 1.0.0
-  description: BRAAAAAM API
+    title: BRAAAAAM API
+    version: 1.0.0
+    description: BRAAAAAM API
 
 servers:
-  - url: https://api.braaaaam.webdev.gccis.rit.edu
+    - url: https://api.braaaaam.webdev.gccis.rit.edu
 
 tags:
-  - name: Auth
-  - name: SSE
-  - name: Users
-  - name: Clients
-  - name: Settings
-  - name: Roles
-  - name: Locations
-  - name: Appointments
-  - name: Notifications
-  - name: Reports
-  - name: Organizations
+    - name: Auth
+    - name: SSE
+    - name: Users
+    - name: Clients
+    - name: Settings
+    - name: Roles
+    - name: Locations
+    - name: Appointments
+    - name: Notifications
+    - name: Reports
+    - name: Organizations
 
 components:
-  securitySchemes:
-    bearerAuth:
-      type: http
-      scheme: bearer
-  parameters:
-    OrgId:
-      name: orgId
-      in: path
-      required: true
-      schema: { type: string }
-    UserId:
-      name: userId
-      in: path
-      required: true
-      schema: { type: string }
-    UnavailabilityId:
-      name: unavailabilityId
-      in: path
-      required: true
-      schema: { type: string }
-    ClientId:
-      name: clientId
-      in: path
-      required: true
-      schema: { type: string }
-    RoleId:
-      name: roleId
-      in: path
-      required: true
-      schema: { type: string }
-    LocationId:
-      name: locationId
-      in: path
-      required: true
-      schema: { type: string }
-    AppointmentId:
-      name: appointmentId
-      in: path
-      required: true
-      schema: { type: string }
-    TagId:
-      name: tagId
-      in: path
-      required: true
-      schema: { type: string }
-    NotificationId:
-      name: notificationId
-      in: path
-      required: true
-      schema: { type: string }
-    ReportId:
-      name: reportId
-      in: path
-      required: true
-      schema: { type: string }
-    FormId:
-      name: formId
-      in: path
-      required: true
-      schema: { type: string }
-    LogId:
-      name: logId
-      in: path
-      required: true
-      schema: { type: string }
+    securitySchemes:
+        bearerAuth:
+            type: http
+            scheme: bearer
+    parameters:
+        OrgId:
+            name: orgId
+            in: path
+            required: true
+            schema: { type: string }
+        UserId:
+            name: userId
+            in: path
+            required: true
+            schema: { type: string }
+        UnavailabilityId:
+            name: unavailabilityId
+            in: path
+            required: true
+            schema: { type: string }
+        ClientId:
+            name: clientId
+            in: path
+            required: true
+            schema: { type: string }
+        RoleId:
+            name: roleId
+            in: path
+            required: true
+            schema: { type: string }
+        LocationId:
+            name: locationId
+            in: path
+            required: true
+            schema: { type: string }
+        AppointmentId:
+            name: appointmentId
+            in: path
+            required: true
+            schema: { type: string }
+        TagId:
+            name: tagId
+            in: path
+            required: true
+            schema: { type: string }
+        NotificationId:
+            name: notificationId
+            in: path
+            required: true
+            schema: { type: string }
+        ReportId:
+            name: reportId
+            in: path
+            required: true
+            schema: { type: string }
+        FormId:
+            name: formId
+            in: path
+            required: true
+            schema: { type: string }
+        LogId:
+            name: logId
+            in: path
+            required: true
+            schema: { type: string }
 
-  schemas:
-    Error:
-      type: object
-      properties:
-        message: { type: string }
+    schemas:
+        Error:
+            type: object
+            properties:
+                message: { type: string }
 
-  responses:
-    Unauthorized:
-      description: Unauthorized
-      content:
-        application/json:
-          schema: { $ref: '#/components/schemas/Error' }
-
+    responses:
+        Unauthorized:
+            description: Unauthorized
+            content:
+                application/json:
+                    schema: { $ref: "#/components/schemas/Error" }
 
 paths:
-  /sign-in:
-    post:
-      tags: [Auth]
-      summary: Sign in
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              type: object
-              required: [email, password]
-              properties:
-                email: { type: string, format: email }
-                password: { type: string }
-      responses:
-        '200':
-          description: OK
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  access_token: { type: string }
-                  refresh_token: { type: string }
-                  expires_in:   { type: integer, example: 3600 }
+    /sign-in:
+        post:
+            tags: [Auth]
+            summary: Sign in
+            requestBody:
+                required: true
+                content:
+                    application/json:
+                        schema:
+                            type: object
+                            required: [email, password]
+                            properties:
+                                email: { type: string, format: email }
+                                password: { type: string }
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                type: object
+                                properties:
+                                    access_token: { type: string }
+                                    refresh_token: { type: string }
+                                    expires_in: { type: integer, example: 3600 }
 
-  /sign-out:
-    post:
-      tags: [Auth]
-      summary: Sign out (revoke refresh token / session)
-      security: [ { bearerAuth: [] }]
-      responses:
-        '204': { description: Signed out }
+    /sign-out:
+        post:
+            tags: [Auth]
+            summary: Sign out (revoke refresh token / session)
+            security: [{ bearerAuth: [] }]
+            responses:
+                "204": { description: Signed out }
 
-  /token-refresh:
-    post:
-      tags: [Auth]
-      summary: Refresh access token
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              type: object
-              required: [refresh_token]
-              properties:
-                refresh_token: { type: string }
-      responses:
-        '200':
-          description: New token issued
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  access_token: { type: string }
-                  refresh_token: { type: string }
+    /token-refresh:
+        post:
+            tags: [Auth]
+            summary: Refresh access token
+            requestBody:
+                required: true
+                content:
+                    application/json:
+                        schema:
+                            type: object
+                            required: [refresh_token]
+                            properties:
+                                refresh_token: { type: string }
+            responses:
+                "200":
+                    description: New token issued
+                    content:
+                        application/json:
+                            schema:
+                                type: object
+                                properties:
+                                    access_token: { type: string }
+                                    refresh_token: { type: string }
 
-  /request-reset-password:
-    post:
-      tags: [Auth]
-      summary: Request password reset email
-      description: Always returns 202 even if email does not exist (prevents user enumeration).
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              type: object
-              required: [email]
-              properties:
-                email: { type: string, format: email }
-      responses:
-        '202': { description: Email sent (if applicable) }
-        '429': { description: Too many requests }
+    /request-reset-password:
+        post:
+            tags: [Auth]
+            summary: Request password reset email
+            description: Always returns 202 even if email does not exist (prevents user enumeration).
+            requestBody:
+                required: true
+                content:
+                    application/json:
+                        schema:
+                            type: object
+                            required: [email]
+                            properties:
+                                email: { type: string, format: email }
+            responses:
+                "202": { description: Email sent (if applicable) }
+                "429": { description: Too many requests }
 
-  /reset-password:
-    post:
-      tags: [Auth]
-      summary: Complete password reset
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              type: object
-              required: [token, new_password]
-              properties:
-                token:        { type: string, description: "Reset token from email" }
-                new_password: { type: string, minLength: 8 }
-      responses:
-        '204': { description: Password updated }
-        '400': { description: Invalid or expired token }
-        '422': { description: Password failed policy }
+    /reset-password:
+        post:
+            tags: [Auth]
+            summary: Complete password reset
+            requestBody:
+                required: true
+                content:
+                    application/json:
+                        schema:
+                            type: object
+                            required: [token, new_password]
+                            properties:
+                                token: { type: string, description: "Reset token from email" }
+                                new_password: { type: string, minLength: 8 }
+            responses:
+                "204": { description: Password updated }
+                "400": { description: Invalid or expired token }
+                "422": { description: Password failed policy }
 
-  /sse:
-    get:
-      tags: [SSE]
-      summary: Server-Sent Events stream
-      responses:
-        '200':
-          description: Event stream
-          content:
-            text/event-stream:
-              schema: { type: string }
+    /sse:
+        get:
+            tags: [SSE]
+            summary: Server-Sent Events stream
+            responses:
+                "200":
+                    description: Event stream
+                    content:
+                        text/event-stream:
+                            schema: { type: string }
 
-  # Users
-  /o/{orgId}/users:
-    get:
-      tags: [Users]
-      summary: List users
-      parameters: [ { $ref: '#/components/parameters/OrgId' } ]
-      security: [ { bearerAuth: [] } ]
-      responses:
-        '200': { description: OK }
-        '401': { $ref: '#/components/responses/Unauthorized' }
-    post:
-      tags: [Users]
-      summary: Create user
-      parameters: [ { $ref: '#/components/parameters/OrgId' } ]
-      security: [ { bearerAuth: [] } ]
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              type: object
-              required: [firstName, lastName, Email, Phone]
-              properties:
-                firstName: { type: string }
-                lastName:  { type: string }
-                Email:     { type: string }
-                Phone:     { type: string }
-      responses:
-        '201': { description: Created }
-        '401': { $ref: '#/components/responses/Unauthorized' }
+    # Users
+    /o/{orgId}/users:
+        get:
+            tags: [Users]
+            summary: List users
+            parameters: [{ $ref: "#/components/parameters/OrgId" }]
+            security: [{ bearerAuth: [] }]
+            responses:
+                "200": { description: OK }
+                "401": { $ref: "#/components/responses/Unauthorized" }
+        post:
+            tags: [Users]
+            summary: Create user
+            parameters: [{ $ref: "#/components/parameters/OrgId" }]
+            security: [{ bearerAuth: [] }]
+            requestBody:
+                required: true
+                content:
+                    application/json:
+                        schema:
+                            type: object
+                            required: [firstName, lastName, Email, Phone]
+                            properties:
+                                firstName: { type: string }
+                                lastName: { type: string }
+                                Email: { type: string }
+                                Phone: { type: string }
+            responses:
+                "201": { description: Created }
+                "401": { $ref: "#/components/responses/Unauthorized" }
 
-  /o/{orgId}/users/{userId}:
-    get:
-      tags: [Users]
-      summary: Get user
-      parameters:
-        - $ref: '#/components/parameters/OrgId'
-        - $ref: '#/components/parameters/UserId'
-      responses:
-        '200': { description: OK }
-        '404': { description: Not found }
-    put:
-      tags: [Users]
-      summary: Update user
-      parameters:
-        - $ref: '#/components/parameters/OrgId'
-        - $ref: '#/components/parameters/UserId'
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              type: object
-              required: [contactPreference]
-              properties:
-                firstName:         { type: string }
-                lastName:          { type: string }
-                Email:             { type: string }
-                Phone:             { type: string }
-                contactPreference: { type: string }
-                Notes:             { type: string }
-                IsActive:          { type: boolean }
-      responses:
-        '200': { description: Updated }
-    delete:
-      tags: [Users]
-      summary: Delete user
-      parameters:
-        - $ref: '#/components/parameters/OrgId'
-        - $ref: '#/components/parameters/UserId'
-      responses:
-        '204': { description: Deleted }
+    /o/{orgId}/users/{userId}:
+        get:
+            tags: [Users]
+            summary: Get user
+            parameters:
+                - $ref: "#/components/parameters/OrgId"
+                - $ref: "#/components/parameters/UserId"
+            responses:
+                "200": { description: OK }
+                "404": { description: Not found }
+        put:
+            tags: [Users]
+            summary: Update user
+            parameters:
+                - $ref: "#/components/parameters/OrgId"
+                - $ref: "#/components/parameters/UserId"
+            requestBody:
+                required: true
+                content:
+                    application/json:
+                        schema:
+                            type: object
+                            required: [contactPreference]
+                            properties:
+                                firstName: { type: string }
+                                lastName: { type: string }
+                                Email: { type: string }
+                                Phone: { type: string }
+                                contactPreference: { type: string }
+                                Notes: { type: string }
+                                IsActive: { type: boolean }
+            responses:
+                "200": { description: Updated }
+        delete:
+            tags: [Users]
+            summary: Delete user
+            parameters:
+                - $ref: "#/components/parameters/OrgId"
+                - $ref: "#/components/parameters/UserId"
+            responses:
+                "204": { description: Deleted }
 
-  /o/{orgId}/users/{userId}/unavailability:
-    post:
-      tags: [Users]
-      summary: Create unavailability
-      parameters:
-        - $ref: '#/components/parameters/OrgId'
-        - $ref: '#/components/parameters/UserId'
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              type: object
-              required: [startDate, endDate]
-              properties:
-                startDate: { type: string }
-                startTime: { type: string }
-                endDate:   { type: string }
-                endTime:   { type: string }
-      responses:
-        '201': { description: Created }
-    get:
-      tags: [Users]
-      summary: List unavailability
-      parameters:
-        - $ref: '#/components/parameters/OrgId'
-        - $ref: '#/components/parameters/UserId'
-      responses:
-        '200': { description: OK }
+    /o/{orgId}/users/{userId}/unavailability:
+        post:
+            tags: [Users]
+            summary: Create unavailability
+            parameters:
+                - $ref: "#/components/parameters/OrgId"
+                - $ref: "#/components/parameters/UserId"
+            requestBody:
+                required: true
+                content:
+                    application/json:
+                        schema:
+                            type: object
+                            required: [startDate, endDate]
+                            properties:
+                                startDate: { type: string }
+                                startTime: { type: string }
+                                endDate: { type: string }
+                                endTime: { type: string }
+            responses:
+                "201": { description: Created }
+        get:
+            tags: [Users]
+            summary: List unavailability
+            parameters:
+                - $ref: "#/components/parameters/OrgId"
+                - $ref: "#/components/parameters/UserId"
+            responses:
+                "200": { description: OK }
 
-  /o/{orgId}/users/{userId}/unavailability/{unavailabilityId}:
-    put:
-      tags: [Users]
-      summary: Update unavailability
-      parameters:
-        - $ref: '#/components/parameters/OrgId'
-        - $ref: '#/components/parameters/UserId'
-        - $ref: '#/components/parameters/UnavailabilityId'
-      responses:
-        '200': { description: Updated }
-    delete:
-      tags: [Users]
-      summary: Delete unavailability
-      parameters:
-        - $ref: '#/components/parameters/OrgId'
-        - $ref: '#/components/parameters/UserId'
-        - $ref: '#/components/parameters/UnavailabilityId'
-      responses:
-        '204': { description: Deleted }
+    /o/{orgId}/users/{userId}/unavailability/{unavailabilityId}:
+        put:
+            tags: [Users]
+            summary: Update unavailability
+            parameters:
+                - $ref: "#/components/parameters/OrgId"
+                - $ref: "#/components/parameters/UserId"
+                - $ref: "#/components/parameters/UnavailabilityId"
+            responses:
+                "200": { description: Updated }
+        delete:
+            tags: [Users]
+            summary: Delete unavailability
+            parameters:
+                - $ref: "#/components/parameters/OrgId"
+                - $ref: "#/components/parameters/UserId"
+                - $ref: "#/components/parameters/UnavailabilityId"
+            responses:
+                "204": { description: Deleted }
 
-  # Clients
-  /o/{orgId}/clients:
-    get:
-      tags: [Clients]
-      summary: List clients
-      parameters: [ { $ref: '#/components/parameters/OrgId' } ]
-      responses:
-        '200': { description: OK }
-    post:
-      tags: [Clients]
-      summary: Create client
-      parameters: [ { $ref: '#/components/parameters/OrgId' } ]
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              type: object
-              required: [firstName, lastName, contactPreference, vehiclePreferenceType, Notes, Gender]
-              properties:
-                firstName: { type: string }
-                lastName:  { type: string }
-                Email:     { type: string }
-                Phone:     { type: string }
-                contactPreference:     { type: string }
-                Addresses:
-                  type: array
-                  items:
-                    type: object
-                    required: [Address Line 1, City, State, Zip, Country, Is Primary]
-                    properties:
-                      Address Line 1: { type: string }
-                      Address Line 2: { type: string }
-                      City:           { type: string }
-                      State:          { type: string }
-                      Zip:            { type: string }
-                      Country:        { type: string }
-                      Is Primary:     { type: boolean }
-                      vehiclePreferenceType: { type: string }
-                      Notes: { type: string }
-                      Gender: { type: string, enum: [Male, Female] }
-      responses:
-        '201': { description: Created }
-  /o/{orgId}/clients/{clientId}:
-    get:
-      tags: [Clients]
-      summary: Get client
-      parameters:
-        - $ref: '#/components/parameters/OrgId'
-        - $ref: '#/components/parameters/ClientId'
-      responses:
-        '200': { description: OK }
-        '404': { description: Not found }
-    put:
-      tags: [Clients]
-      summary: Update client
-      parameters:
-        - $ref: '#/components/parameters/OrgId'
-        - $ref: '#/components/parameters/ClientId'
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              type: object
-              required: [id]
-              properties:
-                id:        { type: string }
-                firstName: { type: string }
-                lastName:  { type: string }
-                Email:     { type: string }
-                Phone:     { type: string }
-                Addresses:
-                  type: array
-                  items:
-                    type: object
-                    required: [id, Address Line 1, City, State, Zip, Country, Is Primary]
-                    properties:
-                      id:             { type: string }
-                      Address Line 1: { type: string }
-                      Address Line 2: { type: string }
-                      City:           { type: string }
-                      State:          { type: string }
-                      Zip:            { type: string }
-                      Country:        { type: string }
-                      Is Primary:     { type: boolean }
-                      Notes: { type: string }
-                      Gender: { type: string, enum: [Male, Female] }
-      responses:
-        '200': { description: Updated }
-    delete:
-      tags: [Clients]
-      summary: Delete client
-      parameters:
-        - $ref: '#/components/parameters/OrgId'
-        - $ref: '#/components/parameters/ClientId'
-      responses:
-        '204': { description: Deleted }
+    # Clients
+    /o/{orgId}/clients:
+        get:
+            tags: [Clients]
+            summary: List clients
+            parameters: [{ $ref: "#/components/parameters/OrgId" }]
+            responses:
+                "200": { description: OK }
+        post:
+            tags: [Clients]
+            summary: Create client
+            parameters: [{ $ref: "#/components/parameters/OrgId" }]
+            requestBody:
+                required: true
+                content:
+                    application/json:
+                        schema:
+                            type: object
+                            required:
+                                [
+                                    firstName,
+                                    lastName,
+                                    contactPreference,
+                                    vehiclePreferenceType,
+                                    Notes,
+                                    Gender,
+                                ]
+                            properties:
+                                firstName: { type: string }
+                                lastName: { type: string }
+                                Email: { type: string }
+                                Phone: { type: string }
+                                contactPreference: { type: string }
+                                Addresses:
+                                    type: array
+                                    items:
+                                        type: object
+                                        required:
+                                            [Address Line 1, City, State, Zip, Country, Is Primary]
+                                        properties:
+                                            Address Line 1: { type: string }
+                                            Address Line 2: { type: string }
+                                            City: { type: string }
+                                            State: { type: string }
+                                            Zip: { type: string }
+                                            Country: { type: string }
+                                            Is Primary: { type: boolean }
+                                            vehiclePreferenceType: { type: string }
+                                            Notes: { type: string }
+                                            Gender: { type: string, enum: [Male, Female] }
+            responses:
+                "201": { description: Created }
+    /o/{orgId}/clients/{clientId}:
+        get:
+            tags: [Clients]
+            summary: Get client
+            parameters:
+                - $ref: "#/components/parameters/OrgId"
+                - $ref: "#/components/parameters/ClientId"
+            responses:
+                "200": { description: OK }
+                "404": { description: Not found }
+        put:
+            tags: [Clients]
+            summary: Update client
+            parameters:
+                - $ref: "#/components/parameters/OrgId"
+                - $ref: "#/components/parameters/ClientId"
+            requestBody:
+                required: true
+                content:
+                    application/json:
+                        schema:
+                            type: object
+                            required: [id]
+                            properties:
+                                id: { type: string }
+                                firstName: { type: string }
+                                lastName: { type: string }
+                                Email: { type: string }
+                                Phone: { type: string }
+                                Addresses:
+                                    type: array
+                                    items:
+                                        type: object
+                                        required:
+                                            [
+                                                id,
+                                                Address Line 1,
+                                                City,
+                                                State,
+                                                Zip,
+                                                Country,
+                                                Is Primary,
+                                            ]
+                                        properties:
+                                            id: { type: string }
+                                            Address Line 1: { type: string }
+                                            Address Line 2: { type: string }
+                                            City: { type: string }
+                                            State: { type: string }
+                                            Zip: { type: string }
+                                            Country: { type: string }
+                                            Is Primary: { type: boolean }
+                                            Notes: { type: string }
+                                            Gender: { type: string, enum: [Male, Female] }
+            responses:
+                "200": { description: Updated }
+        delete:
+            tags: [Clients]
+            summary: Delete client
+            parameters:
+                - $ref: "#/components/parameters/OrgId"
+                - $ref: "#/components/parameters/ClientId"
+            responses:
+                "204": { description: Deleted }
 
-  # Settings (org)
-  /o/{orgId}/settings:
-    get:
-      tags: [Settings]
-      summary: Get settings
-      parameters: [ { $ref: '#/components/parameters/OrgId' } ]
-      responses:
-        '200': { description: OK }
-    put:
-      tags: [Settings]
-      summary: Update settings
-      parameters: [ { $ref: '#/components/parameters/OrgId' } ]
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              type: object
-              properties:
-                hoursOfOperation:
-                  type: array
-                  items:
-                    type: object
-                    required: [Id, dayOfWeek, startTime, endTime]
-                    properties:
-                      Id:        { type: string }
-                      dayOfWeek: { type: integer, description: "0-6" }
-                      startTime: { type: string }
-                      endTime:   { type: string }
-                Name:               { type: string }
-                Logo:               { type: string }
-                Domain:             { type: string }
-                Phone:              { type: string }
-                Email:              { type: string }
-                Street Address 1:   { type: string }
-                Street Address 2:   { type: string }
-                City:               { type: string }
-                State:              { type: string }
-                Zip:                { type: string }
-                Country:            { type: string }
-                postmarkApiKey:     { type: string }
-                googleMapsApiKey:   { type: string }
-      responses:
-        '200': { description: Updated }
-  /o/{orgId}/settings/operation-hours:
-    get:
-      tags: [Settings]
-      summary: Get operation hours
-      parameters: [ { $ref: '#/components/parameters/OrgId' } ]
-      responses:
-        '200': { description: OK }
+    # Settings (org)
+    /o/{orgId}/settings:
+        get:
+            tags: [Settings]
+            summary: Get settings
+            parameters: [{ $ref: "#/components/parameters/OrgId" }]
+            responses:
+                "200": { description: OK }
+        put:
+            tags: [Settings]
+            summary: Update settings
+            parameters: [{ $ref: "#/components/parameters/OrgId" }]
+            requestBody:
+                required: true
+                content:
+                    application/json:
+                        schema:
+                            type: object
+                            properties:
+                                hoursOfOperation:
+                                    type: array
+                                    items:
+                                        type: object
+                                        required: [Id, dayOfWeek, startTime, endTime]
+                                        properties:
+                                            Id: { type: string }
+                                            dayOfWeek: { type: integer, description: "0-6" }
+                                            startTime: { type: string }
+                                            endTime: { type: string }
+                                Name: { type: string }
+                                Logo: { type: string }
+                                Domain: { type: string }
+                                Phone: { type: string }
+                                Email: { type: string }
+                                Street Address 1: { type: string }
+                                Street Unit/Apartment/Suite: { type: string }
+                                City: { type: string }
+                                State: { type: string }
+                                Zip: { type: string }
+                                Country: { type: string }
+                                emailApiKey: { type: string }
+                                googleMapsApiKey: { type: string }
+            responses:
+                "200": { description: Updated }
+    /o/{orgId}/settings/operation-hours:
+        get:
+            tags: [Settings]
+            summary: Get operation hours
+            parameters: [{ $ref: "#/components/parameters/OrgId" }]
+            responses:
+                "200": { description: OK }
 
-  /o/{orgId}/settings/forms:
-    get:
-      tags: [Settings]
-      summary: List forms
-      parameters: [ { $ref: '#/components/parameters/OrgId' } ]
-      responses:
-        '200': { description: OK }
-    post:
-      tags: [Settings]
-      summary: Create form
-      parameters: [ { $ref: '#/components/parameters/OrgId' } ]
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              type: object
-              required: [formId, formElements]
-              properties:
-                formId: { type: string }
-                formElements:
-                  type: array
-                  items:
-                    type: object
-                    required: [TypeId, label, dataTarget, position]
-                    properties:
-                      TypeId:            { type: string }
-                      label:             { type: string }
-                      dataTarget:        { type: string, description: "storageTarget" }
-                      position:          { type: integer }
-                      additionalSettings: { type: object, additionalProperties: true }
-      responses:
-        '201': { description: Created }
+    /o/{orgId}/settings/forms:
+        get:
+            tags: [Settings]
+            summary: List forms
+            parameters: [{ $ref: "#/components/parameters/OrgId" }]
+            responses:
+                "200": { description: OK }
+        post:
+            tags: [Settings]
+            summary: Create form
+            parameters: [{ $ref: "#/components/parameters/OrgId" }]
+            requestBody:
+                required: true
+                content:
+                    application/json:
+                        schema:
+                            type: object
+                            required: [formId, formElements]
+                            properties:
+                                formId: { type: string }
+                                formElements:
+                                    type: array
+                                    items:
+                                        type: object
+                                        required: [TypeId, label, dataTarget, position]
+                                        properties:
+                                            TypeId: { type: string }
+                                            label: { type: string }
+                                            dataTarget:
+                                                { type: string, description: "storageTarget" }
+                                            position: { type: integer }
+                                            additionalSettings:
+                                                { type: object, additionalProperties: true }
+            responses:
+                "201": { description: Created }
 
-  /o/{orgId}/settings/forms/{formId}:
-    get:
-      tags: [Settings]
-      summary: Get form
-      parameters:
-        - $ref: '#/components/parameters/OrgId'
-        - $ref: '#/components/parameters/FormId'
-      responses:
-        '200': { description: OK }
-        '404': { description: Not found }
-    put:
-      tags: [Settings]
-      summary: Update form
-      parameters:
-        - $ref: '#/components/parameters/OrgId'
-        - $ref: '#/components/parameters/FormId'
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              type: object
-              properties:
-                formElements:
-                  type: array
-                  items:
-                    type: object
-                    properties:
-                      TypeId:            { type: string }
-                      label:             { type: string }
-                      dataTarget:        { type: string }
-                      position:          { type: integer }
-                      additionalSettings: { type: object, additionalProperties: true }
-      responses:
-        '200': { description: Updated }
+    /o/{orgId}/settings/forms/{formId}:
+        get:
+            tags: [Settings]
+            summary: Get form
+            parameters:
+                - $ref: "#/components/parameters/OrgId"
+                - $ref: "#/components/parameters/FormId"
+            responses:
+                "200": { description: OK }
+                "404": { description: Not found }
+        put:
+            tags: [Settings]
+            summary: Update form
+            parameters:
+                - $ref: "#/components/parameters/OrgId"
+                - $ref: "#/components/parameters/FormId"
+            requestBody:
+                required: true
+                content:
+                    application/json:
+                        schema:
+                            type: object
+                            properties:
+                                formElements:
+                                    type: array
+                                    items:
+                                        type: object
+                                        properties:
+                                            TypeId: { type: string }
+                                            label: { type: string }
+                                            dataTarget: { type: string }
+                                            position: { type: integer }
+                                            additionalSettings:
+                                                { type: object, additionalProperties: true }
+            responses:
+                "200": { description: Updated }
 
-  /o/{orgId}/settings/audit-log:
-    get:
-      tags: [Settings]
-      summary: List audit log
-      parameters: [ { $ref: '#/components/parameters/OrgId' } ]
-      responses:
-        '200': { description: OK }
+    /o/{orgId}/settings/audit-log:
+        get:
+            tags: [Settings]
+            summary: List audit log
+            parameters: [{ $ref: "#/components/parameters/OrgId" }]
+            responses:
+                "200": { description: OK }
 
-  /o/{orgId}/settings/audit-log/{logId}:
-    get:
-      tags: [Settings]
-      summary: Get audit log entry
-      parameters:
-        - $ref: '#/components/parameters/OrgId'
-        - $ref: '#/components/parameters/LogId'
-      responses:
-        '200': { description: OK }
-        '404': { description: Not found }
+    /o/{orgId}/settings/audit-log/{logId}:
+        get:
+            tags: [Settings]
+            summary: Get audit log entry
+            parameters:
+                - $ref: "#/components/parameters/OrgId"
+                - $ref: "#/components/parameters/LogId"
+            responses:
+                "200": { description: OK }
+                "404": { description: Not found }
 
-  /o/{orgId}/settings/permissions:
-    get:
-      tags: [Settings]
-      summary: Get permissions
-      parameters: [ { $ref: '#/components/parameters/OrgId' } ]
-      responses:
-        '200': { description: OK }
+    /o/{orgId}/settings/permissions:
+        get:
+            tags: [Settings]
+            summary: Get permissions
+            parameters: [{ $ref: "#/components/parameters/OrgId" }]
+            responses:
+                "200": { description: OK }
 
-  # Roles
-  /o/{orgId}/settings/roles:
-    get:
-      tags: [Roles]
-      summary: List roles
-      parameters: [ { $ref: '#/components/parameters/OrgId' } ]
-      responses:
-        '200': { description: OK }
-    post:
-      tags: [Roles]
-      summary: Create role
-      parameters: [ { $ref: '#/components/parameters/OrgId' } ]
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              type: object
-              required: [roleName, Description, PermissionIds]
-              properties:
-                roleName:     { type: string }
-                Description:  { type: string }
-                PermissionIds:
-                  type: array
-                  items: { type: string }
-      responses:
-        '201': { description: Created }
+    # Roles
+    /o/{orgId}/settings/roles:
+        get:
+            tags: [Roles]
+            summary: List roles
+            parameters: [{ $ref: "#/components/parameters/OrgId" }]
+            responses:
+                "200": { description: OK }
+        post:
+            tags: [Roles]
+            summary: Create role
+            parameters: [{ $ref: "#/components/parameters/OrgId" }]
+            requestBody:
+                required: true
+                content:
+                    application/json:
+                        schema:
+                            type: object
+                            required: [roleName, Description, PermissionIds]
+                            properties:
+                                roleName: { type: string }
+                                Description: { type: string }
+                                PermissionIds:
+                                    type: array
+                                    items: { type: string }
+            responses:
+                "201": { description: Created }
 
-  /o/{orgId}/settings/roles/{roleId}:
-    get:
-      tags: [Roles]
-      summary: Get role
-      parameters:
-        - $ref: '#/components/parameters/OrgId'
-        - $ref: '#/components/parameters/RoleId'
-      responses:
-        '200': { description: OK }
-        '404': { description: Not found }
-    put:
-      tags: [Roles]
-      summary: Update role
-      parameters:
-        - $ref: '#/components/parameters/OrgId'
-        - $ref: '#/components/parameters/RoleId'
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              type: object
-              required: [roleName, Description, PermissionIds]
-              properties:
-                roleName:     { type: string }
-                Description:  { type: string }
-                PermissionIds:
-                  type: array
-                  items: { type: string }
-      responses:
-        '200': { description: Updated }
-    delete:
-      tags: [Roles]
-      summary: Delete role
-      parameters:
-        - $ref: '#/components/parameters/OrgId'
-        - $ref: '#/components/parameters/RoleId'
-      responses:
-        '204': { description: Deleted }
+    /o/{orgId}/settings/roles/{roleId}:
+        get:
+            tags: [Roles]
+            summary: Get role
+            parameters:
+                - $ref: "#/components/parameters/OrgId"
+                - $ref: "#/components/parameters/RoleId"
+            responses:
+                "200": { description: OK }
+                "404": { description: Not found }
+        put:
+            tags: [Roles]
+            summary: Update role
+            parameters:
+                - $ref: "#/components/parameters/OrgId"
+                - $ref: "#/components/parameters/RoleId"
+            requestBody:
+                required: true
+                content:
+                    application/json:
+                        schema:
+                            type: object
+                            required: [roleName, Description, PermissionIds]
+                            properties:
+                                roleName: { type: string }
+                                Description: { type: string }
+                                PermissionIds:
+                                    type: array
+                                    items: { type: string }
+            responses:
+                "200": { description: Updated }
+        delete:
+            tags: [Roles]
+            summary: Delete role
+            parameters:
+                - $ref: "#/components/parameters/OrgId"
+                - $ref: "#/components/parameters/RoleId"
+            responses:
+                "204": { description: Deleted }
 
-  # Locations
-  /o/{orgId}/settings/location:
-    get:
-      tags: [Locations]
-      summary: Get current location
-      parameters: [ { $ref: '#/components/parameters/OrgId' } ]
-      responses:
-        '200': { description: OK }
+    # Locations
+    /o/{orgId}/settings/location:
+        get:
+            tags: [Locations]
+            summary: Get current location
+            parameters: [{ $ref: "#/components/parameters/OrgId" }]
+            responses:
+                "200": { description: OK }
 
-  /o/{orgId}/settings/locations:
-    post:
-      tags: [Locations]
-      summary: Create location
-      parameters: [ { $ref: '#/components/parameters/OrgId' } ]
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              type: object
-              required: [Address, Alias]
-              properties:
-                Address:
-                  type: object
-                  required: [Address Line 1, City, State, Zip, Country]
-                  properties:
-                    Address Line 1: { type: string }
-                    Address Line 2: { type: string }
-                    City:           { type: string }
-                    State:          { type: string }
-                    Zip:            { type: string }
-                    Country:        { type: string }
-                Alias: { type: string }
-      responses:
-        '201': { description: Created }
+    /o/{orgId}/settings/locations:
+        post:
+            tags: [Locations]
+            summary: Create location
+            parameters: [{ $ref: "#/components/parameters/OrgId" }]
+            requestBody:
+                required: true
+                content:
+                    application/json:
+                        schema:
+                            type: object
+                            required: [Address, Alias]
+                            properties:
+                                Address:
+                                    type: object
+                                    required: [Address Line 1, City, State, Zip, Country]
+                                    properties:
+                                        Address Line 1: { type: string }
+                                        Address Line 2: { type: string }
+                                        City: { type: string }
+                                        State: { type: string }
+                                        Zip: { type: string }
+                                        Country: { type: string }
+                                Alias: { type: string }
+            responses:
+                "201": { description: Created }
 
+    /o/{orgId}/settings/locations/{locationId}:
+        get:
+            tags: [Locations]
+            summary: Get location
+            parameters:
+                - $ref: "#/components/parameters/OrgId"
+                - $ref: "#/components/parameters/LocationId"
+            responses:
+                "200": { description: OK }
+                "404": { description: Not found }
+        put:
+            tags: [Locations]
+            summary: Update location
+            parameters:
+                - $ref: "#/components/parameters/OrgId"
+                - $ref: "#/components/parameters/LocationId"
+            requestBody:
+                required: true
+                content:
+                    application/json:
+                        schema:
+                            type: object
+                            required: [Address, Alias]
+                            properties:
+                                Address:
+                                    type: object
+                                    required: [Address Line 1, City, State, Zip, Country]
+                                    properties:
+                                        Address Line 1: { type: string }
+                                        Address Line 2: { type: string }
+                                        City: { type: string }
+                                        State: { type: string }
+                                        Zip: { type: string }
+                                        Country: { type: string }
+                                Alias: { type: string }
+            responses:
+                "200": { description: Updated }
 
-  /o/{orgId}/settings/locations/{locationId}:
-    get:
-      tags: [Locations]
-      summary: Get location
-      parameters:
-        - $ref: '#/components/parameters/OrgId'
-        - $ref: '#/components/parameters/LocationId'
-      responses:
-        '200': { description: OK }
-        '404': { description: Not found }
-    put:
-      tags: [Locations]
-      summary: Update location
-      parameters:
-        - $ref: '#/components/parameters/OrgId'
-        - $ref: '#/components/parameters/LocationId'
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              type: object
-              required: [Address, Alias]
-              properties:
-                Address:
-                  type: object
-                  required: [Address Line 1, City, State, Zip, Country]
-                  properties:
-                    Address Line 1: { type: string }
-                    Address Line 2: { type: string }
-                    City:           { type: string }
-                    State:          { type: string }
-                    Zip:            { type: string }
-                    Country:        { type: string }
-                Alias: { type: string }
-      responses:
-        '200': { description: Updated }
+        delete:
+            tags: [Locations]
+            summary: Delete location
+            parameters:
+                - $ref: "#/components/parameters/OrgId"
+                - $ref: "#/components/parameters/LocationId"
+            responses:
+                "204": { description: Deleted }
 
-    delete:
-      tags: [Locations]
-      summary: Delete location
-      parameters:
-        - $ref: '#/components/parameters/OrgId'
-        - $ref: '#/components/parameters/LocationId'
-      responses:
-        '204': { description: Deleted }
+    # Appointments & tags
+    /o/{orgId}/appointments:
+        get:
+            tags: [Appointments]
+            summary: List appointments
+            parameters: [{ $ref: "#/components/parameters/OrgId" }]
+            responses:
+                "200": { description: OK }
+        post:
+            tags: [Appointments]
+            summary: Create appointment
+            parameters: [{ $ref: "#/components/parameters/OrgId" }]
+            requestBody:
+                required: true
+                content:
+                    application/json:
+                        schema:
+                            type: object
+                            required:
+                                [
+                                    startDate,
+                                    startTime,
+                                    estimatedEndDate,
+                                    estimatedEndTime,
+                                    Client,
+                                    pickupLocaton,
+                                    dropoffLocation,
+                                    status,
+                                ]
+                            properties:
+                                startDate: { type: string }
+                                startTime: { type: string }
+                                estimatedEndDate: { type: string }
+                                estimatedEndTime: { type: string }
+                                Client:
+                                    type: array
+                                    items: { type: string, description: "@client id(s)" }
+                                pickupLocation: { type: string, description: "@location id" }
+                                dropoffLocation: { type: string, description: "@location id" }
+                                status: { type: string }
+            responses:
+                "201": { description: Created }
 
-  # Appointments & tags
-  /o/{orgId}/appointments:
-    get:
-      tags: [Appointments]
-      summary: List appointments
-      parameters: [ { $ref: '#/components/parameters/OrgId' } ]
-      responses:
-        '200': { description: OK }
-    post:
-      tags: [Appointments]
-      summary: Create appointment
-      parameters: [ { $ref: '#/components/parameters/OrgId' } ]
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              type: object
-              required: [startDate, startTime, estimatedEndDate, estimatedEndTime, Client, pickupLocaton, dropoffLocation, status]
-              properties:
-                startDate:         { type: string }
-                startTime:         { type: string }
-                estimatedEndDate:  { type: string }
-                estimatedEndTime:  { type: string }
-                Client:
-                  type: array
-                  items: { type: string, description: "@client id(s)" }
-                pickupLocation:     { type: string, description: "@location id" }
-                dropoffLocation:   { type: string, description: "@location id" }
-                status:            { type: string }
-      responses:
-        '201': { description: Created }
+    /o/{orgId}/appointments/{appointmentId}:
+        get:
+            tags: [Appointments]
+            summary: Get appointment
+            parameters:
+                - $ref: "#/components/parameters/OrgId"
+                - $ref: "#/components/parameters/AppointmentId"
+            responses:
+                "200": { description: OK }
+                "404": { description: Not found }
+        put:
+            tags: [Appointments]
+            summary: Update appointment
+            parameters:
+                - $ref: "#/components/parameters/OrgId"
+                - $ref: "#/components/parameters/AppointmentId"
+            requestBody:
+                required: true
+                content:
+                    application/json:
+                        schema:
+                            type: object
+                            properties:
+                                startDate: { type: string }
+                                startTime: { type: string }
+                                estimatedEndDate: { type: string }
+                                estimatedEndTime: { type: string }
+                                Client:
+                                    type: array
+                                    items: { type: string, description: "@client id(s)" }
+                                pickupLocation: { type: string, description: "@location id" }
+                                dropoffLocation: { type: string, description: "@location id" }
+                                status: { type: string }
+            responses:
+                "200": { description: Updated }
 
+    /o/{orgId}/appointments/tags:
+        get:
+            tags: [Appointments]
+            summary: List tags
+            parameters: [{ $ref: "#/components/parameters/OrgId" }]
+            responses:
+                "200": { description: OK }
+        post:
+            tags: [Appointments]
+            summary: Create tag
+            parameters: [{ $ref: "#/components/parameters/OrgId" }]
+            requestBody:
+                required: true
+                content:
+                    application/json:
+                        schema:
+                            type: object
+                            required: [name]
+                            properties:
+                                name: { type: string }
+            responses:
+                "201": { description: Created }
 
-  /o/{orgId}/appointments/{appointmentId}:
-    get:
-      tags: [Appointments]
-      summary: Get appointment
-      parameters:
-        - $ref: '#/components/parameters/OrgId'
-        - $ref: '#/components/parameters/AppointmentId'
-      responses:
-        '200': { description: OK }
-        '404': { description: Not found }
-    put:
-      tags: [Appointments]
-      summary: Update appointment
-      parameters:
-        - $ref: '#/components/parameters/OrgId'
-        - $ref: '#/components/parameters/AppointmentId'
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              type: object
-              properties:
-                startDate:        { type: string }
-                startTime:        { type: string }
-                estimatedEndDate: { type: string }
-                estimatedEndTime: { type: string }
-                Client:
-                  type: array
-                  items: { type: string, description: "@client id(s)" }
-                pickupLocation:   { type: string, description: "@location id" }
-                dropoffLocation:  { type: string, description: "@location id" }
-                status:           { type: string }
-      responses:
-        '200': { description: Updated }
-        
-  /o/{orgId}/appointments/tags:
-    get:
-      tags: [Appointments]
-      summary: List tags
-      parameters: [ { $ref: '#/components/parameters/OrgId' } ]
-      responses:
-        '200': { description: OK }
-    post:
-      tags: [Appointments]
-      summary: Create tag
-      parameters: [ { $ref: '#/components/parameters/OrgId' } ]
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              type: object
-              required: [name]
-              properties:
-                name: { type: string }
-      responses:
-        '201': { description: Created }
+    /o/{orgId}/appointments/tags/{tagId}:
+        put:
+            tags: [Appointments]
+            summary: Update tag
+            parameters:
+                - $ref: "#/components/parameters/OrgId"
+                - $ref: "#/components/parameters/TagId"
+            requestBody:
+                required: true
+                content:
+                    application/json:
+                        schema:
+                            type: object
+                            required: [name]
+                            properties:
+                                name: { type: string }
+            responses:
+                "200": { description: Updated }
 
-  /o/{orgId}/appointments/tags/{tagId}:
-    put:
-      tags: [Appointments]
-      summary: Update tag
-      parameters:
-        - $ref: '#/components/parameters/OrgId'
-        - $ref: '#/components/parameters/TagId'
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              type: object
-              required: [name]
-              properties:
-                name: { type: string }
-      responses:
-        '200': { description: Updated }
+        delete:
+            tags: [Appointments]
+            summary: Delete tag
+            parameters:
+                - $ref: "#/components/parameters/OrgId"
+                - $ref: "#/components/parameters/TagId"
+            responses:
+                "204": { description: Deleted }
 
-    delete:
-      tags: [Appointments]
-      summary: Delete tag
-      parameters:
-        - $ref: '#/components/parameters/OrgId'
-        - $ref: '#/components/parameters/TagId'
-      responses:
-        '204': { description: Deleted }
+    # Notifications
+    /o/{orgId}/notifications:
+        get:
+            tags: [Notifications]
+            summary: List notifications
+            parameters: [{ $ref: "#/components/parameters/OrgId" }]
+            responses:
+                "200": { description: OK }
 
-  # Notifications
-  /o/{orgId}/notifications:
-    get:
-      tags: [Notifications]
-      summary: List notifications
-      parameters: [ { $ref: '#/components/parameters/OrgId' } ]
-      responses:
-        '200': { description: OK }
+    /o/{orgId}/notifications/{notificationId}:
+        get:
+            tags: [Notifications]
+            summary: Get notification
+            parameters:
+                - $ref: "#/components/parameters/OrgId"
+                - $ref: "#/components/parameters/NotificationId"
+            responses:
+                "200": { description: OK }
+                "404": { description: Not found }
+        delete:
+            tags: [Notifications]
+            summary: Delete notification
+            parameters:
+                - $ref: "#/components/parameters/OrgId"
+                - $ref: "#/components/parameters/NotificationId"
+            responses:
+                "204": { description: Deleted }
 
-  /o/{orgId}/notifications/{notificationId}:
-    get:
-      tags: [Notifications]
-      summary: Get notification
-      parameters:
-        - $ref: '#/components/parameters/OrgId'
-        - $ref: '#/components/parameters/NotificationId'
-      responses:
-        '200': { description: OK }
-        '404': { description: Not found }
-    delete:
-      tags: [Notifications]
-      summary: Delete notification
-      parameters:
-        - $ref: '#/components/parameters/OrgId'
-        - $ref: '#/components/parameters/NotificationId'
-      responses:
-        '204': { description: Deleted }
+    # Reports
+    /o/{orgId}/reports:
+        get:
+            tags: [Reports]
+            summary: List reports
+            parameters: [{ $ref: "#/components/parameters/OrgId" }]
+            responses:
+                "200": { description: OK }
+        post:
+            tags: [Reports]
+            summary: Create report
+            parameters: [{ $ref: "#/components/parameters/OrgId" }]
+            requestBody:
+                required: true
+                content:
+                    application/json:
+                        schema:
+                            type: object
+                            required: [Title, Query]
+                            properties:
+                                Title: { type: string }
+                                Query: { type: string }
+            responses:
+                "201": { description: Created }
 
-  # Reports
-  /o/{orgId}/reports:
-    get:
-      tags: [Reports]
-      summary: List reports
-      parameters: [ { $ref: '#/components/parameters/OrgId' } ]
-      responses:
-        '200': { description: OK }
-    post:
-      tags: [Reports]
-      summary: Create report
-      parameters: [ { $ref: '#/components/parameters/OrgId' } ]
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              type: object
-              required: [Title, Query]
-              properties:
-                Title: { type: string }
-                Query: { type: string }
-      responses:
-        '201': { description: Created }
+    /o/{orgId}/reports/{reportId}:
+        get:
+            tags: [Reports]
+            summary: Get report
+            parameters:
+                - $ref: "#/components/parameters/OrgId"
+                - $ref: "#/components/parameters/ReportId"
+            responses:
+                "200": { description: OK }
+                "404": { description: Not found }
+        put:
+            tags: [Reports]
+            summary: Update report
+            parameters:
+                - $ref: "#/components/parameters/OrgId"
+                - $ref: "#/components/parameters/ReportId"
+            responses:
+                "200": { description: Updated }
+        delete:
+            tags: [Reports]
+            summary: Delete report
+            parameters:
+                - $ref: "#/components/parameters/OrgId"
+                - $ref: "#/components/parameters/ReportId"
+            responses:
+                "204": { description: Deleted }
 
-  /o/{orgId}/reports/{reportId}:
-    get:
-      tags: [Reports]
-      summary: Get report
-      parameters:
-        - $ref: '#/components/parameters/OrgId'
-        - $ref: '#/components/parameters/ReportId'
-      responses:
-        '200': { description: OK }
-        '404': { description: Not found }
-    put:
-      tags: [Reports]
-      summary: Update report
-      parameters:
-        - $ref: '#/components/parameters/OrgId'
-        - $ref: '#/components/parameters/ReportId'
-      responses:
-        '200': { description: Updated }
-    delete:
-      tags: [Reports]
-      summary: Delete report
-      parameters:
-        - $ref: '#/components/parameters/OrgId'
-        - $ref: '#/components/parameters/ReportId'
-      responses:
-        '204': { description: Deleted }
+    /o/{orgId}/reports/{reportId}/generate:
+        get:
+            tags: [Reports]
+            summary: Generate report
+            parameters:
+                - $ref: "#/components/parameters/OrgId"
+                - $ref: "#/components/parameters/ReportId"
+            responses:
+                "202": { description: Generation started or in progress }
+                "200": { description: Ready }
 
-  /o/{orgId}/reports/{reportId}/generate:
-    get:
-      tags: [Reports]
-      summary: Generate report
-      parameters:
-        - $ref: '#/components/parameters/OrgId'
-        - $ref: '#/components/parameters/ReportId'
-      responses:
-        '202': { description: Generation started or in progress }
-        '200': { description: Ready }
+    /s/organizations:
+        get:
+            tags: [Organizations]
+            summary: List organizations
+            responses:
+                "200": { description: OK }
+        post:
+            tags: [Organizations]
+            summary: Create organization
+            responses:
+                "201": { description: Created }
 
-  /s/organizations:
-    get:
-      tags: [Organizations]
-      summary: List organizations
-      responses:
-        '200': { description: OK }
-    post:
-      tags: [Organizations]
-      summary: Create organization
-      responses:
-        '201': { description: Created }
+    /s/organizations/{orgId}:
+        get:
+            tags: [Organizations]
+            summary: Get organization
+            parameters: [{ $ref: "#/components/parameters/OrgId" }]
+            responses:
+                "200": { description: OK }
+                "404": { description: Not found }
+        put:
+            tags: [Organizations]
+            summary: Update organization
+            parameters: [{ $ref: "#/components/parameters/OrgId" }]
+            responses:
+                "200": { description: Updated }
 
-  /s/organizations/{orgId}:
-    get:
-      tags: [Organizations]
-      summary: Get organization
-      parameters: [ { $ref: '#/components/parameters/OrgId' } ]
-      responses:
-        '200': { description: OK }
-        '404': { description: Not found }
-    put:
-      tags: [Organizations]
-      summary: Update organization
-      parameters: [ { $ref: '#/components/parameters/OrgId' } ]
-      responses:
-        '200': { description: Updated }
-
-  /s/settings:
-    get:
-      tags: [Settings]
-      summary: Get system settings
-      responses:
-        '200': { description: OK }
-    put:
-      tags: [Settings]
-      summary: Update system settings
-      responses:
-        '200': { description: Updated }
+    /s/settings:
+        get:
+            tags: [Settings]
+            summary: Get system settings
+            responses:
+                "200": { description: OK }
+        put:
+            tags: [Settings]
+            summary: Update system settings
+            responses:
+                "200": { description: Updated }

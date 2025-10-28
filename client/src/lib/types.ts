@@ -13,6 +13,29 @@ export interface User {
     permissions: Permission[];
 }
 
+export type ClientProfile = {
+    address: string;
+    address2?: string;
+    zip: string;
+    city: string;
+    state: string;
+    typeOfResidence?: string;
+    emailAddress?: string;
+    primaryPhone: string;
+    secondaryPhone?: string;
+    emergencyContactName?: string;
+    emergencyContactPhone?: string;
+    relationshipToClient?: string;
+    mobilityAssistance?: string;
+    otherLimitations?: string;
+    vehicleTypeNeeded?: string;
+    serviceAnimal?: string;
+    oxygen?: string;
+    allergies?: string;
+    pickUpInstructions?: string;
+    commentsFromProfile?: string;
+};
+
 // export interface AuthResponse {
 //     user: User;
 //     token: string;
