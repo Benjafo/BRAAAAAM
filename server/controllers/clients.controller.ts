@@ -1,6 +1,6 @@
 import { Request, Response } from "express";
 import { clients, locations } from "../drizzle/org/schema.js";
-import { eq } from "drizzle-orm";
+import { eq, and } from "drizzle-orm";
 
 /*
  * Example Client Output
@@ -79,19 +79,47 @@ export const createClient = async (req: Request, res: Response): Promise<Respons
     // Create or reuse a location record if provided
     let addressId: string | null = null;
     if (address) {
-      const [newLocation] = await db
-        .insert(locations)
-        .values({
-          addressLine1: address.addressLine1,
-          addressLine2: address.addressLine2,
-          city: address.city,
-          state: address.state,
-          zip: address.zip,
-          country: address.country,
-        })
-        .returning({ id: locations.id });
+      // Normalize fields to avoid case-sensitive mismatches
+      const addr1 = address.addressLine1?.trim() ?? "";
+      const addr2 = address.addressLine2?.trim() ?? null;
+      const city = address.city?.trim() ?? "";
+      const state = address.state?.trim() ?? "";
+      const zip = address.zip?.trim() ?? "";
+      const country = address.country?.trim() ?? "";
 
-      addressId = newLocation.id;
+      // Look for existing location with same full address
+      const [existingLocation] = await db
+        .select({ id: locations.id })
+        .from(locations)
+        .where(
+          and(
+            eq(locations.addressLine1, addr1),
+            eq(locations.addressLine2, addr2),
+            eq(locations.city, city),
+            eq(locations.state, state),
+            eq(locations.zip, zip),
+            eq(locations.country, country)
+          )
+        );
+
+      if (existingLocation) {
+        addressId = existingLocation.id;
+      } else {
+        // No existing match, make new location
+        const [newLocation] = await db
+          .insert(locations)
+          .values({
+            addressLine1: addr1,
+            addressLine2: addr2,
+            city,
+            state,
+            zip,
+            country,
+          })
+          .returning({ id: locations.id });
+
+        addressId = newLocation.id;
+      }
     }
 
     // Create client record and link to addressLocation if it exists
