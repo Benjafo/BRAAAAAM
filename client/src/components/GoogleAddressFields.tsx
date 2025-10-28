@@ -1,12 +1,13 @@
 import type { Location } from "@/lib/types";
 import { type Control, type UseFormSetValue } from "react-hook-form";
-import GoogleLocator from "./GoogleLocator";
+import GoogleLocator from "./googleLocator";
 import { FormControl, FormField, FormItem, FormLabel, FormMessage } from "./ui/form";
 import { Input } from "./ui/input";
 
+/**@TODO Fix eslint disable that is caused by the "any". */
 interface GoogleAddressFieldsProps {
-    control: Control<any>;
-    setValue: UseFormSetValue<any>;
+    control: Control<any>;//eslint-disable-line
+    setValue: UseFormSetValue<any>;//eslint-disable-line
     addressFieldName?: string;
     cityFieldName?: string;
     stateFieldName?: string;
