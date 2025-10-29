@@ -19,37 +19,44 @@ type OrganizationModalProps = {
     onOpenChange: (open: boolean) => void;
 };
 
-export default function NewOrganizationModal({ open, onOpenChange }: OrganizationModalProps) {
+export default function NewOrganizationModal({
+    open,
+    onOpenChange,
+    defaultValues: defaultValuesProp,
+}: OrganizationModalProps) {
     // Test default values for now - don't know if we want to use it for anything yet, just using one thing right now to make sure it works
     const defaultValues: Partial<OrganizationFormValues> = {
         status: "Active",
+        ...defaultValuesProp,
     };
 
-    const isEditing = false; //TODO: fix this
+    const isEditing = !!defaultValuesProp?.id;
     const successMessage = isEditing ? "Organization Updated" : "New Organization Created";
 
-    // TODO replace with api call
     async function handleSubmit(values: OrganizationFormValues) {
+        // Extract subdomain from organization name in camelCase
+        const subdomain = values.orgName.toLowerCase().split(" ").join("");
+
+        console.log(`Subdomain generated: ${subdomain}`);
+
         // Map form values to API structure
         const requestBody = {
             name: values.orgName,
-            primaryContact: values.primaryContact,
-            phone: `+1${values.phoneGeneral}`,
-            email: values.email,
+            subdomain: subdomain, //TODO replace with form field?
+            pocEmail: values.email,
+            pocPhone: `+1${values.phoneGeneral}`,
         };
 
         // Make API call - PUT for edit, POST for create
         if (isEditing) {
-            // TODO fix this
-            // await ky
-            //     .put(`/o/${orgID}/users/${defaultValues.id}`, {
-            //         json: requestBody,
-            //         headers: {
-            //             "x-org-subdomain": orgID,
-            //         },
-            //     })
-            //     .json();
+            console.log("Editing");
+            await ky
+                .put(`/s/organizations/${defaultValuesProp.id}`, {
+                    json: requestBody,
+                })
+                .json();
         } else {
+            console.log("Creating");
             await ky
                 .post(`/s/organizations`, {
                     json: requestBody,

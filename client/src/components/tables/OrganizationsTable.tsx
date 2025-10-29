@@ -1,30 +1,28 @@
 import { DataTable } from "@/components/dataTable";
+import ky from "ky";
 import { useState } from "react";
 import type { OrganizationFormValues } from "../form/organizationForm";
 import NewOrganizationModal from "../modals/organizationModal";
 
 type Organization = {
+    id: string;
     name: string;
-    primaryContact: string;
-    phone: string;
-    email: string;
+    subdomain: string;
+    logoPath: string | null;
+    pocEmail: string;
+    pocPhone: string | null;
+    createdAt: string;
+    isActive: boolean;
 };
 
-const ORGANIZATIONS: Organization[] = [
-    {
-        name: "Webster Wasps",
-        primaryContact: "Deb Reilley",
-        phone: "9876543210",
-        email: "deb@reilley.com",
-    },
-];
-
-const mapOrganizationToFormValues = (organization: Organization) => {
+const mapOrganizationToFormValues = (organization: Organization): Partial<OrganizationFormValues> & { id: string } => {
     return {
-        name: organization.name,
-        primaryContact: organization.primaryContact,
-        phone: organization.phone,
-        email: organization.email,
+        id: organization.id,
+        orgName: organization.name,
+        email: organization.pocEmail,
+        phoneGeneral: organization.pocPhone?.replace(/^\+1/, '') || '',
+        status: organization.isActive ? "Active" : "Inactive",
+        orgCreationDate: organization.createdAt ? new Date(organization.createdAt) : new Date(),
     };
 };
 
@@ -34,11 +32,13 @@ export function OrganizationsTable() {
         Partial<OrganizationFormValues> & { id?: string }
     >({});
 
-    //TODO replace hardcoded data with api call
     const fetchOrganizations = async (_params: Record<string, any>) => {
+        const organizations: Organization[] = await ky.get(`/s/organizations`).json();
+        console.log(organizations);
+
         return {
-            data: ORGANIZATIONS,
-            total: ORGANIZATIONS.length,
+            data: organizations,
+            total: organizations.length,
         };
     };
 
@@ -63,16 +63,21 @@ export function OrganizationsTable() {
                         accessorKey: "name",
                     },
                     {
-                        header: "Primary Contact",
-                        accessorKey: "primaryContact",
+                        header: "Subdomain",
+                        accessorKey: "subdomain",
                     },
                     {
                         header: "Phone",
-                        accessorKey: "phone",
+                        accessorKey: "pocPhone",
                     },
                     {
                         header: "Email",
-                        accessorKey: "email",
+                        accessorKey: "pocEmail",
+                    },
+                    {
+                        header: "Status",
+                        accessorFn: (row) => row.isActive ? "Active" : "Inactive",
+                        id: "status",
                     },
                 ]}
                 onRowClick={handleEditOrganization}
@@ -84,6 +89,7 @@ export function OrganizationsTable() {
             <NewOrganizationModal
                 open={isOrganizationModalOpen}
                 onOpenChange={setIsOrganizationModalOpen}
+                defaultValues={selectedOrganizationData}
             />
         </>
     );

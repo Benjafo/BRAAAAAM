@@ -98,6 +98,10 @@ export const MainNavigation = ({
     // Can probably refactor this to pull from a config file or something
     navItems = [
         {
+            text: "Organizations",
+            link: "/organizations",
+        },
+        {
             text: "Dashboard",
             link: "/dashboard",
             permission: PERMISSIONS.VIEW_DASHBOARD,
