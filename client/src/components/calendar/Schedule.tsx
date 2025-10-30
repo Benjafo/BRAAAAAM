@@ -105,7 +105,7 @@ const transformRidesToCalendarEvents = (rides: Ride[]): CalendarEvent[] => {
     });
 };
 
-// Map ride data to form values format (similar to RidesTable.tsx)
+// Map ride data to form values format
 const mapRideToFormValues = (ride: Ride): Partial<RideFormValues> & { id?: string } => {
     return {
         id: ride.id,
@@ -114,7 +114,7 @@ const mapRideToFormValues = (ride: Ride): Partial<RideFormValues> & { id?: strin
         clientStreetAddress: ride.pickupAddressLine1 || "",
         tripDate: new Date(ride.date),
         appointmentTime: ride.time,
-        tripType: ride.tripCount === 2 ? "roundTrip" : "oneWay", // Convert tripCount to tripType
+        tripType: ride.tripCount === 2 ? "roundTrip" : "oneWay",
         destinationAddress: ride.destinationAddressLine1 || "",
         destinationAddress2: ride.destinationAddressLine2 || "",
         purposeOfTrip: ride.tripPurpose || "",

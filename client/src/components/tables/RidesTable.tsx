@@ -50,7 +50,7 @@ const mapRideToFormValues = (ride: Ride): Partial<RideFormValues> & { id?: strin
     };
 };
 
-export function RidesTable() {
+export function RidesTable({ isUnassignedRidesOnly }: { isUnassignedRidesOnly?: boolean }) {
     const [isRideModalOpen, setIsRideModalOpen] = useState(false);
     const [selectedRideData, setSelectedRideData] = useState<
         Partial<RideFormValues> & { id?: string }
@@ -73,6 +73,15 @@ export function RidesTable() {
             })
             .json()) as Ride[];
         console.log("Fetched rides:", response);
+
+        // TODO this should be server side
+        if (isUnassignedRidesOnly) {
+            return {
+                data: response.filter((ride) => ride.status === "Unassigned"),
+                total: response.filter((ride) => ride.status === "Unassigned").length,
+            };
+        }
+
         return {
             data: response,
             total: response.length,

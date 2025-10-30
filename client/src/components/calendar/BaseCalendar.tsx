@@ -800,10 +800,10 @@ export default function BaseCalendar({
                             </div>
                         </Tabs>
 
-                        <div className="flex items-center space-x-1">
+                        {/* <div className="flex items-center space-x-1">
                             <Button variant="default">Filters</Button>
                             <Button variant="default">Print</Button>
-                        </div>
+                        </div> */}
                     </div>
 
                     <div className="flex items-center space-x-1">
