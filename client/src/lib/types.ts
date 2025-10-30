@@ -86,3 +86,25 @@ export interface AuthService {
     forgotPassword(form: { email: string }): Promise<ForgotPasswordResponse>;
     refresh?(refreshToken: string): Promise<RefreshResponse>;
 }
+export type Location = {
+    placeId: string;
+    address: string;
+    addressComponents?: {
+        street?: string;
+        city?: string;
+        state?: string;
+        zip?: string;
+    };
+    coordinates: {
+        lat: number;
+        lng: number;
+    };
+};
+
+export type LocationSelectorProps = {
+    onLocationSelect: (location: Location | null) => void;
+    placeholder?: string;
+    className?: string;
+    value?: string;
+    onChange?: (value: string) => void;
+};

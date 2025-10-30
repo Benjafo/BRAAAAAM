@@ -29,3 +29,5 @@ server/drizzle/org/*.sql
 
 server/drizzle/sys/meta
 server/drizzle/sys/*.sql
+
+.env
