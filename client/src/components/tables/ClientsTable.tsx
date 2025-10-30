@@ -9,8 +9,11 @@ type Client = {
     firstName: string;
     lastName: string;
     phone: string | null;
+    phoneIsCell: boolean;
     email: string | null;
     gender: string;
+    birthMonth: number | null;
+    birthYear: number;
     contactPreference: string;
     livesAlone: boolean;
     isActive: boolean;
@@ -33,8 +36,12 @@ function mapClientToFormValues(client: Client): Partial<ClientFormValues> & { id
         lastName: client.lastName,
         clientEmail: client.email || "",
         primaryPhoneNumber: client.phone?.replace("+1", "") || "",
+        primaryPhoneIsCellPhone: client.phoneIsCell,
+        birthMonth: client.birthMonth ? client.birthMonth.toString().padStart(2, "0") : "",
+        birthYear: String(client.birthYear),
         clientGender: client.gender as "Male" | "Female" | "Other",
-        contactPref: client.contactPreference,
+        contactPref:
+            client.contactPreference.charAt(0).toUpperCase() + client.contactPreference.slice(1),
         livingAlone: client.livesAlone ? "Lives alone" : "Does not live alone",
         homeAddress: client.address.addressLine1,
         homeAddress2: client.address.addressLine2 || "",
