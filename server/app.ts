@@ -91,14 +91,14 @@ app.use(cookieParser());
 app.use(express.static(path.join(__dirname, "..", "public")));
 
 app.get("/test/create-org-db", async (req: Request, res: Response) => {
-    const { subdomain, name, pocEmail } = req.query;
+    const { subdomain, name, pocName, pocEmail } = req.query;
 
-    if (typeof subdomain !== "string" || typeof name !== "string" || typeof pocEmail !== "string") {
+    if (typeof subdomain !== "string" || typeof name !== "string" || typeof pocEmail !== "string" || typeof pocName !== "string") {
         return res.status(400).json({ error: "Missing or invalid query parameters" });
     }
 
     try {
-        await createOrgDbFromTemplate(subdomain, name, pocEmail);
+        await createOrgDbFromTemplate(subdomain, name, pocName, pocEmail);
         return res.json({ message: `Organization database '${subdomain}' created successfully.` });
     } catch (error) {
         console.error("Error creating organization database:", error);

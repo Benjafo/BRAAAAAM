@@ -51,7 +51,7 @@ export async function preloadOrgPools() {
   });
 }
 
-export async function createOrgDbFromTemplate(subdomain: string, name: string, pocEmail: string) {
+export async function createOrgDbFromTemplate(subdomain: string, name: string, pocName: string, pocEmail: string) {
 
     const organizationInsertSchema = createInsertSchema(organizations)
     const parsed = organizationInsertSchema.parse({ subdomain, name, pocEmail });

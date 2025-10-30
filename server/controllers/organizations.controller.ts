@@ -1,7 +1,7 @@
 import { Request, Response } from "express";
-import { organizations } from "../drizzle/sys/schema";
+import { organizations } from "../drizzle/sys/schema.js";
 import { eq } from "drizzle-orm";
-import { getSysDb } from "../drizzle/sys-client"
+import { getSysDb } from "../drizzle/sys-client.js"
 
 // interface Organization {
 //     id: string;
@@ -41,7 +41,7 @@ export const listOrganizations = async (req: Request, res: Response): Promise<Re
 export const createOrganization = async (req: Request, res: Response): Promise<Response> => {
   try {
     const db = getSysDb();
-    const { name, subdomain, logoPath, pocEmail, pocPhone } = req.body;
+    const { name, subdomain, logoPath, pocName, pocEmail, pocPhone, addressLine1, addressLine2, city, state, zip, country, addressValidated } = req.body;
 
     if (!name || !subdomain || !pocEmail) {
       return res.status(400).json({ message: "Missing required fields" });
@@ -53,6 +53,14 @@ export const createOrganization = async (req: Request, res: Response): Promise<R
         name,
         subdomain,
         logoPath,
+        addressLine1,
+        addressLine2,
+        city,
+        state,
+        zip,
+        country,
+        addressValidated, /**@TODO check this if this is best way to pass in */
+        pocName,
         pocEmail,
         pocPhone,
         isActive: true,
