@@ -98,6 +98,10 @@ export const MainNavigation = ({
     // Can probably refactor this to pull from a config file or something
     navItems = [
         {
+            text: "Organizations",
+            link: "/organizations",
+        },
+        {
             text: "Dashboard",
             link: "/dashboard",
             permission: PERMISSIONS.VIEW_DASHBOARD,
@@ -106,6 +110,14 @@ export const MainNavigation = ({
             text: "Schedule",
             link: "/schedule",
             permission: PERMISSIONS.VIEW_SCHEDULE,
+        },
+        {
+            text: "Unassigned Rides",
+            link: "/unassigned-rides",
+        },
+        {
+            text: "Unvailability",
+            link: "/unavailability",
         },
         {
             text: "Notifications",

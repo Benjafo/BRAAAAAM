@@ -1,6 +1,6 @@
 "use client";
 
-import * as React from "react";
+import OrganizationForm, { type OrganizationFormValues } from "@/components/form/organizationForm";
 import { Button } from "@/components/ui/button";
 import {
     Dialog,
@@ -10,27 +10,66 @@ import {
     DialogTitle,
     DialogTrigger,
 } from "@/components/ui/dialog";
-import OrganizationForm, {
-    type OrganizationFormValues,
-} from "@/components/form/organizationForm";
+import ky from "ky";
 import { toast } from "sonner";
 
-export default function NewOrganizationModal() {
-    const [open, setOpen] = React.useState(false);
+type OrganizationModalProps = {
+    defaultValues?: Partial<OrganizationFormValues> & { id?: string };
+    open: boolean;
+    onOpenChange: (open: boolean) => void;
+};
 
+export default function NewOrganizationModal({
+    open,
+    onOpenChange,
+    defaultValues: defaultValuesProp,
+}: OrganizationModalProps) {
     // Test default values for now - don't know if we want to use it for anything yet, just using one thing right now to make sure it works
     const defaultValues: Partial<OrganizationFormValues> = {
         status: "Active",
+        ...defaultValuesProp,
     };
+
+    const isEditing = !!defaultValuesProp?.id;
+    const successMessage = isEditing ? "Organization Updated" : "New Organization Created";
+
     async function handleSubmit(values: OrganizationFormValues) {
-        // TODO: API logic for new organization information sent
-        console.log(values); // Testing to see if values appear after submit
-        toast.success("New Organization Created");
-        setOpen(false);
+        // Extract subdomain from organization name in camelCase
+        const subdomain = values.orgName.toLowerCase().split(" ").join("");
+
+        console.log(`Subdomain generated: ${subdomain}`);
+
+        // Map form values to API structure
+        const requestBody = {
+            name: values.orgName,
+            subdomain: subdomain, //TODO replace with form field?
+            pocEmail: values.email,
+            pocPhone: `+1${values.phoneGeneral}`,
+        };
+
+        // Make API call - PUT for edit, POST for create
+        if (isEditing) {
+            console.log("Editing");
+            await ky
+                .put(`/s/organizations/${defaultValuesProp.id}`, {
+                    json: requestBody,
+                })
+                .json();
+        } else {
+            console.log("Creating");
+            await ky
+                .post(`/s/organizations`, {
+                    json: requestBody,
+                })
+                .json();
+        }
+
+        toast.success(successMessage);
+        onOpenChange(false);
     }
 
     return (
-        <Dialog open={open} onOpenChange={setOpen}>
+        <Dialog open={open} onOpenChange={onOpenChange}>
             <DialogTrigger asChild>
                 <Button variant="outline">New Organization</Button>
             </DialogTrigger>
@@ -42,7 +81,7 @@ export default function NewOrganizationModal() {
 
                 <OrganizationForm defaultValues={defaultValues} onSubmit={handleSubmit} />
                 <DialogFooter className="flex flex-row justify-end gap-3 mt-3">
-                    <Button type="button" variant="outline" onClick={() => setOpen(false)}>
+                    <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
                         Cancel
                     </Button>
                     <Button type="submit" form="new-organization-form">

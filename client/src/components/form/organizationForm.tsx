@@ -26,10 +26,11 @@ const organizationSchema = z.object({
         .max(255, "Max characters allowed is 255."),
     orgNameForMailingAddress: z
         .string()
-        .min(1, "Organization name is required")
-        .max(255, "Max characters allowed is 255."),
+        // .min(1, "Organization name is required")
+        .max(255, "Max characters allowed is 255.")
+        .optional(),
     orgCreationDate: z.date("Please select a valid date."),
-    logo: z.instanceof(File),
+    logo: z.instanceof(File).optional(),
     phoneGeneral: z
         .string()
         .min(1, "Phone number is required")
@@ -39,47 +40,51 @@ const organizationSchema = z.object({
         ),
     phoneRides: z
         .string()
-        .min(1, "Phone number is required")
-        .regex(
-            /^(\+1\s?)?(\([0-9]{3}\)\s?|[0-9]{3}[-.\s]?)[0-9]{3}[-.\s]?[0-9]{4}$/,
-            "Please enter a valid US phone number."
-        ),
+        // .min(1, "Phone number is required")
+        // .regex(
+        //     /^(\+1\s?)?(\([0-9]{3}\)\s?|[0-9]{3}[-.\s]?)[0-9]{3}[-.\s]?[0-9]{4}$/,
+        //     "Please enter a valid US phone number."
+        // )
+        .optional(),
     email: z.email(),
     website: z
         .string()
-        .min(1, "Website is required")
-        .transform((val) => {
-            const trimmed = val.trim();
+        // .min(1, "Website is required")
+        // .transform((val) => {
+        //     const trimmed = val.trim();
 
-            if (trimmed.startsWith("http://") || trimmed.startsWith("https://")) {
-                return trimmed;
-            }
+        //     if (trimmed.startsWith("http://") || trimmed.startsWith("https://")) {
+        //         return trimmed;
+        //     }
 
-            return `https://${trimmed}`;
-        })
-        .pipe(z.url("Please enter a valid URL"))
-        .refine(
-            (url) => {
-                try {
-                    const urlObj = new URL(url);
-                    const allowedTLDs = [".com", ".org", ".net", ".edu", ".gov"];
-                    return allowedTLDs.some((tld) => urlObj.hostname.endsWith(tld));
-                } catch {
-                    return false;
-                }
-            },
-            {
-                message: "Website must end with .com, .org, .net, .edu, or .gov",
-            }
-        ),
+        //     return `https://${trimmed}`;
+        // })
+        // .pipe(z.url("Please enter a valid URL"))
+        // .refine(
+        //     (url) => {
+        //         try {
+        //             const urlObj = new URL(url);
+        //             const allowedTLDs = [".com", ".org", ".net", ".edu", ".gov"];
+        //             return allowedTLDs.some((tld) => urlObj.hostname.endsWith(tld));
+        //         } catch {
+        //             return false;
+        //         }
+        //     },
+        //     {
+        //         message: "Website must end with .com, .org, .net, .edu, or .gov",
+        //     }
+        // )
+        .optional(),
     mailingAddress: z
         .string()
-        .min(1, "Mailing address is required.")
-        .max(255, "Max characters allowed is 255."),
+        // .min(1, "Mailing address is required.")
+        // .max(255, "Max characters allowed is 255.")
+        .optional(),
     streetAddress: z
         .string()
-        .min(1, "Street address is required")
-        .max(255, "Max characters allowed is 255."),
+        // .min(1, "Street address is required")
+        // .max(255, "Max characters allowed is 255.")
+        .optional(),
     address2: z.string().optional(),
 
     // status
@@ -90,18 +95,36 @@ const organizationSchema = z.object({
     // contacts
     primaryContact: z
         .string()
-        .min(1, "Primary contact is required.")
-        .max(255, "Max characters allowed is 255."),
-    adminEmail: z.email(),
+        // .min(1, "Primary contact is required.")
+        // .max(255, "Max characters allowed is 255.")
+        .optional(),
+    adminEmail: z
+        .string()
+        // .email()
+        .optional(),
     adminMailingAddress: z
         .string()
-        .min(1, "Admin mailing address is required.")
-        .max(255, "Max characters allowed is 255."),
+        // .min(1, "Admin mailing address is required.")
+        // .max(255, "Max characters allowed is 255.")
+        .optional(),
     adminAddress2: z.string().optional(),
-    secondaryContact: z.string().max(255, "Max characters allowed is 255.").optional(),
-    secondaryEmail: z.string().email("Invalid email address").optional().or(z.literal("")),
-    secondaryMailingAddress: z.string().max(255, "Max characters allowed is 255.").optional(),
-    secondaryAddress2: z.string().max(255, "Max characters allowed is 255.").optional(),
+    secondaryContact: z
+        .string()
+        // .max(255, "Max characters allowed is 255.")
+        .optional(),
+    secondaryEmail: z
+        .string()
+        // .email("Invalid email address")
+        .optional()
+        .or(z.literal("")),
+    secondaryMailingAddress: z
+        .string()
+        // .max(255, "Max characters allowed is 255.")
+        .optional(),
+    secondaryAddress2: z
+        .string()
+        // .max(255, "Max characters allowed is 255.")
+        .optional(),
 });
 
 export type OrganizationFormValues = z.infer<typeof organizationSchema>;

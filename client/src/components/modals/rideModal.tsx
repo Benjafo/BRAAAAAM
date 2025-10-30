@@ -8,10 +8,10 @@ import {
     DialogFooter,
     DialogHeader,
     DialogTitle,
-    DialogTrigger,
 } from "@/components/ui/dialog";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import type { ClientProfile } from "@/lib/types";
+import ky from "ky";
 import * as React from "react";
 import { toast } from "sonner";
 import { Input } from "../ui/input";
@@ -24,8 +24,12 @@ type Client = {
     profile: ClientProfile;
 };
 
-export default function RideModal() {
-    const [open, setOpen] = React.useState(false);
+type RideModalProps = {
+    open: boolean;
+    onOpenChange: (open: boolean) => void;
+};
+
+export default function RideModal({ open, onOpenChange }: RideModalProps) {
     const [selectedClientValue, setSelectedClientValue] = React.useState<string>("");
 
     // Sample client data (to be replaced with API data later)
@@ -103,17 +107,45 @@ export default function RideModal() {
 
     //
     async function handleSubmit(values: RideFormValues) {
-        // TODO: API logic for sending values
-        console.log(values); // Testing to see if values appear after submit
-        toast.success("Ride Saved");
-        setOpen(false);
+        try {
+            console.log("Form values:", values);
+
+            const orgID = window.location.href.split("//")[1].split(/[.:]/)[0];
+
+            // Map form values to API structure
+            const requestBody = {
+                startDate: values.tripDate.toISOString().split("T")[0],
+                startTime: values.appointmentTime,
+                estimatedEndDate: values.tripDate.toISOString().split("T")[0],
+                estimatedEndTime: values.appointmentTime,
+                client: [values.clientName],
+                pickupLocation: values.clientStreetAddress,
+                dropoffLocation:
+                    values.destinationAddress +
+                    (values.destinationAddress2 ? `, ${values.destinationAddress2}` : ""),
+                status: values.rideStatus || "unassigned",
+            };
+
+            console.log("Sending to API:", requestBody);
+
+            // Make API call with form data
+            const response = await ky
+                .post(`/o/${orgID}/appointments/`, {
+                    json: requestBody,
+                })
+                .json();
+
+            console.log("API response:", response);
+            toast.success("Ride Saved");
+            onOpenChange(false);
+        } catch (error) {
+            console.error("Failed to create appointment:", error);
+            toast.error("Failed to save ride. Please try again.");
+        }
     }
 
     return (
-        <Dialog open={open} onOpenChange={setOpen}>
-            <DialogTrigger asChild>
-                <Button variant="outline">New Ride</Button>
-            </DialogTrigger>
+        <Dialog open={open} onOpenChange={onOpenChange}>
             <DialogContent className="!max-w-[692px] w-[95vw] max-h-[90vh] overflow-y-auto scroll-smooth p-6">
                 <DialogHeader className="mb-4">
                     <DialogTitle>Ride Form</DialogTitle>
@@ -291,7 +323,7 @@ export default function RideModal() {
                 </Tabs>
 
                 <DialogFooter className="flex flex-row justify-end gap-3 mt-3">
-                    <Button type="button" variant="outline" onClick={() => setOpen(false)}>
+                    <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
                         Cancel
                     </Button>
                     <Button type="submit" form="create-ride-form">

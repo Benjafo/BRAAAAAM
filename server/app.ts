@@ -8,16 +8,16 @@ import logger from "morgan";
 import sseRouter from "./routes/sse.js";
 
 // org-scoped
-import usersRouter from "./routes/api.org.users.js";
-import clientsRouter from "./routes/api.org.clients.js";
-import orgSettingsRouter from "./routes/api.org.settings.js";
-import rolesRouter from "./routes/api.org.roles.js";
-import locationsRouter from "./routes/api.org.locations.js";
 import appointmentsRouter from "./routes/api.org.appointments.js";
+import clientsRouter from "./routes/api.org.clients.js";
+import locationsRouter from "./routes/api.org.locations.js";
 import notificationsRouter from "./routes/api.org.notifications.js";
 import reportsRouter from "./routes/api.org.reports.js";
+import rolesRouter from "./routes/api.org.roles.js";
+import orgSettingsRouter from "./routes/api.org.settings.js";
+import usersRouter from "./routes/api.org.users.js";
 
-import orgAuthRouter from './routes/api.org.auth.js';
+import orgAuthRouter from "./routes/api.org.auth.js";
 
 // system-scoped
 import organizationsRouter from "./routes/api.sys.organizations.js";
@@ -27,13 +27,13 @@ import apiRouter from "./routes/api.js";
 
 import { NextFunction, Request, Response } from "express";
 
+import { createProxyMiddleware } from "http-proxy-middleware";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
-import { createProxyMiddleware } from "http-proxy-middleware";
-import { getSysDb } from "./drizzle/sys-client.js";
-import { createOrgDbFromTemplate, preloadOrgPools } from "./drizzle/pool-manager.js";
-import { withOrg } from "./middleware/with-org.js";
 import { users } from "./drizzle/org/schema.js";
+import { createOrgDbFromTemplate, preloadOrgPools } from "./drizzle/pool-manager.js";
+import { getSysDb } from "./drizzle/sys-client.js";
+import { withOrg } from "./middleware/with-org.js";
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
@@ -107,7 +107,6 @@ app.get("/test/create-org-db", async (req: Request, res: Response) => {
 });
 
 app.get("/test/o/:orgId/users", withOrg, async (req: Request, res: Response) => {
-    
     try {
         const orgUsers = await req.org?.db.select().from(users);
         return res.json({ orgUsers });
@@ -115,24 +114,23 @@ app.get("/test/o/:orgId/users", withOrg, async (req: Request, res: Response) => 
         console.error("Error fetching users:", error);
         return res.status(500).json({ error: "Internal server error" });
     }
-    
 });
 
 // API routes
-app.use('/api', apiRouter);
+app.use("/api", apiRouter);
 
 // app.use("/auth", authRouter);
-app.use("/auth", withOrg, orgAuthRouter)
-app.use("/o/:orgId/users", usersRouter);
-app.use("/o/:orgId/clients", clientsRouter);
-app.use("/o/:orgId/settings", orgSettingsRouter);
-app.use("/s/settings", sysSettingsRouter)
-app.use("/o/:orgId/appointments", appointmentsRouter);
-app.use("/o/:orgId/notifications", notificationsRouter);
-app.use("/o/:orgId/reports", reportsRouter);
+app.use("/auth", withOrg, orgAuthRouter);
+app.use("/o/:orgId/users", withOrg, usersRouter);
+app.use("/o/:orgId/clients", withOrg, clientsRouter);
+app.use("/o/:orgId/settings", withOrg, orgSettingsRouter);
+app.use("/s/settings", sysSettingsRouter);
+app.use("/o/:orgId/appointments", withOrg, appointmentsRouter);1
+app.use("/o/:orgId/notifications", withOrg, notificationsRouter);
+app.use("/o/:orgId/reports", withOrg, reportsRouter);
 app.use("/s/organizations", organizationsRouter);
-app.use("/o/:orgId/settings/roles", rolesRouter);
-app.use("/o/:orgId/settings/locations", locationsRouter);
+app.use("/o/:orgId/settings/roles", withOrg, rolesRouter);
+app.use("/o/:orgId/settings/locations", withOrg, locationsRouter);
 app.use("/sse", sseRouter);
 
 // Catch-all route - serve React app for any non-API routes

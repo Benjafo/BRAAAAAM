@@ -58,7 +58,7 @@ const rideSchema = z
         tripType: z.enum(["roundTrip", "oneWay"], {
             message: "Please specify the trip type.",
         }),
-        appointmentType: z.string().min(1, "Please select a time."),
+        appointmentTime: z.string().min(1, "Please select a time."),
         additionalRider: z.enum(["Yes", "No"], {
             message: "Please specify if there's an additional rider.",
         }),
@@ -188,7 +188,7 @@ export default function EditRideForm({
             purposeOfTrip: defaultValues.purposeOfTrip ?? "",
             tripDate: defaultValues.tripDate ?? new Date(),
             tripType: defaultValues.tripType,
-            appointmentType: defaultValues.appointmentType ?? "12:00:00",
+            appointmentTime: defaultValues.appointmentTime ?? "12:00:00",
             additionalRider: defaultValues.additionalRider ?? "No",
             additionalRiderFirstName: defaultValues.additionalRiderFirstName ?? "",
             assignedDriver: defaultValues.assignedDriver ?? "",
@@ -426,7 +426,7 @@ export default function EditRideForm({
                 {/* Appointment Time */}
                 <FormField
                     control={form.control}
-                    name="appointmentType"
+                    name="appointmentTime"
                     render={({ field }) => (
                         <FormItem className="w-full">
                             <FormLabel>Appointment Time</FormLabel>

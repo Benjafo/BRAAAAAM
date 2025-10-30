@@ -47,17 +47,12 @@ const clientSchema = z
             .string()
             .min(1, "Please enter the last name.")
             .max(255, "Max characters allowed is 255."),
-        primaryContactPref: z
+        contactPref: z
             .string()
             .min(1, "Write in how you want to be contacted. ")
             .max(255, "Max characters allowed is 255."),
         birthMonth: z.string().min(1, "Please select a month."),
         birthYear: z.string().min(1, "Please select a year."),
-        secondaryContactPref: z
-            .string()
-            .max(255, "Max characters allowed is 255.")
-            .optional()
-            .or(z.literal("")),
         homeAddress: z
             .string()
             .min(1, "Home address is required")
@@ -91,7 +86,7 @@ const clientSchema = z
 
         primaryPhoneIsCellPhone: z.boolean(),
         okToTextPrimaryPhone: z.boolean(),
-        endActiveStatus: z.date("Please select the date the active status for the client ends."),
+        endActiveStatus: z.date().optional(),
         secondaryPhoneNumber: z
             .string()
             .regex(
@@ -105,6 +100,15 @@ const clientSchema = z
     })
     .superRefine((data, ctx) => {
         // AI helped on the super refine
+        // If client status is "Temporary client", endActiveStatus must be provided
+        if (data.clientStatus === "Temporary client" && !data.endActiveStatus) {
+            ctx.addIssue({
+                code: "custom",
+                message: "Please select the date the active status for the client ends.",
+                path: ["endActiveStatus"],
+            });
+        }
+
         // If volunteering status is "On leave", onLeaveUntil must be provided
         if (data.volunteeringStatus === "On leave" && !data.onLeaveUntil) {
             ctx.addIssue({
@@ -182,10 +186,9 @@ export default function ClientForm({ defaultValues, onSubmit }: Props) {
             firstName: defaultValues.firstName ?? "",
             livingAlone: defaultValues.livingAlone ?? "Lives alone",
             lastName: defaultValues.lastName ?? "",
-            primaryContactPref: defaultValues.primaryContactPref ?? "",
+            contactPref: defaultValues.contactPref ?? "",
             birthMonth: defaultValues.birthMonth ?? "",
             birthYear: defaultValues.birthYear ?? "",
-            secondaryContactPref: defaultValues.secondaryContactPref ?? "",
             homeAddress: defaultValues.homeAddress ?? "",
             clientGender: defaultValues.clientGender ?? "Other",
             homeAddress2: defaultValues.homeAddress2 ?? "",
@@ -208,6 +211,8 @@ export default function ClientForm({ defaultValues, onSubmit }: Props) {
 
     const clientStatus = form.watch("clientStatus");
     const volunteeringStatus = form.watch("volunteeringStatus");
+    const primaryPhoneIsCellPhone = form.watch("primaryPhoneIsCellPhone");
+    const secondaryPhoneIsCellPhone = form.watch("secondaryPhoneIsCellPhone");
 
     const [monthOpen, setMonthOpen] = useState(false);
     const [yearOpen, setYearOpen] = useState(false);
@@ -289,12 +294,20 @@ export default function ClientForm({ defaultValues, onSubmit }: Props) {
                 {/* Primary contact preference */}
                 <FormField
                     control={form.control}
-                    name="primaryContactPref"
+                    name="contactPref"
                     render={({ field }) => (
                         <FormItem className="w-full">
-                            <FormLabel>Primary Contact Preference</FormLabel>
+                            <FormLabel>Contact Preference</FormLabel>
                             <FormControl className="w-full">
-                                <Input placeholder="Value" {...field} className="w-full" />
+                                <Select value={field.value} onValueChange={field.onChange}>
+                                    <SelectTrigger className="w-full">
+                                        <SelectValue placeholder="Contact Preference" />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        <SelectItem value="Phone">Phone</SelectItem>
+                                        <SelectItem value="Email">Email</SelectItem>
+                                    </SelectContent>
+                                </Select>
                             </FormControl>
                             <FormMessage />
                         </FormItem>
@@ -360,21 +373,6 @@ export default function ClientForm({ defaultValues, onSubmit }: Props) {
                                     </Command>
                                 </PopoverContent>
                             </Popover>
-                            <FormMessage />
-                        </FormItem>
-                    )}
-                />
-
-                {/* Secondary contact preference */}
-                <FormField
-                    control={form.control}
-                    name="secondaryContactPref"
-                    render={({ field }) => (
-                        <FormItem className="w-full">
-                            <FormLabel>Secondary Contact Preference</FormLabel>
-                            <FormControl className="w-full">
-                                <Input placeholder="Value" {...field} className="w-full" />
-                            </FormControl>
                             <FormMessage />
                         </FormItem>
                     )}
@@ -734,25 +732,27 @@ export default function ClientForm({ defaultValues, onSubmit }: Props) {
                         )}
                     />
 
-                    <FormField
-                        control={form.control}
-                        name="okToTextPrimaryPhone"
-                        render={({ field }) => (
-                            <FormItem className="flex flex-row items-start">
-                                <FormControl>
-                                    <Checkbox
-                                        checked={field.value}
-                                        onCheckedChange={field.onChange}
-                                    />
-                                </FormControl>
-                                <div className="space-y-1 leading-none">
-                                    <FormLabel className="font-normal">
-                                        OK to text primary phone
-                                    </FormLabel>
-                                </div>
-                            </FormItem>
-                        )}
-                    />
+                    {primaryPhoneIsCellPhone && (
+                        <FormField
+                            control={form.control}
+                            name="okToTextPrimaryPhone"
+                            render={({ field }) => (
+                                <FormItem className="flex flex-row items-start">
+                                    <FormControl>
+                                        <Checkbox
+                                            checked={field.value}
+                                            onCheckedChange={field.onChange}
+                                        />
+                                    </FormControl>
+                                    <div className="space-y-1 leading-none">
+                                        <FormLabel className="font-normal">
+                                            OK to text primary phone
+                                        </FormLabel>
+                                    </div>
+                                </FormItem>
+                            )}
+                        />
+                    )}
                 </div>
 
                 {/* Email */}
@@ -807,25 +807,27 @@ export default function ClientForm({ defaultValues, onSubmit }: Props) {
                         )}
                     />
 
-                    <FormField
-                        control={form.control}
-                        name="okToTextSecondaryPhone"
-                        render={({ field }) => (
-                            <FormItem className="flex flex-row items-start">
-                                <FormControl>
-                                    <Checkbox
-                                        checked={field.value}
-                                        onCheckedChange={field.onChange}
-                                    />
-                                </FormControl>
-                                <div className="space-y-1 leading-none">
-                                    <FormLabel className="font-normal">
-                                        OK to text secondary phone
-                                    </FormLabel>
-                                </div>
-                            </FormItem>
-                        )}
-                    />
+                    {secondaryPhoneIsCellPhone && (
+                        <FormField
+                            control={form.control}
+                            name="okToTextSecondaryPhone"
+                            render={({ field }) => (
+                                <FormItem className="flex flex-row items-start">
+                                    <FormControl>
+                                        <Checkbox
+                                            checked={field.value}
+                                            onCheckedChange={field.onChange}
+                                        />
+                                    </FormControl>
+                                    <div className="space-y-1 leading-none">
+                                        <FormLabel className="font-normal">
+                                            OK to text secondary phone
+                                        </FormLabel>
+                                    </div>
+                                </FormItem>
+                            )}
+                        />
+                    )}
                 </div>
             </form>
         </Form>

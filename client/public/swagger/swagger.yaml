@@ -1,104 +1,105 @@
 openapi: 3.0.3
 info:
-    title: BRAAAAAM API
-    version: 1.0.0
-    description: BRAAAAAM API
+  title: BRAAAAAM API
+  version: 1.0.0
+  description: BRAAAAAM API
 
 servers:
-    - url: https://api.braaaaam.webdev.gccis.rit.edu
+  - url: https://api.braaaaam.webdev.gccis.rit.edu
 
 tags:
-    - name: Auth
-    - name: SSE
-    - name: Users
-    - name: Clients
-    - name: Settings
-    - name: Roles
-    - name: Locations
-    - name: Appointments
-    - name: Notifications
-    - name: Reports
-    - name: Organizations
+  - name: Auth
+  - name: SSE
+  - name: Users
+  - name: Clients
+  - name: Settings
+  - name: Roles
+  - name: Locations
+  - name: Appointments
+  - name: Notifications
+  - name: Reports
+  - name: Organizations
 
 components:
-    securitySchemes:
-        bearerAuth:
-            type: http
-            scheme: bearer
-    parameters:
-        OrgId:
-            name: orgId
-            in: path
-            required: true
-            schema: { type: string }
-        UserId:
-            name: userId
-            in: path
-            required: true
-            schema: { type: string }
-        UnavailabilityId:
-            name: unavailabilityId
-            in: path
-            required: true
-            schema: { type: string }
-        ClientId:
-            name: clientId
-            in: path
-            required: true
-            schema: { type: string }
-        RoleId:
-            name: roleId
-            in: path
-            required: true
-            schema: { type: string }
-        LocationId:
-            name: locationId
-            in: path
-            required: true
-            schema: { type: string }
-        AppointmentId:
-            name: appointmentId
-            in: path
-            required: true
-            schema: { type: string }
-        TagId:
-            name: tagId
-            in: path
-            required: true
-            schema: { type: string }
-        NotificationId:
-            name: notificationId
-            in: path
-            required: true
-            schema: { type: string }
-        ReportId:
-            name: reportId
-            in: path
-            required: true
-            schema: { type: string }
-        FormId:
-            name: formId
-            in: path
-            required: true
-            schema: { type: string }
-        LogId:
-            name: logId
-            in: path
-            required: true
-            schema: { type: string }
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+  parameters:
+    OrgId:
+      name: orgId
+      in: path
+      required: true
+      schema: { type: string }
+    UserId:
+      name: userId
+      in: path
+      required: true
+      schema: { type: string }
+    UnavailabilityId:
+      name: unavailabilityId
+      in: path
+      required: true
+      schema: { type: string }
+    ClientId:
+      name: clientId
+      in: path
+      required: true
+      schema: { type: string }
+    RoleId:
+      name: roleId
+      in: path
+      required: true
+      schema: { type: string }
+    LocationId:
+      name: locationId
+      in: path
+      required: true
+      schema: { type: string }
+    AppointmentId:
+      name: appointmentId
+      in: path
+      required: true
+      schema: { type: string }
+    TagId:
+      name: tagId
+      in: path
+      required: true
+      schema: { type: string }
+    NotificationId:
+      name: notificationId
+      in: path
+      required: true
+      schema: { type: string }
+    ReportId:
+      name: reportId
+      in: path
+      required: true
+      schema: { type: string }
+    FormId:
+      name: formId
+      in: path
+      required: true
+      schema: { type: string }
+    LogId:
+      name: logId
+      in: path
+      required: true
+      schema: { type: string }
 
-    schemas:
-        Error:
-            type: object
-            properties:
-                message: { type: string }
+  schemas:
+    Error:
+      type: object
+      properties:
+        message: { type: string }
 
-    responses:
-        Unauthorized:
-            description: Unauthorized
-            content:
-                application/json:
-                    schema: { $ref: "#/components/schemas/Error" }
+  responses:
+    Unauthorized:
+      description: Unauthorized
+      content:
+        application/json:
+          schema: { $ref: '#/components/schemas/Error' }
+
 
 paths:
     /sign-in:
