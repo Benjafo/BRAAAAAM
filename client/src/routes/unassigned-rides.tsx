@@ -36,7 +36,7 @@ function RouteComponent() {
                     <UnassignedRides />
                 </TabsContent>
                 <TabsContent value="list">
-                    <RidesTable />
+                    <RidesTable isUnassignedRidesOnly={true} />
                 </TabsContent>
             </Tabs>
         </>
