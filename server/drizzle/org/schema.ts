@@ -1,24 +1,24 @@
-import {
-    pgTable,
-    unique,
-    uuid,
-    text,
-    boolean,
-    timestamp,
-    index,
-    check,
-    varchar,
-    foreignKey,
-    jsonb,
-    uniqueIndex,
-    integer,
-    date,
-    time,
-    primaryKey,
-    pgEnum,
-    numeric,
-} from "drizzle-orm/pg-core";
 import { sql } from "drizzle-orm";
+import {
+    boolean,
+    check,
+    date,
+    foreignKey,
+    index,
+    integer,
+    jsonb,
+    numeric,
+    pgEnum,
+    pgTable,
+    primaryKey,
+    text,
+    time,
+    timestamp,
+    unique,
+    uniqueIndex,
+    uuid,
+    varchar,
+} from "drizzle-orm/pg-core";
 
 export const appointmentStatus = pgEnum("appointment_status", [
     "Unassigned",
@@ -125,7 +125,7 @@ export const users = pgTable(
         unique("users_email_key").on(table.email),
         check(
             "users_phone_e164_check",
-            sql`(phone IS NULL) OR (phone ~ '^\+[1-9]\d{1,14}$'::text)`
+            sql`(phone IS NULL) OR (phone ~ '^\\+[1-9][1-9]{1,14}$'::text)`
         ),
     ]
 );
@@ -283,11 +283,11 @@ export const clients = pgTable(
         ),
         check(
             "clients_phone_e164_check",
-            sql`(phone IS NULL) OR (phone ~ '^\+[1-9]\d{1,14}$'::text)`
+            sql`(phone IS NULL) OR (phone ~ '^\\+[1-9][0-9]{1,14}$'::text)`
         ),
         check(
             "clients_secondary_phone_e164_check",
-            sql`(secondary_phone IS NULL) OR (secondary_phone ~ '^\+[1-9]\d{1,14}$'::text)`
+            sql`(secondary_phone IS NULL) OR (secondary_phone ~ '^\\+[1-9][0-9]{1,14}$'::text)`
         ),
         check(
             "phones_not_same",
@@ -334,7 +334,7 @@ export const callLogs = pgTable(
         }),
         check(
             "call_logs_phone_number_e164_check",
-            sql`(phone_number IS NULL) OR (phone_number ~ '^\+[1-9]\d{1,14}$'::text)`
+            sql`(phone_number IS NULL) OR (phone_number ~ '^\\+[1-9]\d{1,14}$'::text)`
         ),
     ]
 );
