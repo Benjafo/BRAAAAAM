@@ -74,7 +74,7 @@ export const createUser = async (req: Request, res: Response): Promise<Response>
         const db = req.org?.db;
         if (!db) return res.status(500).json({ error: "Database not initialized" });
 
-        const { firstName, lastName, email, phone, contactPreference, _notes, isActive } = req.body;
+        const { firstName, lastName, email, phone, contactPreference, _notes, isActive, isDriver, password } = req.body;
 
         if (!firstName || !lastName || !email || !phone) {
             return res.status(400).json({ message: "Missing required fields" });
@@ -84,6 +84,13 @@ export const createUser = async (req: Request, res: Response): Promise<Response>
          * @TODO Add notes to users org schema and include in below query
          */
 
+        // Hash password if provided
+        let passwordHash: string | undefined;
+        if (password) {
+            const { hashPassword } = await import("../utils/password.js");
+            passwordHash = await hashPassword(password);
+        }
+
         const [newUser] = await db
             .insert(users)
             .values({
@@ -92,8 +99,9 @@ export const createUser = async (req: Request, res: Response): Promise<Response>
                 email,
                 phone,
                 contactPreference,
+                passwordHash,
                 isActive: isActive ?? true,
-                isDriver: false,
+                isDriver: isDriver ?? false,
                 isDeleted: false,
             })
             .returning();
@@ -154,6 +162,7 @@ export const updateUser = async (req: Request, res: Response): Promise<Response>
                 phone: data.phone,
                 contactPreference: data.contactPreference,
                 isActive: data.isActive,
+                isDriver: data.isDriver,
                 updatedAt: new Date().toISOString(),
             })
             .where(eq(users.id, userId))

@@ -1,19 +1,19 @@
+import { sql } from "drizzle-orm";
 import {
-    pgTable,
-    index,
-    unique,
-    check,
-    uuid,
-    varchar,
-    text,
-    timestamp,
     boolean,
+    check,
+    date,
     foreignKey,
+    index,
     jsonb,
     pgEnum,
-    date,
+    pgTable,
+    text,
+    timestamp,
+    unique,
+    uuid,
+    varchar,
 } from "drizzle-orm/pg-core";
-import { sql } from "drizzle-orm";
 
 export const auditAction = pgEnum("audit_action", ["auth", "add", "change", "delete", "error"]);
 
@@ -56,11 +56,15 @@ export const organizations = pgTable(
         ),
         check(
             "organizations_poc_phone_check",
-            sql`(poc_phone IS NULL) OR (poc_phone ~ '^\+[1-9]\d{1,14}$'::text)`
+            sql`(poc_phone IS NULL) OR (poc_phone ~ '^\\+[1-9][0-9]{1,14}$'::text)`
         ),
         check(
             "organizations_org_phone_check",
-            sql`(phone IS NULL) OR (phone ~ '^\+[1-9]\d{1,14}$'::text)`
+            sql`(phone IS NULL) OR (phone ~ '^\\+[1-9][0-9]{1,14}$'::text)`
+        ),
+        check(
+            "organizations_org_phone_check",
+            sql`(phone IS NULL) OR (phone ~ '^\\+[1-9][0-9]{1,14}$'::text)`
         ),
     ]
 );
@@ -89,7 +93,7 @@ export const users = pgTable(
         ),
         unique("users_email_key").on(table.email),
         unique("users_phone_key").on(table.phone),
-        check("users_phone_check", sql`phone ~ '^\+[1-9]\d{1,14}$'::text`),
+        check("users_phone_check", sql`phone ~ '^\\+[1-9][0-9]{1,14}$'::text`),
     ]
 );
 
