@@ -24,7 +24,11 @@ function mapUserToFormValues(user: User): Partial<UserFormValues> & { id: string
         lastName: user.lastName,
         clientEmail: user.email || "",
         primaryPhoneNumber: user.phone?.replace("+1", "") || "",
-        contactPreference: (user.contactPreference as "Phone" | "Email") || "Phone",
+        contactPreference:
+            (user.contactPreference &&
+                ((user.contactPreference.charAt(0).toUpperCase() +
+                    user.contactPreference.slice(1)) as "Phone" | "Email")) ||
+            "Phone",
         volunteeringStatus: user.isActive ? "Active" : "Inactive",
         userRole: user.isDriver ? "Driver" : "Dispatcher",
         // TODO: add other fields from api?? not 100% but im pretty sure some are missing
@@ -33,9 +37,9 @@ function mapUserToFormValues(user: User): Partial<UserFormValues> & { id: string
 
 export function UsersTable() {
     const [isUserModalOpen, setIsUserModalOpen] = useState(false);
-    const [selectedUserData, setSelectedUserData] = useState<Partial<UserFormValues> & { id?: string }>(
-        {}
-    );
+    const [selectedUserData, setSelectedUserData] = useState<
+        Partial<UserFormValues> & { id?: string }
+    >({});
 
     const fetchUsers = async (params: Record<string, any>) => {
         const searchParams = new URLSearchParams();
