@@ -11,6 +11,7 @@ import {
     foreignKey,
     jsonb,
     pgEnum,
+    date,
 } from "drizzle-orm/pg-core";
 import { sql } from "drizzle-orm";
 
@@ -23,6 +24,17 @@ export const organizations = pgTable(
         name: varchar({ length: 255 }).notNull(),
         subdomain: varchar({ length: 15 }).notNull(),
         logoPath: varchar("logo_path", { length: 255 }),
+        phone: text(),
+        email: varchar({ length: 255 }),
+        addressLine1: varchar("address_line_1", { length: 255 }).notNull(),
+        addressLine2: varchar("address_line_2", { length: 255 }),
+        city: varchar({ length: 100 }).notNull(),
+        state: varchar({ length: 50 }).notNull(),
+        zip: varchar({ length: 20 }).notNull(),
+        country: varchar({ length: 100 }).notNull(),
+        addressValidated: boolean("address_validated").default(false),
+        establishedDate: date(),
+        pocName: varchar("poc_name", { length: 255 }).notNull(),
         pocEmail: varchar("poc_email", { length: 255 }).notNull(),
         pocPhone: text("poc_phone"),
         createdAt: timestamp("created_at", { withTimezone: true, mode: "string" })
@@ -45,6 +57,10 @@ export const organizations = pgTable(
         check(
             "organizations_poc_phone_check",
             sql`(poc_phone IS NULL) OR (poc_phone ~ '^\+[1-9]\d{1,14}$'::text)`
+        ),
+        check(
+            "organizations_org_phone_check",
+            sql`(phone IS NULL) OR (phone ~ '^\+[1-9]\d{1,14}$'::text)`
         ),
     ]
 );
