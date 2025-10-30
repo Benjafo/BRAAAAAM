@@ -62,10 +62,6 @@ export const organizations = pgTable(
             "organizations_org_phone_check",
             sql`(phone IS NULL) OR (phone ~ '^\\+[1-9][0-9]{1,14}$'::text)`
         ),
-        check(
-            "organizations_org_phone_check",
-            sql`(phone IS NULL) OR (phone ~ '^\\+[1-9][0-9]{1,14}$'::text)`
-        ),
     ]
 );
 
