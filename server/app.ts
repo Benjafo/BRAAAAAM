@@ -4,13 +4,36 @@ import express from "express";
 import createError from "http-errors";
 import logger from "morgan";
 
-import authRouter from "./routes/auth.js";
+// import authRouter from "./routes/auth.js";
+import sseRouter from "./routes/sse.js";
+
+// org-scoped
+import usersRouter from "./routes/api.org.users.js";
+import clientsRouter from "./routes/api.org.clients.js";
+import orgSettingsRouter from "./routes/api.org.settings.js";
+import rolesRouter from "./routes/api.org.roles.js";
+import locationsRouter from "./routes/api.org.locations.js";
+import appointmentsRouter from "./routes/api.org.appointments.js";
+import notificationsRouter from "./routes/api.org.notifications.js";
+import reportsRouter from "./routes/api.org.reports.js";
+
+import orgAuthRouter from './routes/api.org.auth.js';
+
+// system-scoped
+import organizationsRouter from "./routes/api.sys.organizations.js";
+import sysSettingsRouter from "./routes/api.sys.settings.js";
+
+import apiRouter from "./routes/api.js";
 
 import { NextFunction, Request, Response } from "express";
 
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { createProxyMiddleware } from "http-proxy-middleware";
+import { getSysDb } from "./drizzle/sys-client.js";
+import { createOrgDbFromTemplate, preloadOrgPools } from "./drizzle/pool-manager.js";
+import { withOrg } from "./middleware/with-org.js";
+import { users } from "./drizzle/org/schema.js";
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
@@ -54,11 +77,63 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 app.use(cookieParser());
 
+// Preload system and organization database pools on server start
+// Note: this only creates the pools once, other calls reuse them.
+(async () => {
+    getSysDb();
+    await preloadOrgPools();
+})().catch((e) => {
+    console.error("Startup error:", e);
+    process.exit(1);
+});
+
 // Serve static files from frontend build
 app.use(express.static(path.join(__dirname, "..", "public")));
 
+app.get("/test/create-org-db", async (req: Request, res: Response) => {
+    const { subdomain, name, pocName, pocEmail } = req.query;
+
+    if (typeof subdomain !== "string" || typeof name !== "string" || typeof pocEmail !== "string" || typeof pocName !== "string") {
+        return res.status(400).json({ error: "Missing or invalid query parameters" });
+    }
+
+    try {
+        await createOrgDbFromTemplate(subdomain, name, pocName, pocEmail);
+        return res.json({ message: `Organization database '${subdomain}' created successfully.` });
+    } catch (error) {
+        console.error("Error creating organization database:", error);
+        return res.status(500).json({ error: "Internal server error" });
+    }
+});
+
+app.get("/test/o/:orgId/users", withOrg, async (req: Request, res: Response) => {
+    
+    try {
+        const orgUsers = await req.org?.db.select().from(users);
+        return res.json({ orgUsers });
+    } catch (error) {
+        console.error("Error fetching users:", error);
+        return res.status(500).json({ error: "Internal server error" });
+    }
+    
+});
+
 // API routes
-app.use("/auth", authRouter);
+app.use('/api', apiRouter);
+
+// app.use("/auth", authRouter);
+app.use("/auth", withOrg, orgAuthRouter)
+app.use("/o/:orgId/users", usersRouter);
+app.use("/o/:orgId/clients", clientsRouter);
+app.use("/o/:orgId/settings", orgSettingsRouter);
+app.use("/s/settings", sysSettingsRouter)
+app.use("/o/:orgId/appointments", appointmentsRouter);
+app.use("/o/:orgId/notifications", notificationsRouter);
+app.use("/o/:orgId/reports", reportsRouter);
+app.use("/s/organizations", organizationsRouter);
+app.use("/o/:orgId/settings/roles", rolesRouter);
+app.use("/o/:orgId/settings/locations", locationsRouter);
+app.use("/sse", sseRouter);
 
 // Catch-all route - serve React app for any non-API routes
 app.get("/*", (_req, res) => {
