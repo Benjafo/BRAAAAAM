@@ -41,6 +41,14 @@ export default function NewUserModal({
                 contactPreference: values.contactPreference.toLowerCase(),
                 isActive: values.volunteeringStatus === "Active",
                 isDriver: values.userRole === "Driver",
+                address: {
+                    addressLine1: values.streetAddress,
+                    addressLine2: values.streetAddress2 || null,
+                    city: values.city,
+                    state: values.state,
+                    zip: values.zipCode,
+                    country: "USA",
+                },
             };
 
             // Make API call - PUT for edit, POST for create

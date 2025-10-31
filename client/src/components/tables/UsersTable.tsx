@@ -13,6 +13,14 @@ type User = {
     contactPreference: string | null;
     isActive: boolean;
     isDriver: boolean;
+    address: {
+        id: string;
+        addressLine1: string;
+        addressLine2?: string | null;
+        city: string;
+        state: string;
+        zip: string;
+    };
 };
 
 // Helper function to map API User to form values
@@ -31,6 +39,11 @@ function mapUserToFormValues(user: User): Partial<UserFormValues> & { id: string
             "Phone",
         volunteeringStatus: user.isActive ? "Active" : "Inactive",
         userRole: user.isDriver ? "Driver" : "Dispatcher",
+        streetAddress: user.address.addressLine1,
+        streetAddress2: user.address.addressLine2 || "",
+        city: user.address.city,
+        state: user.address.state,
+        zipCode: user.address.zip,
         // TODO: add other fields from api?? not 100% but im pretty sure some are missing
     };
 }
@@ -95,17 +108,17 @@ export function UsersTable() {
                     },
                     {
                         header: "Address",
-                        accessorFn: () => "1 Lomb Memorial Drive",
+                        accessorFn: (row) => row.address?.addressLine1 || "N/A",
                         id: "address",
                     },
                     {
                         header: "City",
-                        accessorFn: () => "Rochester",
+                        accessorFn: (row) => row.address?.city || "N/A",
                         id: "city",
                     },
                     {
                         header: "Zip Code",
-                        accessorFn: () => "14623",
+                        accessorFn: (row) => row.address?.zip || "N/A",
                         id: "zip",
                     },
                     {

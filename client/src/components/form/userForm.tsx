@@ -26,7 +26,7 @@ import {
     FormMessage,
 } from "@/components/ui/form";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { MapPin } from "lucide-react";
+import { GoogleAddressFields } from "../GoogleAddressFields";
 import { Checkbox } from "../ui/checkbox";
 import { DatePickerInput } from "../ui/datePickerField";
 import { RadioGroup, RadioGroupItem } from "../ui/radio-group";
@@ -59,6 +59,13 @@ const userSchema = z
             .max(255, "Max characters allowed is 255.")
             .optional()
             .or(z.literal("")),
+        city: z.string().min(1, "City is required").max(255, "Max characters allowed is 255."),
+        state: z.string().min(1, "State is required").max(255, "Max characters allowed is 255."),
+        zipCode: z
+            .string()
+            .min(5, "Zip Code is required")
+            .max(10, "Max characters allowed is 10.")
+            .regex(/^\d{5}(-\d{4})?$/, "Please enter a valid US zip code."),
         volunteeringStatus: z.enum(["Active", "On leave", "Inactive", "Away"], {
             message: "Please specify the volunteering status.",
         }),
@@ -250,6 +257,9 @@ export default function NewUserForm({ defaultValues, onSubmit }: Props) {
             birthMonth: defaultValues.birthMonth ?? "",
             birthYear: defaultValues.birthYear ?? "",
             streetAddress: defaultValues.streetAddress ?? "",
+            city: defaultValues.city ?? "",
+            state: defaultValues.state ?? "",
+            zipCode: defaultValues.zipCode ?? "",
             streetAddress2: defaultValues.streetAddress2 ?? "",
             volunteeringStatus: defaultValues.volunteeringStatus ?? "Active",
             onLeaveUntil: defaultValues.onLeaveUntil,
@@ -316,30 +326,6 @@ export default function NewUserForm({ defaultValues, onSubmit }: Props) {
                     )}
                 />
 
-                {/* User role */}
-                <FormField
-                    control={form.control}
-                    name="userRole"
-                    render={({ field }) => (
-                        <FormItem className="w-full">
-                            <FormLabel>User Role</FormLabel>
-                            <FormControl className="w-full">
-                                <Select value={field.value} onValueChange={field.onChange}>
-                                    <SelectTrigger className="w-full">
-                                        <SelectValue placeholder="User Role" />
-                                    </SelectTrigger>
-                                    <SelectContent>
-                                        <SelectItem value="Admin">Admin</SelectItem>
-                                        <SelectItem value="Driver">Driver</SelectItem>
-                                        <SelectItem value="Dispatcher">Dispatcher</SelectItem>
-                                    </SelectContent>
-                                </Select>
-                            </FormControl>
-                            <FormMessage />
-                        </FormItem>
-                    )}
-                />
-
                 {/* Last name */}
                 <FormField
                     control={form.control}
@@ -369,6 +355,59 @@ export default function NewUserForm({ defaultValues, onSubmit }: Props) {
                         </FormItem>
                     )}
                 />
+
+                {/* User role */}
+                <FormField
+                    control={form.control}
+                    name="userRole"
+                    render={({ field }) => (
+                        <FormItem className="w-full">
+                            <FormLabel>User Role</FormLabel>
+                            <FormControl className="w-full">
+                                <Select value={field.value} onValueChange={field.onChange}>
+                                    <SelectTrigger className="w-full">
+                                        <SelectValue placeholder="User Role" />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        <SelectItem value="Admin">Admin</SelectItem>
+                                        <SelectItem value="Driver">Driver</SelectItem>
+                                        <SelectItem value="Dispatcher">Dispatcher</SelectItem>
+                                    </SelectContent>
+                                </Select>
+                            </FormControl>
+                            <FormMessage />
+                        </FormItem>
+                    )}
+                />
+
+                {/* Address Fields with Google Autocomplete */}
+                <div className="md:col-span-2">
+                    <GoogleAddressFields
+                        control={form.control}
+                        setValue={form.setValue}
+                        addressFieldName="streetAddress"
+                        cityFieldName="city"
+                        stateFieldName="state"
+                        zipFieldName="zipCode"
+                    />
+                </div>
+
+                {/* Unit/Apartment/Suite */}
+                <div className="md:col-span-2">
+                    <FormField
+                        control={form.control}
+                        name="streetAddress2"
+                        render={({ field }) => (
+                            <FormItem>
+                                <FormLabel>Unit/Apartment/Suite</FormLabel>
+                                <FormControl>
+                                    <Input placeholder="Unit, apartment, suite, etc." {...field} />
+                                </FormControl>
+                                <FormMessage />
+                            </FormItem>
+                        )}
+                    />
+                </div>
 
                 {/* Birth Month */}
                 <FormField
@@ -429,27 +468,6 @@ export default function NewUserForm({ defaultValues, onSubmit }: Props) {
                                     </Command>
                                 </PopoverContent>
                             </Popover>
-                            <FormMessage />
-                        </FormItem>
-                    )}
-                />
-
-                {/* Street Address */}
-                <FormField
-                    control={form.control}
-                    name="streetAddress"
-                    render={({ field }) => (
-                        <FormItem>
-                            <FormLabel>Street Address</FormLabel>
-                            <FormControl>
-                                <div className="relative">
-                                    <Input
-                                        placeholder="(Replace with Google autocomplete)"
-                                        {...field}
-                                    />
-                                    <MapPin className="absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-                                </div>
-                            </FormControl>
                             <FormMessage />
                         </FormItem>
                     )}
@@ -518,28 +536,127 @@ export default function NewUserForm({ defaultValues, onSubmit }: Props) {
                     )}
                 />
 
-                {/* Street Unit/Apartment/Suite */}
-                <FormField
-                    control={form.control}
-                    name="streetAddress2"
-                    render={({ field }) => (
-                        <FormItem>
-                            <FormLabel>Street Unit/Apartment/Suite</FormLabel>
-                            <FormControl>
-                                <div className="relative">
-                                    <Input
-                                        placeholder="(Replace with Google autocomplete)"
-                                        {...field}
-                                    />
-                                    <MapPin className="absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-                                </div>
-                            </FormControl>
-                            <FormMessage />
-                        </FormItem>
-                    )}
-                />
+                {/* Primary Phone, adding div to make checkboxes align underneath primary phone number. */}
+                <div className="space-y-4">
+                    <FormField
+                        control={form.control}
+                        name="primaryPhoneNumber"
+                        render={({ field }) => (
+                            <FormItem>
+                                <FormLabel>Primary Phone Number</FormLabel>
+                                <FormControl>
+                                    <Input placeholder="Value" {...field} />
+                                </FormControl>
+                                <FormMessage />
+                            </FormItem>
+                        )}
+                    />
 
-                {/* Additional Rider with conditional date pickers */}
+                    {/* Primary Phone is Cell Phone Checkbox */}
+                    <FormField
+                        control={form.control}
+                        name="primaryPhoneIsCellPhone"
+                        render={({ field }) => (
+                            <FormItem className="flex flex-row items-start">
+                                <FormControl>
+                                    <Checkbox
+                                        checked={field.value}
+                                        onCheckedChange={field.onChange}
+                                    />
+                                </FormControl>
+                                <div className="space-y-1 leading-none">
+                                    <FormLabel className="font-normal">
+                                        Primary phone is a cell phone
+                                    </FormLabel>
+                                </div>
+                            </FormItem>
+                        )}
+                    />
+
+                    {primaryPhoneIsCellPhone && (
+                        <FormField
+                            control={form.control}
+                            name="okToTextPrimaryPhone"
+                            render={({ field }) => (
+                                <FormItem className="flex flex-row items-start">
+                                    <FormControl>
+                                        <Checkbox
+                                            checked={field.value}
+                                            onCheckedChange={field.onChange}
+                                        />
+                                    </FormControl>
+                                    <div className="space-y-1 leading-none">
+                                        <FormLabel className="font-normal">
+                                            OK to text primary phone
+                                        </FormLabel>
+                                    </div>
+                                </FormItem>
+                            )}
+                        />
+                    )}
+                </div>
+
+                {/* Secondary Phone, adding div to make checkboxes align underneath secondary phone number. */}
+                <div className="space-y-4">
+                    <FormField
+                        control={form.control}
+                        name="secondaryPhoneNumber"
+                        render={({ field }) => (
+                            <FormItem>
+                                <FormLabel>Secondary Phone Number</FormLabel>
+                                <FormControl>
+                                    <Input placeholder="Value" {...field} />
+                                </FormControl>
+                                <FormMessage />
+                            </FormItem>
+                        )}
+                    />
+
+                    {/* Secondary Phone is Cell Phone Checkbox */}
+                    <FormField
+                        control={form.control}
+                        name="secondaryPhoneIsCellPhone"
+                        render={({ field }) => (
+                            <FormItem className="flex flex-row items-start">
+                                <FormControl>
+                                    <Checkbox
+                                        checked={field.value}
+                                        onCheckedChange={field.onChange}
+                                    />
+                                </FormControl>
+                                <div className="space-y-1 leading-none">
+                                    <FormLabel className="font-normal">
+                                        Secondary phone is a cell phone
+                                    </FormLabel>
+                                </div>
+                            </FormItem>
+                        )}
+                    />
+
+                    {secondaryPhoneIsCellPhone && (
+                        <FormField
+                            control={form.control}
+                            name="okToTextSecondaryPhone"
+                            render={({ field }) => (
+                                <FormItem className="flex flex-row items-start">
+                                    <FormControl>
+                                        <Checkbox
+                                            checked={field.value}
+                                            onCheckedChange={field.onChange}
+                                        />
+                                    </FormControl>
+                                    <div className="space-y-1 leading-none">
+                                        <FormLabel className="font-normal">
+                                            OK to text secondary phone
+                                        </FormLabel>
+                                    </div>
+                                </FormItem>
+                            )}
+                        />
+                    )}
+                </div>
+
+                {/* User status */}
                 <div className="space-y-4">
                     <FormField
                         control={form.control}
@@ -644,66 +761,6 @@ export default function NewUserForm({ defaultValues, onSubmit }: Props) {
                     )}
                 </div>
 
-                {/* Primary Phone, adding div to make checkboxes align underneath primary phone number. */}
-                <div className="space-y-4">
-                    <FormField
-                        control={form.control}
-                        name="primaryPhoneNumber"
-                        render={({ field }) => (
-                            <FormItem>
-                                <FormLabel>Primary Phone Number</FormLabel>
-                                <FormControl>
-                                    <Input placeholder="Value" {...field} />
-                                </FormControl>
-                                <FormMessage />
-                            </FormItem>
-                        )}
-                    />
-
-                    {/* Primary Phone is Cell Phone Checkbox */}
-                    <FormField
-                        control={form.control}
-                        name="primaryPhoneIsCellPhone"
-                        render={({ field }) => (
-                            <FormItem className="flex flex-row items-start">
-                                <FormControl>
-                                    <Checkbox
-                                        checked={field.value}
-                                        onCheckedChange={field.onChange}
-                                    />
-                                </FormControl>
-                                <div className="space-y-1 leading-none">
-                                    <FormLabel className="font-normal">
-                                        Primary phone is a cell phone
-                                    </FormLabel>
-                                </div>
-                            </FormItem>
-                        )}
-                    />
-
-                    {primaryPhoneIsCellPhone && (
-                        <FormField
-                            control={form.control}
-                            name="okToTextPrimaryPhone"
-                            render={({ field }) => (
-                                <FormItem className="flex flex-row items-start">
-                                    <FormControl>
-                                        <Checkbox
-                                            checked={field.value}
-                                            onCheckedChange={field.onChange}
-                                        />
-                                    </FormControl>
-                                    <div className="space-y-1 leading-none">
-                                        <FormLabel className="font-normal">
-                                            OK to text primary phone
-                                        </FormLabel>
-                                    </div>
-                                </FormItem>
-                            )}
-                        />
-                    )}
-                </div>
-
                 {/* Contact preference */}
                 <FormField
                     control={form.control}
@@ -726,66 +783,6 @@ export default function NewUserForm({ defaultValues, onSubmit }: Props) {
                         </FormItem>
                     )}
                 />
-
-                {/* Secondary Phone, adding div to make checkboxes align underneath secondary phone number. */}
-                <div className="space-y-4">
-                    <FormField
-                        control={form.control}
-                        name="secondaryPhoneNumber"
-                        render={({ field }) => (
-                            <FormItem>
-                                <FormLabel>Secondary Phone Number</FormLabel>
-                                <FormControl>
-                                    <Input placeholder="Value" {...field} />
-                                </FormControl>
-                                <FormMessage />
-                            </FormItem>
-                        )}
-                    />
-
-                    {/* Secondary Phone is Cell Phone Checkbox */}
-                    <FormField
-                        control={form.control}
-                        name="secondaryPhoneIsCellPhone"
-                        render={({ field }) => (
-                            <FormItem className="flex flex-row items-start">
-                                <FormControl>
-                                    <Checkbox
-                                        checked={field.value}
-                                        onCheckedChange={field.onChange}
-                                    />
-                                </FormControl>
-                                <div className="space-y-1 leading-none">
-                                    <FormLabel className="font-normal">
-                                        Secondary phone is a cell phone
-                                    </FormLabel>
-                                </div>
-                            </FormItem>
-                        )}
-                    />
-
-                    {secondaryPhoneIsCellPhone && (
-                        <FormField
-                            control={form.control}
-                            name="okToTextSecondaryPhone"
-                            render={({ field }) => (
-                                <FormItem className="flex flex-row items-start">
-                                    <FormControl>
-                                        <Checkbox
-                                            checked={field.value}
-                                            onCheckedChange={field.onChange}
-                                        />
-                                    </FormControl>
-                                    <div className="space-y-1 leading-none">
-                                        <FormLabel className="font-normal">
-                                            OK to text secondary phone
-                                        </FormLabel>
-                                    </div>
-                                </FormItem>
-                            )}
-                        />
-                    )}
-                </div>
 
                 {/* Driver-specific fields - only shown when userRole is "Driver" */}
                 {userRole === "Driver" && (
