@@ -9,6 +9,12 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as UsersRouteImport } from './routes/users'
+import { Route as UnavailabilityRouteImport } from './routes/unavailability'
+import { Route as UnassignedRidesRouteImport } from './routes/unassigned-rides'
+import { Route as ScheduleRouteImport } from './routes/schedule'
+import { Route as OrganizationsRouteImport } from './routes/organizations'
+import { Route as ClientsRouteImport } from './routes/clients'
 import { Route as LoginRouteRouteImport } from './routes/_login/route'
 import { Route as AuthRouteRouteImport } from './routes/_auth/route'
 import { Route as IndexRouteImport } from './routes/index'
@@ -18,6 +24,36 @@ import { Route as LoginForgetPasswordRouteImport } from './routes/_login/forget-
 import { Route as AuthDashboardRouteImport } from './routes/_auth/dashboard'
 import { Route as AuthAdminSettingsRouteImport } from './routes/_auth/admin-settings'
 
+const UsersRoute = UsersRouteImport.update({
+  id: '/users',
+  path: '/users',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const UnavailabilityRoute = UnavailabilityRouteImport.update({
+  id: '/unavailability',
+  path: '/unavailability',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const UnassignedRidesRoute = UnassignedRidesRouteImport.update({
+  id: '/unassigned-rides',
+  path: '/unassigned-rides',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ScheduleRoute = ScheduleRouteImport.update({
+  id: '/schedule',
+  path: '/schedule',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const OrganizationsRoute = OrganizationsRouteImport.update({
+  id: '/organizations',
+  path: '/organizations',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ClientsRoute = ClientsRouteImport.update({
+  id: '/clients',
+  path: '/clients',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const LoginRouteRoute = LoginRouteRouteImport.update({
   id: '/_login',
   getParentRoute: () => rootRouteImport,
@@ -59,6 +95,12 @@ const AuthAdminSettingsRoute = AuthAdminSettingsRouteImport.update({
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/clients': typeof ClientsRoute
+  '/organizations': typeof OrganizationsRoute
+  '/schedule': typeof ScheduleRoute
+  '/unassigned-rides': typeof UnassignedRidesRoute
+  '/unavailability': typeof UnavailabilityRoute
+  '/users': typeof UsersRoute
   '/admin-settings': typeof AuthAdminSettingsRoute
   '/dashboard': typeof AuthDashboardRoute
   '/forget-password': typeof LoginForgetPasswordRoute
@@ -67,6 +109,12 @@ export interface FileRoutesByFullPath {
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/clients': typeof ClientsRoute
+  '/organizations': typeof OrganizationsRoute
+  '/schedule': typeof ScheduleRoute
+  '/unassigned-rides': typeof UnassignedRidesRoute
+  '/unavailability': typeof UnavailabilityRoute
+  '/users': typeof UsersRoute
   '/admin-settings': typeof AuthAdminSettingsRoute
   '/dashboard': typeof AuthDashboardRoute
   '/forget-password': typeof LoginForgetPasswordRoute
@@ -78,6 +126,12 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/_auth': typeof AuthRouteRouteWithChildren
   '/_login': typeof LoginRouteRouteWithChildren
+  '/clients': typeof ClientsRoute
+  '/organizations': typeof OrganizationsRoute
+  '/schedule': typeof ScheduleRoute
+  '/unassigned-rides': typeof UnassignedRidesRoute
+  '/unavailability': typeof UnavailabilityRoute
+  '/users': typeof UsersRoute
   '/_auth/admin-settings': typeof AuthAdminSettingsRoute
   '/_auth/dashboard': typeof AuthDashboardRoute
   '/_login/forget-password': typeof LoginForgetPasswordRoute
@@ -88,6 +142,12 @@ export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
+    | '/clients'
+    | '/organizations'
+    | '/schedule'
+    | '/unassigned-rides'
+    | '/unavailability'
+    | '/users'
     | '/admin-settings'
     | '/dashboard'
     | '/forget-password'
@@ -96,6 +156,12 @@ export interface FileRouteTypes {
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
+    | '/clients'
+    | '/organizations'
+    | '/schedule'
+    | '/unassigned-rides'
+    | '/unavailability'
+    | '/users'
     | '/admin-settings'
     | '/dashboard'
     | '/forget-password'
@@ -106,6 +172,12 @@ export interface FileRouteTypes {
     | '/'
     | '/_auth'
     | '/_login'
+    | '/clients'
+    | '/organizations'
+    | '/schedule'
+    | '/unassigned-rides'
+    | '/unavailability'
+    | '/users'
     | '/_auth/admin-settings'
     | '/_auth/dashboard'
     | '/_login/forget-password'
@@ -117,10 +189,58 @@ export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AuthRouteRoute: typeof AuthRouteRouteWithChildren
   LoginRouteRoute: typeof LoginRouteRouteWithChildren
+  ClientsRoute: typeof ClientsRoute
+  OrganizationsRoute: typeof OrganizationsRoute
+  ScheduleRoute: typeof ScheduleRoute
+  UnassignedRidesRoute: typeof UnassignedRidesRoute
+  UnavailabilityRoute: typeof UnavailabilityRoute
+  UsersRoute: typeof UsersRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/users': {
+      id: '/users'
+      path: '/users'
+      fullPath: '/users'
+      preLoaderRoute: typeof UsersRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/unavailability': {
+      id: '/unavailability'
+      path: '/unavailability'
+      fullPath: '/unavailability'
+      preLoaderRoute: typeof UnavailabilityRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/unassigned-rides': {
+      id: '/unassigned-rides'
+      path: '/unassigned-rides'
+      fullPath: '/unassigned-rides'
+      preLoaderRoute: typeof UnassignedRidesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/schedule': {
+      id: '/schedule'
+      path: '/schedule'
+      fullPath: '/schedule'
+      preLoaderRoute: typeof ScheduleRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/organizations': {
+      id: '/organizations'
+      path: '/organizations'
+      fullPath: '/organizations'
+      preLoaderRoute: typeof OrganizationsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/clients': {
+      id: '/clients'
+      path: '/clients'
+      fullPath: '/clients'
+      preLoaderRoute: typeof ClientsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/_login': {
       id: '/_login'
       path: ''
@@ -214,6 +334,12 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AuthRouteRoute: AuthRouteRouteWithChildren,
   LoginRouteRoute: LoginRouteRouteWithChildren,
+  ClientsRoute: ClientsRoute,
+  OrganizationsRoute: OrganizationsRoute,
+  ScheduleRoute: ScheduleRoute,
+  UnassignedRidesRoute: UnassignedRidesRoute,
+  UnavailabilityRoute: UnavailabilityRoute,
+  UsersRoute: UsersRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
