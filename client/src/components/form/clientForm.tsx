@@ -25,7 +25,6 @@ import {
     CommandList,
 } from "@/components/ui/command";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { MapPin } from "lucide-react";
 import { GoogleAddressFields } from "../GoogleAddressFields";
 import { Checkbox } from "../ui/checkbox";
 import { DatePickerInput } from "../ui/datePickerField";
@@ -249,6 +248,21 @@ export default function ClientForm({ defaultValues, onSubmit }: Props) {
                         </FormItem>
                     )}
                 />
+                
+                {/* Last name */}
+                <FormField
+                    control={form.control}
+                    name="lastName"
+                    render={({ field }) => (
+                        <FormItem className="w-full">
+                            <FormLabel>Last Name</FormLabel>
+                            <FormControl className="w-full">
+                                <Input placeholder="Value" {...field} className="w-full" />
+                            </FormControl>
+                            <FormMessage />
+                        </FormItem>
+                    )}
+                />
 
                 {/* Living alone / not */}
                 <FormField
@@ -282,20 +296,6 @@ export default function ClientForm({ defaultValues, onSubmit }: Props) {
                                         </FormLabel>
                                     </div>
                                 </RadioGroup>
-                            </FormControl>
-                            <FormMessage />
-                        </FormItem>
-                    )}
-                />
-                {/* Last name */}
-                <FormField
-                    control={form.control}
-                    name="lastName"
-                    render={({ field }) => (
-                        <FormItem className="w-full">
-                            <FormLabel>Last Name</FormLabel>
-                            <FormControl className="w-full">
-                                <Input placeholder="Value" {...field} className="w-full" />
                             </FormControl>
                             <FormMessage />
                         </FormItem>
@@ -452,47 +452,8 @@ export default function ClientForm({ defaultValues, onSubmit }: Props) {
                     )}
                 />
 
-                {/* Client Gender */}
-                <FormField
-                    control={form.control}
-                    name="clientGender"
-                    render={({ field }) => (
-                        <FormItem>
-                            <FormLabel>Client Gender</FormLabel>
-                            <FormControl>
-                                <RadioGroup
-                                    className="flex flex-col gap-2"
-                                    value={field.value}
-                                    onValueChange={field.onChange}
-                                >
-                                    <div className="flex items-center space-x-2">
-                                        <RadioGroupItem id="male" value="Male" />
-                                        <FormLabel htmlFor="male" className="font-normal">
-                                            Male
-                                        </FormLabel>
-                                    </div>
-                                    <div className="flex items-center space-x-2">
-                                        <RadioGroupItem id="female" value="Female" />
-                                        <FormLabel htmlFor="female" className="font-normal">
-                                            Female
-                                        </FormLabel>
-                                    </div>
-
-                                    <div className="flex items-center space-x-2">
-                                        <RadioGroupItem id="other" value="Other" />
-                                        <FormLabel htmlFor="other" className="font-normal">
-                                            Other
-                                        </FormLabel>
-                                    </div>
-                                </RadioGroup>
-                            </FormControl>
-                            <FormMessage />
-                        </FormItem>
-                    )}
-                />
-
                 {/* Home Address */}
-                <div>
+                <div className="md:col-span-2">
                     {/* className="md:col-span-2" */}
                     <GoogleAddressFields
                         control={form.control}
@@ -504,7 +465,65 @@ export default function ClientForm({ defaultValues, onSubmit }: Props) {
                     />
                 </div>
 
-                {/* Client Status */}
+                {/* Home Unit/Apartment/Suite */}
+                <div className="md:col-span-2">
+                    <FormField
+                        control={form.control}
+                        name="homeAddress2"
+                        render={({ field }) => (
+                            <FormItem>
+                                <FormLabel>Unit/Apartment/Suite</FormLabel>
+                                <FormControl>
+                                    <Input placeholder="Unit, apartment, suite, etc." {...field} />
+                                </FormControl>
+                                <FormMessage />
+                            </FormItem>
+                        )}
+                    />{" "}
+                </div>
+
+                {/* Client Gender */}
+                <div className="space-y-4">
+                    <FormField
+                        control={form.control}
+                        name="clientGender"
+                        render={({ field }) => (
+                            <FormItem>
+                                <FormLabel>Client Gender</FormLabel>
+                                <FormControl>
+                                    <RadioGroup
+                                        className="flex flex-col gap-2"
+                                        value={field.value}
+                                        onValueChange={field.onChange}
+                                    >
+                                        <div className="flex items-center space-x-2">
+                                            <RadioGroupItem id="male" value="Male" />
+                                            <FormLabel htmlFor="male" className="font-normal">
+                                                Male
+                                            </FormLabel>
+                                        </div>
+                                        <div className="flex items-center space-x-2">
+                                            <RadioGroupItem id="female" value="Female" />
+                                            <FormLabel htmlFor="female" className="font-normal">
+                                                Female
+                                            </FormLabel>
+                                        </div>
+
+                                        <div className="flex items-center space-x-2">
+                                            <RadioGroupItem id="other" value="Other" />
+                                            <FormLabel htmlFor="other" className="font-normal">
+                                                Other
+                                            </FormLabel>
+                                        </div>
+                                    </RadioGroup>
+                                </FormControl>
+                                <FormMessage />
+                            </FormItem>
+                        )}
+                    />
+                </div>
+
+                {/* Client Permanency Status */}
                 <div className="space-y-4">
                     <FormField
                         control={form.control}
@@ -572,28 +591,7 @@ export default function ClientForm({ defaultValues, onSubmit }: Props) {
                     </div>
                 </div>
 
-                {/* Home Unit/Apartment/Suite */}
-                <FormField
-                    control={form.control}
-                    name="homeAddress2"
-                    render={({ field }) => (
-                        <FormItem>
-                            <FormLabel>Unit/Apartment/Suite</FormLabel>
-                            <FormControl>
-                                <div className="relative">
-                                    <Input
-                                        placeholder="(Replace with Google autocomplete)"
-                                        {...field}
-                                    />
-                                    <MapPin className="absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-                                </div>
-                            </FormControl>
-                            <FormMessage />
-                        </FormItem>
-                    )}
-                />
-
-                {/* Additional Rider with conditional date pickers */}
+                {/* Client Status */}
                 <div className="space-y-4">
                     <FormField
                         control={form.control}
@@ -698,6 +696,21 @@ export default function ClientForm({ defaultValues, onSubmit }: Props) {
                     )}
                 </div>
 
+                {/* Email */}
+                <FormField
+                    control={form.control}
+                    name="clientEmail"
+                    render={({ field }) => (
+                        <FormItem>
+                            <FormLabel>Email</FormLabel>
+                            <FormControl>
+                                <Input placeholder="Value" {...field} />
+                            </FormControl>
+                            <FormMessage />
+                        </FormItem>
+                    )}
+                />
+
                 {/* Primary Phone, adding div to make checkboxes align underneath primary phone number. */}
                 <div className="space-y-4">
                     <FormField
@@ -757,21 +770,6 @@ export default function ClientForm({ defaultValues, onSubmit }: Props) {
                         />
                     )}
                 </div>
-
-                {/* Email */}
-                <FormField
-                    control={form.control}
-                    name="clientEmail"
-                    render={({ field }) => (
-                        <FormItem>
-                            <FormLabel>Email</FormLabel>
-                            <FormControl>
-                                <Input placeholder="Value" {...field} />
-                            </FormControl>
-                            <FormMessage />
-                        </FormItem>
-                    )}
-                />
 
                 {/* Secondary Phone, adding div to make checkboxes align underneath secondary phone number. */}
                 <div className="space-y-4">
