@@ -106,6 +106,7 @@ export const users = pgTable(
         contactPreference: contactPreference("contact_preference").default("email").notNull(),
         passwordHash: varchar("password_hash", { length: 255 }),
         roleId: uuid("role_id"),
+        addressLocation: uuid("address_location"),
         isDriver: boolean("is_driver").default(false),
         isActive: boolean("is_active").default(true),
         isDeleted: boolean("is_deleted").default(false),
@@ -117,11 +118,22 @@ export const users = pgTable(
             .notNull(),
     },
     (table) => [
+        index("users_address_idx").using(
+            "btree",
+            table.addressLocation.asc().nullsLast().op("uuid_ops")
+        ),
         foreignKey({
             columns: [table.roleId],
             foreignColumns: [roles.id],
             name: "users_role_fkey",
         }).onDelete("set null"),
+        foreignKey({
+            columns: [table.addressLocation],
+            foreignColumns: [locations.id],
+            name: "users_address_location_fkey",
+        })
+            .onUpdate("cascade")
+            .onDelete("restrict"),
         unique("users_email_key").on(table.email),
         check(
             "users_phone_e164_check",

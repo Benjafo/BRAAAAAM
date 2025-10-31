@@ -1,6 +1,7 @@
-import { Request, Response } from "express";
-import { users } from "../drizzle/org/schema.js";
 import { eq, sql } from "drizzle-orm";
+import { Request, Response } from "express";
+import { locations, users } from "../drizzle/org/schema.js";
+import { findOrCreateLocation } from "../utils/locations.js";
 import { applyQueryFilters } from "../utils/queryParams.js";
 
 /*
@@ -73,8 +74,18 @@ export const listUsers = async (req: Request, res: Response): Promise<Response> 
                 contactPreference: users.contactPreference,
                 isActive: users.isActive,
                 isDriver: users.isDriver,
+                address: {
+                    id: locations.id,
+                    addressLine1: locations.addressLine1,
+                    addressLine2: locations.addressLine2,
+                    city: locations.city,
+                    state: locations.state,
+                    zip: locations.zip,
+                    country: locations.country,
+                },
             })
             .from(users)
+            .leftJoin(locations, eq(users.addressLocation, locations.id))
             .where(where)
             .orderBy(...(orderBy.length > 0 ? orderBy : []))
             .limit(limit)
@@ -97,7 +108,18 @@ export const createUser = async (req: Request, res: Response): Promise<Response>
         const db = req.org?.db;
         if (!db) return res.status(500).json({ error: "Database not initialized" });
 
-        const { firstName, lastName, email, phone, contactPreference, _notes, isActive } = req.body;
+        const {
+            firstName,
+            lastName,
+            email,
+            phone,
+            contactPreference,
+            _notes,
+            isActive,
+            isDriver,
+            password,
+            address,
+        } = req.body;
 
         if (!firstName || !lastName || !email || !phone) {
             return res.status(400).json({ message: "Missing required fields" });
@@ -107,6 +129,19 @@ export const createUser = async (req: Request, res: Response): Promise<Response>
          * @TODO Add notes to users org schema and include in below query
          */
 
+        // Hash password if provided
+        let passwordHash: string | undefined;
+        if (password) {
+            const { hashPassword } = await import("../utils/password.js");
+            passwordHash = await hashPassword(password);
+        }
+
+        // Create or get location if address provided
+        let addressId: string | null = null;
+        if (address) {
+            addressId = await findOrCreateLocation(db, address);
+        }
+
         const [newUser] = await db
             .insert(users)
             .values({
@@ -115,8 +150,10 @@ export const createUser = async (req: Request, res: Response): Promise<Response>
                 email,
                 phone,
                 contactPreference,
+                passwordHash,
+                addressLocation: addressId ?? undefined,
                 isActive: isActive ?? true,
-                isDriver: false,
+                isDriver: isDriver ?? false,
                 isDeleted: false,
             })
             .returning();
@@ -145,8 +182,18 @@ export const getUser = async (req: Request, res: Response): Promise<Response> =>
                 contactPreference: users.contactPreference,
                 isActive: users.isActive,
                 isDriver: users.isDriver,
+                address: {
+                    id: locations.id,
+                    addressLine1: locations.addressLine1,
+                    addressLine2: locations.addressLine2,
+                    city: locations.city,
+                    state: locations.state,
+                    zip: locations.zip,
+                    country: locations.country,
+                },
             })
             .from(users)
+            .leftJoin(locations, eq(users.addressLocation, locations.id))
             .where(eq(users.id, userId));
 
         if (!userData) {
@@ -168,6 +215,12 @@ export const updateUser = async (req: Request, res: Response): Promise<Response>
         const { userId } = req.params;
         const data = req.body;
 
+        // Create or get location if address provided
+        let addressId: string | null | undefined = undefined;
+        if (data.address) {
+            addressId = await findOrCreateLocation(db, data.address);
+        }
+
         const [updatedUser] = await db
             .update(users)
             .set({
@@ -177,6 +230,8 @@ export const updateUser = async (req: Request, res: Response): Promise<Response>
                 phone: data.phone,
                 contactPreference: data.contactPreference,
                 isActive: data.isActive,
+                isDriver: data.isDriver,
+                ...(addressId !== undefined && { addressLocation: addressId }),
                 updatedAt: new Date().toISOString(),
             })
             .where(eq(users.id, userId))

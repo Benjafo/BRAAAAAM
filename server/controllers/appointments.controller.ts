@@ -1,7 +1,9 @@
-import { and, eq, isNull } from "drizzle-orm";
+import { eq, sql } from "drizzle-orm";
 import { alias } from "drizzle-orm/pg-core";
 import { Request, Response } from "express";
 import { appointments, clients, locations, users } from "../drizzle/org/schema.js";
+import { findOrCreateLocation } from "../utils/locations.js";
+import { applyQueryFilters } from "../utils/queryParams.js";
 
 /*
  * Example Output
@@ -19,51 +21,6 @@ import { appointments, clients, locations, users } from "../drizzle/org/schema.j
     }
  */
 
-// Find or create a location
-const findOrCreateLocation = async (db: any, address: any): Promise<string> => {
-    const addr1 = address.addressLine1?.trim() ?? "";
-    const addr2 = address.addressLine2?.trim() || null;
-    const city = address.city?.trim() ?? "";
-    const state = address.state?.trim() ?? "";
-    const zip = address.zip?.trim() ?? "";
-    const country = address.country?.trim() ?? "";
-
-    // Look for existing location with same full address
-    // Note: SQL NULL comparisons require IS NULL, not = NULL
-    const [existingLocation] = await db
-        .select({ id: locations.id })
-        .from(locations)
-        .where(
-            and(
-                eq(locations.addressLine1, addr1),
-                addr2 === null ? isNull(locations.addressLine2) : eq(locations.addressLine2, addr2),
-                eq(locations.city, city),
-                eq(locations.state, state),
-                eq(locations.zip, zip),
-                eq(locations.country, country)
-            )
-        );
-
-    if (existingLocation) {
-        return existingLocation.id;
-    }
-
-    // No existing match, make new location
-    const [newLocation] = await db
-        .insert(locations)
-        .values({
-            addressLine1: addr1,
-            addressLine2: addr2,
-            city,
-            state,
-            zip,
-            country,
-        })
-        .returning({ id: locations.id });
-
-    return newLocation.id;
-};
-
 export const listAppointments = async (req: Request, res: Response): Promise<Response> => {
     try {
         // Use based on org DB
@@ -73,6 +30,17 @@ export const listAppointments = async (req: Request, res: Response): Promise<Res
         // Create aliases for pickup and destination locations to join both
         const pickupLocations = alias(locations, "pickup_locations");
         const destinationLocations = alias(locations, "destination_locations");
+
+        // Search + Sort + Pagination
+        const { where, orderBy, limit, offset, page, pageSize } = applyQueryFilters(req, [
+            appointments.startDate,
+            appointments.startTime,
+        ]);
+
+        const [{ total }] = await db
+            .select({ total: sql<number>`count(*)` })
+            .from(appointments)
+            .where(where);
 
         const allAppointments = await db
             .select({
@@ -111,9 +79,18 @@ export const listAppointments = async (req: Request, res: Response): Promise<Res
             .leftJoin(
                 destinationLocations,
                 eq(appointments.destinationLocation, destinationLocations.id)
-            );
+            )
+            .where(where)
+            .orderBy(...(orderBy.length > 0 ? orderBy : []))
+            .limit(limit)
+            .offset(offset);
 
-        return res.status(200).json(allAppointments);
+        return res.status(200).json({
+            page,
+            pageSize,
+            total: Number(total),
+            results: allAppointments,
+        });
     } catch (err) {
         console.error("Error listing appointments:", err);
         return res.status(500).send();
