@@ -1,7 +1,8 @@
-import { and, eq, isNull } from "drizzle-orm";
+import { and, eq, isNull, sql } from "drizzle-orm";
 import { alias } from "drizzle-orm/pg-core";
 import { Request, Response } from "express";
 import { appointments, clients, locations, users } from "../drizzle/org/schema.js";
+import { applyQueryFilters } from "../utils/queryParams.js";
 
 /*
  * Example Output
@@ -74,6 +75,17 @@ export const listAppointments = async (req: Request, res: Response): Promise<Res
         const pickupLocations = alias(locations, "pickup_locations");
         const destinationLocations = alias(locations, "destination_locations");
 
+        // Search + Sort + Pagination
+        const { where, orderBy, limit, offset, page, pageSize } = applyQueryFilters(req, [
+            appointments.startDate,
+            appointments.startTime,
+        ]);
+
+        const [{ total }] = await db
+            .select({ total: sql<number>`count(*)` })
+            .from(appointments)
+            .where(where);
+
         const allAppointments = await db
             .select({
                 id: appointments.id,
@@ -111,9 +123,18 @@ export const listAppointments = async (req: Request, res: Response): Promise<Res
             .leftJoin(
                 destinationLocations,
                 eq(appointments.destinationLocation, destinationLocations.id)
-            );
+            )
+            .where(where)
+            .orderBy(...(orderBy.length > 0 ? orderBy : []))
+            .limit(limit)
+            .offset(offset);
 
-        return res.status(200).json(allAppointments);
+        return res.status(200).json({
+            page,
+            pageSize,
+            total: Number(total),
+            results: allAppointments,
+        });
     } catch (err) {
         console.error("Error listing appointments:", err);
         return res.status(500).send();

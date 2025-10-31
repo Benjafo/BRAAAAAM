@@ -39,9 +39,6 @@ type Ride = {
     destinationZip: string | null;
 };
 
-const ORG_ID = "braaaaam";
-const API_RIDES_ENDPOINT = `/o/${ORG_ID}/appointments`;
-
 // Transform API ride data to CalendarEvent format
 // Edited by AI
 const transformRidesToCalendarEvents = (rides: Ride[]): CalendarEvent[] => {
@@ -148,15 +145,18 @@ export default function Schedule() {
             try {
                 setLoading(true);
 
+                const orgId = "braaaaam";
                 const data = await ky
-                    .get(`${API_RIDES_ENDPOINT}?pageSize=1000`, {
+                    .get(`/o/${orgId}/appointments?pageSize=1000`, {
                         headers: {
-                            "x-org-subdomain": ORG_ID,
+                            "x-org-subdomain": orgId,
                         },
                     })
-                    .json<Ride[]>();
+                    .json<{ results: Ride[] }>();
 
-                setRides(transformRidesToCalendarEvents(data));
+                console.log("Fetched rides data:", data);
+
+                setRides(transformRidesToCalendarEvents(data.results));
                 setLoading(false);
             } catch (err) {
                 console.error("Error fetching rides:", err);

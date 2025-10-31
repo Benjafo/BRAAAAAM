@@ -75,11 +75,11 @@ export function ClientsTable() {
                     "x-org-subdomain": orgID,
                 },
             })
-            .json()) as Client[];
+            .json()) as { results: Client[]; total: number };
         console.log("Fetched clients:", response);
         return {
-            data: response,
-            total: response.length,
+            data: response.results,
+            total: response.total,
         };
     };
 

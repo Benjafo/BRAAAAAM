@@ -56,11 +56,11 @@ export function UsersTable() {
                     "x-org-subdomain": orgID,
                 },
             })
-            .json()) as User[];
+            .json()) as { results: User[]; total: number };
         console.log("Fetched users:", response);
         return {
-            data: response,
-            total: response.length,
+            data: response.results,
+            total: response.total,
         };
     };
 

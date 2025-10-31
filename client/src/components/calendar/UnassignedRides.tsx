@@ -151,11 +151,11 @@ export default function UnassignedRides() {
                             "x-org-subdomain": ORG_ID,
                         },
                     })
-                    .json<Ride[]>();
+                    .json<{ results: Ride[] }>();
 
                 // Filter for unassigned rides only
                 // TODO: should be server-side
-                const unassignedRides = data.filter((ride: Ride) => ride.status === "Unassigned");
+                const unassignedRides = data.results.filter((ride: Ride) => ride.status === "Unassigned");
                 const transformedRides = transformRidesToCalendarEvents(unassignedRides);
                 setRides(transformedRides);
                 setLoading(false);

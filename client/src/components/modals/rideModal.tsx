@@ -92,8 +92,8 @@ export default function RideModal({
                             "x-org-subdomain": orgID,
                         },
                     })
-                    .json()) as Client[];
-                setClients(response);
+                    .json()) as { results: Client[] };
+                setClients(response.results);
             } catch (error) {
                 console.error("Failed to fetch clients:", error);
                 toast.error("Failed to load clients");
@@ -113,8 +113,8 @@ export default function RideModal({
                             "x-org-subdomain": orgID,
                         },
                     })
-                    .json()) as User[];
-                const driverUsers = response.filter((user) => user.isDriver === true);
+                    .json()) as { results: User[] };
+                const driverUsers = response.results.filter((user) => user.isDriver === true);
                 setDrivers(driverUsers);
             } catch (error) {
                 console.error("Failed to fetch drivers:", error);
