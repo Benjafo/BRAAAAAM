@@ -1,6 +1,7 @@
-import { and, eq } from "drizzle-orm";
+import { and, eq, sql } from "drizzle-orm";
 import { Request, Response } from "express";
 import { clients, locations } from "../drizzle/org/schema.js";
+import { applyQueryFilters } from "../utils/queryParams.js";
 
 /*
  * Example Client Output
@@ -31,6 +32,19 @@ export const listClients = async (req: Request, res: Response): Promise<Response
         const db = req.org?.db;
         // Does org DB Connection exist?
         if (!db) return res.status(500).json({ error: "Database not initialized" });
+
+        // Pagination + Search + Sort
+        const { where, orderBy, limit, offset, page, pageSize } = applyQueryFilters(req, [
+            clients.firstName,
+            clients.lastName,
+            clients.email,
+            clients.phone,
+        ]);
+
+        const [{ total }] = await db
+            .select({ total: sql<number>`count(*)` })
+            .from(clients)
+            .where(where);
 
         // Join clients with their associated location records
         const data = await db
@@ -65,9 +79,18 @@ export const listClients = async (req: Request, res: Response): Promise<Response
                 },
             })
             .from(clients)
-            .leftJoin(locations, eq(clients.addressLocation, locations.id)); // One-to-One join via foreign key
+            .leftJoin(locations, eq(clients.addressLocation, locations.id)) // One-to-One join via foreign key
+            .where(where)
+            .orderBy(...orderBy)
+            .limit(limit)
+            .offset(offset);
 
-        return res.status(200).json(data);
+        return res.status(200).json({
+            page,
+            pageSize,
+            total: Number(total),
+            results: data,
+        });
     } catch (err) {
         console.error("Error listing clients:", err);
         return res.status(500).json({ error: "Internal server error" });

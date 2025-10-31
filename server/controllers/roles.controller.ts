@@ -1,6 +1,7 @@
 import { Request, Response } from "express";
 import { roles, rolePermissions } from "../drizzle/org/schema.js";
-import { eq } from "drizzle-orm";
+import { eq, sql } from "drizzle-orm";
+import { applyQueryFilters } from "../utils/queryParams.js";
 
 /*
  * Example Output
@@ -18,6 +19,18 @@ export const listRoles = async (req: Request, res: Response): Promise<Response> 
         const db = req.org?.db;
         if (!db) return res.status(500).json({ error: "Database not initialized" });
 
+        // Search + Sort + Pagination
+        const { where, orderBy, limit, offset, page, pageSize } = applyQueryFilters(req, [
+            roles.name,
+            roles.description,
+            roles.roleKey,
+        ]);
+
+        const [{ total }] = await db
+            .select({ total: sql<number>`count(*)` })
+            .from(roles)
+            .where(where);
+
         // Fetch all roles
         const data = await db
             .select({
@@ -28,9 +41,18 @@ export const listRoles = async (req: Request, res: Response): Promise<Response> 
                 isSystem: roles.isSystem,
                 createdAt: roles.createdAt,
             })
-            .from(roles);
+            .from(roles)
+            .where(where)
+            .orderBy(...(orderBy.length > 0 ? orderBy : []))
+            .limit(limit)
+            .offset(offset);
 
-        return res.status(200).json(data);
+        return res.status(200).json({
+            page,
+            pageSize,
+            total: Number(total),
+            results: data,
+        });
     } catch (err) {
         console.error("Error listing roles:", err);
         return res.status(500).json({ error: "Internal server error" });

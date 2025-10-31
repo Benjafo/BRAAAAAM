@@ -1,7 +1,8 @@
 import { Request, Response } from "express";
 import { organizations } from "../drizzle/sys/schema.js";
-import { eq } from "drizzle-orm";
+import { eq, sql } from "drizzle-orm";
 import { getSysDb } from "../drizzle/sys-client.js"
+import { applyQueryFilters } from "../utils/queryParams.js";
 
 // interface Organization {
 //     id: string;
@@ -17,6 +18,20 @@ import { getSysDb } from "../drizzle/sys-client.js"
 export const listOrganizations = async (req: Request, res: Response): Promise<Response> => {
   try {
     const db = getSysDb();
+
+    // Search + Sort + Pagination
+    const { where, orderBy, limit, offset, page, pageSize } = applyQueryFilters(req, [
+      organizations.name,
+      organizations.subdomain,
+      organizations.pocEmail,
+      organizations.pocPhone,
+    ]);
+
+    const [{ total }] = await db
+      .select({ total: sql<number>`count(*)` })
+      .from(organizations)
+      .where(where);
+
     const data = await db
       .select({
         id: organizations.id,
@@ -29,9 +44,18 @@ export const listOrganizations = async (req: Request, res: Response): Promise<Re
         updatedAt: organizations.updatedAt,
         isActive: organizations.isActive,
       })
-      .from(organizations);
+      .from(organizations)
+      .where(where)
+      .orderBy(...(orderBy.length > 0 ? orderBy : []))
+      .limit(limit)
+      .offset(offset);
 
-    return res.status(200).json(data);
+    return res.status(200).json({
+      page,
+      pageSize,
+      total: Number(total),
+      results: data,
+    });
   } catch (err) {
     console.error("Error listing organizations:", err);
     return res.status(500).json({ error: "Internal server error" });
