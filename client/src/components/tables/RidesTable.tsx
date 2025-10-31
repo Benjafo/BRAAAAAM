@@ -38,10 +38,16 @@ const mapRideToFormValues = (ride: Ride): Partial<RideFormValues> & { id?: strin
         clientId: ride.clientId,
         clientName: ride.clientId, // the clientName is actually an ID for the select component
         clientStreetAddress: ride.pickupAddressLine1 || "",
+        clientCity: ride.pickupCity || "",
+        clientState: ride.pickupState || "",
+        clientZip: ride.pickupZip || "",
         tripDate: new Date(ride.date),
         appointmentTime: ride.time,
         tripType: ride.tripCount === 2 ? "roundTrip" : "oneWay", // Convert tripCount to tripType
         destinationAddress: ride.destinationAddressLine1 || "",
+        destinationCity: ride.destinationCity || "",
+        destinationState: ride.destinationState || "",
+        destinationZip: ride.destinationZip || "",
         destinationAddress2: ride.destinationAddressLine2 || "",
         purposeOfTrip: ride.tripPurpose || "",
         assignedDriver: ride.driverId || undefined,
@@ -50,7 +56,13 @@ const mapRideToFormValues = (ride: Ride): Partial<RideFormValues> & { id?: strin
     };
 };
 
-export function RidesTable({ isUnassignedRidesOnly }: { isUnassignedRidesOnly?: boolean }) {
+export function RidesTable({
+    isUnassignedRidesOnly,
+    hideActionButton,
+}: {
+    isUnassignedRidesOnly?: boolean;
+    hideActionButton?: boolean;
+}) {
     const [isRideModalOpen, setIsRideModalOpen] = useState(false);
     const [selectedRideData, setSelectedRideData] = useState<
         Partial<RideFormValues> & { id?: string }
@@ -93,10 +105,13 @@ export function RidesTable({ isUnassignedRidesOnly }: { isUnassignedRidesOnly?: 
         setIsRideModalOpen(true);
     };
 
-    const handleEditRide = (ride: Ride) => {
+    const handleEditRide = (ride: any) => {
         console.log("Ride selected:", ride);
-        console.log("Selected ride data:", selectedRideData);
-        setSelectedRideData(mapRideToFormValues(ride));
+        const originalRide = ride.resource?.originalRide || ride;
+        console.log("Original ride data:", originalRide);
+        const mappedData = mapRideToFormValues(originalRide);
+        console.log("Mapped form values:", mappedData);
+        setSelectedRideData(mappedData);
         setIsRideModalOpen(true);
     };
 
@@ -119,10 +134,14 @@ export function RidesTable({ isUnassignedRidesOnly }: { isUnassignedRidesOnly?: 
                     { header: "Status", accessorKey: "status" },
                 ]}
                 onRowClick={handleEditRide}
-                actionButton={{
-                    label: "Create Ride",
-                    onClick: handleCreateRide,
-                }}
+                actionButton={
+                    hideActionButton
+                        ? {
+                              label: "Create Ride",
+                              onClick: handleCreateRide,
+                          }
+                        : undefined
+                }
             />
             <RideModal
                 open={isRideModalOpen}

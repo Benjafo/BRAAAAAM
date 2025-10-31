@@ -206,10 +206,9 @@ export default function RideModal({
                 destinationAddress: {
                     addressLine1: values.destinationAddress,
                     addressLine2: values.destinationAddress2 || null,
-                    // TODO: Parse city, state, zip from Google autocomplete
-                    city: "Rochester",
-                    state: "NY",
-                    zip: "14623",
+                    city: values.destinationCity,
+                    state: values.destinationState,
+                    zip: values.destinationZip,
                     country: "USA",
                 },
                 status: values.rideStatus || "unassigned",
