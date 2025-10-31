@@ -45,10 +45,9 @@ export default function ClientModal({
                 address: {
                     addressLine1: values.homeAddress,
                     addressLine2: values.homeAddress2 || null,
-                    // TODO: Parse from Google autocomplete
-                    city: "Rochester",
-                    state: "NY",
-                    zip: "14623",
+                    city: values.city,
+                    state: values.state,
+                    zip: values.zipCode,
                     country: "USA",
                 },
             };

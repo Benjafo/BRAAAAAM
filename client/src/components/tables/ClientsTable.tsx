@@ -45,8 +45,11 @@ function mapClientToFormValues(client: Client): Partial<ClientFormValues> & { id
         livingAlone: client.livesAlone ? "Lives alone" : "Does not live alone",
         homeAddress: client.address.addressLine1,
         homeAddress2: client.address.addressLine2 || "",
-        // TODO: add birthMonth, birthYear, clientStatus, volunteeringStatus when available from API
-        // isCellPhone and okToText also are not included
+        city: client.address.city,
+        state: client.address.state,
+        zipCode: client.address.zip,
+        // TODO: add clientStatus, volunteeringStatus when available from API
+        // okToText fields are not included
         // derived date fields for volunteer status are also not included
     };
 }

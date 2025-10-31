@@ -118,3 +118,15 @@
         @apply bg-background text-foreground;
     }
 }
+
+/* ai fixes */
+/* Google Places Autocomplete dropdown needs higher z-index than Dialog (z-50) */
+.pac-container {
+    z-index: 9999 !important;
+    pointer-events: auto !important;
+}
+/* Ensure autocomplete items are clickable */
+.pac-item {
+    pointer-events: auto !important;
+    cursor: pointer !important;
+}

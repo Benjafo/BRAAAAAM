@@ -26,6 +26,7 @@ import {
 } from "@/components/ui/command";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { MapPin } from "lucide-react";
+import { GoogleAddressFields } from "../GoogleAddressFields";
 import { Checkbox } from "../ui/checkbox";
 import { DatePickerInput } from "../ui/datePickerField";
 import { RadioGroup, RadioGroupItem } from "../ui/radio-group";
@@ -57,14 +58,21 @@ const clientSchema = z
             .string()
             .min(1, "Home address is required")
             .max(255, "Max characters allowed is 255."),
-        clientGender: z.enum(["Male", "Female", "Other"], {
-            message: "Please specify the clients gender.",
-        }),
+        city: z.string().min(1, "City is required").max(255, "Max characters allowed is 255."),
+        state: z.string().min(1, "State is required").max(255, "Max characters allowed is 255."),
+        zipCode: z
+            .string()
+            .min(5, "Zip Code is required")
+            .max(10, "Max characters allowed is 10.")
+            .regex(/^\d{5}(-\d{4})?$/, "Please enter a valid US zip code."),
         homeAddress2: z
             .string()
             .max(255, "Max characters allowed is 255.")
             .optional()
             .or(z.literal("")),
+        clientGender: z.enum(["Male", "Female", "Other"], {
+            message: "Please specify the clients gender.",
+        }),
         clientStatus: z.enum(["Permanent client", "Temporary client"], {
             message: "Please specify if the client is a permanent or temporary client",
         }),
@@ -190,8 +198,11 @@ export default function ClientForm({ defaultValues, onSubmit }: Props) {
             birthMonth: defaultValues.birthMonth ?? "",
             birthYear: defaultValues.birthYear ?? "",
             homeAddress: defaultValues.homeAddress ?? "",
-            clientGender: defaultValues.clientGender ?? "Other",
+            city: defaultValues.city ?? "",
+            state: defaultValues.state ?? "",
+            zipCode: defaultValues.zipCode ?? "",
             homeAddress2: defaultValues.homeAddress2 ?? "",
+            clientGender: defaultValues.clientGender ?? "Other",
             clientStatus: defaultValues.clientStatus ?? "Permanent client",
             volunteeringStatus: defaultValues.volunteeringStatus ?? "Active",
             onLeaveUntil: defaultValues.onLeaveUntil,
@@ -481,25 +492,17 @@ export default function ClientForm({ defaultValues, onSubmit }: Props) {
                 />
 
                 {/* Home Address */}
-                <FormField
-                    control={form.control}
-                    name="homeAddress"
-                    render={({ field }) => (
-                        <FormItem>
-                            <FormLabel>Address</FormLabel>
-                            <FormControl>
-                                <div className="relative">
-                                    <Input
-                                        placeholder="(Replace with Google autocomplete)"
-                                        {...field}
-                                    />
-                                    <MapPin className="absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-                                </div>
-                            </FormControl>
-                            <FormMessage />
-                        </FormItem>
-                    )}
-                />
+                <div>
+                    {/* className="md:col-span-2" */}
+                    <GoogleAddressFields
+                        control={form.control}
+                        setValue={form.setValue}
+                        addressFieldName="homeAddress"
+                        cityFieldName="city"
+                        stateFieldName="state"
+                        zipFieldName="zipCode"
+                    />
+                </div>
 
                 {/* Client Status */}
                 <div className="space-y-4">
