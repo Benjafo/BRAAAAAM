@@ -119,11 +119,11 @@ export const MainNavigation = ({
             text: "Unvailability",
             link: "/unavailability",
         },
-        {
-            text: "Notifications",
-            link: "/notifications",
-            permission: PERMISSIONS.VIEW_NOTIFICATIONS,
-        },
+        // {
+        //     text: "Notifications",
+        //     link: "/notifications",
+        //     permission: PERMISSIONS.VIEW_NOTIFICATIONS,
+        // },
         {
             text: "Client Management",
             link: "/clients",
@@ -134,20 +134,20 @@ export const MainNavigation = ({
             link: "/users",
             permission: PERMISSIONS.VIEW_USERS,
         },
-        {
-            text: "Reports",
-            link: "/reports",
-            permission: PERMISSIONS.VIEW_REPORTS,
-        },
+        // {
+        //     text: "Reports",
+        //     link: "/reports",
+        //     permission: PERMISSIONS.VIEW_REPORTS,
+        // },
         {
             text: "Settings",
             link: "/admin-settings",
             permission: PERMISSIONS.VIEW_SETTINGS,
         },
-        {
-            text: "Help Center",
-            link: "/help",
-        },
+        // {
+        //     text: "Help Center",
+        //     link: "/help",
+        // },
     ],
 }: MainNavProps) => {
     const navigate = useNavigate();
