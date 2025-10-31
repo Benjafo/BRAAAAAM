@@ -6,12 +6,11 @@ import ky from "ky";
 type CreateHttpClientOpts = {
     baseUrl?: string;
     getAccessToken?: () => string | null;
-    onUnauthorized?: () => void | Promise<void>
-    onRefresh?: () => void | Promise<void>
-}
+    onUnauthorized?: () => void | Promise<void>;
+    onRefresh?: () => void | Promise<void>;
+};
 
 export const createHttpClient = (opts: CreateHttpClientOpts = {}): KyInstance => {
-
     const { baseUrl, getAccessToken, onUnauthorized, onRefresh } = opts;
 
     // This is a temp fix for build for unused variables. @TODO NEED TO AMEND tsconfig.build.json
@@ -22,27 +21,29 @@ export const createHttpClient = (opts: CreateHttpClientOpts = {}): KyInstance =>
         hooks: {
             beforeRequest: [
                 (request) => {
-                    const token = getAccessToken?.()
-                    if(token) request.headers.set('Authorization', `Bearer ${token}`);
-                    request.headers.set('Content-Type', 'application/json');
-                    request.headers.set('Accept', 'application/json');
+                    const token = getAccessToken?.();
+                    if (token) request.headers.set("Authorization", `Bearer ${token}`);
+                    request.headers.set("Content-Type", "application/json");
+                    request.headers.set("Accept", "application/json");
+                    request.headers.set("x-org-subdomain", "braaaaam");
                 },
             ],
-            beforeRetry: [ //have to rest, this may not be needed.
+            beforeRetry: [
+                //have to rest, this may not be needed.
                 async ({ request }) => {
-                    const token = getAccessToken?.()
-                    if(token) request.headers.set('Authorization', `Bearer ${token}`);
-                }
+                    const token = getAccessToken?.();
+                    if (token) request.headers.set("Authorization", `Bearer ${token}`);
+                    request.headers.set("x-org-subdomain", "braaaaam");
+                },
             ],
             afterResponse: [
                 async (_request, _options, response) => {
-                    if(response.status === 401 && onUnauthorized){
+                    if (response.status === 401 && onUnauthorized) {
                         await onUnauthorized();
                     }
-                }
-            ]
+                },
+            ],
         },
         retry: { limit: 1 },
-    })
-
-} 
+    });
+};
