@@ -1,6 +1,7 @@
 import { Request, Response } from "express";
 import { users } from "../drizzle/org/schema.js";
-import { eq } from "drizzle-orm";
+import { eq, sql } from "drizzle-orm";
+import { applyQueryFilters } from "../utils/queryParams.js";
 
 /*
  * Example User Output
@@ -49,6 +50,19 @@ export const listUsers = async (req: Request, res: Response): Promise<Response> 
         const db = req.org?.db;
         if (!db) return res.status(500).json({ error: "Database not initialized" });
 
+        // Search + Sort + Pagination
+        const { where, orderBy, limit, offset, page, pageSize } = applyQueryFilters(req, [
+            users.firstName,
+            users.lastName,
+            users.email,
+            users.phone,
+        ]);
+
+        const [{ total }] = await db
+            .select({ total: sql<number>`count(*)` })
+            .from(users)
+            .where(where);
+
         const data = await db
             .select({
                 id: users.id,
@@ -60,9 +74,18 @@ export const listUsers = async (req: Request, res: Response): Promise<Response> 
                 isActive: users.isActive,
                 isDriver: users.isDriver,
             })
-            .from(users);
+            .from(users)
+            .where(where)
+            .orderBy(...(orderBy.length > 0 ? orderBy : []))
+            .limit(limit)
+            .offset(offset);
 
-        return res.status(200).json(data);
+        return res.status(200).json({
+            page,
+            pageSize,
+            total: Number(total),
+            results: data,
+        });
     } catch (err) {
         console.error("Error listing users:", err);
         return res.status(500).json({ error: "Internal server error" });

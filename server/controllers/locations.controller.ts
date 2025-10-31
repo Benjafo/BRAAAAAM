@@ -1,6 +1,7 @@
 import { Request, Response } from "express";
 import { locations } from "../drizzle/org/schema.js";
-import { eq } from "drizzle-orm";
+import { eq, sql } from "drizzle-orm";
+import { applyQueryFilters } from "../utils/queryParams.js";
 
 /*
  * Example Location Output
@@ -21,8 +22,24 @@ export const listLocations = async (req: Request, res: Response): Promise<Respon
     // Does org DB Connection exist?
     if (!db) return res.status(500).json({ error: "Database not initialized" });
 
+    // Search + Sort + Pagaination
+    const { where, orderBy, limit, offset, page, pageSize } = applyQueryFilters(req, [
+      locations.aliasName,
+      locations.addressLine1,
+      locations.addressLine2,
+      locations.city,
+      locations.state,
+      locations.zip,
+      locations.country,
+    ]);
+
+    const [{ total }] = await db
+      .select({ total: sql<number>`count(*)` })
+      .from(locations)
+      .where(where);
+
     // Select all location records
-    const data = await db
+    let query = db
       .select({
         id: locations.id,
         aliasName: locations.aliasName,
@@ -36,9 +53,20 @@ export const listLocations = async (req: Request, res: Response): Promise<Respon
         createdAt: locations.createdAt,
         updatedAt: locations.updatedAt,
       })
-      .from(locations);
+      .from(locations)
+      .where(where)
+      .orderBy(...(orderBy.length > 0 ? orderBy : []))
+      .limit(limit)
+      .offset(offset);
 
-    return res.status(200).json(data);
+    const data = await query;
+
+    return res.status(200).json({
+      page,
+      pageSize,
+      total: Number(total),
+      results: data,
+    });
   } catch (err) {
     console.error("Error listing locations:", err);
     return res.status(500).json({ error: "Internal server error" });

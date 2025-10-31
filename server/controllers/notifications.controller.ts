@@ -1,6 +1,7 @@
 import { Request, Response } from "express";
 import { notifications } from "../drizzle/org/schema.js";
-import { eq } from "drizzle-orm";
+import { eq, sql } from "drizzle-orm";
+import { applyQueryFilters } from "../utils/queryParams.js";
 
 /*
  * Example Notification Output
@@ -19,6 +20,17 @@ export const listNotifications = async (req: Request, res: Response): Promise<Re
     // Does org DB Connection exist?
     if (!db) return res.status(500).json({ error: "Database not initialized" });
 
+    // Search + Sort + Pagination
+    const { where, orderBy, limit, offset, page, pageSize } = applyQueryFilters(req, [
+      notifications.title,
+      notifications.description,
+    ]);
+
+    const [{ total }] = await db
+      .select({ total: sql<number>`count(*)` })
+      .from(notifications)
+      .where(where);
+
     // Select all notification records
     const data = await db
       .select({
@@ -29,7 +41,11 @@ export const listNotifications = async (req: Request, res: Response): Promise<Re
         isDismissed: notifications.isDismissed,
         createdAt: notifications.createdAt,
       })
-      .from(notifications);
+      .from(notifications)
+      .where(where)
+      .orderBy(...(orderBy.length > 0 ? orderBy : []))
+      .limit(limit)
+      .offset(offset);
 
     return res.status(200).json(data);
   } catch (err) {
