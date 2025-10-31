@@ -6,11 +6,15 @@ import { Input } from "./ui/input";
 
 /**@TODO Fix eslint disable that is caused by the "any". */
 interface GoogleAddressFieldsProps {
-    control: Control<any>;//eslint-disable-line
-    setValue: UseFormSetValue<any>;//eslint-disable-line
+    control: Control<any>; //eslint-disable-line
+    setValue: UseFormSetValue<any>; //eslint-disable-line
+    addressFieldLabel?: string;
     addressFieldName?: string;
+    cityFieldLabel?: string;
     cityFieldName?: string;
+    stateFieldLabel?: string;
     stateFieldName?: string;
+    zipFieldLabel?: string;
     zipFieldName?: string;
     showLabels?: boolean;
     disabled?: boolean;
@@ -30,9 +34,13 @@ interface GoogleAddressFieldsProps {
 export function GoogleAddressFields({
     control,
     setValue,
+    addressFieldLabel = "Address",
     addressFieldName = "address",
+    cityFieldLabel = "City",
     cityFieldName = "city",
+    stateFieldLabel = "State",
     stateFieldName = "state",
+    zipFieldLabel = "ZIP Code",
     zipFieldName = "zip",
     showLabels = true,
     disabled = false,
@@ -59,7 +67,7 @@ export function GoogleAddressFields({
                 name={addressFieldName}
                 render={({ field }) => (
                     <FormItem>
-                        {showLabels && <FormLabel>Street Address</FormLabel>}
+                        {showLabels && <FormLabel>{addressFieldLabel}</FormLabel>}
                         <FormControl>
                             <GoogleLocator
                                 value={field.value}
@@ -80,7 +88,7 @@ export function GoogleAddressFields({
                     name={cityFieldName}
                     render={({ field }) => (
                         <FormItem>
-                            {showLabels && <FormLabel>City</FormLabel>}
+                            {showLabels && <FormLabel>{cityFieldLabel}</FormLabel>}
                             <FormControl>
                                 <Input placeholder="City" {...field} disabled={disabled} />
                             </FormControl>
@@ -95,7 +103,7 @@ export function GoogleAddressFields({
                     name={stateFieldName}
                     render={({ field }) => (
                         <FormItem>
-                            {showLabels && <FormLabel>State</FormLabel>}
+                            {showLabels && <FormLabel>{stateFieldLabel}</FormLabel>}
                             <FormControl>
                                 <Input placeholder="ST" {...field} disabled={disabled} />
                             </FormControl>
@@ -112,7 +120,7 @@ export function GoogleAddressFields({
                     name={zipFieldName}
                     render={({ field }) => (
                         <FormItem>
-                            {showLabels && <FormLabel>ZIP Code</FormLabel>}
+                            {showLabels && <FormLabel>{zipFieldLabel}</FormLabel>}
                             <FormControl>
                                 <Input placeholder="12345" {...field} disabled={disabled} />
                             </FormControl>
