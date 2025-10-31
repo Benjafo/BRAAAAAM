@@ -3,27 +3,49 @@
  * This component is used by dispatchers to view and assign unassigned rides
  */
 
+import ky from "ky";
 import { useEffect, useState } from "react";
 import type { SlotInfo } from "react-big-calendar";
 import type { BusinessHoursConfig, CalendarEvent } from "../../types/rides";
+import type { RideFormValues } from "../form/rideForm";
 import BaseCalendar from "./BaseCalendar";
+import RideModal from "../modals/rideModal";
 
-// Type matching the API response
-type RideFromAPI = {
-    date: string; // e.g., '2025-10-15'
-    time: string; // e.g., '08:30 AM'
-    duration: number; // duration in minutes
-    clientName: string;
-    destinationAddress: string;
-    dispatcherName: string;
-    status: "unassigned" | "scheduled" | "cancelled" | "completed" | "withdrawn";
+type Ride = {
+    id: string;
+    date: string;
+    time: string;
+    status: "Unassigned" | "Scheduled" | "Cancelled" | "Completed" | "Withdrawn";
+    clientId: string;
+    clientFirstName: string | null;
+    clientLastName: string | null;
+    driverId: string | null;
+    dispatcherId: string;
+    dispatcherFirstName: string | null;
+    dispatcherLastName: string | null;
+    tripPurpose: string | null;
+    tripCount: number;
+    pickupLocationId: string;
+    pickupAddressLine1: string | null;
+    pickupAddressLine2: string | null;
+    pickupCity: string | null;
+    pickupState: string | null;
+    pickupZip: string | null;
+    destinationLocationId: string;
+    destinationAddressLine1: string | null;
+    destinationAddressLine2: string | null;
+    destinationCity: string | null;
+    destinationState: string | null;
+    destinationZip: string | null;
 };
 
-const API_RIDES_ENDPOINT = `http://localhost:3000/dummy/rides?status=unassigned&pageSize=1000`;
+const ORG_ID = "braaaaam";
+const API_RIDES_ENDPOINT = `/o/${ORG_ID}/appointments`;
 
 // Transform API ride data to CalendarEvent format
-const transformRidesToCalendarEvents = (rides: RideFromAPI[]): CalendarEvent[] => {
-    return rides.map((ride, index) => {
+// AI helped here
+const transformRidesToCalendarEvents = (rides: Ride[]): CalendarEvent[] => {
+    return rides.map((ride) => {
         // Parse date and time
         const [year, month, day] = ride.date.split("-").map(Number);
         const [time, period] = ride.time.split(" ");
@@ -37,28 +59,65 @@ const transformRidesToCalendarEvents = (rides: RideFromAPI[]): CalendarEvent[] =
         }
 
         const startDate = new Date(year, month - 1, day, hours, minutes);
-        // Use duration from API (in minutes)
-        const durationMs = ride.duration * 60 * 1000;
+        // Default to 60 minutes duration (can be adjusted based on tripCount or other logic)
+        const durationMs = 60 * 60 * 1000; // 60 minutes
         const endDate = new Date(startDate.getTime() + durationMs);
 
+        // Build client name from firstName and lastName
+        const clientName = `${ride.clientFirstName || ""} ${ride.clientLastName || ""}`.trim();
+
+        // Build dispatcher name
+        const dispatcherName =
+            `${ride.dispatcherFirstName || ""} ${ride.dispatcherLastName || ""}`.trim();
+
+        // Build destination address
+        const destinationAddress = ride.destinationAddressLine1 || "Unknown destination";
+
+        // Convert status to lowercase to match CalendarEvent type
+        const status = ride.status.toLowerCase() as
+            | "unassigned"
+            | "scheduled"
+            | "cancelled"
+            | "completed"
+            | "withdrawn";
+
         return {
-            id: index + 1,
-            title: ride.clientName,
+            id: ride.id,
+            title: clientName,
             start: startDate,
             end: endDate,
             type: "ride",
             resource: {
-                status: "unassigned", // Always unassigned in this view
-                clientName: ride.clientName,
+                status: status,
+                clientName: clientName,
                 driverName: undefined, // No driver for unassigned rides
-                purpose: "Medical appointment",
-                details: `Ride to ${ride.destinationAddress.split(",")[0]}`,
+                purpose: ride.tripPurpose || "Transportation",
+                details: `Ride to ${destinationAddress}`,
                 driver: undefined,
-                location: ride.destinationAddress,
-                dispatcherName: ride.dispatcherName,
+                location: destinationAddress,
+                dispatcherName: dispatcherName,
+                originalRide: ride, // Store original ride data for form mapping
             },
         };
     });
+};
+
+// Map ride data to form values format
+const mapRideToFormValues = (ride: Ride): Partial<RideFormValues> & { id?: string } => {
+    return {
+        id: ride.id,
+        clientId: ride.clientId,
+        clientName: ride.clientId, // the clientName is actually an ID for the select component
+        clientStreetAddress: ride.pickupAddressLine1 || "",
+        tripDate: new Date(ride.date),
+        appointmentTime: ride.time,
+        tripType: ride.tripCount === 2 ? "roundTrip" : "oneWay",
+        destinationAddress: ride.destinationAddressLine1 || "",
+        destinationAddress2: ride.destinationAddressLine2 || "",
+        purposeOfTrip: ride.tripPurpose || "",
+        assignedDriver: ride.driverId || undefined,
+        rideStatus: ride.status,
+    };
 };
 
 // Business hours configuration
@@ -75,6 +134,10 @@ const businessHours: BusinessHoursConfig = {
 export default function UnassignedRides() {
     const [rides, setRides] = useState<CalendarEvent[]>([]);
     const [loading, setLoading] = useState(true);
+    const [isRideModalOpen, setIsRideModalOpen] = useState(false);
+    const [selectedRideData, setSelectedRideData] = useState<
+        Partial<RideFormValues> & { id?: string }
+    >({});
 
     // Fetch unassigned rides from API
     useEffect(() => {
@@ -82,18 +145,23 @@ export default function UnassignedRides() {
             try {
                 setLoading(true);
 
-                const response = await fetch(API_RIDES_ENDPOINT);
+                const data = await ky
+                    .get(`${API_RIDES_ENDPOINT}?pageSize=1000`, {
+                        headers: {
+                            "x-org-subdomain": ORG_ID,
+                        },
+                    })
+                    .json<Ride[]>();
 
-                if (!response.ok) {
-                    throw new Error(`Failed to fetch unassigned rides: ${response.status}`);
-                }
-
-                const data = await response.json();
-                const transformedRides = transformRidesToCalendarEvents(data.data || []);
+                // Filter for unassigned rides only
+                // TODO: should be server-side
+                const unassignedRides = data.filter((ride: Ride) => ride.status === "Unassigned");
+                const transformedRides = transformRidesToCalendarEvents(unassignedRides);
                 setRides(transformedRides);
                 setLoading(false);
             } catch (err) {
                 console.error("Error fetching unassigned rides:", err);
+                setLoading(false);
             }
         };
 
@@ -103,24 +171,16 @@ export default function UnassignedRides() {
     // Handle ride selection - for assigning driver
     const handleRideSelect = (event: CalendarEvent) => {
         console.log("Selected unassigned ride:", event);
-
-        // Open a modal to assign a driver
-        alert(`
-            Unassigned Ride Details:
-            Client: ${event.resource?.clientName}
-            Location: ${event.resource?.location}
-            Date: ${event.start.toLocaleDateString()}
-            Time: ${event.start.toLocaleTimeString()}
-            Duration: ${(event.end.getTime() - event.start.getTime()) / (1000 * 60)} minutes
-
-            Click to assign a driver...
-        `);
+        const originalRide = event.resource?.originalRide as Ride;
+        if (originalRide) {
+            setSelectedRideData(mapRideToFormValues(originalRide));
+            setIsRideModalOpen(true);
+        }
     };
 
     // Handle slot selection
     const handleSlotSelect = (slotInfo: SlotInfo) => {
         console.log("Selected time slot:", slotInfo);
-
         const startTime = slotInfo.start.toLocaleTimeString();
         const endTime = slotInfo.end.toLocaleTimeString();
         alert(`Create new unassigned ride for:\nStart: ${startTime}\nEnd: ${endTime}`);
@@ -129,10 +189,10 @@ export default function UnassignedRides() {
     // Handle create ride button
     const handleCreateUnassignedRide = () => {
         console.log("Creating new unassigned ride...");
-        alert("Create Unassigned Ride modal would open here");
+        setSelectedRideData({});
+        setIsRideModalOpen(true);
     };
 
-    // Show loading state
     if (loading) {
         return (
             <div className="h-full flex items-center justify-center">
@@ -175,6 +235,11 @@ export default function UnassignedRides() {
                 businessHours={businessHours}
                 onEventSelect={handleRideSelect}
                 onSlotSelect={handleSlotSelect}
+            />
+            <RideModal
+                open={isRideModalOpen}
+                onOpenChange={setIsRideModalOpen}
+                defaultValues={selectedRideData}
             />
         </div>
     );

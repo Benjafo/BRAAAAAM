@@ -40,6 +40,7 @@ import { Popover, PopoverContent, PopoverTrigger } from "../ui/popover";
 /* using z.enum for select values that we know are included */
 const rideSchema = z
     .object({
+        clientId: z.string().uuid(),
         clientName: z
             .string()
             .min(1, "Please select an option.")
@@ -67,18 +68,9 @@ const rideSchema = z
         relationshipToClient: z.string().max(255).optional(),
         assignedDriver: z.string().optional(),
         rideStatus: z
-            .enum(
-                [
-                    "completedRoundTrip",
-                    "completedOneWayTo",
-                    "completedOneWayFrom",
-                    "cancelledClient",
-                    "cancelledDriver",
-                ],
-                {
-                    message: "Please select a ride status.",
-                }
-            )
+            .enum(["Unassigned", "Scheduled", "Cancelled", "Completed", "Withdrawn"], {
+                message: "Please select a valid ride status.",
+            })
             .optional(),
         tripDuration: z
             .number()
@@ -153,6 +145,27 @@ const rideSchema = z
                 });
             }
         }
+
+        // Driver assignment validation based on ride status
+        if (data.rideStatus === "Unassigned") {
+            if (data.assignedDriver?.trim()) {
+                ctx.addIssue({
+                    code: "custom",
+                    message: "Cannot assign a driver to an unassigned ride.",
+                    path: ["assignedDriver"],
+                });
+            }
+        }
+
+        if (data.rideStatus === "Scheduled" || data.rideStatus === "Completed") {
+            if (!data.assignedDriver?.trim()) {
+                ctx.addIssue({
+                    code: "custom",
+                    message: "A driver must be assigned for scheduled or completed rides.",
+                    path: ["assignedDriver"],
+                });
+            }
+        }
     });
 
 export type RideFormValues = z.infer<typeof rideSchema>;
@@ -163,9 +176,10 @@ type Props = {
     defaultValues: Partial<RideFormValues>;
     onSubmit: (values: RideFormValues) => void | Promise<void>;
     // Use these props for AI integration later
-    clients?: Array<{ value: string; label: string; profile?: ClientProfile }>;
+    clients?: Array<{ id: string; value: string; label: string; profile?: ClientProfile }>;
     drivers?: Array<{ value: string; label: string }>;
     onClientChange?: (clientValue: string) => void;
+    isLoading: boolean;
 };
 
 /* --------------------------------- Form ----------------------------------- */
@@ -175,12 +189,13 @@ export default function EditRideForm({
     clients: clientsProp,
     drivers: driversProp,
     onClientChange,
+    isLoading,
 }: Props) {
     const form = useForm<RideFormValues>({
         resolver: zodResolver(rideSchema),
         mode: "onBlur",
-
         defaultValues: {
+            clientId: defaultValues.clientId,
             clientName: defaultValues.clientName ?? "",
             clientStreetAddress: defaultValues.clientStreetAddress ?? "",
             destinationAddress: defaultValues.destinationAddress ?? "",
@@ -192,7 +207,6 @@ export default function EditRideForm({
             additionalRider: defaultValues.additionalRider ?? "No",
             additionalRiderFirstName: defaultValues.additionalRiderFirstName ?? "",
             assignedDriver: defaultValues.assignedDriver ?? "",
-
             additionalRiderLastName: defaultValues.additionalRiderLastName ?? "",
             relationshipToClient: defaultValues.relationshipToClient ?? "",
             rideStatus: defaultValues.rideStatus,
@@ -223,18 +237,24 @@ export default function EditRideForm({
             field.onChange(isNaN(parsed) ? undefined : parsed);
         };
 
-    /* Client data information, Update with API information later  */
+    // Client and driver lists
     const clients = clientsProp ?? [];
-
-    /* Driver data information, update with API information later */
-    const drivers = driversProp ?? [
-        { value: "driverOne", label: "Bob Smith" },
-        { value: "driverTwo", label: "Samantha Noel" },
-    ];
+    const drivers = driversProp ?? [];
 
     /* Controls opening for client, and driver pop ups  */
     const [clientOpen, setClientOpen] = useState(false);
     const [driverOpen, setDriverOpen] = useState(false);
+
+    if (isLoading) {
+        return (
+            <div className="h-full flex items-center justify-center">
+                <div className="text-center">
+                    <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-gray-900 mx-auto"></div>
+                    <p className="mt-4 text-gray-600">Loading...</p>
+                </div>
+            </div>
+        );
+    }
 
     return (
         <Form {...form}>
@@ -281,6 +301,10 @@ export default function EditRideForm({
                                                                 onSelect={() => {
                                                                     field.onChange(client.value);
                                                                     onClientChange?.(client.value);
+                                                                    form.setValue(
+                                                                        "clientId",
+                                                                        client.id
+                                                                    );
                                                                     // Set the client's street address from their profile
                                                                     if (client.profile?.address) {
                                                                         form.setValue(
@@ -331,7 +355,6 @@ export default function EditRideForm({
                             <FormMessage />
                         </FormItem>
                     )}
-                    disabled
                 />
                 {/* Street Address */}
                 <FormField
@@ -339,7 +362,7 @@ export default function EditRideForm({
                     name="destinationAddress"
                     render={({ field }) => (
                         <FormItem>
-                            <FormLabel>Organization Street Address</FormLabel>
+                            <FormLabel>Destination Street Address</FormLabel>
                             <FormControl>
                                 <div className="relative">
                                     <Input
@@ -359,7 +382,7 @@ export default function EditRideForm({
                     name="destinationAddress2"
                     render={({ field }) => (
                         <FormItem>
-                            <FormLabel>Organization Street Unit/Apartment/Suite</FormLabel>
+                            <FormLabel>Destination Street Unit/Apartment/Suite</FormLabel>
                             <FormControl>
                                 <div className="relative">
                                     <Input
@@ -582,21 +605,11 @@ export default function EditRideForm({
                                         <SelectValue placeholder="Select Ride Status" />
                                     </SelectTrigger>
                                     <SelectContent>
-                                        <SelectItem value="completedRoundTrip">
-                                            Completed Round Trip
-                                        </SelectItem>
-                                        <SelectItem value="completedOneWayTo">
-                                            Completed One Way To
-                                        </SelectItem>
-                                        <SelectItem value="completedOneWayFrom">
-                                            Completed One Way From
-                                        </SelectItem>
-                                        <SelectItem value="cancelledClient">
-                                            Cancelled by Client
-                                        </SelectItem>
-                                        <SelectItem value="cancelledDriver">
-                                            Cancelled by Driver
-                                        </SelectItem>
+                                        <SelectItem value="Unassigned">Unassigned</SelectItem>
+                                        <SelectItem value="Scheduled">Scheduled</SelectItem>
+                                        <SelectItem value="Cancelled">Cancelled</SelectItem>
+                                        <SelectItem value="Completed">Completed</SelectItem>
+                                        <SelectItem value="Withdrawn">Withdrawn</SelectItem>
                                     </SelectContent>
                                 </Select>
                             </FormControl>

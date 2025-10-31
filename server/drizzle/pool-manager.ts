@@ -51,10 +51,32 @@ export async function preloadOrgPools() {
   });
 }
 
-export async function createOrgDbFromTemplate(subdomain: string, name: string, pocName: string, pocEmail: string) {
+export async function createOrgDbFromTemplate(
+    subdomain: string,
+    name: string,
+    pocName: string,
+    pocEmail: string,
+    addressLine1: string,
+    city: string,
+    state: string,
+    zip: string,
+    country: string,
+    addressLine2?: string
+) {
 
     const organizationInsertSchema = createInsertSchema(organizations)
-    const parsed = organizationInsertSchema.parse({ subdomain, name, pocEmail });
+    const parsed = organizationInsertSchema.parse({
+        subdomain,
+        name,
+        pocName,
+        pocEmail,
+        addressLine1,
+        addressLine2,
+        city,
+        state,
+        zip,
+        country
+    });
 
     const base = process.env.ORG_DATABASE_URL;
     if (!base) throw new Error('Missing ORG_DATABASE_URL');
