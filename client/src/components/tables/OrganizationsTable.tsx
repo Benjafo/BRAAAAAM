@@ -15,12 +15,14 @@ type Organization = {
     isActive: boolean;
 };
 
-const mapOrganizationToFormValues = (organization: Organization): Partial<OrganizationFormValues> & { id: string } => {
+const mapOrganizationToFormValues = (
+    organization: Organization
+): Partial<OrganizationFormValues> & { id: string } => {
     return {
         id: organization.id,
         orgName: organization.name,
         email: organization.pocEmail,
-        phoneGeneral: organization.pocPhone?.replace(/^\+1/, '') || '',
+        phoneGeneral: organization.pocPhone?.replace(/^\+1/, "") || "",
         status: organization.isActive ? "Active" : "Inactive",
         orgCreationDate: organization.createdAt ? new Date(organization.createdAt) : new Date(),
     };
@@ -33,12 +35,15 @@ export function OrganizationsTable() {
     >({});
 
     const fetchOrganizations = async (_params: Record<string, any>) => {
-        const organizations: Organization[] = await ky.get(`/s/organizations`).json();
-        console.log(organizations);
+        const response = (await ky.get(`/s/organizations`).json()) as {
+            results: Organization[];
+            total: number;
+        };
+        console.log(response);
 
         return {
-            data: organizations,
-            total: organizations.length,
+            data: response.results,
+            total: response.total,
         };
     };
 
@@ -76,7 +81,7 @@ export function OrganizationsTable() {
                     },
                     {
                         header: "Status",
-                        accessorFn: (row) => row.isActive ? "Active" : "Inactive",
+                        accessorFn: (row) => (row.isActive ? "Active" : "Inactive"),
                         id: "status",
                     },
                 ]}

@@ -8,7 +8,6 @@ import {
     DialogFooter,
     DialogHeader,
     DialogTitle,
-    DialogTrigger,
 } from "@/components/ui/dialog";
 import ky from "ky";
 import { toast } from "sonner";
@@ -70,10 +69,6 @@ export default function NewOrganizationModal({
 
     return (
         <Dialog open={open} onOpenChange={onOpenChange}>
-            <DialogTrigger asChild>
-                <Button variant="outline">New Organization</Button>
-            </DialogTrigger>
-
             <DialogContent className="max-w-[720px] max-h-[90vh] overflow-y-auto scroll-smooth p-6">
                 <DialogHeader className="mb-4">
                     <DialogTitle>New Organization</DialogTitle>
