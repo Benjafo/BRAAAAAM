@@ -364,7 +364,7 @@ export default function BaseCalendar({
 
         // Build tooltip content
         const tooltipContent = [
-            clientName,
+            `Client: ${clientName}`,
             driverName && `Driver: ${driverName}`,
             purpose && `Purpose: ${purpose}`,
             `Status: ${status}`,
