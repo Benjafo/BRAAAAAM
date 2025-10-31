@@ -83,20 +83,21 @@ export function RidesTable({
                     "x-org-subdomain": orgID,
                 },
             })
-            .json()) as Ride[];
+            .json()) as { results: Ride[]; total: number };
         console.log("Fetched rides:", response);
 
         // TODO this should be server side
         if (isUnassignedRidesOnly) {
+            const unassignedRides = response.results.filter((ride) => ride.status === "Unassigned");
             return {
-                data: response.filter((ride) => ride.status === "Unassigned"),
-                total: response.filter((ride) => ride.status === "Unassigned").length,
+                data: unassignedRides,
+                total: unassignedRides.length,
             };
         }
 
         return {
-            data: response,
-            total: response.length,
+            data: response.results,
+            total: response.total,
         };
     };
 
