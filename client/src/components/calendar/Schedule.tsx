@@ -109,10 +109,16 @@ const mapRideToFormValues = (ride: Ride): Partial<RideFormValues> & { id?: strin
         clientId: ride.clientId,
         clientName: ride.clientId, // the clientName is actually an ID for the select component
         clientStreetAddress: ride.pickupAddressLine1 || "",
+        clientCity: ride.pickupCity || "",
+        clientState: ride.pickupState || "",
+        clientZip: ride.pickupZip || "",
         tripDate: new Date(ride.date),
         appointmentTime: ride.time,
         tripType: ride.tripCount === 2 ? "roundTrip" : "oneWay",
         destinationAddress: ride.destinationAddressLine1 || "",
+        destinationCity: ride.destinationCity || "",
+        destinationState: ride.destinationState || "",
+        destinationZip: ride.destinationZip || "",
         destinationAddress2: ride.destinationAddressLine2 || "",
         purposeOfTrip: ride.tripPurpose || "",
         assignedDriver: ride.driverId || undefined,
@@ -169,7 +175,6 @@ export default function Schedule() {
 
     // Handle ride selection
     const handleRideSelect = (event: CalendarEvent) => {
-        console.log("Selected ride:", event);
         const originalRide = event.resource?.originalRide as Ride;
         if (originalRide) {
             setSelectedRideData(mapRideToFormValues(originalRide));
