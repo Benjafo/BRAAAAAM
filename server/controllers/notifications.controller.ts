@@ -47,7 +47,12 @@ export const listNotifications = async (req: Request, res: Response): Promise<Re
       .limit(limit)
       .offset(offset);
 
-    return res.status(200).json(data);
+    return res.status(200).json({
+      page,
+      pageSize,
+      total: Number(total),
+      results: data,
+    });
   } catch (err) {
     console.error("Error listing notifications:", err);
     return res.status(500).json({ error: "Internal server error" });
