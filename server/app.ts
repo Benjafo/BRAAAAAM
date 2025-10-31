@@ -91,7 +91,18 @@ app.use(cookieParser());
 app.use(express.static(path.join(__dirname, "..", "public")));
 
 app.get("/test/create-org-db", async (req: Request, res: Response) => {
-    const { subdomain, name, pocName, pocEmail, addressLine1, addressLine2, city, state, zip, country } = req.query;
+    const {
+        subdomain,
+        name,
+        pocName,
+        pocEmail,
+        addressLine1,
+        addressLine2,
+        city,
+        state,
+        zip,
+        country,
+    } = req.query;
 
     if (
         typeof subdomain !== "string" ||
@@ -146,7 +157,7 @@ app.use("/o/:orgId/users", withOrg, usersRouter);
 app.use("/o/:orgId/clients", withOrg, clientsRouter);
 app.use("/o/:orgId/settings", withOrg, orgSettingsRouter);
 app.use("/s/settings", sysSettingsRouter);
-app.use("/o/:orgId/appointments", withOrg, appointmentsRouter);1
+app.use("/o/:orgId/appointments", withOrg, appointmentsRouter);
 app.use("/o/:orgId/notifications", withOrg, notificationsRouter);
 app.use("/o/:orgId/reports", withOrg, reportsRouter);
 app.use("/s/organizations", organizationsRouter);
