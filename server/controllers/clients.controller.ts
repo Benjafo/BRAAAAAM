@@ -264,6 +264,8 @@ export const updateClient = async (req: Request, res: Response): Promise<Respons
                 phone: data.phone,
                 contactPreference: data.contactPreference,
                 gender: data.gender,
+                birthYear: data.birthYear,
+                birthMonth: data.birthMonth,
                 updatedAt: new Date().toISOString(), // Update timestamp manually
             })
             .where(eq(clients.id, clientId))

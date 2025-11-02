@@ -107,6 +107,8 @@ export const users = pgTable(
         passwordHash: varchar("password_hash", { length: 255 }),
         roleId: uuid("role_id"),
         addressLocation: uuid("address_location"),
+        birthYear: integer("birth_year"),
+        birthMonth: integer("birth_month"),
         isDriver: boolean("is_driver").default(false),
         isActive: boolean("is_active").default(true),
         isDeleted: boolean("is_deleted").default(false),
@@ -135,6 +137,14 @@ export const users = pgTable(
             .onUpdate("cascade")
             .onDelete("restrict"),
         unique("users_email_key").on(table.email),
+        check(
+            "users_birth_year_check",
+            sql`(birth_year IS NULL) OR ((birth_year >= 1900) AND (birth_year <= (EXTRACT(year FROM CURRENT_DATE))::integer))`
+        ),
+        check(
+            "users_birth_month_check",
+            sql`(birth_month IS NULL) OR ((birth_month >= 1) AND (birth_month <= 12))`
+        ),
         check(
             "users_phone_e164_check",
             sql`(phone IS NULL) OR (phone ~ '^\\+[1-9][1-9]{1,14}$'::text)`

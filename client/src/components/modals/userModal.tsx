@@ -39,6 +39,8 @@ export default function NewUserModal({
                 email: values.clientEmail,
                 phone: `+1${values.primaryPhoneNumber}`,
                 contactPreference: values.contactPreference.toLowerCase(),
+                birthMonth: values.birthMonth ? values.birthMonth : null,
+                birthYear: values.birthYear ? values.birthYear : null,
                 isActive: values.volunteeringStatus === "Active",
                 isDriver: values.userRole === "Driver",
                 address: {

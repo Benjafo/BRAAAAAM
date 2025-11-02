@@ -11,6 +11,8 @@ type User = {
     email: string;
     phone: string;
     contactPreference: string | null;
+    birthYear: number | null;
+    birthMonth: number | null;
     isActive: boolean;
     isDriver: boolean;
     address: {
@@ -37,13 +39,15 @@ function mapUserToFormValues(user: User): Partial<UserFormValues> & { id: string
                 ((user.contactPreference.charAt(0).toUpperCase() +
                     user.contactPreference.slice(1)) as "Phone" | "Email")) ||
             "Phone",
+        birthMonth: user.birthMonth ? user.birthMonth.toString().padStart(2, "0") : "",
+        birthYear: user.birthYear ? String(user.birthYear) : "",
         volunteeringStatus: user.isActive ? "Active" : "Inactive",
         userRole: user.isDriver ? "Driver" : "Dispatcher",
-        streetAddress: user.address.addressLine1,
-        streetAddress2: user.address.addressLine2 || "",
-        city: user.address.city,
-        state: user.address.state,
-        zipCode: user.address.zip,
+        streetAddress: user.address?.addressLine1 || "",
+        streetAddress2: user.address?.addressLine2 || "",
+        city: user.address?.city || "",
+        state: user.address?.state || "",
+        zipCode: user.address?.zip || "",
         // TODO: add other fields from api?? not 100% but im pretty sure some are missing
     };
 }

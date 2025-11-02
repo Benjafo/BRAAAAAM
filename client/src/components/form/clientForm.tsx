@@ -51,7 +51,7 @@ const clientSchema = z
             .string()
             .min(1, "Write in how you want to be contacted. ")
             .max(255, "Max characters allowed is 255."),
-        birthMonth: z.string().min(1, "Please select a month."),
+        birthMonth: z.string().optional(),
         birthYear: z.string().min(1, "Please select a year."),
         homeAddress: z
             .string()

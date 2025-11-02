@@ -48,7 +48,7 @@ const userSchema = z
             .min(1, "Please enter the last name.")
             .max(255, "Max characters allowed is 255."),
         clientEmail: z.email("Please enter a valid email address."),
-        birthMonth: z.string().min(1, "Please select a month."),
+        birthMonth: z.string().optional(),
         birthYear: z.string().min(1, "Please select a year."),
         streetAddress: z
             .string()
