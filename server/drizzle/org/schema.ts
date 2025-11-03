@@ -258,6 +258,7 @@ export const clients = pgTable(
         emergencyContactPhone: text("emergency_contact_phone"),
         emergencyContactRelationship: varchar("emergency_contact_relationship", { length: 100 }),
         notes: text(),
+        pickupInstructions: text("pickup_instructions"),
         isActive: boolean("is_active").default(true),
         createdAt: timestamp("created_at", { withTimezone: true, mode: "string" })
             .defaultNow()

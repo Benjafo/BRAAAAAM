@@ -20,6 +20,8 @@ type Client = {
     emergencyContactName: string | null;
     emergencyContactPhone: string | null;
     emergencyContactRelationship: string | null;
+    notes: string | null;
+    pickupInstructions: string | null;
     address: {
         id: string;
         addressLine1: string;
@@ -49,6 +51,8 @@ function mapClientToFormValues(client: Client): Partial<ClientFormValues> & { id
         emergencyContactName: client.emergencyContactName || "",
         emergencyContactPhone: client.emergencyContactPhone?.replace("+1", "") || "",
         emergencyContactRelationship: client.emergencyContactRelationship || "",
+        notes: client.notes || "",
+        pickupInstructions: client.pickupInstructions || "",
         homeAddress: client.address.addressLine1,
         homeAddress2: client.address.addressLine2 || "",
         city: client.address.city,

@@ -47,6 +47,8 @@ export default function ClientModal({
                     ? `+1${values.emergencyContactPhone}`
                     : null,
                 emergencyContactRelationship: values.emergencyContactRelationship || null,
+                notes: values.notes || null,
+                pickupInstructions: values.pickupInstructions || null,
                 address: {
                     addressLine1: values.homeAddress,
                     addressLine2: values.homeAddress2 || null,

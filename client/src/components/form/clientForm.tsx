@@ -30,6 +30,7 @@ import { Checkbox } from "../ui/checkbox";
 import { DatePickerInput } from "../ui/datePickerField";
 import { RadioGroup, RadioGroupItem } from "../ui/radio-group";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../ui/select";
+import { Textarea } from "../ui/textarea";
 
 /* --------------------------------- Schema --------------------------------- */
 /* using z.enum for select values that we know are included */
@@ -122,6 +123,8 @@ const clientSchema = z
             .max(100, "Max characters allowed is 100.")
             .optional()
             .or(z.literal("")),
+        notes: z.string().optional().or(z.literal("")),
+        pickupInstructions: z.string().optional().or(z.literal("")),
     })
     .superRefine((data, ctx) => {
         // AI helped on the super refine
@@ -237,6 +240,8 @@ export default function ClientForm({ defaultValues, onSubmit }: Props) {
             emergencyContactName: defaultValues.emergencyContactName ?? "",
             emergencyContactPhone: defaultValues.emergencyContactPhone ?? "",
             emergencyContactRelationship: defaultValues.emergencyContactRelationship ?? "",
+            notes: defaultValues.notes ?? "",
+            pickupInstructions: defaultValues.pickupInstructions ?? "",
         },
     });
 
@@ -269,7 +274,7 @@ export default function ClientForm({ defaultValues, onSubmit }: Props) {
                         </FormItem>
                     )}
                 />
-                
+
                 {/* Last name */}
                 <FormField
                     control={form.control}
@@ -894,6 +899,46 @@ export default function ClientForm({ defaultValues, onSubmit }: Props) {
                         </FormItem>
                     )}
                 />
+
+                {/* Comments/Notes */}
+                <div className="md:col-span-2">
+                    <FormField
+                        control={form.control}
+                        name="notes"
+                        render={({ field }) => (
+                            <FormItem>
+                                <FormLabel>Comments/Notes</FormLabel>
+                                <FormControl>
+                                    <Textarea
+                                        placeholder="Enter any comments or notes..."
+                                        {...field}
+                                    />
+                                </FormControl>
+                                <FormMessage />
+                            </FormItem>
+                        )}
+                    />
+                </div>
+
+                {/* Pickup Instructions */}
+                <div className="md:col-span-2">
+                    <FormField
+                        control={form.control}
+                        name="pickupInstructions"
+                        render={({ field }) => (
+                            <FormItem>
+                                <FormLabel>Pickup Instructions</FormLabel>
+                                <FormControl>
+                                    <Textarea
+                                        placeholder="Enter pickup instructions..."
+                                        {...field}
+                                    />
+                                </FormControl>
+                                <FormMessage />
+                            </FormItem>
+                        )}
+                    />
+                </div>
             </form>
         </Form>
     );

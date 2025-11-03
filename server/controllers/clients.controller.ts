@@ -69,6 +69,7 @@ export const listClients = async (req: Request, res: Response): Promise<Response
                 emergencyContactPhone: clients.emergencyContactPhone,
                 emergencyContactRelationship: clients.emergencyContactRelationship,
                 notes: clients.notes,
+                pickupInstructions: clients.pickupInstructions,
                 isActive: clients.isActive,
                 createdAt: clients.createdAt,
                 updatedAt: clients.updatedAt,
@@ -121,6 +122,8 @@ export const createClient = async (req: Request, res: Response): Promise<Respons
             emergencyContactName,
             emergencyContactPhone,
             emergencyContactRelationship,
+            notes,
+            pickupInstructions,
         } = req.body;
 
         // Validate all required fields are provided
@@ -192,6 +195,8 @@ export const createClient = async (req: Request, res: Response): Promise<Respons
                 emergencyContactName,
                 emergencyContactPhone,
                 emergencyContactRelationship,
+                notes,
+                pickupInstructions,
             })
             .returning(); // Return full client row
 
@@ -231,6 +236,7 @@ export const getClient = async (req: Request, res: Response): Promise<Response> 
                 emergencyContactPhone: clients.emergencyContactPhone,
                 emergencyContactRelationship: clients.emergencyContactRelationship,
                 notes: clients.notes,
+                pickupInstructions: clients.pickupInstructions,
                 isActive: clients.isActive,
                 createdAt: clients.createdAt,
                 updatedAt: clients.updatedAt,
@@ -288,6 +294,8 @@ export const updateClient = async (req: Request, res: Response): Promise<Respons
                 emergencyContactName: data.emergencyContactName,
                 emergencyContactPhone: data.emergencyContactPhone,
                 emergencyContactRelationship: data.emergencyContactRelationship,
+                notes: data.notes,
+                pickupInstructions: data.pickupInstructions,
                 ...(addressId !== undefined && { addressLocation: addressId }),
                 updatedAt: new Date().toISOString(), // Update timestamp manually
             })
