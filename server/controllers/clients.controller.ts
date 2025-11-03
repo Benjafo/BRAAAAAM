@@ -64,6 +64,9 @@ export const listClients = async (req: Request, res: Response): Promise<Response
                 birthMonth: clients.birthMonth,
                 livesAlone: clients.livesAlone,
                 addressLocation: clients.addressLocation,
+                emergencyContactName: clients.emergencyContactName,
+                emergencyContactPhone: clients.emergencyContactPhone,
+                emergencyContactRelationship: clients.emergencyContactRelationship,
                 notes: clients.notes,
                 isActive: clients.isActive,
                 createdAt: clients.createdAt,
@@ -114,6 +117,9 @@ export const createClient = async (req: Request, res: Response): Promise<Respons
             birthYear,
             phoneIsCell,
             livesAlone,
+            emergencyContactName,
+            emergencyContactPhone,
+            emergencyContactRelationship,
         } = req.body;
 
         // Validate all required fields are provided
@@ -182,6 +188,9 @@ export const createClient = async (req: Request, res: Response): Promise<Respons
                 contactPreference,
                 livesAlone: livesAlone ?? false,
                 addressLocation: addressId!,
+                emergencyContactName,
+                emergencyContactPhone,
+                emergencyContactRelationship,
             })
             .returning(); // Return full client row
 
@@ -217,6 +226,9 @@ export const getClient = async (req: Request, res: Response): Promise<Response> 
                 birthMonth: clients.birthMonth,
                 livesAlone: clients.livesAlone,
                 addressLocation: clients.addressLocation,
+                emergencyContactName: clients.emergencyContactName,
+                emergencyContactPhone: clients.emergencyContactPhone,
+                emergencyContactRelationship: clients.emergencyContactRelationship,
                 notes: clients.notes,
                 isActive: clients.isActive,
                 createdAt: clients.createdAt,
@@ -266,6 +278,9 @@ export const updateClient = async (req: Request, res: Response): Promise<Respons
                 gender: data.gender,
                 birthYear: data.birthYear,
                 birthMonth: data.birthMonth,
+                emergencyContactName: data.emergencyContactName,
+                emergencyContactPhone: data.emergencyContactPhone,
+                emergencyContactRelationship: data.emergencyContactRelationship,
                 updatedAt: new Date().toISOString(), // Update timestamp manually
             })
             .where(eq(clients.id, clientId))

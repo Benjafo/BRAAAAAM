@@ -13,6 +13,9 @@ type User = {
     contactPreference: string | null;
     birthYear: number | null;
     birthMonth: number | null;
+    emergencyContactName: string | null;
+    emergencyContactPhone: string | null;
+    emergencyContactRelationship: string | null;
     isActive: boolean;
     isDriver: boolean;
     address: {
@@ -41,6 +44,9 @@ function mapUserToFormValues(user: User): Partial<UserFormValues> & { id: string
             "Phone",
         birthMonth: user.birthMonth ? user.birthMonth.toString().padStart(2, "0") : "",
         birthYear: user.birthYear ? String(user.birthYear) : "",
+        emergencyContactName: user.emergencyContactName || "",
+        emergencyContactPhone: user.emergencyContactPhone?.replace("+1", "") || "",
+        emergencyContactRelationship: user.emergencyContactRelationship || "",
         volunteeringStatus: user.isActive ? "Active" : "Inactive",
         userRole: user.isDriver ? "Driver" : "Dispatcher",
         streetAddress: user.address?.addressLine1 || "",

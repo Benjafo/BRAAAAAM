@@ -109,6 +109,9 @@ export const users = pgTable(
         addressLocation: uuid("address_location"),
         birthYear: integer("birth_year"),
         birthMonth: integer("birth_month"),
+        emergencyContactName: varchar("emergency_contact_name", { length: 255 }),
+        emergencyContactPhone: text("emergency_contact_phone"),
+        emergencyContactRelationship: varchar("emergency_contact_relationship", { length: 100 }),
         isDriver: boolean("is_driver").default(false),
         isActive: boolean("is_active").default(true),
         isDeleted: boolean("is_deleted").default(false),
@@ -148,6 +151,10 @@ export const users = pgTable(
         check(
             "users_phone_e164_check",
             sql`(phone IS NULL) OR (phone ~ '^\\+[1-9][1-9]{1,14}$'::text)`
+        ),
+        check(
+            "users_emergency_contact_phone_e164_check",
+            sql`(emergency_contact_phone IS NULL) OR (emergency_contact_phone ~ '^\\+[1-9][0-9]{1,14}$'::text)`
         ),
     ]
 );
@@ -247,6 +254,9 @@ export const clients = pgTable(
         birthMonth: integer("birth_month"),
         livesAlone: boolean("lives_alone").notNull(),
         addressLocation: uuid("address_location").notNull(),
+        emergencyContactName: varchar("emergency_contact_name", { length: 255 }),
+        emergencyContactPhone: text("emergency_contact_phone"),
+        emergencyContactRelationship: varchar("emergency_contact_relationship", { length: 100 }),
         notes: text(),
         isActive: boolean("is_active").default(true),
         createdAt: timestamp("created_at", { withTimezone: true, mode: "string" })
@@ -310,6 +320,10 @@ export const clients = pgTable(
         check(
             "clients_secondary_phone_e164_check",
             sql`(secondary_phone IS NULL) OR (secondary_phone ~ '^\\+[1-9][0-9]{1,14}$'::text)`
+        ),
+        check(
+            "clients_emergency_contact_phone_e164_check",
+            sql`(emergency_contact_phone IS NULL) OR (emergency_contact_phone ~ '^\\+[1-9][0-9]{1,14}$'::text)`
         ),
         check(
             "phones_not_same",

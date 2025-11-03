@@ -42,6 +42,11 @@ export default function ClientModal({
                 birthYear: parseInt(values.birthYear, 10),
                 contactPreference: values.contactPref.toLowerCase(),
                 livesAlone: values.livingAlone === "Lives alone",
+                emergencyContactName: values.emergencyContactName || null,
+                emergencyContactPhone: values.emergencyContactPhone
+                    ? `+1${values.emergencyContactPhone}`
+                    : null,
+                emergencyContactRelationship: values.emergencyContactRelationship || null,
                 address: {
                     addressLine1: values.homeAddress,
                     addressLine2: values.homeAddress2 || null,

@@ -17,6 +17,9 @@ type Client = {
     contactPreference: string;
     livesAlone: boolean;
     isActive: boolean;
+    emergencyContactName: string | null;
+    emergencyContactPhone: string | null;
+    emergencyContactRelationship: string | null;
     address: {
         id: string;
         addressLine1: string;
@@ -43,6 +46,9 @@ function mapClientToFormValues(client: Client): Partial<ClientFormValues> & { id
         contactPref:
             client.contactPreference.charAt(0).toUpperCase() + client.contactPreference.slice(1),
         livingAlone: client.livesAlone ? "Lives alone" : "Does not live alone",
+        emergencyContactName: client.emergencyContactName || "",
+        emergencyContactPhone: client.emergencyContactPhone?.replace("+1", "") || "",
+        emergencyContactRelationship: client.emergencyContactRelationship || "",
         homeAddress: client.address.addressLine1,
         homeAddress2: client.address.addressLine2 || "",
         city: client.address.city,

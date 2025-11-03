@@ -41,6 +41,11 @@ export default function NewUserModal({
                 contactPreference: values.contactPreference.toLowerCase(),
                 birthMonth: values.birthMonth ? values.birthMonth : null,
                 birthYear: values.birthYear ? values.birthYear : null,
+                emergencyContactName: values.emergencyContactName || null,
+                emergencyContactPhone: values.emergencyContactPhone
+                    ? `+1${values.emergencyContactPhone}`
+                    : null,
+                emergencyContactRelationship: values.emergencyContactRelationship || null,
                 isActive: values.volunteeringStatus === "Active",
                 isDriver: values.userRole === "Driver",
                 address: {

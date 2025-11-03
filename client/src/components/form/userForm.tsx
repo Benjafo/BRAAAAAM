@@ -122,6 +122,24 @@ const userSchema = z
             .min(0.1, "Cannot be 0 miles.")
             .optional(),
         lifeSpanReimbursement: z.enum(["Yes", "No"]).optional(),
+        emergencyContactName: z
+            .string()
+            .max(255, "Max characters allowed is 255.")
+            .optional()
+            .or(z.literal("")),
+        emergencyContactPhone: z
+            .string()
+            .regex(
+                /^(\+1\s?)?(\([0-9]{3}\)\s?|[0-9]{3}[-.\s]?)[0-9]{3}[-.\s]?[0-9]{4}$/,
+                "Please enter a valid US phone number."
+            )
+            .or(z.literal(""))
+            .optional(),
+        emergencyContactRelationship: z
+            .string()
+            .max(100, "Max characters allowed is 100.")
+            .optional()
+            .or(z.literal("")),
     })
     .superRefine((data, ctx) => {
         // AI helped on the super refine
@@ -281,6 +299,9 @@ export default function NewUserForm({ defaultValues, onSubmit }: Props) {
             destinationLimitations: defaultValues.destinationLimitations ?? "",
             distanceLimitation: defaultValues.distanceLimitation,
             lifeSpanReimbursement: defaultValues.lifeSpanReimbursement ?? "No",
+            emergencyContactName: defaultValues.emergencyContactName ?? "",
+            emergencyContactPhone: defaultValues.emergencyContactPhone ?? "",
+            emergencyContactRelationship: defaultValues.emergencyContactRelationship ?? "",
         },
     });
 
@@ -926,6 +947,49 @@ export default function NewUserForm({ defaultValues, onSubmit }: Props) {
                         />
                     </>
                 )}
+
+                {/* Emergency Contact Information */}
+                <FormField
+                    control={form.control}
+                    name="emergencyContactName"
+                    render={({ field }) => (
+                        <FormItem>
+                            <FormLabel>Emergency Contact Name</FormLabel>
+                            <FormControl>
+                                <Input placeholder="Value" {...field} />
+                            </FormControl>
+                            <FormMessage />
+                        </FormItem>
+                    )}
+                />
+
+                <FormField
+                    control={form.control}
+                    name="emergencyContactPhone"
+                    render={({ field }) => (
+                        <FormItem>
+                            <FormLabel>Emergency Contact Phone</FormLabel>
+                            <FormControl>
+                                <Input placeholder="Value" {...field} />
+                            </FormControl>
+                            <FormMessage />
+                        </FormItem>
+                    )}
+                />
+
+                <FormField
+                    control={form.control}
+                    name="emergencyContactRelationship"
+                    render={({ field }) => (
+                        <FormItem>
+                            <FormLabel>Emergency Contact Relationship</FormLabel>
+                            <FormControl>
+                                <Input placeholder="Value" {...field} />
+                            </FormControl>
+                            <FormMessage />
+                        </FormItem>
+                    )}
+                />
             </form>
         </Form>
     );

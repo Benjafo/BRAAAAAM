@@ -104,6 +104,24 @@ const clientSchema = z
             .optional(),
         secondaryPhoneIsCellPhone: z.boolean(),
         okToTextSecondaryPhone: z.boolean(),
+        emergencyContactName: z
+            .string()
+            .max(255, "Max characters allowed is 255.")
+            .optional()
+            .or(z.literal("")),
+        emergencyContactPhone: z
+            .string()
+            .regex(
+                /^(\+1\s?)?(\([0-9]{3}\)\s?|[0-9]{3}[-.\s]?)[0-9]{3}[-.\s]?[0-9]{4}$/,
+                "Please enter a valid US phone number."
+            )
+            .or(z.literal(""))
+            .optional(),
+        emergencyContactRelationship: z
+            .string()
+            .max(100, "Max characters allowed is 100.")
+            .optional()
+            .or(z.literal("")),
     })
     .superRefine((data, ctx) => {
         // AI helped on the super refine
@@ -216,6 +234,9 @@ export default function ClientForm({ defaultValues, onSubmit }: Props) {
             secondaryPhoneNumber: defaultValues.secondaryPhoneNumber ?? "",
             secondaryPhoneIsCellPhone: defaultValues.secondaryPhoneIsCellPhone ?? false,
             okToTextSecondaryPhone: defaultValues.okToTextSecondaryPhone ?? false,
+            emergencyContactName: defaultValues.emergencyContactName ?? "",
+            emergencyContactPhone: defaultValues.emergencyContactPhone ?? "",
+            emergencyContactRelationship: defaultValues.emergencyContactRelationship ?? "",
         },
     });
 
@@ -830,6 +851,49 @@ export default function ClientForm({ defaultValues, onSubmit }: Props) {
                         />
                     )}
                 </div>
+
+                {/* Emergency Contact Information */}
+                <FormField
+                    control={form.control}
+                    name="emergencyContactName"
+                    render={({ field }) => (
+                        <FormItem>
+                            <FormLabel>Emergency Contact Name</FormLabel>
+                            <FormControl>
+                                <Input placeholder="Value" {...field} />
+                            </FormControl>
+                            <FormMessage />
+                        </FormItem>
+                    )}
+                />
+
+                <FormField
+                    control={form.control}
+                    name="emergencyContactPhone"
+                    render={({ field }) => (
+                        <FormItem>
+                            <FormLabel>Emergency Contact Phone</FormLabel>
+                            <FormControl>
+                                <Input placeholder="Value" {...field} />
+                            </FormControl>
+                            <FormMessage />
+                        </FormItem>
+                    )}
+                />
+
+                <FormField
+                    control={form.control}
+                    name="emergencyContactRelationship"
+                    render={({ field }) => (
+                        <FormItem>
+                            <FormLabel>Emergency Contact Relationship</FormLabel>
+                            <FormControl>
+                                <Input placeholder="Value" {...field} />
+                            </FormControl>
+                            <FormMessage />
+                        </FormItem>
+                    )}
+                />
             </form>
         </Form>
     );
