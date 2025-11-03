@@ -1,6 +1,7 @@
 import { and, eq, sql } from "drizzle-orm";
 import { Request, Response } from "express";
 import { clients, locations } from "../drizzle/org/schema.js";
+import { findOrCreateLocation } from "../utils/locations.js";
 import { applyQueryFilters } from "../utils/queryParams.js";
 
 /*
@@ -267,6 +268,12 @@ export const updateClient = async (req: Request, res: Response): Promise<Respons
         const { clientId } = req.params;
         const data = req.body;
 
+        // Create or get location if address provided
+        let addressId: string | null | undefined = undefined;
+        if (data.address) {
+            addressId = await findOrCreateLocation(db, data.address);
+        }
+
         const [updatedClient] = await db
             .update(clients)
             .set({
@@ -281,6 +288,7 @@ export const updateClient = async (req: Request, res: Response): Promise<Respons
                 emergencyContactName: data.emergencyContactName,
                 emergencyContactPhone: data.emergencyContactPhone,
                 emergencyContactRelationship: data.emergencyContactRelationship,
+                ...(addressId !== undefined && { addressLocation: addressId }),
                 updatedAt: new Date().toISOString(), // Update timestamp manually
             })
             .where(eq(clients.id, clientId))
