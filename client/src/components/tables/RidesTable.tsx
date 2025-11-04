@@ -72,6 +72,7 @@ export function RidesTable({
     const hasCreatePermission = useAuthStore((s) =>
         s.hasPermission(PERMISSIONS.APPOINTMENTS_CREATE)
     );
+    const hasEditPermission = useAuthStore((s) => s.hasPermission(PERMISSIONS.APPOINTMENTS_UPDATE));
 
     const fetchRides = async (_params: Record<string, any>) => {
         // const searchParams = new URLSearchParams();
@@ -139,7 +140,7 @@ export function RidesTable({
                     },
                     { header: "Status", accessorKey: "status" },
                 ]}
-                onRowClick={handleEditRide}
+                onRowClick={hasEditPermission ? handleEditRide : undefined}
                 actionButton={
                     !hideActionButton && hasCreatePermission
                         ? {

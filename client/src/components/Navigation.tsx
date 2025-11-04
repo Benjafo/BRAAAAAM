@@ -110,7 +110,7 @@ export const MainNavigation = ({
         {
             text: "Schedule",
             link: "/schedule",
-            // permission: PERMISSIONS.SCHEDULE_VIEW,
+            permission: PERMISSIONS.APPOINTMENTS_READ,
         },
         {
             text: "Unassigned Rides",

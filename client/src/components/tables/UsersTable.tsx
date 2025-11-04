@@ -68,6 +68,7 @@ export function UsersTable() {
         Partial<UserFormValues> & { id?: string }
     >({});
     const hasCreatePermission = useAuthStore((s) => s.hasPermission(PERMISSIONS.USERS_CREATE));
+    const hasEditPermission = useAuthStore((s) => s.hasPermission(PERMISSIONS.USERS_UPDATE));
 
     const fetchUsers = async (params: Record<string, any>) => {
         const searchParams = new URLSearchParams();
@@ -142,7 +143,7 @@ export function UsersTable() {
                         id: "role",
                     },
                 ]}
-                onRowClick={handleEditUser}
+                onRowClick={hasEditPermission ? handleEditUser : undefined}
                 actionButton={
                     hasCreatePermission
                         ? {

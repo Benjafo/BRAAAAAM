@@ -38,6 +38,9 @@ export function OrganizationsTable() {
     const hasCreatePermission = useAuthStore((s) =>
         s.hasPermission(PERMISSIONS.ORGANIZATIONS_CREATE)
     );
+    const hasEditPermission = useAuthStore((s) =>
+        s.hasPermission(PERMISSIONS.ORGANIZATIONS_UPDATE)
+    );
 
     const fetchOrganizations = async (_params: Record<string, any>) => {
         const response = (await http.get(`s/organizations`).json()) as {
@@ -90,7 +93,7 @@ export function OrganizationsTable() {
                         id: "status",
                     },
                 ]}
-                onRowClick={handleEditOrganization}
+                onRowClick={hasEditPermission ? handleEditOrganization : undefined}
                 actionButton={
                     hasCreatePermission
                         ? {

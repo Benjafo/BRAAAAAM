@@ -37,6 +37,7 @@ export function RolesTable() {
     const [roleToDelete, setRoleToDelete] = useState<Role | null>(null);
 
     const hasCreatePermission = useAuthStore((s) => s.hasPermission(PERMISSIONS.ROLES_CREATE));
+    const hasEditPermission = useAuthStore((s) => s.hasPermission(PERMISSIONS.ROLES_UPDATE));
     // TODO we should have a ROLES_DELETE permission
     const hasDeletePermission = useAuthStore((s) => s.hasPermission(PERMISSIONS.ROLES_UPDATE));
 
@@ -146,7 +147,7 @@ export function RolesTable() {
                         },
                     },
                 ]}
-                onRowClick={handleEditRole}
+                onRowClick={hasEditPermission ? handleEditRole : undefined}
                 actionButton={
                     hasCreatePermission
                         ? {

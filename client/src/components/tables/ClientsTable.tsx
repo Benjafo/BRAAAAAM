@@ -1,7 +1,7 @@
 import { DataTable } from "@/components/dataTable";
-import { http } from "@/services/auth/serviceResolver";
 import { useAuthStore } from "@/components/stores/authStore";
 import { PERMISSIONS } from "@/lib/permissions";
+import { http } from "@/services/auth/serviceResolver";
 import { useState } from "react";
 import type { ClientFormValues } from "../form/clientForm";
 import ClientModal from "../modals/clientModal";
@@ -72,6 +72,7 @@ export function ClientsTable() {
         Partial<ClientFormValues> & { id?: string }
     >({});
     const hasCreatePermission = useAuthStore((s) => s.hasPermission(PERMISSIONS.CLIENTS_CREATE));
+    const hasEditPermission = useAuthStore((s) => s.hasPermission(PERMISSIONS.CLIENTS_UPDATE));
 
     const fetchClients = async (params: Record<string, any>) => {
         const searchParams = new URLSearchParams();
@@ -142,7 +143,7 @@ export function ClientsTable() {
                         id: "status",
                     },
                 ]}
-                onRowClick={handleEditClient}
+                onRowClick={hasEditPermission ? handleEditClient : undefined}
                 actionButton={
                     hasCreatePermission
                         ? {
