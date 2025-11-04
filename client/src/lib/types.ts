@@ -55,12 +55,26 @@ export type Credentials = { email: string; password: string };
 
 // export type Permission = 'read' | 'write' | 'publish' | 'admin';
 
+// export type LoginResponse = {
+//     user: User;
+//     role: string;
+//     permissions: Permission[];
+//     accessToken: string;
+//     refreshToken?: string;
+// };
+
 export type LoginResponse = {
     user: User;
     role: string;
-    permissions: Permission[];
+    permissions: {
+        permKey: string;
+        roleGrant: boolean | null;
+        userGrant: boolean | null;
+        effective: boolean;
+    }[];
     accessToken: string;
     refreshToken?: string;
+    message?: string;
 };
 
 export type RefreshResponse = {
