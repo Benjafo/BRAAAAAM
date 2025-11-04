@@ -1,21 +1,22 @@
 import express, { Router } from "express";
 import * as users from "../controllers/users.controller.js";
+import { withPermission } from "../middleware/with-permission.js";
 
 const router: Router = express.Router({ mergeParams: true });
 
 // /o/:orgId/users
-router.get("/", users.listUsers);
-router.post("/", users.createUser);
+router.get("/", withPermission({ permissions: "users.read" }), users.listUsers);
+router.post("/", withPermission({ permissions: "users.create" }), users.createUser);
 
 // /o/:orgId/users/:userId
-router.get("/:userId", users.getUser);
-router.put("/:userId", users.updateUser);
-router.delete("/:userId", users.deleteUser);
+router.get("/:userId", withPermission({ permissions: "users.read" }), users.getUser);
+router.put("/:userId", withPermission({ permissions: "users.update" }), users.updateUser);
+router.delete("/:userId", withPermission({ permissions: "users.delete" }), users.deleteUser);
 
 // Unavailability
-router.post("/:userId/unavailability", users.createUnavailability);
-router.get("/:userId/unavailability", users.listUnavailability);
-router.put("/:userId/unavailability/:unavailabilityId", users.updateUnavailability);
-router.delete("/:userId/unavailability/:unavailabilityId", users.deleteUnavailability);
+router.post("/:userId/unavailability", withPermission({ permissions: "users.update" }), users.createUnavailability);
+router.get("/:userId/unavailability", withPermission({ permissions: "users.read" }), users.listUnavailability);
+router.put("/:userId/unavailability/:unavailabilityId", withPermission({ permissions: "users.update" }), users.updateUnavailability);
+router.delete("/:userId/unavailability/:unavailabilityId", withPermission({ permissions: "users.update" }), users.deleteUnavailability);
 
 export default router;
