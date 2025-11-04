@@ -1,4 +1,4 @@
-import { eq, sql } from "drizzle-orm";
+import { and, eq, sql } from "drizzle-orm";
 import { Request, Response } from "express";
 import { permissions, rolePermissions, roles, users } from "../drizzle/org/schema.js";
 import { applyQueryFilters } from "../utils/queryParams.js";
@@ -26,12 +26,15 @@ export const listRoles = async (req: Request, res: Response): Promise<Response> 
             roles.roleKey,
         ]);
 
+        // Exclude system roles from the list
+        const whereClause = where ? and(where, eq(roles.isSystem, false)) : eq(roles.isSystem, false);
+
         const [{ total }] = await db
             .select({ total: sql<number>`count(*)` })
             .from(roles)
-            .where(where);
+            .where(whereClause);
 
-        // Fetch all roles
+        // Fetch all roles (excluding system roles)
         const data = await db
             .select({
                 id: roles.id,
@@ -42,7 +45,7 @@ export const listRoles = async (req: Request, res: Response): Promise<Response> 
                 createdAt: roles.createdAt,
             })
             .from(roles)
-            .where(where)
+            .where(whereClause)
             .orderBy(...(orderBy.length > 0 ? orderBy : []))
             .limit(limit)
             .offset(offset);

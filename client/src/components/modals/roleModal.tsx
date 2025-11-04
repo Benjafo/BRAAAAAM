@@ -34,7 +34,6 @@ export default function RoleModal({
     const [isSubmitting, setIsSubmitting] = useState(false);
 
     const isEditing = !!defaultValues?.id;
-    const isSystemRole = roleDetails?.isSystem || false;
 
     // Fetch role details when editing
     useEffect(() => {
@@ -123,13 +122,8 @@ export default function RoleModal({
             <DialogContent className="max-w-[720px] max-h-[90vh] overflow-y-auto scroll-smooth p-6">
                 <DialogHeader className="mb-4">
                     <DialogTitle>
-                        {isEditing ? (isSystemRole ? "View Role" : "Edit Role") : "Create New Role"}
+                        {isEditing ? "Edit Role" : "Create New Role"}
                     </DialogTitle>
-                    {isSystemRole && (
-                        <p className="text-sm text-muted-foreground mt-2">
-                            System roles cannot be modified
-                        </p>
-                    )}
                 </DialogHeader>
 
                 {isLoading ? (
@@ -142,7 +136,6 @@ export default function RoleModal({
                             defaultValues={formDefaultValues}
                             onSubmit={handleSubmit}
                             availablePermissions={availablePermissions}
-                            disabled={isSystemRole}
                         />
 
                         <DialogFooter className="flex flex-row justify-end gap-3 mt-3">
@@ -152,21 +145,19 @@ export default function RoleModal({
                                 onClick={() => onOpenChange(false)}
                                 disabled={isSubmitting}
                             >
-                                {isSystemRole ? "Close" : "Cancel"}
+                                Cancel
                             </Button>
-                            {!isSystemRole && (
-                                <Button
-                                    type="submit"
-                                    form="role-form"
-                                    disabled={isSubmitting || isLoading}
-                                >
-                                    {isSubmitting
-                                        ? "Saving..."
-                                        : isEditing
-                                          ? "Save Changes"
-                                          : "Create Role"}
-                                </Button>
-                            )}
+                            <Button
+                                type="submit"
+                                form="role-form"
+                                disabled={isSubmitting || isLoading}
+                            >
+                                {isSubmitting
+                                    ? "Saving..."
+                                    : isEditing
+                                      ? "Save Changes"
+                                      : "Create Role"}
+                            </Button>
                         </DialogFooter>
                     </>
                 )}

@@ -6,7 +6,6 @@ import { http } from "@/services/auth/serviceResolver";
 import { useState } from "react";
 import type { RoleFormValues } from "../form/roleForm";
 import RoleModal from "../modals/roleModal";
-import { Badge } from "@/components/ui/badge";
 
 export function RolesTable() {
     const [isRoleModalOpen, setIsRoleModalOpen] = useState(false);
@@ -81,18 +80,6 @@ export function RolesTable() {
                         cell: ({ getValue }) => {
                             const count = getValue() as number;
                             return `${count} permission${count !== 1 ? "s" : ""}`;
-                        },
-                    },
-                    {
-                        header: "Type",
-                        accessorKey: "isSystem",
-                        cell: ({ getValue }) => {
-                            const isSystem = getValue() as boolean;
-                            return isSystem ? (
-                                <Badge variant="secondary">System</Badge>
-                            ) : (
-                                <Badge variant="outline">Custom</Badge>
-                            );
                         },
                     },
                     {

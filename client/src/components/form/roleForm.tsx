@@ -40,7 +40,6 @@ interface RoleFormProps {
     defaultValues?: Partial<RoleFormValues> & { id?: string };
     onSubmit: (values: RoleFormValues) => Promise<void>;
     availablePermissions: Permission[];
-    disabled?: boolean;
 }
 
 /* ----------------------------- Helper Functions ----------------------------- */
@@ -75,12 +74,7 @@ function capitalizeResource(resource: string): string {
 }
 
 /* ----------------------------- Component ----------------------------- */
-export default function RoleForm({
-    defaultValues,
-    onSubmit,
-    availablePermissions,
-    disabled = false,
-}: RoleFormProps) {
+export default function RoleForm({ defaultValues, onSubmit, availablePermissions }: RoleFormProps) {
     const form = useForm<RoleFormValues>({
         resolver: zodResolver(roleSchema),
         defaultValues: {
@@ -125,11 +119,7 @@ export default function RoleForm({
                         <FormItem>
                             <FormLabel>Role Name</FormLabel>
                             <FormControl>
-                                <Input
-                                    {...field}
-                                    placeholder="e.g., Project Manager"
-                                    disabled={disabled}
-                                />
+                                <Input {...field} placeholder="e.g., Project Manager" />
                             </FormControl>
                             <FormMessage />
                         </FormItem>
@@ -147,7 +137,6 @@ export default function RoleForm({
                                 <Textarea
                                     {...field}
                                     placeholder="Describe the purpose of this role..."
-                                    disabled={disabled}
                                     rows={3}
                                 />
                             </FormControl>
@@ -194,7 +183,6 @@ export default function RoleForm({
                                                                 checked as boolean
                                                             )
                                                         }
-                                                        disabled={disabled}
                                                     />
                                                     <label
                                                         htmlFor={`select-all-${resource}`}
@@ -233,7 +221,6 @@ export default function RoleForm({
                                                                                       )
                                                                                   );
                                                                         }}
-                                                                        disabled={disabled}
                                                                     />
                                                                 </FormControl>
                                                                 <div className="space-y-1 leading-none">
