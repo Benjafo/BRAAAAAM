@@ -3,10 +3,31 @@ import { MainNavigation } from "@/components/Navigation";
 import { RidesTable } from "@/components/tables/RidesTable";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@radix-ui/react-tabs";
-import { createFileRoute } from "@tanstack/react-router";
+import { authStore } from "@/components/stores/authStore";
+import { PERMISSIONS } from "@/lib/permissions";
+import { createFileRoute, redirect } from "@tanstack/react-router";
 import { useCallback, useState } from "react";
 
 export const Route = createFileRoute("/schedule")({
+    beforeLoad: async ({ location }) => {
+        const s = authStore.getState();
+        const isAuthed = Boolean(s.user && s.accessToken);
+
+        if (!isAuthed) {
+            throw redirect({
+                to: "/sign-in",
+                search: { redirect: location.pathname },
+            });
+        }
+
+        if (!s.hasPermission(PERMISSIONS.APPOINTMENTS_READ)) {
+            throw redirect({
+                to: "/dashboard",
+            });
+        }
+
+        return { user: s.user, isAuthed };
+    },
     component: RouteComponent,
 });
 

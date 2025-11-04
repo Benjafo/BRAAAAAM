@@ -6,10 +6,23 @@ import { LocationsTable } from "@/components/tables/LocationsTable";
 import { RolesTable } from "@/components/tables/RolesTable";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { createFileRoute } from "@tanstack/react-router";
+import { authStore } from "@/components/stores/authStore";
+import { PERMISSIONS } from "@/lib/permissions";
+import { createFileRoute, redirect } from "@tanstack/react-router";
 import { useCallback, useRef, useState } from "react";
 
 export const Route = createFileRoute("/_auth/admin-settings")({
+    beforeLoad: async () => {
+        const s = authStore.getState();
+
+        if (!s.hasPermission(PERMISSIONS.SETTINGS_READ)) {
+            throw redirect({
+                to: "/dashboard",
+            });
+        }
+
+        return { user: s.user };
+    },
     component: RouteComponent,
 });
 
