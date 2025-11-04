@@ -31,7 +31,12 @@ export const PERMISSIONS = {
     SETTINGS_UPDATE: "settings.update",
 
     // Dashboard
-    DASHBOARD_VIEW: "dashboard.read",
+    DASHBOARD_READ: "dashboard.read",
+
+    // Organizations
+    ORGANIZATIONS_READ: "organizations.read",
+    ORGANIZATIONS_CREATE: "organizations.create",
+    ORGANIZATIONS_UPDATE: "organizations.update",
 } as const;
 
 export type Permission = (typeof PERMISSIONS)[keyof typeof PERMISSIONS];
