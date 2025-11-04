@@ -1,5 +1,5 @@
-import { Request, Response, NextFunction } from "express";
-import { hasPermission, hasAnyPermission, hasAllPermissions } from "../utils/permissions.js";
+import { NextFunction, Request, Response } from "express";
+import { hasAllPermissions, hasAnyPermission, hasPermission } from "../utils/permissions.js";
 
 interface PermissionOptions {
     permissions: string | string[];
@@ -37,7 +37,7 @@ export function withPermission(options: PermissionOptions) {
             if (!userId || !orgDb) {
                 return res.status(401).json({
                     error: "Unauthorized",
-                    message: "Authentication required"
+                    message: "Authentication required",
                 });
             }
 
@@ -66,16 +66,18 @@ export function withPermission(options: PermissionOptions) {
                         ? `All of these permissions are required: ${permissions.join(", ")}`
                         : `At least one of these permissions is required: ${permissions.join(", ")}`,
                     required: permissions,
-                    requireAll: options.requireAll || false
+                    requireAll: options.requireAll || false,
                 });
             }
 
-            next();
+            // is this right? Made this as a quick fix to solve this error on the
+            // return async (req: Request... line - "Not all code paths return a value."
+            return next();
         } catch (error) {
             console.error("[withPermission] Error checking permissions:", error);
             res.status(500).json({
                 error: "Internal server error",
-                message: "Failed to verify permissions"
+                message: "Failed to verify permissions",
             });
         }
     };
@@ -87,7 +89,7 @@ export function withPermission(options: PermissionOptions) {
 export function requireSystemAdmin() {
     return withPermission({
         permissions: "system.admin",
-        customError: "System administrator access required"
+        customError: "System administrator access required",
     });
 }
 
@@ -97,7 +99,7 @@ export function requireSystemAdmin() {
 export function requireReadAccess(resource: string) {
     return withPermission({
         permissions: `${resource}.read`,
-        customError: `Read access to ${resource} required`
+        customError: `Read access to ${resource} required`,
     });
 }
 
@@ -107,7 +109,7 @@ export function requireReadAccess(resource: string) {
 export function requireWriteAccess(resource: string) {
     return withPermission({
         permissions: [`${resource}.create`, `${resource}.update`],
-        customError: `Write access to ${resource} required`
+        customError: `Write access to ${resource} required`,
     });
 }
 
@@ -120,9 +122,9 @@ export function requireFullAccess(resource: string) {
             `${resource}.read`,
             `${resource}.create`,
             `${resource}.update`,
-            `${resource}.delete`
+            `${resource}.delete`,
         ],
         requireAll: true,
-        customError: `Full access to ${resource} required`
+        customError: `Full access to ${resource} required`,
     });
 }

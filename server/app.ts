@@ -27,13 +27,17 @@ import apiRouter from "./routes/api.js";
 
 import { NextFunction, Request, Response } from "express";
 
+import { eq } from "drizzle-orm";
 import { createProxyMiddleware } from "http-proxy-middleware";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
-import { users } from "./drizzle/org/schema.js";
+import { roles, users } from "./drizzle/org/schema.js";
 import { createOrgDbFromTemplate, preloadOrgPools } from "./drizzle/pool-manager.js";
 import { getSysDb } from "./drizzle/sys-client.js";
+import { withAuth } from "./middleware/with-auth.js";
 import { withOrg } from "./middleware/with-org.js";
+import { hashPassword } from "./utils/password.js";
+
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
@@ -148,21 +152,111 @@ app.get("/test/o/:orgId/users", withOrg, async (req: Request, res: Response) => 
     }
 });
 
+// Test route to create a user with a specific role
+app.get("/test/o/:orgId/create-user", withOrg, async (req: Request, res: Response) => {
+    const {
+        firstName,
+        lastName,
+        email,
+        password,
+        phone,
+        roleKey, // Use roleKey instead of roleId for the test route
+    } = req.query;
+
+    if (
+        typeof firstName !== "string" ||
+        typeof lastName !== "string" ||
+        typeof email !== "string" ||
+        typeof password !== "string" ||
+        typeof phone !== "string"
+    ) {
+        return res.status(400).json({
+            error: "Missing or invalid required query parameters",
+            required: "firstName, lastName, email, password, phone",
+            optional: "roleKey (defaults to no role)",
+        });
+    }
+
+    try {
+        const db = req.org?.db;
+        if (!db) return res.status(500).json({ error: "Database not initialized" });
+
+        // Hash the password
+        const passwordHash = await hashPassword(password);
+
+        // Look up role by roleKey if provided
+        let roleId: string | null = null;
+        if (typeof roleKey === "string") {
+            const [role] = await db.select().from(roles).where(eq(roles.roleKey, roleKey)).limit(1);
+
+            if (!role) {
+                return res.status(400).json({
+                    error: `Role with key '${roleKey}' not found`,
+                    availableRoles: "super-admin, admin, dispatcher, driver, viewer",
+                });
+            }
+            roleId = role.id;
+        }
+
+        // Create the user
+        const [newUser] = await db
+            .insert(users)
+            .values({
+                firstName,
+                lastName,
+                email,
+                phone,
+                passwordHash,
+                roleId,
+                isActive: true,
+                isDriver: false,
+                isDeleted: false,
+            })
+            .returning();
+
+        return res.json({
+            message: `User '${email}' created successfully${roleKey ? ` with role '${roleKey}'` : ""}`,
+            user: {
+                id: newUser.id,
+                email: newUser.email,
+                firstName: newUser.firstName,
+                lastName: newUser.lastName,
+                roleId: newUser.roleId,
+            },
+        });
+    } catch (error: any) {
+        console.error("Error creating test user:", error);
+
+        // Check for unique constraint violation
+        if (error.code === "23505") {
+            return res.status(400).json({ error: "User with this email already exists" });
+        }
+
+        return res.status(500).json({ error: "Internal server error" });
+    }
+});
+
 // API routes
 app.use("/api", apiRouter);
 
-// app.use("/auth", authRouter);
+// Authentication routes
 app.use("/auth", withOrg, orgAuthRouter);
-app.use("/o/:orgId/users", withOrg, usersRouter);
-app.use("/o/:orgId/clients", withOrg, clientsRouter);
-app.use("/o/:orgId/settings", withOrg, orgSettingsRouter);
-app.use("/s/settings", sysSettingsRouter);
-app.use("/o/:orgId/appointments", withOrg, appointmentsRouter);
-app.use("/o/:orgId/notifications", withOrg, notificationsRouter);
-app.use("/o/:orgId/reports", withOrg, reportsRouter);
-app.use("/s/organizations", organizationsRouter);
-app.use("/o/:orgId/settings/roles", withOrg, rolesRouter);
-app.use("/o/:orgId/settings/locations", withOrg, locationsRouter);
+
+// Protected org-scoped routes with authentication
+app.use("/o/:orgId/users", withAuth, withOrg, usersRouter);
+app.use("/o/:orgId/clients", withAuth, withOrg, clientsRouter);
+app.use("/o/:orgId/settings", withAuth, withOrg, orgSettingsRouter);
+app.use("/o/:orgId/appointments", withAuth, withOrg, appointmentsRouter);
+app.use("/o/:orgId/notifications", withAuth, withOrg, notificationsRouter);
+app.use("/o/:orgId/reports", withAuth, withOrg, reportsRouter);
+app.use("/o/:orgId/settings/roles", withAuth, withOrg, rolesRouter);
+app.use("/o/:orgId/settings/locations", withAuth, withOrg, locationsRouter);
+
+// Protected system-scoped routes with authentication
+app.use("/s/settings", withAuth, sysSettingsRouter);
+app.use("/s/organizations", withAuth, organizationsRouter);
+
+// SSE route
 app.use("/sse", sseRouter);
 
 // Catch-all route - serve React app for any non-API routes
