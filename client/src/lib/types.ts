@@ -1,7 +1,29 @@
 export type Permission = {
     id: string;
-    title?: string;
-    description?: string;
+    permKey: string;
+    resource: string;
+    action: string;
+    name: string;
+    description: string;
+};
+
+export type Role = {
+    id: string;
+    roleKey: string;
+    name: string;
+    description: string;
+    isSystem: boolean;
+    permissionCount: number;
+    createdAt: string;
+};
+
+export type RoleDetail = {
+    id: string;
+    roleName: string;
+    description: string;
+    isSystem: boolean;
+    permissions: Permission[];
+    permissionIds: string[];
 };
 
 export interface User {
