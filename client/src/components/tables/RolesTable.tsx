@@ -1,9 +1,28 @@
 import { DataTable } from "@/components/dataTable";
 import { useAuthStore } from "@/components/stores/authStore";
+import {
+    AlertDialog,
+    AlertDialogAction,
+    AlertDialogCancel,
+    AlertDialogContent,
+    AlertDialogDescription,
+    AlertDialogFooter,
+    AlertDialogHeader,
+    AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
+import { Button } from "@/components/ui/button";
+import {
+    DropdownMenu,
+    DropdownMenuContent,
+    DropdownMenuItem,
+    DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { PERMISSIONS } from "@/lib/permissions";
 import type { Permission, Role } from "@/lib/types";
 import { http } from "@/services/auth/serviceResolver";
+import { MoreHorizontal, Trash2 } from "lucide-react";
 import { useState } from "react";
+import { toast } from "sonner";
 import type { RoleFormValues } from "../form/roleForm";
 import RoleModal from "../modals/roleModal";
 
@@ -14,8 +33,12 @@ export function RolesTable() {
     >({});
     const [availablePermissions, setAvailablePermissions] = useState<Permission[]>([]);
     const [tableKey, setTableKey] = useState(0); // For forcing table refresh
+    const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+    const [roleToDelete, setRoleToDelete] = useState<Role | null>(null);
 
     const hasCreatePermission = useAuthStore((s) => s.hasPermission(PERMISSIONS.ROLES_CREATE));
+    // TODO we should have a ROLES_DELETE permission
+    const hasDeletePermission = useAuthStore((s) => s.hasPermission(PERMISSIONS.ROLES_UPDATE));
 
     const fetchRoles = async (_params: Record<string, any>) => {
         const orgID = "braaaaam";
@@ -44,14 +67,46 @@ export function RolesTable() {
     const handleEditRole = (role: Role) => {
         setSelectedRoleData({
             id: role.id,
-            // Modal will fetch full role details including permissions
         });
         setIsRoleModalOpen(true);
     };
 
+    // Force table refresh by incrementing key
     const handleModalSuccess = () => {
-        // Force table refresh by incrementing key
         setTableKey((prev) => prev + 1);
+    };
+
+    const handleDeleteClick = (role: Role) => {
+        setRoleToDelete(role);
+        setDeleteDialogOpen(true);
+    };
+
+    const handleConfirmDelete = async () => {
+        if (!roleToDelete) return;
+
+        try {
+            const orgID = "braaaaam";
+            await http.delete(`o/${orgID}/settings/roles/${roleToDelete.id}`);
+            toast.success("Role deleted successfully");
+            setDeleteDialogOpen(false);
+            setRoleToDelete(null);
+            // Refresh table
+            setTableKey((prev) => prev + 1);
+        } catch (error: any) {
+            console.error("Error deleting role:", error);
+
+            // Handle specific error cases
+            if (error.response) {
+                const errorData = await error.response.json().catch(() => ({}));
+                if (errorData.error === "Cannot delete role assigned to users") {
+                    toast.error(`Cannot delete role: assigned to ${errorData.userCount} user(s)`);
+                } else {
+                    toast.error(errorData.error || "Failed to delete role");
+                }
+            } else {
+                toast.error("Failed to delete role");
+            }
+        }
     };
 
     return (
@@ -100,7 +155,35 @@ export function RolesTable() {
                           }
                         : undefined
                 }
+                rowActions={
+                    hasDeletePermission
+                        ? (role: Role) => (
+                              <DropdownMenu>
+                                  <DropdownMenuTrigger asChild>
+                                      <Button variant="ghost" className="h-8 w-8 p-0">
+                                          <span className="sr-only">Open menu</span>
+                                          <MoreHorizontal className="h-4 w-4" />
+                                      </Button>
+                                  </DropdownMenuTrigger>
+                                  <DropdownMenuContent align="end">
+                                      <DropdownMenuItem
+                                          onClick={(e) => {
+                                              e.stopPropagation();
+                                              handleDeleteClick(role);
+                                          }}
+                                          className="text-destructive focus:text-destructive"
+                                      >
+                                          <Trash2 className="mr-2 h-4 w-4" />
+                                          Delete
+                                      </DropdownMenuItem>
+                                  </DropdownMenuContent>
+                              </DropdownMenu>
+                          )
+                        : undefined
+                }
             />
+
+            {/* Edit/create role modal */}
             <RoleModal
                 open={isRoleModalOpen}
                 onOpenChange={setIsRoleModalOpen}
@@ -108,6 +191,28 @@ export function RolesTable() {
                 availablePermissions={availablePermissions}
                 onSuccess={handleModalSuccess}
             />
+
+            {/* Confirm delete modal */}
+            <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+                <AlertDialogContent>
+                    <AlertDialogHeader>
+                        <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+                        <AlertDialogDescription>
+                            This will permanently delete the role "{roleToDelete?.name}". This
+                            action cannot be undone.
+                        </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                        <AlertDialogCancel>Cancel</AlertDialogCancel>
+                        <AlertDialogAction
+                            onClick={handleConfirmDelete}
+                            className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                        >
+                            Delete
+                        </AlertDialogAction>
+                    </AlertDialogFooter>
+                </AlertDialogContent>
+            </AlertDialog>
         </>
     );
 }
