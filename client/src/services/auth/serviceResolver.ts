@@ -23,7 +23,7 @@ const onUnauthorized = async () => {
   authStore.getState().clearAuth();
 };
 
-const http = createHttpClient({
+export const http = createHttpClient({
   baseUrl: import.meta.env.BASE_URL,
   getAccessToken: () => authStore.getState().accessToken,
   onUnauthorized: () => onUnauthorized(),

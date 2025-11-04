@@ -9,7 +9,7 @@ import {
     DialogHeader,
     DialogTitle,
 } from "@/components/ui/dialog";
-import ky from "ky";
+import { http } from "@/services/auth/serviceResolver";
 import * as React from "react";
 import { toast } from "sonner";
 import { useAuthStore } from "../stores/authStore";
@@ -86,8 +86,8 @@ export default function RideModal({
             setIsLoadingClients(true);
             try {
                 const orgID = "braaaaam";
-                const response = (await ky
-                    .get(`/o/${orgID}/clients`, {
+                const response = (await http
+                    .get(`o/${orgID}/clients`, {
                         headers: {
                             "x-org-subdomain": orgID,
                         },
@@ -107,8 +107,8 @@ export default function RideModal({
             try {
                 const orgID = "braaaaam";
                 // TODO: Add URL param to filter drivers on backend: `/o/${orgID}/users?isDriver=true`
-                const response = (await ky
-                    .get(`/o/${orgID}/users`, {
+                const response = (await http
+                    .get(`o/${orgID}/users`, {
                         headers: {
                             "x-org-subdomain": orgID,
                         },
@@ -218,8 +218,8 @@ export default function RideModal({
 
             // Make API call based on editing status
             if (isEditing) {
-                await ky
-                    .put(`/o/${orgID}/appointments/${defaultValuesProp.id}`, {
+                await http
+                    .put(`o/${orgID}/appointments/${defaultValuesProp.id}`, {
                         json: requestBody,
                         headers: {
                             "x-org-subdomain": orgID,
@@ -227,8 +227,8 @@ export default function RideModal({
                     })
                     .json();
             } else {
-                await ky
-                    .post(`/o/${orgID}/appointments/`, {
+                await http
+                    .post(`o/${orgID}/appointments/`, {
                         json: requestBody,
                         headers: {
                             "x-org-subdomain": orgID,

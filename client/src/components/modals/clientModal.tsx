@@ -7,7 +7,7 @@ import {
     DialogHeader,
     DialogTitle,
 } from "@/components/ui/dialog";
-import ky from "ky";
+import { http } from "@/services/auth/serviceResolver";
 import { toast } from "sonner";
 import type { ClientFormValues } from "../form/clientForm";
 import ClientForm from "../form/clientForm";
@@ -61,8 +61,8 @@ export default function ClientModal({
 
             // Make API call based on editing status
             if (isEditing) {
-                await ky
-                    .put(`/o/${orgID}/clients/${defaultValues.id}`, {
+                await http
+                    .put(`o/${orgID}/clients/${defaultValues.id}`, {
                         json: requestBody,
                         headers: {
                             "x-org-subdomain": orgID,
@@ -70,8 +70,8 @@ export default function ClientModal({
                     })
                     .json();
             } else {
-                await ky
-                    .post(`/o/${orgID}/clients`, {
+                await http
+                    .post(`o/${orgID}/clients`, {
                         json: requestBody,
                         headers: {
                             "x-org-subdomain": orgID,

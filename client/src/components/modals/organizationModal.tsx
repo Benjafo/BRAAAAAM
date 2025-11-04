@@ -9,7 +9,7 @@ import {
     DialogHeader,
     DialogTitle,
 } from "@/components/ui/dialog";
-import ky from "ky";
+import { http } from "@/services/auth/serviceResolver";
 import { toast } from "sonner";
 
 type OrganizationModalProps = {
@@ -49,15 +49,15 @@ export default function NewOrganizationModal({
         // Make API call - PUT for edit, POST for create
         if (isEditing) {
             console.log("Editing");
-            await ky
-                .put(`/s/organizations/${defaultValuesProp.id}`, {
+            await http
+                .put(`s/organizations/${defaultValuesProp.id}`, {
                     json: requestBody,
                 })
                 .json();
         } else {
             console.log("Creating");
-            await ky
-                .post(`/s/organizations`, {
+            await http
+                .post(`s/organizations`, {
                     json: requestBody,
                 })
                 .json();

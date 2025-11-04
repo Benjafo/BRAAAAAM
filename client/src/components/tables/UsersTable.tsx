@@ -1,5 +1,5 @@
 import { DataTable } from "@/components/dataTable";
-import ky from "ky";
+import { http } from "@/services/auth/serviceResolver";
 import { useState } from "react";
 import type { UserFormValues } from "../form/userForm";
 import NewUserModal from "../modals/userModal";
@@ -73,8 +73,8 @@ export function UsersTable() {
         });
 
         const orgID = "braaaaam";
-        const response = (await ky
-            .get(`/o/${orgID}/users`, {
+        const response = (await http
+            .get(`o/${orgID}/users`, {
                 headers: {
                     "x-org-subdomain": orgID,
                 },

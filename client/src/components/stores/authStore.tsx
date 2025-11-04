@@ -2,12 +2,12 @@
 import { createStore } from 'zustand/vanilla';
 import { useStore } from 'zustand';
 import { persist, createJSONStorage } from 'zustand/middleware';
-import type { Permission, User } from '@/lib/types';
+import type { User } from '@/lib/types';
 
 type AuthState = {
   user: User | null;
   role: string | null;
-  permissions: Permission[];
+  permissions: string[];
   accessToken: string | null;
   refreshToken: string | null;
 };
@@ -15,6 +15,10 @@ type AuthState = {
 type AuthActions = {
   setAuth: (data: Partial<AuthState>) => void;
   clearAuth: () => void;
+  hasPermission: (permission: string) => boolean;
+  hasAnyPermission: (permissions: string[]) => boolean;
+  hasAllPermissions: (permissions: string[]) => boolean;
+  canAccess: (resource: string, action: string) => boolean;
 };
 
 export type AuthStore = AuthState & AuthActions;
@@ -29,10 +33,29 @@ const initialState: AuthState = {
 
 export const authStore = createStore<AuthStore>()(
   persist(
-    (set) => ({
+    (set, get) => ({
       ...initialState,
       setAuth: (data) => set((s) => ({ ...s, ...data })),
       clearAuth: () => set(initialState),
+
+      hasPermission: (permission: string) => {
+        return get().permissions.includes(permission);
+      },
+
+      hasAnyPermission: (permissions: string[]) => {
+        const { hasPermission } = get();
+        return permissions.some(p => hasPermission(p));
+      },
+
+      hasAllPermissions: (permissions: string[]) => {
+        const { hasPermission } = get();
+        return permissions.every(p => hasPermission(p));
+      },
+
+      canAccess: (resource: string, action: string) => {
+        const { hasPermission } = get();
+        return hasPermission(`${resource}.${action}`);
+      },
     }),
     {
       name: 'auth-store',

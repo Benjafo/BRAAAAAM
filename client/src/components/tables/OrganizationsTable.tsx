@@ -1,5 +1,5 @@
 import { DataTable } from "@/components/dataTable";
-import ky from "ky";
+import { http } from "@/services/auth/serviceResolver";
 import { useState } from "react";
 import type { OrganizationFormValues } from "../form/organizationForm";
 import NewOrganizationModal from "../modals/organizationModal";
@@ -35,7 +35,7 @@ export function OrganizationsTable() {
     >({});
 
     const fetchOrganizations = async (_params: Record<string, any>) => {
-        const response = (await ky.get(`/s/organizations`).json()) as {
+        const response = (await http.get(`/s/organizations`).json()) as {
             results: Organization[];
             total: number;
         };
