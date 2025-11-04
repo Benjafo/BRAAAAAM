@@ -1,6 +1,6 @@
-import { Request, Response } from "express";
-import { roles, rolePermissions } from "../drizzle/org/schema.js";
 import { eq, sql } from "drizzle-orm";
+import { Request, Response } from "express";
+import { permissions, rolePermissions, roles, users } from "../drizzle/org/schema.js";
 import { applyQueryFilters } from "../utils/queryParams.js";
 
 /*
@@ -47,11 +47,40 @@ export const listRoles = async (req: Request, res: Response): Promise<Response> 
             .limit(limit)
             .offset(offset);
 
+        // Get permission count for each role
+        const rolesWithCounts = await Promise.all(
+            data.map(async (role) => {
+                const [{ count }] = await db
+                    .select({ count: sql<number>`count(*)` })
+                    .from(rolePermissions)
+                    .where(eq(rolePermissions.roleId, role.id));
+
+                return {
+                    ...role,
+                    permissionCount: Number(count),
+                };
+            })
+        );
+
+        // Fetch all available permissions for the frontend
+        const availablePermissions = await db
+            .select({
+                id: permissions.id,
+                permKey: permissions.permKey,
+                resource: permissions.resource,
+                action: permissions.action,
+                name: permissions.name,
+                description: permissions.description,
+            })
+            .from(permissions)
+            .orderBy(permissions.resource, permissions.action);
+
         return res.status(200).json({
             page,
             pageSize,
             total: Number(total),
-            results: data,
+            results: rolesWithCounts,
+            availablePermissions,
         });
     } catch (err) {
         console.error("Error listing roles:", err);
@@ -128,16 +157,24 @@ export const getRole = async (req: Request, res: Response): Promise<Response> =>
         // Fetch permissions associated with this role
         const perms = await db
             .select({
-                permissionId: rolePermissions.permissionId,
+                id: permissions.id,
+                permKey: permissions.permKey,
+                resource: permissions.resource,
+                action: permissions.action,
+                name: permissions.name,
+                description: permissions.description,
             })
             .from(rolePermissions)
+            .innerJoin(permissions, eq(rolePermissions.permissionId, permissions.id))
             .where(eq(rolePermissions.roleId, roleId));
 
         return res.status(200).json({
             id: roleData.id,
             roleName: roleData.name,
             description: roleData.description,
-            permissionIds: perms.map((p) => p.permissionId),
+            isSystem: roleData.isSystem,
+            permissions: perms,
+            permissionIds: perms.map((p) => p.id),
         });
     } catch (err) {
         console.error("Error fetching role:", err);
@@ -207,14 +244,35 @@ export const deleteRole = async (req: Request, res: Response): Promise<Response>
 
         const { roleId } = req.params;
 
-        const result = await db.delete(roles).where(eq(roles.id, roleId));
+        // Fetch the role first to check if it's a system role
+        const [role] = await db
+            .select({ id: roles.id, isSystem: roles.isSystem, name: roles.name })
+            .from(roles)
+            .where(eq(roles.id, roleId));
 
-        if (result.rowCount === 0) {
+        if (!role) {
             return res.status(404).json({ message: "Role not found" });
         }
 
-        // Delete rolePermissions (if not already handled by Foreign Key)
+        // Prevent deletion of system roles
+        if (role.isSystem) {
+            return res.status(403).json({ error: "Cannot delete system roles" });
+        }
+
+        // Check if any users have this role
+        const usersWithRole = await db.select().from(users).where(eq(users.roleId, roleId));
+        if (usersWithRole.length > 0) {
+            return res.status(400).json({
+                error: "Cannot delete role assigned to users",
+                userCount: usersWithRole.length,
+            });
+        }
+
+        // Delete rolePermissions first (if not already handled by Foreign Key cascade)
         await db.delete(rolePermissions).where(eq(rolePermissions.roleId, roleId));
+
+        // Delete the role
+        await db.delete(roles).where(eq(roles.id, roleId));
 
         return res.status(204).send();
     } catch (err) {

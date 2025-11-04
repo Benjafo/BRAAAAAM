@@ -9,6 +9,6 @@ router.post("/", withPermission({ permissions: "roles.create" }), roles.createRo
 
 router.get("/:roleId", withPermission({ permissions: "roles.read" }), roles.getRole);
 router.put("/:roleId", withPermission({ permissions: "roles.update" }), roles.updateRole);
-// router.delete("/:roleId", withPermission({ permissions: "roles.delete" }), roles.deleteRole);
+router.delete("/:roleId", withPermission({ permissions: "roles.update" }), roles.deleteRole);
 
 export default router;
