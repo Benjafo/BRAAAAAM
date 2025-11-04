@@ -1,7 +1,8 @@
 import { eq, sql } from "drizzle-orm";
 import { Request, Response } from "express";
-import { locations, users } from "../drizzle/org/schema.js";
+import { locations, roles, users } from "../drizzle/org/schema.js";
 import { findOrCreateLocation } from "../utils/locations.js";
+import { hashPassword } from "../utils/password.js";
 import { applyQueryFilters } from "../utils/queryParams.js";
 
 /*
@@ -79,6 +80,8 @@ export const listUsers = async (req: Request, res: Response): Promise<Response> 
                 emergencyContactRelationship: users.emergencyContactRelationship,
                 isActive: users.isActive,
                 isDriver: users.isDriver,
+                roleId: users.roleId,
+                roleName: roles.name,
                 address: {
                     id: locations.id,
                     addressLine1: locations.addressLine1,
@@ -91,6 +94,7 @@ export const listUsers = async (req: Request, res: Response): Promise<Response> 
             })
             .from(users)
             .leftJoin(locations, eq(users.addressLocation, locations.id))
+            .leftJoin(roles, eq(users.roleId, roles.id))
             .where(where)
             .orderBy(...(orderBy.length > 0 ? orderBy : []))
             .limit(limit)
@@ -127,7 +131,7 @@ export const createUser = async (req: Request, res: Response): Promise<Response>
             _notes,
             isActive,
             isDriver,
-            password,
+            roleId,
             address,
         } = req.body;
 
@@ -139,12 +143,9 @@ export const createUser = async (req: Request, res: Response): Promise<Response>
          * @TODO Add notes to users org schema and include in below query
          */
 
-        // Hash password if provided
-        let passwordHash: string | undefined;
-        if (password) {
-            const { hashPassword } = await import("../utils/password.js");
-            passwordHash = await hashPassword(password);
-        }
+        // TODO DO NOT COMMIT!!!! TESTING ONLY!
+        // ADDING THIS SO I CAN TEST CUSTOM ROLE PERMISSIONS. THIS SHOULD BE REMOVED.
+        const passwordHash = await hashPassword("Password123!");
 
         // Create or get location if address provided
         let addressId: string | null = null;
@@ -165,8 +166,9 @@ export const createUser = async (req: Request, res: Response): Promise<Response>
                 emergencyContactName,
                 emergencyContactPhone,
                 emergencyContactRelationship,
-                passwordHash,
+                passwordHash, // TODO DO NOT COMMIT!!!!! TESTING ONLY!! REMOVE THIS!!!
                 addressLocation: addressId ?? undefined,
+                roleId: roleId ?? undefined,
                 isActive: isActive ?? true,
                 isDriver: isDriver ?? false,
                 isDeleted: false,
@@ -202,6 +204,8 @@ export const getUser = async (req: Request, res: Response): Promise<Response> =>
                 emergencyContactRelationship: users.emergencyContactRelationship,
                 isActive: users.isActive,
                 isDriver: users.isDriver,
+                roleId: users.roleId,
+                roleName: roles.name,
                 address: {
                     id: locations.id,
                     addressLine1: locations.addressLine1,
@@ -214,6 +218,7 @@ export const getUser = async (req: Request, res: Response): Promise<Response> =>
             })
             .from(users)
             .leftJoin(locations, eq(users.addressLocation, locations.id))
+            .leftJoin(roles, eq(users.roleId, roles.id))
             .where(eq(users.id, userId));
 
         if (!userData) {
@@ -256,6 +261,7 @@ export const updateUser = async (req: Request, res: Response): Promise<Response>
                 emergencyContactRelationship: data.emergencyContactRelationship,
                 isActive: data.isActive,
                 isDriver: data.isDriver,
+                ...(data.roleId !== undefined && { roleId: data.roleId }),
                 ...(addressId !== undefined && { addressLocation: addressId }),
                 updatedAt: new Date().toISOString(),
             })

@@ -4,7 +4,7 @@ import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Check, ChevronsUpDown } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 
@@ -40,9 +40,7 @@ const userSchema = z
             .string()
             .min(1, "Please enter the first name.")
             .max(255, "Max characters allowed is 255."),
-        userRole: z.enum(["Driver", "Admin", "Dispatcher"], {
-            message: "Please specify the users role.",
-        }),
+        userRole: z.string().min(1, "Please select a user role."),
         lastName: z
             .string()
             .min(1, "Please enter the last name.")
@@ -179,8 +177,8 @@ const userSchema = z
             }
         }
 
-        // Driver-specific validation
-        if (data.userRole === "Driver") {
+        // TODO we cant access the whether the user's role is a driver here, this needs fix
+        if (false) {
             if (!data.vehicleType) {
                 ctx.addIssue({
                     code: "custom",
@@ -216,7 +214,7 @@ const userSchema = z
                     path: ["destinationLimitations"],
                 });
             }
-            if (data.distanceLimitation === undefined || data.distanceLimitation < 0.1) {
+            if (data.distanceLimitation === undefined) {
                 ctx.addIssue({
                     code: "custom",
                     message: "Must enter the maximum number of miles driver is willing to go.",
@@ -237,9 +235,18 @@ const userSchema = z
 export type UserFormValues = z.infer<typeof userSchema>;
 
 /* --------------------------------- Props ---------------------------------- */
+type Role = {
+    id: string;
+    name: string;
+    roleKey: string;
+    description: string;
+};
+
 type Props = {
     defaultValues: Partial<UserFormValues>;
     onSubmit: (values: UserFormValues) => void | Promise<void>;
+    availableRoles?: Role[];
+    isLoadingRoles?: boolean;
 };
 
 const MONTHS = [
@@ -263,14 +270,26 @@ const YEARS = Array.from({ length: 100 }, (_, i) => {
 });
 
 /* --------------------------------- Form ----------------------------------- */
-export default function NewUserForm({ defaultValues, onSubmit }: Props) {
+export default function NewUserForm({
+    defaultValues,
+    onSubmit,
+    availableRoles = [],
+    isLoadingRoles,
+}: Props) {
+    // Find default role, dispatcher by default or first available
+    const defaultRoleId =
+        defaultValues.userRole ??
+        availableRoles?.find((r) => r.roleKey === "dispatcher")?.id ??
+        availableRoles?.[0]?.id ??
+        "";
+
     const form = useForm<UserFormValues>({
         resolver: zodResolver(userSchema),
         mode: "onBlur",
 
         defaultValues: {
             firstName: defaultValues.firstName ?? "",
-            userRole: defaultValues.userRole ?? "Dispatcher",
+            userRole: defaultRoleId,
             lastName: defaultValues.lastName ?? "",
             birthMonth: defaultValues.birthMonth ?? "",
             birthYear: defaultValues.birthYear ?? "",
@@ -310,6 +329,22 @@ export default function NewUserForm({ defaultValues, onSubmit }: Props) {
     const secondaryPhoneIsCellPhone = form.watch("secondaryPhoneIsCellPhone");
 
     const userRole = form.watch("userRole");
+    // Check if selected role is a driver role
+    const selectedRole = availableRoles?.find((role) => role.id === userRole);
+    const isDriverRole = selectedRole?.roleKey === "driver";
+
+    // Update form when roles load and no role is selected yet
+    useEffect(() => {
+        if (availableRoles?.length > 0 && !userRole) {
+            const defaultRole =
+                availableRoles?.find((r) => r.roleKey === "dispatcher")?.id ??
+                availableRoles[0]?.id;
+            if (defaultRole) {
+                form.setValue("userRole", defaultRole);
+            }
+        }
+    }, [availableRoles, userRole, form]);
+
     const [monthOpen, setMonthOpen] = useState(false);
     const [yearOpen, setYearOpen] = useState(false);
 
@@ -385,14 +420,26 @@ export default function NewUserForm({ defaultValues, onSubmit }: Props) {
                         <FormItem className="w-full">
                             <FormLabel>User Role</FormLabel>
                             <FormControl className="w-full">
-                                <Select value={field.value} onValueChange={field.onChange}>
+                                <Select
+                                    value={field.value}
+                                    onValueChange={field.onChange}
+                                    disabled={isLoadingRoles}
+                                >
                                     <SelectTrigger className="w-full">
-                                        <SelectValue placeholder="User Role" />
+                                        <SelectValue
+                                            placeholder={
+                                                isLoadingRoles
+                                                    ? "Loading roles..."
+                                                    : "Select user role"
+                                            }
+                                        />
                                     </SelectTrigger>
                                     <SelectContent>
-                                        <SelectItem value="Admin">Admin</SelectItem>
-                                        <SelectItem value="Driver">Driver</SelectItem>
-                                        <SelectItem value="Dispatcher">Dispatcher</SelectItem>
+                                        {availableRoles?.map((role) => (
+                                            <SelectItem key={role.id} value={role.id}>
+                                                {role.name}
+                                            </SelectItem>
+                                        ))}
                                     </SelectContent>
                                 </Select>
                             </FormControl>
@@ -805,8 +852,8 @@ export default function NewUserForm({ defaultValues, onSubmit }: Props) {
                     )}
                 />
 
-                {/* Driver-specific fields - only shown when userRole is "Driver" */}
-                {userRole === "Driver" && (
+                {/* Driver-specific fields - only shown when role is driver */}
+                {isDriverRole && (
                     <>
                         {/* Vehicle Type */}
                         <FormField

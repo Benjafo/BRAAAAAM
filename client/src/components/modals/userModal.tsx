@@ -8,9 +8,17 @@ import {
     DialogTitle,
 } from "@/components/ui/dialog";
 import { http } from "@/services/auth/serviceResolver";
+import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import type { UserFormValues } from "../form/userForm";
 import NewUserForm from "../form/userForm";
+
+type Role = {
+    id: string;
+    name: string;
+    roleKey: string;
+    description: string;
+};
 
 type NewUserModalProps = {
     defaultValues?: Partial<UserFormValues> & { id?: string };
@@ -23,14 +31,54 @@ export default function NewUserModal({
     open,
     onOpenChange,
 }: NewUserModalProps) {
+    const [roles, setRoles] = useState<Role[]>([]);
+    const [isLoadingRoles, setIsLoadingRoles] = useState(false);
+
     // Determine if we're editing based on whether ID is present
     const isEditing = Boolean(defaultValues.id);
     const modalTitle = isEditing ? "Edit User" : "New User";
     const successMessage = isEditing ? "User Updated" : "New User Created";
 
+    // Fetch roles when modal opens
+    useEffect(() => {
+        if (open && roles.length === 0) {
+            const fetchRoles = async () => {
+                setIsLoadingRoles(true);
+                try {
+                    const orgID = "braaaaam";
+                    const response = await http
+                        .get(`o/${orgID}/settings/roles`, {
+                            headers: {
+                                "x-org-subdomain": orgID,
+                            },
+                        })
+                        .json<{ results: Role[] }>();
+                    setRoles(response.results);
+                } catch (error) {
+                    console.error("Failed to fetch roles:", error);
+                    toast.error("Failed to load roles");
+                } finally {
+                    setIsLoadingRoles(false);
+                }
+            };
+            fetchRoles();
+            console.log("Loaded roles:", roles);
+        }
+    }, [open, roles.length]);
+
     async function handleSubmit(values: UserFormValues) {
         try {
             const orgID = "braaaaam";
+
+            // Determine if user is a driver based on selected role
+            const selectedRole = roles.find((role) => role.id === values.userRole);
+            const isDriver = selectedRole?.roleKey === "driver";
+
+            console.log("Submitting with role:", {
+                roleId: values.userRole,
+                roleName: selectedRole?.name,
+                roleKey: selectedRole?.roleKey,
+            });
 
             // Map form values to API structure
             const requestBody = {
@@ -47,7 +95,8 @@ export default function NewUserModal({
                     : null,
                 emergencyContactRelationship: values.emergencyContactRelationship || null,
                 isActive: values.volunteeringStatus === "Active",
-                isDriver: values.userRole === "Driver",
+                roleId: values.userRole, // Now sending roleId instead of role name
+                isDriver, // Determined from role selection
                 address: {
                     addressLine1: values.streetAddress,
                     addressLine2: values.streetAddress2 || null,
@@ -93,7 +142,12 @@ export default function NewUserModal({
                 <DialogHeader className="mb-4">
                     <DialogTitle>{modalTitle}</DialogTitle>
                 </DialogHeader>
-                <NewUserForm onSubmit={handleSubmit} defaultValues={defaultValues} />
+                <NewUserForm
+                    onSubmit={handleSubmit}
+                    defaultValues={defaultValues}
+                    availableRoles={roles}
+                    isLoadingRoles={isLoadingRoles}
+                />
                 <DialogFooter className="flex flex-row justify-end gap-3 mt-3">
                     <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
                         Cancel

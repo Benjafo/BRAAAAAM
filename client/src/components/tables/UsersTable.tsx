@@ -20,6 +20,8 @@ type User = {
     emergencyContactRelationship: string | null;
     isActive: boolean;
     isDriver: boolean;
+    roleId: string | null;
+    roleName: string | null;
     address: {
         id: string;
         addressLine1: string;
@@ -50,7 +52,7 @@ function mapUserToFormValues(user: User): Partial<UserFormValues> & { id: string
         emergencyContactPhone: user.emergencyContactPhone?.replace("+1", "") || "",
         emergencyContactRelationship: user.emergencyContactRelationship || "",
         volunteeringStatus: user.isActive ? "Active" : "Inactive",
-        userRole: user.isDriver ? "Driver" : "Dispatcher",
+        userRole: user.roleId || "",
         streetAddress: user.address?.addressLine1 || "",
         streetAddress2: user.address?.addressLine2 || "",
         city: user.address?.city || "",
@@ -136,7 +138,7 @@ export function UsersTable() {
                     },
                     {
                         header: "Role",
-                        accessorFn: (row) => (row.isDriver ? "Driver" : "Dispatcher"),
+                        accessorFn: (row) => row.roleName || "No Role",
                         id: "role",
                     },
                 ]}
