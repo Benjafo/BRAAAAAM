@@ -1,4 +1,6 @@
 import { DataTable } from "@/components/dataTable";
+import { useAuthStore } from "@/components/stores/authStore";
+import { PERMISSIONS } from "@/lib/permissions";
 import { http } from "@/services/auth/serviceResolver";
 import { useState } from "react";
 import type { OrganizationFormValues } from "../form/organizationForm";
@@ -33,9 +35,12 @@ export function OrganizationsTable() {
     const [selectedOrganizationData, setSelectedOrganizationData] = useState<
         Partial<OrganizationFormValues> & { id?: string }
     >({});
+    const hasCreatePermission = useAuthStore((s) =>
+        s.hasPermission(PERMISSIONS.ORGANIZATIONS_CREATE)
+    );
 
     const fetchOrganizations = async (_params: Record<string, any>) => {
-        const response = (await http.get(`/s/organizations`).json()) as {
+        const response = (await http.get(`s/organizations`).json()) as {
             results: Organization[];
             total: number;
         };
@@ -86,10 +91,14 @@ export function OrganizationsTable() {
                     },
                 ]}
                 onRowClick={handleEditOrganization}
-                actionButton={{
-                    label: "Create Organization",
-                    onClick: handleCreateOrganization,
-                }}
+                actionButton={
+                    hasCreatePermission
+                        ? {
+                              label: "Create Organization",
+                              onClick: handleCreateOrganization,
+                          }
+                        : undefined
+                }
             />
             <NewOrganizationModal
                 open={isOrganizationModalOpen}

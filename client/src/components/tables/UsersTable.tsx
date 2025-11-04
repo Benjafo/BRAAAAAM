@@ -1,4 +1,6 @@
 import { DataTable } from "@/components/dataTable";
+import { useAuthStore } from "@/components/stores/authStore";
+import { PERMISSIONS } from "@/lib/permissions";
 import { http } from "@/services/auth/serviceResolver";
 import { useState } from "react";
 import type { UserFormValues } from "../form/userForm";
@@ -63,6 +65,7 @@ export function UsersTable() {
     const [selectedUserData, setSelectedUserData] = useState<
         Partial<UserFormValues> & { id?: string }
     >({});
+    const hasCreatePermission = useAuthStore((s) => s.hasPermission(PERMISSIONS.USERS_CREATE));
 
     const fetchUsers = async (params: Record<string, any>) => {
         const searchParams = new URLSearchParams();
@@ -138,10 +141,14 @@ export function UsersTable() {
                     },
                 ]}
                 onRowClick={handleEditUser}
-                actionButton={{
-                    label: "Create User",
-                    onClick: handleCreateUser,
-                }}
+                actionButton={
+                    hasCreatePermission
+                        ? {
+                              label: "Create User",
+                              onClick: handleCreateUser,
+                          }
+                        : undefined
+                }
             />
             <NewUserModal
                 open={isUserModalOpen}

@@ -1,5 +1,7 @@
 import { DataTable } from "@/components/dataTable";
 import { http } from "@/services/auth/serviceResolver";
+import { useAuthStore } from "@/components/stores/authStore";
+import { PERMISSIONS } from "@/lib/permissions";
 import { useState } from "react";
 import type { ClientFormValues } from "../form/clientForm";
 import ClientModal from "../modals/clientModal";
@@ -69,6 +71,7 @@ export function ClientsTable() {
     const [selectedClientData, setSelectedClientData] = useState<
         Partial<ClientFormValues> & { id?: string }
     >({});
+    const hasCreatePermission = useAuthStore((s) => s.hasPermission(PERMISSIONS.CLIENTS_CREATE));
 
     const fetchClients = async (params: Record<string, any>) => {
         const searchParams = new URLSearchParams();
@@ -140,10 +143,14 @@ export function ClientsTable() {
                     },
                 ]}
                 onRowClick={handleEditClient}
-                actionButton={{
-                    label: "Create Client",
-                    onClick: handleCreateClient,
-                }}
+                actionButton={
+                    hasCreatePermission
+                        ? {
+                              label: "Create Client",
+                              onClick: handleCreateClient,
+                          }
+                        : undefined
+                }
             />
             <ClientModal
                 open={isClientModalOpen}

@@ -1,4 +1,6 @@
 import { DataTable } from "@/components/dataTable";
+import { useAuthStore } from "@/components/stores/authStore";
+import { PERMISSIONS } from "@/lib/permissions";
 import { http } from "@/services/auth/serviceResolver";
 import { useState } from "react";
 import type { RideFormValues } from "../form/rideForm";
@@ -67,6 +69,9 @@ export function RidesTable({
     const [selectedRideData, setSelectedRideData] = useState<
         Partial<RideFormValues> & { id?: string }
     >({});
+    const hasCreatePermission = useAuthStore((s) =>
+        s.hasPermission(PERMISSIONS.APPOINTMENTS_CREATE)
+    );
 
     const fetchRides = async (_params: Record<string, any>) => {
         // const searchParams = new URLSearchParams();
@@ -136,7 +141,7 @@ export function RidesTable({
                 ]}
                 onRowClick={handleEditRide}
                 actionButton={
-                    hideActionButton
+                    !hideActionButton && hasCreatePermission
                         ? {
                               label: "Create Ride",
                               onClick: handleCreateRide,

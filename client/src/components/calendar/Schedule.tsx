@@ -3,7 +3,7 @@
  * This component is used by admins and dispatchers to view and manage all rides
  */
 
-import ky from "ky";
+import { http } from "@/services/auth/serviceResolver";
 import { useEffect, useState } from "react";
 import type { SlotInfo } from "react-big-calendar";
 import type { BusinessHoursConfig, CalendarEvent } from "../../types/rides";
@@ -152,8 +152,8 @@ export default function Schedule() {
                 setLoading(true);
 
                 const orgId = "braaaaam";
-                const data = await ky
-                    .get(`/o/${orgId}/appointments?pageSize=1000`, {
+                const data = await http
+                    .get(`o/${orgId}/appointments?pageSize=1000`, {
                         headers: {
                             "x-org-subdomain": orgId,
                         },
