@@ -100,6 +100,7 @@ export const MainNavigation = ({
         {
             text: "Organizations",
             link: "/organizations",
+            permission: PERMISSIONS.ORGANIZATIONS_READ,
         },
         {
             text: "Dashboard",

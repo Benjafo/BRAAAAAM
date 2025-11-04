@@ -1,8 +1,5 @@
-/**
- * Schedule component - View all rides calendar
- * This component is used by admins and dispatchers to view and manage all rides
- */
-
+import { useAuthStore } from "@/components/stores/authStore";
+import { PERMISSIONS } from "@/lib/permissions";
 import { http } from "@/services/auth/serviceResolver";
 import { useEffect, useState } from "react";
 import type { SlotInfo } from "react-big-calendar";
@@ -144,6 +141,9 @@ export default function Schedule() {
     const [selectedRideData, setSelectedRideData] = useState<
         Partial<RideFormValues> & { id?: string }
     >({});
+    const hasCreatePermission = useAuthStore((s) =>
+        s.hasPermission(PERMISSIONS.APPOINTMENTS_CREATE)
+    );
 
     // Fetch rides from API
     useEffect(() => {
@@ -213,10 +213,14 @@ export default function Schedule() {
             <BaseCalendar
                 events={rides}
                 businessHours={businessHours}
-                actionButton={{
-                    label: "Create Ride",
-                    onClick: handleCreateRide,
-                }}
+                actionButton={
+                    hasCreatePermission
+                        ? {
+                              label: "Create Ride",
+                              onClick: handleCreateRide,
+                          }
+                        : undefined
+                }
                 onEventSelect={handleRideSelect}
                 onSlotSelect={handleSlotSelect}
             />

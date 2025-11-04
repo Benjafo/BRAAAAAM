@@ -9,6 +9,6 @@ router.post("/", withPermission({ permissions: "clients.create" }), clients.crea
 
 router.get("/:clientId", withPermission({ permissions: "clients.read" }), clients.getClient);
 router.put("/:clientId", withPermission({ permissions: "clients.update" }), clients.updateClient);
-router.delete("/:clientId", withPermission({ permissions: "clients.delete" }), clients.deleteClient);
+// router.delete("/:clientId", withPermission({ permissions: "clients.delete" }), clients.deleteClient);
 
 export default router;

@@ -61,13 +61,6 @@ export const PERMISSIONS: PermissionDefinition[] = [
         name: "Update Clients",
         description: "Modify client information",
     },
-    {
-        permKey: "clients.delete",
-        resource: "clients",
-        action: "delete",
-        name: "Delete Clients",
-        description: "Remove clients",
-    },
 
     // Appointments
     {
@@ -169,7 +162,6 @@ export const PERMISSIONS: PermissionDefinition[] = [
         name: "Update Organizations",
         description: "Modify organizations",
     },
-
 
     // Special Permissions
     // {
