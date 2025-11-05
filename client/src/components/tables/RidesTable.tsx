@@ -116,9 +116,7 @@ export function RidesTable({
 
     const handleEditRide = (ride: Ride) => {
         console.log("Ride selected:", ride);
-        const originalRide = ride.resource?.originalRide || ride;
-        console.log("Original ride data:", originalRide);
-        const mappedData = mapRideToFormValues(originalRide);
+        const mappedData = mapRideToFormValues(ride);
         console.log("Mapped form values:", mappedData);
         setSelectedRideData(mappedData);
         setIsRideModalOpen(true);
