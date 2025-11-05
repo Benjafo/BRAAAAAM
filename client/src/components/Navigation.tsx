@@ -115,10 +115,12 @@ export const MainNavigation = ({
         {
             text: "Unassigned Rides",
             link: "/unassigned-rides",
+            permission: PERMISSIONS.APPOINTMENTS_READ,
         },
         {
             text: "Unavailability",
             link: "/unavailability",
+            permission: PERMISSIONS.APPOINTMENTS_READ,
         },
         // {
         //     text: "Notifications",
