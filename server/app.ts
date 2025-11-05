@@ -224,11 +224,11 @@ app.get("/test/o/:orgId/create-user", withOrg, async (req: Request, res: Respons
                 roleId: newUser.roleId,
             },
         });
-    } catch (error: any) {
+    } catch (error: unknown) {
         console.error("Error creating test user:", error);
 
         // Check for unique constraint violation
-        if (error.code === "23505") {
+        if (error && typeof error === "object" && "code" in error && error.code === "23505") {
             return res.status(400).json({ error: "User with this email already exists" });
         }
 

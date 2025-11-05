@@ -29,9 +29,9 @@ interface PermissionOptions {
 export function withPermission(options: PermissionOptions) {
     return async (req: Request, res: Response, next: NextFunction) => {
         try {
-            // @ts-ignore - These are added by withAuth and withOrg middleware
+            // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
             const userId = req.user?.id;
-            // @ts-ignore - These are added by withAuth and withOrg middleware
+            // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
             const orgDb = req.org?.db;
 
             if (!userId || !orgDb) {
