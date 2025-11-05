@@ -115,10 +115,6 @@ const userSchema = z
             .max(255, "Max characters allowed is 255.")
             .optional()
             .or(z.literal("")),
-        distanceLimitation: z
-            .number("Must enter the maximum number of miles the driver is willing to go.")
-            .min(0.1, "Cannot be 0 miles.")
-            .optional(),
         lifeSpanReimbursement: z.enum(["Yes", "No"]).optional(),
         emergencyContactName: z
             .string()
@@ -201,28 +197,20 @@ const userSchema = z
                     path: ["maxRides"],
                 });
             }
-            if (!data.townPreferences) {
-                ctx.addIssue({
-                    code: "custom",
-                    message: "Please enter any town preferences.",
-                    path: ["townPreferences"],
-                });
-            }
-            if (!data.destinationLimitations) {
-                ctx.addIssue({
-                    code: "custom",
-                    message: "Please enter any destination limitations.",
-                    path: ["destinationLimitations"],
-                });
-            }
-            if (data.distanceLimitation === undefined) {
-                ctx.addIssue({
-                    code: "custom",
-                    message: "Must enter the maximum number of miles driver is willing to go.",
-                    path: ["distanceLimitation"],
-                });
-            }
-
+            // if (!data.townPreferences) {
+            //     ctx.addIssue({
+            //         code: "custom",
+            //         message: "Please enter any town preferences.",
+            //         path: ["townPreferences"],
+            //     });
+            // }
+            // if (!data.destinationLimitations) {
+            //     ctx.addIssue({
+            //         code: "custom",
+            //         message: "Please enter any destination limitations.",
+            //         path: ["destinationLimitations"],
+            //     });
+            // }
             if (!data.lifeSpanReimbursement) {
                 ctx.addIssue({
                     code: "custom",
@@ -317,7 +305,6 @@ export default function NewUserForm({
             maxRides: defaultValues.maxRides,
             townPreferences: defaultValues.townPreferences ?? "",
             destinationLimitations: defaultValues.destinationLimitations ?? "",
-            distanceLimitation: defaultValues.distanceLimitation,
             lifeSpanReimbursement: defaultValues.lifeSpanReimbursement ?? "No",
             emergencyContactName: defaultValues.emergencyContactName ?? "",
             emergencyContactPhone: defaultValues.emergencyContactPhone ?? "",
@@ -965,29 +952,6 @@ export default function NewUserForm({
                                                 </FormLabel>
                                             </div>
                                         </RadioGroup>
-                                    </FormControl>
-                                    <FormMessage />
-                                </FormItem>
-                            )}
-                        />
-
-                        {/* Distance Limitation */}
-                        <FormField
-                            control={form.control}
-                            name="distanceLimitation"
-                            render={({ field }) => (
-                                <FormItem className="w-full">
-                                    <FormLabel>Maximum Distance Willing to Go (In Miles)</FormLabel>
-                                    <FormControl className="w-full">
-                                        <Input
-                                            type="number"
-                                            step="1"
-                                            min="0.1"
-                                            placeholder="0.1"
-                                            value={field.value ?? ""}
-                                            onChange={handleNumberChange(field)}
-                                            className="w-full"
-                                        />
                                     </FormControl>
                                     <FormMessage />
                                 </FormItem>
