@@ -41,7 +41,9 @@ export function RolesTable() {
     // TODO we should have a ROLES_DELETE permission
     const hasDeletePermission = useAuthStore((s) => s.hasPermission(PERMISSIONS.ROLES_UPDATE));
 
-    const fetchRoles = async (_params: Record<string, any>) => {
+    const fetchRoles = async (params: Record<string, any>) => {
+        console.log("Params: ", params);
+
         const orgID = "braaaaam";
         const response = (await http.get(`o/${orgID}/settings/roles`).json()) as {
             results: Role[];
