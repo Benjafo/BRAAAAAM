@@ -22,7 +22,7 @@ import { z } from "zod";
 
 import type { ClientProfile } from "@/lib/types";
 import { cn } from "@/lib/utils";
-import { Check, ChevronsUpDown } from "lucide-react";
+import { Check, ChevronsUpDown, X } from "lucide-react";
 import { useState } from "react";
 import { GoogleAddressFields } from "../GoogleAddressFields";
 import { Button } from "../ui/button";
@@ -306,84 +306,106 @@ export default function EditRideForm({
                         return (
                             <FormItem className="w-full">
                                 <FormLabel>Client</FormLabel>
-                                <FormControl className="w-full">
-                                    <Popover open={clientOpen} onOpenChange={setClientOpen}>
-                                        <PopoverTrigger asChild>
+                                <FormControl>
+                                    <div className="flex gap-2">
+                                        <Popover open={clientOpen} onOpenChange={setClientOpen}>
+                                            <PopoverTrigger asChild>
+                                                <Button
+                                                    variant="outline"
+                                                    role="combobox"
+                                                    aria-expanded={clientOpen}
+                                                    className="flex-1 justify-between"
+                                                >
+                                                    <span className="truncate">
+                                                        {field.value
+                                                            ? clients.find(
+                                                                  (client) => client.value === field.value
+                                                              )?.label
+                                                            : "Select Client"}
+                                                    </span>
+                                                    <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                                                </Button>
+                                            </PopoverTrigger>
+                                            <PopoverContent className="w-[var(--radix-popover-trigger-width)] p-0">
+                                                <Command>
+                                                    <CommandInput placeholder="Search client..." />
+                                                    <CommandList>
+                                                        <CommandEmpty>No client found.</CommandEmpty>
+                                                        <CommandGroup>
+                                                            {clients.map((client) => (
+                                                                <CommandItem
+                                                                    key={client.value}
+                                                                    value={client.label}
+                                                                    onSelect={() => {
+                                                                        field.onChange(client.value);
+                                                                        onClientChange?.(client.value);
+                                                                        form.setValue(
+                                                                            "clientId",
+                                                                            client.id
+                                                                        );
+                                                                        // Set the client's street address from their profile
+                                                                        if (client.profile?.address) {
+                                                                            form.setValue(
+                                                                                "clientStreetAddress",
+                                                                                client.profile.address
+                                                                            );
+                                                                        }
+                                                                        if (client.profile?.city) {
+                                                                            form.setValue(
+                                                                                "clientCity",
+                                                                                client.profile.city
+                                                                            );
+                                                                        }
+                                                                        if (client.profile?.state) {
+                                                                            form.setValue(
+                                                                                "clientState",
+                                                                                client.profile.state
+                                                                            );
+                                                                        }
+                                                                        if (client.profile?.zip) {
+                                                                            form.setValue(
+                                                                                "clientZip",
+                                                                                client.profile.zip
+                                                                            );
+                                                                        }
+                                                                        setClientOpen(false);
+                                                                    }}
+                                                                >
+                                                                    <Check
+                                                                        className={cn(
+                                                                            "mr-2 h-4 w-4",
+                                                                            field.value === client.value
+                                                                                ? "opacity-100"
+                                                                                : "opacity-0"
+                                                                        )}
+                                                                    />
+                                                                    {client.label}
+                                                                </CommandItem>
+                                                            ))}
+                                                        </CommandGroup>
+                                                    </CommandList>
+                                                </Command>
+                                            </PopoverContent>
+                                        </Popover>
+                                        {field.value && (
                                             <Button
+                                                type="button"
                                                 variant="outline"
-                                                role="combobox"
-                                                aria-expanded={clientOpen}
-                                                className="w-full justify-between"
+                                                size="icon"
+                                                className="shrink-0"
+                                                onClick={() => {
+                                                    field.onChange("");
+                                                    form.setValue("clientId", "");
+                                                    form.setValue("clientStreetAddress", "");
+                                                    form.setValue("clientCity", "");
+                                                    form.setValue("clientState", "");
+                                                    form.setValue("clientZip", "");
+                                                }}
                                             >
-                                                {field.value
-                                                    ? clients.find(
-                                                          (client) => client.value === field.value
-                                                      )?.label
-                                                    : "Select Client"}
-                                                <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                                                <X className="h-4 w-4" />
                                             </Button>
-                                        </PopoverTrigger>
-                                        <PopoverContent className="w-[var(--radix-popover-trigger-width)] p-0">
-                                            <Command>
-                                                <CommandInput placeholder="Search client..." />
-                                                <CommandList>
-                                                    <CommandEmpty>No client found.</CommandEmpty>
-                                                    <CommandGroup>
-                                                        {clients.map((client) => (
-                                                            <CommandItem
-                                                                key={client.value}
-                                                                value={client.label}
-                                                                onSelect={() => {
-                                                                    field.onChange(client.value);
-                                                                    onClientChange?.(client.value);
-                                                                    form.setValue(
-                                                                        "clientId",
-                                                                        client.id
-                                                                    );
-                                                                    // Set the client's street address from their profile
-                                                                    if (client.profile?.address) {
-                                                                        form.setValue(
-                                                                            "clientStreetAddress",
-                                                                            client.profile.address
-                                                                        );
-                                                                    }
-                                                                    if (client.profile?.city) {
-                                                                        form.setValue(
-                                                                            "clientCity",
-                                                                            client.profile.city
-                                                                        );
-                                                                    }
-                                                                    if (client.profile?.state) {
-                                                                        form.setValue(
-                                                                            "clientState",
-                                                                            client.profile.state
-                                                                        );
-                                                                    }
-                                                                    if (client.profile?.zip) {
-                                                                        form.setValue(
-                                                                            "clientZip",
-                                                                            client.profile.zip
-                                                                        );
-                                                                    }
-                                                                    setClientOpen(false);
-                                                                }}
-                                                            >
-                                                                <Check
-                                                                    className={cn(
-                                                                        "mr-2 h-4 w-4",
-                                                                        field.value === client.value
-                                                                            ? "opacity-100"
-                                                                            : "opacity-0"
-                                                                    )}
-                                                                />
-                                                                {client.label}
-                                                            </CommandItem>
-                                                        ))}
-                                                    </CommandGroup>
-                                                </CommandList>
-                                            </Command>
-                                        </PopoverContent>
-                                    </Popover>
+                                        )}
+                                    </div>
                                 </FormControl>
                                 <FormMessage />
                             </FormItem>
@@ -591,54 +613,71 @@ export default function EditRideForm({
                                         </button>
                                     )}
                                 </div>
-                                <FormControl className="w-full">
-                                    <Popover open={driverOpen} onOpenChange={setDriverOpen}>
-                                        <PopoverTrigger asChild>
+                                <FormControl>
+                                    <div className="flex gap-2">
+                                        <Popover open={driverOpen} onOpenChange={setDriverOpen}>
+                                            <PopoverTrigger asChild>
+                                                <Button
+                                                    variant="outline"
+                                                    role="combobox"
+                                                    aria-expanded={driverOpen}
+                                                    className="flex-1 justify-between"
+                                                >
+                                                    <span className="truncate">
+                                                        {field.value
+                                                            ? drivers.find(
+                                                                  (driver) => driver.value === field.value
+                                                              )?.label
+                                                            : "Select Driver"}
+                                                    </span>
+                                                    <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                                                </Button>
+                                            </PopoverTrigger>
+                                            <PopoverContent className="w-[var(--radix-popover-trigger-width)] p-0">
+                                                <Command>
+                                                    <CommandInput placeholder="Search driver..." />
+                                                    <CommandList>
+                                                        <CommandEmpty>No driver found.</CommandEmpty>
+                                                        <CommandGroup>
+                                                            {drivers.map((driver) => (
+                                                                <CommandItem
+                                                                    key={driver.value}
+                                                                    value={driver.label}
+                                                                    onSelect={() => {
+                                                                        field.onChange(driver.value);
+                                                                        setDriverOpen(false);
+                                                                    }}
+                                                                >
+                                                                    <Check
+                                                                        className={cn(
+                                                                            "mr-2 h-4 w-4",
+                                                                            field.value === driver.value
+                                                                                ? "opacity-100"
+                                                                                : "opacity-0"
+                                                                        )}
+                                                                    />
+                                                                    {driver.label}
+                                                                </CommandItem>
+                                                            ))}
+                                                        </CommandGroup>
+                                                    </CommandList>
+                                                </Command>
+                                            </PopoverContent>
+                                        </Popover>
+                                        {field.value && (
                                             <Button
+                                                type="button"
                                                 variant="outline"
-                                                role="combobox"
-                                                aria-expanded={driverOpen}
-                                                className="w-full justify-between"
+                                                size="icon"
+                                                className="shrink-0"
+                                                onClick={() => {
+                                                    field.onChange("");
+                                                }}
                                             >
-                                                {field.value
-                                                    ? drivers.find(
-                                                          (driver) => driver.value === field.value
-                                                      )?.label
-                                                    : "Select Driver"}
-                                                <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                                                <X className="h-4 w-4" />
                                             </Button>
-                                        </PopoverTrigger>
-                                        <PopoverContent className="w-[var(--radix-popover-trigger-width)] p-0">
-                                            <Command>
-                                                <CommandInput placeholder="Search driver..." />
-                                                <CommandList>
-                                                    <CommandEmpty>No driver found.</CommandEmpty>
-                                                    <CommandGroup>
-                                                        {drivers.map((driver) => (
-                                                            <CommandItem
-                                                                key={driver.value}
-                                                                value={driver.label}
-                                                                onSelect={() => {
-                                                                    field.onChange(driver.value);
-                                                                    setDriverOpen(false);
-                                                                }}
-                                                            >
-                                                                <Check
-                                                                    className={cn(
-                                                                        "mr-2 h-4 w-4",
-                                                                        field.value === driver.value
-                                                                            ? "opacity-100"
-                                                                            : "opacity-0"
-                                                                    )}
-                                                                />
-                                                                {driver.label}
-                                                            </CommandItem>
-                                                        ))}
-                                                    </CommandGroup>
-                                                </CommandList>
-                                            </Command>
-                                        </PopoverContent>
-                                    </Popover>
+                                        )}
+                                    </div>
                                 </FormControl>
                                 <FormMessage />
                             </FormItem>
