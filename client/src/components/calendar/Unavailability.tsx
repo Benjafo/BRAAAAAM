@@ -30,7 +30,9 @@ const transformUnavailabilityToCalendarEvents = (
         // Parse start date and time
         const [startYear, startMonth, startDay] = block.startDate.split("-").map(Number);
         const [startTimeStr, startPeriod] = block.startTime.split(" ");
-        let [startHours, startMinutes] = startTimeStr.split(":").map(Number);
+        const startParts = startTimeStr.split(":").map(Number);
+        let startHours = startParts[0];
+        const startMinutes = startParts[1];
 
         // Convert to 24-hour format for start time
         if (startPeriod === "PM" && startHours !== 12) {
@@ -42,7 +44,9 @@ const transformUnavailabilityToCalendarEvents = (
         // Parse end date and time
         const [endYear, endMonth, endDay] = block.endDate.split("-").map(Number);
         const [endTimeStr, endPeriod] = block.endTime.split(" ");
-        let [endHours, endMinutes] = endTimeStr.split(":").map(Number);
+        const endParts = endTimeStr.split(":").map(Number);
+        let endHours = endParts[0];
+        const endMinutes = endParts[1];
 
         // Convert to 24-hour format for end time
         if (endPeriod === "PM" && endHours !== 12) {
@@ -127,7 +131,7 @@ export default function Unavailability() {
         );
     };
 
-    const eventStyleGetter = (_event: CalendarEvent) => {
+    const eventStyleGetter = () => {
         // All unavailability blocks are shown in pink/red color
         return {
             className: "unavailable",

@@ -73,7 +73,6 @@ export default function RideModal({
     const modalTitle = isEditing ? "Edit Ride" : "Create Ride";
     const successMessage = isEditing ? "Ride Updated" : "Ride Created";
 
-    const [_selectedClientId, setSelectedClientId] = React.useState<string>("");
     const [clients, setClients] = React.useState<Client[]>([]);
     const [drivers, setDrivers] = React.useState<User[]>([]);
     const [isLoadingClients, setIsLoadingClients] = React.useState(false);
@@ -165,7 +164,8 @@ export default function RideModal({
 
     // Handle client selection changes
     function handleClientChange(clientId: string) {
-        setSelectedClientId(clientId);
+        // TODO remove this
+        console.log(`Client changed: ${clientId}`);
     }
 
     async function handleSubmit(values: RideFormValues) {

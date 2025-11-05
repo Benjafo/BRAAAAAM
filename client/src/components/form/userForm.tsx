@@ -178,6 +178,7 @@ const userSchema = z
         }
 
         // TODO we cant access the whether the user's role is a driver here, this needs fix
+        // eslint-disable-next-line no-constant-condition
         if (false) {
             if (!data.vehicleType) {
                 ctx.addIssue({

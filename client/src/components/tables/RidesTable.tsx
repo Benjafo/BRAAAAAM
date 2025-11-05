@@ -74,7 +74,7 @@ export function RidesTable({
     );
     const hasEditPermission = useAuthStore((s) => s.hasPermission(PERMISSIONS.APPOINTMENTS_UPDATE));
 
-    const fetchRides = async (params: Record<string, any>) => {
+    const fetchRides = async (params: Record<string, unknown>) => {
         console.log("Params: ", params);
 
         // const searchParams = new URLSearchParams();
@@ -114,7 +114,7 @@ export function RidesTable({
         setIsRideModalOpen(true);
     };
 
-    const handleEditRide = (ride: any) => {
+    const handleEditRide = (ride: Ride) => {
         console.log("Ride selected:", ride);
         const originalRide = ride.resource?.originalRide || ride;
         console.log("Original ride data:", originalRide);

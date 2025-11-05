@@ -70,7 +70,7 @@ export function UsersTable() {
     const hasCreatePermission = useAuthStore((s) => s.hasPermission(PERMISSIONS.USERS_CREATE));
     const hasEditPermission = useAuthStore((s) => s.hasPermission(PERMISSIONS.USERS_UPDATE));
 
-    const fetchUsers = async (params: Record<string, any>) => {
+    const fetchUsers = async (params: Record<string, unknown>) => {
         const searchParams = new URLSearchParams();
         Object.entries(params).forEach(([key, value]) => {
             if (value !== undefined && value !== null) {

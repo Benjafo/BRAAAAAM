@@ -74,7 +74,7 @@ export function ClientsTable() {
     const hasCreatePermission = useAuthStore((s) => s.hasPermission(PERMISSIONS.CLIENTS_CREATE));
     const hasEditPermission = useAuthStore((s) => s.hasPermission(PERMISSIONS.CLIENTS_UPDATE));
 
-    const fetchClients = async (params: Record<string, any>) => {
+    const fetchClients = async (params: Record<string, unknown>) => {
         const searchParams = new URLSearchParams();
         Object.entries(params).forEach(([key, value]) => {
             if (value !== undefined && value !== null) {

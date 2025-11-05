@@ -8,8 +8,8 @@ import { useEffect, useState } from "react";
 import type { SlotInfo } from "react-big-calendar";
 import type { BusinessHoursConfig, CalendarEvent } from "../../types/rides";
 import type { RideFormValues } from "../form/rideForm";
-import BaseCalendar from "./BaseCalendar";
 import RideModal from "../modals/rideModal";
+import BaseCalendar from "./BaseCalendar";
 
 type Ride = {
     id: string;
@@ -39,9 +39,6 @@ type Ride = {
     destinationZip: string | null;
 };
 
-const ORG_ID = "braaaaam";
-const API_RIDES_ENDPOINT = `/o/${ORG_ID}/appointments`;
-
 // Transform API ride data to CalendarEvent format
 // AI helped here
 const transformRidesToCalendarEvents = (rides: Ride[]): CalendarEvent[] => {
@@ -49,7 +46,9 @@ const transformRidesToCalendarEvents = (rides: Ride[]): CalendarEvent[] => {
         // Parse date and time
         const [year, month, day] = ride.date.split("-").map(Number);
         const [time, period] = ride.time.split(" ");
-        let [hours, minutes] = time.split(":").map(Number);
+        const parts = time.split(":").map(Number);
+        let hours: number = parts[0];
+        const minutes: number = parts[1];
 
         // Convert to 24-hour format
         if (period === "PM" && hours !== 12) {
@@ -151,17 +150,20 @@ export default function UnassignedRides() {
             try {
                 setLoading(true);
 
+                const orgId = "braaaaam";
                 const data = await ky
-                    .get(`${API_RIDES_ENDPOINT}?pageSize=1000`, {
+                    .get(`o/${orgId}/appointments?pageSize=1000`, {
                         headers: {
-                            "x-org-subdomain": ORG_ID,
+                            "x-org-subdomain": orgId,
                         },
                     })
                     .json<{ results: Ride[] }>();
 
                 // Filter for unassigned rides only
                 // TODO: should be server-side
-                const unassignedRides = data.results.filter((ride: Ride) => ride.status === "Unassigned");
+                const unassignedRides = data.results.filter(
+                    (ride: Ride) => ride.status === "Unassigned"
+                );
                 const transformedRides = transformRidesToCalendarEvents(unassignedRides);
                 setRides(transformedRides);
                 setLoading(false);

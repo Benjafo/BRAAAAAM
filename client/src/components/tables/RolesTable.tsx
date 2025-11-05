@@ -41,7 +41,7 @@ export function RolesTable() {
     // TODO we should have a ROLES_DELETE permission
     const hasDeletePermission = useAuthStore((s) => s.hasPermission(PERMISSIONS.ROLES_UPDATE));
 
-    const fetchRoles = async (params: Record<string, any>) => {
+    const fetchRoles = async (params: Record<string, unknown>) => {
         console.log("Params: ", params);
 
         const orgID = "braaaaam";
@@ -95,12 +95,12 @@ export function RolesTable() {
             setRoleToDelete(null);
             // Refresh table
             setTableKey((prev) => prev + 1);
-        } catch (error: any) {
+        } catch (error: unknown) {
             console.error("Error deleting role:", error);
 
             // Handle specific error cases
-            if (error.response) {
-                const errorData = await error.response.json().catch(() => ({}));
+            if (error && typeof error === "object" && "response" in error) {
+                const errorData = await (error.response as Response).json().catch(() => ({}));
                 if (errorData.error === "Cannot delete role assigned to users") {
                     toast.error(`Cannot delete role: assigned to ${errorData.userCount} user(s)`);
                 } else {

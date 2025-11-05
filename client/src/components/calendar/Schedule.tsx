@@ -43,7 +43,9 @@ const transformRidesToCalendarEvents = (rides: Ride[]): CalendarEvent[] => {
         // Parse date and time
         const [year, month, day] = ride.date.split("-").map(Number);
         const [time, period] = ride.time.split(" ");
-        let [hours, minutes] = time.split(":").map(Number);
+        const parts = time.split(":").map(Number);
+        let hours: number = parts[0];
+        const minutes: number = parts[1];
 
         // Convert to 24-hour format
         if (period === "PM" && hours !== 12) {
