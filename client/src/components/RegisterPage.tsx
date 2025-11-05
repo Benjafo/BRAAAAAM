@@ -92,7 +92,7 @@ const RegisterPage = ({
             // });
 
             // Navigate to home page on successful registration
-            navigate({ to: "/" });
+            navigate({ to: "/{-$subdomain}" });
         } catch (error) {
             console.error("Error registering user:", error);
             // Handle API errors here
@@ -166,7 +166,7 @@ const RegisterPage = ({
 
                     {/* Login link for existing users */}
                     <div className="mt-3 text-center">
-                        <Link to="/sign-in">
+                        <Link to="/{-$subdomain}/sign-in">
                             <span className="text-sm text-gray-700 hover:underline cursor-pointer">
                                 {loginText}
                             </span>

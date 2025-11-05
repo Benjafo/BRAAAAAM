@@ -1,13 +1,18 @@
 import { useMutation } from '@tanstack/react-query';
 import { authStore } from '@/components/stores/authStore';
 import type { Credentials, LoginResponse, ResetPasswordCredentials } from '@/lib/types';
-import { authService } from '@/services/auth/serviceResolver';
+import { useAuthService } from '@/services/auth/serviceResolver';
+// import { authService } from '@/services/auth/serviceResolver';
 
 export function useLogin() {
+
+  const authService = useAuthService();
+
   return useMutation({
     mutationFn: (vars: Credentials) => authService.login(vars),
     onSuccess: (res: LoginResponse) => {
       authStore.getState().setAuth({
+        subdomain: res.subdomain ?? null,
         user: res.user,
         role: res.role,
         permissions: res.permissions,
@@ -24,6 +29,9 @@ export function useLogin() {
 }
 
 export function useLogout() {
+  
+  const authService = useAuthService();
+
   return useMutation({
     mutationFn: () => authService.logout(),
     onSuccess: () => {
@@ -40,6 +48,9 @@ export function useLogout() {
 }
 
 export function useForgotPassword() {
+
+  const authService = useAuthService();
+
   return useMutation({
     mutationFn: (vars: { email: string}) => authService.forgotPassword(vars),
     onError: (error) => {
@@ -51,8 +62,11 @@ export function useForgotPassword() {
 }
 
 export function useResetPassword() {
+
+  const authService = useAuthService();
+  
   return useMutation({
-    mutationFn: (vars: ResetPasswordCredentials & { token: string }) => authService.resetPassword(vars),
+    mutationFn: (vars: ResetPasswordCredentials & { token: string, id: string }) => authService.resetPassword(vars),
     onError: (error) => {
       if (import.meta.env.DEV) {
           console.error("useResetPassword error", error)

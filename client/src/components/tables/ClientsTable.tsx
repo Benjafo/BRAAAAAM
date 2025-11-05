@@ -3,6 +3,7 @@ import ky from "ky";
 import { useState } from "react";
 import type { ClientFormValues } from "../form/clientForm";
 import ClientModal from "../modals/clientModal";
+import { useParams } from "@tanstack/react-router";
 
 type Client = {
     id: string;
@@ -65,11 +66,11 @@ export function ClientsTable() {
             }
         });
 
-        const orgID = "braaaaam";
+        const { subdomain } = useParams({strict: false});
         const response = (await ky
-            .get(`/o/${orgID}/clients`, {
+            .get(`/o/${subdomain}/clients`, {
                 headers: {
-                    "x-org-subdomain": orgID,
+                    "x-org-subdomain": subdomain,
                 },
             })
             .json()) as Client[];

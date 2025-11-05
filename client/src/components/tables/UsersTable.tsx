@@ -1,19 +1,22 @@
 import { DataTable } from "@/components/dataTable";
-import ky from "ky";
+// import ky from "ky";
 import { useState } from "react";
 import type { UserFormValues } from "../form/userForm";
 import NewUserModal from "../modals/userModal";
+import { useUsers } from "@/hooks/org/useUsers";
+import { toast } from "sonner";
+import type { User } from "@/types/org/users";
 
-type User = {
-    id: string;
-    firstName: string;
-    lastName: string;
-    email: string;
-    phone: string;
-    contactPreference: string | null;
-    isActive: boolean;
-    isDriver: boolean;
-};
+// type User = {
+//     id: string;
+//     firstName: string;
+//     lastName: string;
+//     email: string;
+//     phone: string;
+//     contactPreference: string | null;
+//     isActive: boolean;
+//     isDriver: boolean;
+// };
 
 // Helper function to map API User to form values
 // derived from the mapClientToFormValues from ai
@@ -41,6 +44,9 @@ export function UsersTable() {
         Partial<UserFormValues> & { id?: string }
     >({});
 
+    const getUsers = useUsers()
+    const { isPending, isError, data: users, error } = getUsers([])
+
     const fetchUsers = async (params: Record<string, any>) => {
         const searchParams = new URLSearchParams();
         Object.entries(params).forEach(([key, value]) => {
@@ -49,19 +55,39 @@ export function UsersTable() {
             }
         });
 
-        const orgID = "braaaaam";
-        const response = (await ky
-            .get(`/o/${orgID}/users`, {
-                headers: {
-                    "x-org-subdomain": orgID,
-                },
-            })
-            .json()) as User[];
-        console.log("Fetched users:", response);
+        
+        /** @TODO fix passing in url params */
+        
+        console.log('Ran')
+
+        if(isError && !isPending) {
+            toast.error('Failed to fetch users', {
+                description: error.message
+            });
+
+            if(import.meta.env.DEV) {
+                console.error(error)
+            }
+        }
+
         return {
-            data: response,
-            total: response.length,
-        };
+            data: users ?? [],
+            total: users?.length ?? 0
+        }
+
+        // const orgID = "braaaaam";
+        // const response = (await ky
+        //     .get(`/o/${orgID}/users`, {
+        //         headers: {
+        //             "x-org-subdomain": orgID,
+        //         },
+        //     })
+        //     .json()) as User[];
+        // console.log("Fetched users:", response);
+        // return {
+        //     data: response,
+        //     total: response.length,
+        // };
     };
 
     const handleCreateUser = () => {

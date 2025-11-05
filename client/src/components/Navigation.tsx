@@ -66,7 +66,7 @@ export const LoginNavigation = ({
             }
             rightNavItems={
                 showCancelButton && (
-                    <Link to="/sign-in">
+                    <Link to="/{-$subdomain}/sign-in">
                         <Button size="sm" variant="link">
                             Cancel
                         </Button>
@@ -161,7 +161,7 @@ export const MainNavigation = ({
     const handleSignOut = async () => {
         logout.mutate(undefined, {
             onSettled: () => {
-                navigate({ to: "/sign-in" });
+                navigate({ to: "/{-$subdomain}/sign-in" });
             },
         });
         // try {

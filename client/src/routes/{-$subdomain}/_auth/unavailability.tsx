@@ -1,8 +1,8 @@
+import Unavailability from "@/components/calendar/Unavailability";
 import { MainNavigation } from "@/components/Navigation";
-import { UsersTable } from "@/components/tables/UsersTable";
 import { createFileRoute } from "@tanstack/react-router";
 
-export const Route = createFileRoute("/users")({
+export const Route = createFileRoute("/{-$subdomain}/_auth/unavailability")({
     component: RouteComponent,
 });
 
@@ -10,7 +10,7 @@ function RouteComponent() {
     return (
         <>
             <MainNavigation />
-            <UsersTable />
+            <Unavailability />
         </>
     );
 }

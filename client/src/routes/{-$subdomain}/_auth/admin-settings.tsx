@@ -9,7 +9,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { createFileRoute } from "@tanstack/react-router";
 import { useCallback, useRef, useState } from "react";
 
-export const Route = createFileRoute("/_auth/admin-settings")({
+export const Route = createFileRoute("/{-$subdomain}/_auth/admin-settings")({
     component: RouteComponent,
 });
 

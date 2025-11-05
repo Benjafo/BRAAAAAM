@@ -9,211 +9,401 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
-import { Route as LoginRouteRouteImport } from './routes/_login/route'
-import { Route as AuthRouteRouteImport } from './routes/_auth/route'
-import { Route as IndexRouteImport } from './routes/index'
-import { Route as LoginSignInRouteImport } from './routes/_login/sign-in'
-import { Route as LoginResetPasswordRouteImport } from './routes/_login/reset-password'
-import { Route as LoginForgetPasswordRouteImport } from './routes/_login/forget-password'
-import { Route as AuthDashboardRouteImport } from './routes/_auth/dashboard'
-import { Route as AuthAdminSettingsRouteImport } from './routes/_auth/admin-settings'
+import { Route as Char123SubdomainChar125RouteRouteImport } from './routes/{-$subdomain}/route'
+import { Route as Char123SubdomainChar125IndexRouteImport } from './routes/{-$subdomain}/index'
+import { Route as Char123SubdomainChar125LoginRouteRouteImport } from './routes/{-$subdomain}/_login/route'
+import { Route as Char123SubdomainChar125AuthRouteRouteImport } from './routes/{-$subdomain}/_auth/route'
+import { Route as Char123SubdomainChar125LoginSignInRouteImport } from './routes/{-$subdomain}/_login/sign-in'
+import { Route as Char123SubdomainChar125LoginResetPasswordRouteImport } from './routes/{-$subdomain}/_login/reset-password'
+import { Route as Char123SubdomainChar125LoginForgetPasswordRouteImport } from './routes/{-$subdomain}/_login/forget-password'
+import { Route as Char123SubdomainChar125AuthUsersRouteImport } from './routes/{-$subdomain}/_auth/users'
+import { Route as Char123SubdomainChar125AuthUnavailabilityRouteImport } from './routes/{-$subdomain}/_auth/unavailability'
+import { Route as Char123SubdomainChar125AuthUnassignedRidesRouteImport } from './routes/{-$subdomain}/_auth/unassigned-rides'
+import { Route as Char123SubdomainChar125AuthScheduleRouteImport } from './routes/{-$subdomain}/_auth/schedule'
+import { Route as Char123SubdomainChar125AuthOrganizationsRouteImport } from './routes/{-$subdomain}/_auth/organizations'
+import { Route as Char123SubdomainChar125AuthDashboardRouteImport } from './routes/{-$subdomain}/_auth/dashboard'
+import { Route as Char123SubdomainChar125AuthClientsRouteImport } from './routes/{-$subdomain}/_auth/clients'
+import { Route as Char123SubdomainChar125AuthAdminSettingsRouteImport } from './routes/{-$subdomain}/_auth/admin-settings'
 
-const LoginRouteRoute = LoginRouteRouteImport.update({
-  id: '/_login',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const AuthRouteRoute = AuthRouteRouteImport.update({
-  id: '/_auth',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const IndexRoute = IndexRouteImport.update({
-  id: '/',
-  path: '/',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const LoginSignInRoute = LoginSignInRouteImport.update({
-  id: '/sign-in',
-  path: '/sign-in',
-  getParentRoute: () => LoginRouteRoute,
-} as any)
-const LoginResetPasswordRoute = LoginResetPasswordRouteImport.update({
-  id: '/reset-password',
-  path: '/reset-password',
-  getParentRoute: () => LoginRouteRoute,
-} as any)
-const LoginForgetPasswordRoute = LoginForgetPasswordRouteImport.update({
-  id: '/forget-password',
-  path: '/forget-password',
-  getParentRoute: () => LoginRouteRoute,
-} as any)
-const AuthDashboardRoute = AuthDashboardRouteImport.update({
-  id: '/dashboard',
-  path: '/dashboard',
-  getParentRoute: () => AuthRouteRoute,
-} as any)
-const AuthAdminSettingsRoute = AuthAdminSettingsRouteImport.update({
-  id: '/admin-settings',
-  path: '/admin-settings',
-  getParentRoute: () => AuthRouteRoute,
-} as any)
+const Char123SubdomainChar125RouteRoute =
+  Char123SubdomainChar125RouteRouteImport.update({
+    id: '/{-$subdomain}',
+    path: '/{-$subdomain}',
+    getParentRoute: () => rootRouteImport,
+  } as any)
+const Char123SubdomainChar125IndexRoute =
+  Char123SubdomainChar125IndexRouteImport.update({
+    id: '/',
+    path: '/',
+    getParentRoute: () => Char123SubdomainChar125RouteRoute,
+  } as any)
+const Char123SubdomainChar125LoginRouteRoute =
+  Char123SubdomainChar125LoginRouteRouteImport.update({
+    id: '/_login',
+    getParentRoute: () => Char123SubdomainChar125RouteRoute,
+  } as any)
+const Char123SubdomainChar125AuthRouteRoute =
+  Char123SubdomainChar125AuthRouteRouteImport.update({
+    id: '/_auth',
+    getParentRoute: () => Char123SubdomainChar125RouteRoute,
+  } as any)
+const Char123SubdomainChar125LoginSignInRoute =
+  Char123SubdomainChar125LoginSignInRouteImport.update({
+    id: '/sign-in',
+    path: '/sign-in',
+    getParentRoute: () => Char123SubdomainChar125LoginRouteRoute,
+  } as any)
+const Char123SubdomainChar125LoginResetPasswordRoute =
+  Char123SubdomainChar125LoginResetPasswordRouteImport.update({
+    id: '/reset-password',
+    path: '/reset-password',
+    getParentRoute: () => Char123SubdomainChar125LoginRouteRoute,
+  } as any)
+const Char123SubdomainChar125LoginForgetPasswordRoute =
+  Char123SubdomainChar125LoginForgetPasswordRouteImport.update({
+    id: '/forget-password',
+    path: '/forget-password',
+    getParentRoute: () => Char123SubdomainChar125LoginRouteRoute,
+  } as any)
+const Char123SubdomainChar125AuthUsersRoute =
+  Char123SubdomainChar125AuthUsersRouteImport.update({
+    id: '/users',
+    path: '/users',
+    getParentRoute: () => Char123SubdomainChar125AuthRouteRoute,
+  } as any)
+const Char123SubdomainChar125AuthUnavailabilityRoute =
+  Char123SubdomainChar125AuthUnavailabilityRouteImport.update({
+    id: '/unavailability',
+    path: '/unavailability',
+    getParentRoute: () => Char123SubdomainChar125AuthRouteRoute,
+  } as any)
+const Char123SubdomainChar125AuthUnassignedRidesRoute =
+  Char123SubdomainChar125AuthUnassignedRidesRouteImport.update({
+    id: '/unassigned-rides',
+    path: '/unassigned-rides',
+    getParentRoute: () => Char123SubdomainChar125AuthRouteRoute,
+  } as any)
+const Char123SubdomainChar125AuthScheduleRoute =
+  Char123SubdomainChar125AuthScheduleRouteImport.update({
+    id: '/schedule',
+    path: '/schedule',
+    getParentRoute: () => Char123SubdomainChar125AuthRouteRoute,
+  } as any)
+const Char123SubdomainChar125AuthOrganizationsRoute =
+  Char123SubdomainChar125AuthOrganizationsRouteImport.update({
+    id: '/organizations',
+    path: '/organizations',
+    getParentRoute: () => Char123SubdomainChar125AuthRouteRoute,
+  } as any)
+const Char123SubdomainChar125AuthDashboardRoute =
+  Char123SubdomainChar125AuthDashboardRouteImport.update({
+    id: '/dashboard',
+    path: '/dashboard',
+    getParentRoute: () => Char123SubdomainChar125AuthRouteRoute,
+  } as any)
+const Char123SubdomainChar125AuthClientsRoute =
+  Char123SubdomainChar125AuthClientsRouteImport.update({
+    id: '/clients',
+    path: '/clients',
+    getParentRoute: () => Char123SubdomainChar125AuthRouteRoute,
+  } as any)
+const Char123SubdomainChar125AuthAdminSettingsRoute =
+  Char123SubdomainChar125AuthAdminSettingsRouteImport.update({
+    id: '/admin-settings',
+    path: '/admin-settings',
+    getParentRoute: () => Char123SubdomainChar125AuthRouteRoute,
+  } as any)
 
 export interface FileRoutesByFullPath {
-  '/': typeof IndexRoute
-  '/admin-settings': typeof AuthAdminSettingsRoute
-  '/dashboard': typeof AuthDashboardRoute
-  '/forget-password': typeof LoginForgetPasswordRoute
-  '/reset-password': typeof LoginResetPasswordRoute
-  '/sign-in': typeof LoginSignInRoute
+  '/{-$subdomain}': typeof Char123SubdomainChar125LoginRouteRouteWithChildren
+  '/{-$subdomain}/': typeof Char123SubdomainChar125IndexRoute
+  '/{-$subdomain}/admin-settings': typeof Char123SubdomainChar125AuthAdminSettingsRoute
+  '/{-$subdomain}/clients': typeof Char123SubdomainChar125AuthClientsRoute
+  '/{-$subdomain}/dashboard': typeof Char123SubdomainChar125AuthDashboardRoute
+  '/{-$subdomain}/organizations': typeof Char123SubdomainChar125AuthOrganizationsRoute
+  '/{-$subdomain}/schedule': typeof Char123SubdomainChar125AuthScheduleRoute
+  '/{-$subdomain}/unassigned-rides': typeof Char123SubdomainChar125AuthUnassignedRidesRoute
+  '/{-$subdomain}/unavailability': typeof Char123SubdomainChar125AuthUnavailabilityRoute
+  '/{-$subdomain}/users': typeof Char123SubdomainChar125AuthUsersRoute
+  '/{-$subdomain}/forget-password': typeof Char123SubdomainChar125LoginForgetPasswordRoute
+  '/{-$subdomain}/reset-password': typeof Char123SubdomainChar125LoginResetPasswordRoute
+  '/{-$subdomain}/sign-in': typeof Char123SubdomainChar125LoginSignInRoute
 }
 export interface FileRoutesByTo {
-  '/': typeof IndexRoute
-  '/admin-settings': typeof AuthAdminSettingsRoute
-  '/dashboard': typeof AuthDashboardRoute
-  '/forget-password': typeof LoginForgetPasswordRoute
-  '/reset-password': typeof LoginResetPasswordRoute
-  '/sign-in': typeof LoginSignInRoute
+  '/{-$subdomain}': typeof Char123SubdomainChar125IndexRoute
+  '/{-$subdomain}/admin-settings': typeof Char123SubdomainChar125AuthAdminSettingsRoute
+  '/{-$subdomain}/clients': typeof Char123SubdomainChar125AuthClientsRoute
+  '/{-$subdomain}/dashboard': typeof Char123SubdomainChar125AuthDashboardRoute
+  '/{-$subdomain}/organizations': typeof Char123SubdomainChar125AuthOrganizationsRoute
+  '/{-$subdomain}/schedule': typeof Char123SubdomainChar125AuthScheduleRoute
+  '/{-$subdomain}/unassigned-rides': typeof Char123SubdomainChar125AuthUnassignedRidesRoute
+  '/{-$subdomain}/unavailability': typeof Char123SubdomainChar125AuthUnavailabilityRoute
+  '/{-$subdomain}/users': typeof Char123SubdomainChar125AuthUsersRoute
+  '/{-$subdomain}/forget-password': typeof Char123SubdomainChar125LoginForgetPasswordRoute
+  '/{-$subdomain}/reset-password': typeof Char123SubdomainChar125LoginResetPasswordRoute
+  '/{-$subdomain}/sign-in': typeof Char123SubdomainChar125LoginSignInRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
-  '/': typeof IndexRoute
-  '/_auth': typeof AuthRouteRouteWithChildren
-  '/_login': typeof LoginRouteRouteWithChildren
-  '/_auth/admin-settings': typeof AuthAdminSettingsRoute
-  '/_auth/dashboard': typeof AuthDashboardRoute
-  '/_login/forget-password': typeof LoginForgetPasswordRoute
-  '/_login/reset-password': typeof LoginResetPasswordRoute
-  '/_login/sign-in': typeof LoginSignInRoute
+  '/{-$subdomain}': typeof Char123SubdomainChar125RouteRouteWithChildren
+  '/{-$subdomain}/_auth': typeof Char123SubdomainChar125AuthRouteRouteWithChildren
+  '/{-$subdomain}/_login': typeof Char123SubdomainChar125LoginRouteRouteWithChildren
+  '/{-$subdomain}/': typeof Char123SubdomainChar125IndexRoute
+  '/{-$subdomain}/_auth/admin-settings': typeof Char123SubdomainChar125AuthAdminSettingsRoute
+  '/{-$subdomain}/_auth/clients': typeof Char123SubdomainChar125AuthClientsRoute
+  '/{-$subdomain}/_auth/dashboard': typeof Char123SubdomainChar125AuthDashboardRoute
+  '/{-$subdomain}/_auth/organizations': typeof Char123SubdomainChar125AuthOrganizationsRoute
+  '/{-$subdomain}/_auth/schedule': typeof Char123SubdomainChar125AuthScheduleRoute
+  '/{-$subdomain}/_auth/unassigned-rides': typeof Char123SubdomainChar125AuthUnassignedRidesRoute
+  '/{-$subdomain}/_auth/unavailability': typeof Char123SubdomainChar125AuthUnavailabilityRoute
+  '/{-$subdomain}/_auth/users': typeof Char123SubdomainChar125AuthUsersRoute
+  '/{-$subdomain}/_login/forget-password': typeof Char123SubdomainChar125LoginForgetPasswordRoute
+  '/{-$subdomain}/_login/reset-password': typeof Char123SubdomainChar125LoginResetPasswordRoute
+  '/{-$subdomain}/_login/sign-in': typeof Char123SubdomainChar125LoginSignInRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
-    | '/'
-    | '/admin-settings'
-    | '/dashboard'
-    | '/forget-password'
-    | '/reset-password'
-    | '/sign-in'
+    | '/{-$subdomain}'
+    | '/{-$subdomain}/'
+    | '/{-$subdomain}/admin-settings'
+    | '/{-$subdomain}/clients'
+    | '/{-$subdomain}/dashboard'
+    | '/{-$subdomain}/organizations'
+    | '/{-$subdomain}/schedule'
+    | '/{-$subdomain}/unassigned-rides'
+    | '/{-$subdomain}/unavailability'
+    | '/{-$subdomain}/users'
+    | '/{-$subdomain}/forget-password'
+    | '/{-$subdomain}/reset-password'
+    | '/{-$subdomain}/sign-in'
   fileRoutesByTo: FileRoutesByTo
   to:
-    | '/'
-    | '/admin-settings'
-    | '/dashboard'
-    | '/forget-password'
-    | '/reset-password'
-    | '/sign-in'
+    | '/{-$subdomain}'
+    | '/{-$subdomain}/admin-settings'
+    | '/{-$subdomain}/clients'
+    | '/{-$subdomain}/dashboard'
+    | '/{-$subdomain}/organizations'
+    | '/{-$subdomain}/schedule'
+    | '/{-$subdomain}/unassigned-rides'
+    | '/{-$subdomain}/unavailability'
+    | '/{-$subdomain}/users'
+    | '/{-$subdomain}/forget-password'
+    | '/{-$subdomain}/reset-password'
+    | '/{-$subdomain}/sign-in'
   id:
     | '__root__'
-    | '/'
-    | '/_auth'
-    | '/_login'
-    | '/_auth/admin-settings'
-    | '/_auth/dashboard'
-    | '/_login/forget-password'
-    | '/_login/reset-password'
-    | '/_login/sign-in'
+    | '/{-$subdomain}'
+    | '/{-$subdomain}/_auth'
+    | '/{-$subdomain}/_login'
+    | '/{-$subdomain}/'
+    | '/{-$subdomain}/_auth/admin-settings'
+    | '/{-$subdomain}/_auth/clients'
+    | '/{-$subdomain}/_auth/dashboard'
+    | '/{-$subdomain}/_auth/organizations'
+    | '/{-$subdomain}/_auth/schedule'
+    | '/{-$subdomain}/_auth/unassigned-rides'
+    | '/{-$subdomain}/_auth/unavailability'
+    | '/{-$subdomain}/_auth/users'
+    | '/{-$subdomain}/_login/forget-password'
+    | '/{-$subdomain}/_login/reset-password'
+    | '/{-$subdomain}/_login/sign-in'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
-  IndexRoute: typeof IndexRoute
-  AuthRouteRoute: typeof AuthRouteRouteWithChildren
-  LoginRouteRoute: typeof LoginRouteRouteWithChildren
+  Char123SubdomainChar125RouteRoute: typeof Char123SubdomainChar125RouteRouteWithChildren
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
-    '/_login': {
-      id: '/_login'
-      path: ''
-      fullPath: ''
-      preLoaderRoute: typeof LoginRouteRouteImport
+    '/{-$subdomain}': {
+      id: '/{-$subdomain}'
+      path: '/{-$subdomain}'
+      fullPath: '/{-$subdomain}'
+      preLoaderRoute: typeof Char123SubdomainChar125RouteRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/_auth': {
-      id: '/_auth'
-      path: ''
-      fullPath: ''
-      preLoaderRoute: typeof AuthRouteRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/': {
-      id: '/'
+    '/{-$subdomain}/': {
+      id: '/{-$subdomain}/'
       path: '/'
-      fullPath: '/'
-      preLoaderRoute: typeof IndexRouteImport
-      parentRoute: typeof rootRouteImport
+      fullPath: '/{-$subdomain}/'
+      preLoaderRoute: typeof Char123SubdomainChar125IndexRouteImport
+      parentRoute: typeof Char123SubdomainChar125RouteRoute
     }
-    '/_login/sign-in': {
-      id: '/_login/sign-in'
+    '/{-$subdomain}/_login': {
+      id: '/{-$subdomain}/_login'
+      path: ''
+      fullPath: '/{-$subdomain}'
+      preLoaderRoute: typeof Char123SubdomainChar125LoginRouteRouteImport
+      parentRoute: typeof Char123SubdomainChar125RouteRoute
+    }
+    '/{-$subdomain}/_auth': {
+      id: '/{-$subdomain}/_auth'
+      path: ''
+      fullPath: '/{-$subdomain}'
+      preLoaderRoute: typeof Char123SubdomainChar125AuthRouteRouteImport
+      parentRoute: typeof Char123SubdomainChar125RouteRoute
+    }
+    '/{-$subdomain}/_login/sign-in': {
+      id: '/{-$subdomain}/_login/sign-in'
       path: '/sign-in'
-      fullPath: '/sign-in'
-      preLoaderRoute: typeof LoginSignInRouteImport
-      parentRoute: typeof LoginRouteRoute
+      fullPath: '/{-$subdomain}/sign-in'
+      preLoaderRoute: typeof Char123SubdomainChar125LoginSignInRouteImport
+      parentRoute: typeof Char123SubdomainChar125LoginRouteRoute
     }
-    '/_login/reset-password': {
-      id: '/_login/reset-password'
+    '/{-$subdomain}/_login/reset-password': {
+      id: '/{-$subdomain}/_login/reset-password'
       path: '/reset-password'
-      fullPath: '/reset-password'
-      preLoaderRoute: typeof LoginResetPasswordRouteImport
-      parentRoute: typeof LoginRouteRoute
+      fullPath: '/{-$subdomain}/reset-password'
+      preLoaderRoute: typeof Char123SubdomainChar125LoginResetPasswordRouteImport
+      parentRoute: typeof Char123SubdomainChar125LoginRouteRoute
     }
-    '/_login/forget-password': {
-      id: '/_login/forget-password'
+    '/{-$subdomain}/_login/forget-password': {
+      id: '/{-$subdomain}/_login/forget-password'
       path: '/forget-password'
-      fullPath: '/forget-password'
-      preLoaderRoute: typeof LoginForgetPasswordRouteImport
-      parentRoute: typeof LoginRouteRoute
+      fullPath: '/{-$subdomain}/forget-password'
+      preLoaderRoute: typeof Char123SubdomainChar125LoginForgetPasswordRouteImport
+      parentRoute: typeof Char123SubdomainChar125LoginRouteRoute
     }
-    '/_auth/dashboard': {
-      id: '/_auth/dashboard'
+    '/{-$subdomain}/_auth/users': {
+      id: '/{-$subdomain}/_auth/users'
+      path: '/users'
+      fullPath: '/{-$subdomain}/users'
+      preLoaderRoute: typeof Char123SubdomainChar125AuthUsersRouteImport
+      parentRoute: typeof Char123SubdomainChar125AuthRouteRoute
+    }
+    '/{-$subdomain}/_auth/unavailability': {
+      id: '/{-$subdomain}/_auth/unavailability'
+      path: '/unavailability'
+      fullPath: '/{-$subdomain}/unavailability'
+      preLoaderRoute: typeof Char123SubdomainChar125AuthUnavailabilityRouteImport
+      parentRoute: typeof Char123SubdomainChar125AuthRouteRoute
+    }
+    '/{-$subdomain}/_auth/unassigned-rides': {
+      id: '/{-$subdomain}/_auth/unassigned-rides'
+      path: '/unassigned-rides'
+      fullPath: '/{-$subdomain}/unassigned-rides'
+      preLoaderRoute: typeof Char123SubdomainChar125AuthUnassignedRidesRouteImport
+      parentRoute: typeof Char123SubdomainChar125AuthRouteRoute
+    }
+    '/{-$subdomain}/_auth/schedule': {
+      id: '/{-$subdomain}/_auth/schedule'
+      path: '/schedule'
+      fullPath: '/{-$subdomain}/schedule'
+      preLoaderRoute: typeof Char123SubdomainChar125AuthScheduleRouteImport
+      parentRoute: typeof Char123SubdomainChar125AuthRouteRoute
+    }
+    '/{-$subdomain}/_auth/organizations': {
+      id: '/{-$subdomain}/_auth/organizations'
+      path: '/organizations'
+      fullPath: '/{-$subdomain}/organizations'
+      preLoaderRoute: typeof Char123SubdomainChar125AuthOrganizationsRouteImport
+      parentRoute: typeof Char123SubdomainChar125AuthRouteRoute
+    }
+    '/{-$subdomain}/_auth/dashboard': {
+      id: '/{-$subdomain}/_auth/dashboard'
       path: '/dashboard'
-      fullPath: '/dashboard'
-      preLoaderRoute: typeof AuthDashboardRouteImport
-      parentRoute: typeof AuthRouteRoute
+      fullPath: '/{-$subdomain}/dashboard'
+      preLoaderRoute: typeof Char123SubdomainChar125AuthDashboardRouteImport
+      parentRoute: typeof Char123SubdomainChar125AuthRouteRoute
     }
-    '/_auth/admin-settings': {
-      id: '/_auth/admin-settings'
+    '/{-$subdomain}/_auth/clients': {
+      id: '/{-$subdomain}/_auth/clients'
+      path: '/clients'
+      fullPath: '/{-$subdomain}/clients'
+      preLoaderRoute: typeof Char123SubdomainChar125AuthClientsRouteImport
+      parentRoute: typeof Char123SubdomainChar125AuthRouteRoute
+    }
+    '/{-$subdomain}/_auth/admin-settings': {
+      id: '/{-$subdomain}/_auth/admin-settings'
       path: '/admin-settings'
-      fullPath: '/admin-settings'
-      preLoaderRoute: typeof AuthAdminSettingsRouteImport
-      parentRoute: typeof AuthRouteRoute
+      fullPath: '/{-$subdomain}/admin-settings'
+      preLoaderRoute: typeof Char123SubdomainChar125AuthAdminSettingsRouteImport
+      parentRoute: typeof Char123SubdomainChar125AuthRouteRoute
     }
   }
 }
 
-interface AuthRouteRouteChildren {
-  AuthAdminSettingsRoute: typeof AuthAdminSettingsRoute
-  AuthDashboardRoute: typeof AuthDashboardRoute
+interface Char123SubdomainChar125AuthRouteRouteChildren {
+  Char123SubdomainChar125AuthAdminSettingsRoute: typeof Char123SubdomainChar125AuthAdminSettingsRoute
+  Char123SubdomainChar125AuthClientsRoute: typeof Char123SubdomainChar125AuthClientsRoute
+  Char123SubdomainChar125AuthDashboardRoute: typeof Char123SubdomainChar125AuthDashboardRoute
+  Char123SubdomainChar125AuthOrganizationsRoute: typeof Char123SubdomainChar125AuthOrganizationsRoute
+  Char123SubdomainChar125AuthScheduleRoute: typeof Char123SubdomainChar125AuthScheduleRoute
+  Char123SubdomainChar125AuthUnassignedRidesRoute: typeof Char123SubdomainChar125AuthUnassignedRidesRoute
+  Char123SubdomainChar125AuthUnavailabilityRoute: typeof Char123SubdomainChar125AuthUnavailabilityRoute
+  Char123SubdomainChar125AuthUsersRoute: typeof Char123SubdomainChar125AuthUsersRoute
 }
 
-const AuthRouteRouteChildren: AuthRouteRouteChildren = {
-  AuthAdminSettingsRoute: AuthAdminSettingsRoute,
-  AuthDashboardRoute: AuthDashboardRoute,
+const Char123SubdomainChar125AuthRouteRouteChildren: Char123SubdomainChar125AuthRouteRouteChildren =
+  {
+    Char123SubdomainChar125AuthAdminSettingsRoute:
+      Char123SubdomainChar125AuthAdminSettingsRoute,
+    Char123SubdomainChar125AuthClientsRoute:
+      Char123SubdomainChar125AuthClientsRoute,
+    Char123SubdomainChar125AuthDashboardRoute:
+      Char123SubdomainChar125AuthDashboardRoute,
+    Char123SubdomainChar125AuthOrganizationsRoute:
+      Char123SubdomainChar125AuthOrganizationsRoute,
+    Char123SubdomainChar125AuthScheduleRoute:
+      Char123SubdomainChar125AuthScheduleRoute,
+    Char123SubdomainChar125AuthUnassignedRidesRoute:
+      Char123SubdomainChar125AuthUnassignedRidesRoute,
+    Char123SubdomainChar125AuthUnavailabilityRoute:
+      Char123SubdomainChar125AuthUnavailabilityRoute,
+    Char123SubdomainChar125AuthUsersRoute:
+      Char123SubdomainChar125AuthUsersRoute,
+  }
+
+const Char123SubdomainChar125AuthRouteRouteWithChildren =
+  Char123SubdomainChar125AuthRouteRoute._addFileChildren(
+    Char123SubdomainChar125AuthRouteRouteChildren,
+  )
+
+interface Char123SubdomainChar125LoginRouteRouteChildren {
+  Char123SubdomainChar125LoginForgetPasswordRoute: typeof Char123SubdomainChar125LoginForgetPasswordRoute
+  Char123SubdomainChar125LoginResetPasswordRoute: typeof Char123SubdomainChar125LoginResetPasswordRoute
+  Char123SubdomainChar125LoginSignInRoute: typeof Char123SubdomainChar125LoginSignInRoute
 }
 
-const AuthRouteRouteWithChildren = AuthRouteRoute._addFileChildren(
-  AuthRouteRouteChildren,
-)
+const Char123SubdomainChar125LoginRouteRouteChildren: Char123SubdomainChar125LoginRouteRouteChildren =
+  {
+    Char123SubdomainChar125LoginForgetPasswordRoute:
+      Char123SubdomainChar125LoginForgetPasswordRoute,
+    Char123SubdomainChar125LoginResetPasswordRoute:
+      Char123SubdomainChar125LoginResetPasswordRoute,
+    Char123SubdomainChar125LoginSignInRoute:
+      Char123SubdomainChar125LoginSignInRoute,
+  }
 
-interface LoginRouteRouteChildren {
-  LoginForgetPasswordRoute: typeof LoginForgetPasswordRoute
-  LoginResetPasswordRoute: typeof LoginResetPasswordRoute
-  LoginSignInRoute: typeof LoginSignInRoute
+const Char123SubdomainChar125LoginRouteRouteWithChildren =
+  Char123SubdomainChar125LoginRouteRoute._addFileChildren(
+    Char123SubdomainChar125LoginRouteRouteChildren,
+  )
+
+interface Char123SubdomainChar125RouteRouteChildren {
+  Char123SubdomainChar125AuthRouteRoute: typeof Char123SubdomainChar125AuthRouteRouteWithChildren
+  Char123SubdomainChar125LoginRouteRoute: typeof Char123SubdomainChar125LoginRouteRouteWithChildren
+  Char123SubdomainChar125IndexRoute: typeof Char123SubdomainChar125IndexRoute
 }
 
-const LoginRouteRouteChildren: LoginRouteRouteChildren = {
-  LoginForgetPasswordRoute: LoginForgetPasswordRoute,
-  LoginResetPasswordRoute: LoginResetPasswordRoute,
-  LoginSignInRoute: LoginSignInRoute,
-}
+const Char123SubdomainChar125RouteRouteChildren: Char123SubdomainChar125RouteRouteChildren =
+  {
+    Char123SubdomainChar125AuthRouteRoute:
+      Char123SubdomainChar125AuthRouteRouteWithChildren,
+    Char123SubdomainChar125LoginRouteRoute:
+      Char123SubdomainChar125LoginRouteRouteWithChildren,
+    Char123SubdomainChar125IndexRoute: Char123SubdomainChar125IndexRoute,
+  }
 
-const LoginRouteRouteWithChildren = LoginRouteRoute._addFileChildren(
-  LoginRouteRouteChildren,
-)
+const Char123SubdomainChar125RouteRouteWithChildren =
+  Char123SubdomainChar125RouteRoute._addFileChildren(
+    Char123SubdomainChar125RouteRouteChildren,
+  )
 
 const rootRouteChildren: RootRouteChildren = {
-  IndexRoute: IndexRoute,
-  AuthRouteRoute: AuthRouteRouteWithChildren,
-  LoginRouteRoute: LoginRouteRouteWithChildren,
+  Char123SubdomainChar125RouteRoute:
+    Char123SubdomainChar125RouteRouteWithChildren,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

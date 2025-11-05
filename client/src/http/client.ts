@@ -5,6 +5,7 @@ import ky from "ky";
 
 type CreateHttpClientOpts = {
     baseUrl?: string;
+    getSubdomain?: () => string | undefined;
     getAccessToken?: () => string | null;
     onUnauthorized?: () => void | Promise<void>
     onRefresh?: () => void | Promise<void>
@@ -12,7 +13,7 @@ type CreateHttpClientOpts = {
 
 export const createHttpClient = (opts: CreateHttpClientOpts = {}): KyInstance => {
 
-    const { baseUrl, getAccessToken, onUnauthorized, onRefresh } = opts;
+    const { baseUrl, getSubdomain, getAccessToken, onUnauthorized, onRefresh } = opts;
 
     // This is a temp fix for build for unused variables. @TODO NEED TO AMEND tsconfig.build.json
     void onRefresh;
@@ -26,6 +27,9 @@ export const createHttpClient = (opts: CreateHttpClientOpts = {}): KyInstance =>
                     if(token) request.headers.set('Authorization', `Bearer ${token}`);
                     request.headers.set('Content-Type', 'application/json');
                     request.headers.set('Accept', 'application/json');
+
+                    const subdomain = getSubdomain?.()
+                    if(subdomain) {request.headers.set('x-org-subdomain', subdomain);}
                 },
             ],
             beforeRetry: [ //have to rest, this may not be needed.

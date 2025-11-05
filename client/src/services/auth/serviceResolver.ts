@@ -7,6 +7,8 @@ import { authStore } from "@/components/stores/authStore";
 import { makeAuthService } from "./authService";
 import type { AuthService } from "@/lib/types";
 import { createHttpClient } from "@/http/client";
+import { useParams } from "@tanstack/react-router";
+import { useCallback, useMemo } from "react";
 
 // 👇 Point this import to YOUR mock service file:
 // import { makeMockAuthService } from './mockAuthService'; // you already have this
@@ -19,20 +21,51 @@ import { createHttpClient } from "@/http/client";
 
 // If a 401 happens, decide what to do.
 // Simple version: clear auth (or navigate to /login).
-const onUnauthorized = async () => {
-  authStore.getState().clearAuth();
-};
+// const onUnauthorized = async () => {
+//   authStore.getState().clearAuth();
+// };
 
-const http = createHttpClient({
-  baseUrl: import.meta.env.BASE_URL,
-  getAccessToken: () => authStore.getState().accessToken,
-  onUnauthorized: () => onUnauthorized(),
-});
+// const { subdomain } = useParams({ strict: false });
 
-const realService = makeAuthService(http);
+// const getSubdomain = useCallback(() => subdomain, [subdomain]);
+
+// const http = createHttpClient({
+//   baseUrl: import.meta.env.BASE_URL,
+//   getSubdomain: getSubdomain,
+//   getAccessToken: () => authStore.getState().accessToken,
+//   onUnauthorized: () => onUnauthorized(),
+// });
+
+// const realService = makeAuthService(http);
+
+
+
+export function useAuthService(): AuthService {
+  const { subdomain } = useParams({ strict: false });
+
+  const getSubdomain = useCallback(() => subdomain, [subdomain]);
+  const http = useMemo(
+    () =>
+      createHttpClient({
+        baseUrl: import.meta.env.VITE_API_BASE_URL, // note: BASE_URL is the public path, usually not your API
+        getSubdomain,
+        getAccessToken: () => authStore.getState().accessToken,
+        onUnauthorized: () => authStore.getState().clearAuth(),
+      }),
+    [getSubdomain]
+  );
+
+  return useMemo(() => makeAuthService(http), [http]);
+}
+
+// export const authService: AuthService = useAuthService()
+
+
+
+
 // Swap in your mock when desired
 // export const authService: AuthService = USE_MOCKS ? makeMockAuthService() : realService;
-export const authService: AuthService = realService
+// export const authService: AuthService = realService
 
 // Keep local refs in sync when tokens change
 // const unsub = authStore.subscribe((s) => {

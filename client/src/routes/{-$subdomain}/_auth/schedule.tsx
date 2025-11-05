@@ -1,4 +1,4 @@
-import UnassignedRides from "@/components/calendar/UnassignedRides";
+import Schedule from "@/components/calendar/Schedule";
 import { MainNavigation } from "@/components/Navigation";
 import { RidesTable } from "@/components/tables/RidesTable";
 import { Button } from "@/components/ui/button";
@@ -6,7 +6,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@radix-ui/react-tabs";
 import { createFileRoute } from "@tanstack/react-router";
 import { useCallback, useState } from "react";
 
-export const Route = createFileRoute("/unassigned-rides")({
+export const Route = createFileRoute("/{-$subdomain}/_auth/schedule")({
     component: RouteComponent,
 });
 
@@ -33,10 +33,10 @@ function RouteComponent() {
                 </div>
 
                 <TabsContent value="calendar">
-                    <UnassignedRides />
+                    <Schedule />
                 </TabsContent>
                 <TabsContent value="list">
-                    <RidesTable isUnassignedRidesOnly={true} />
+                    <RidesTable />
                 </TabsContent>
             </Tabs>
         </>
