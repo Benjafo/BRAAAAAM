@@ -51,7 +51,7 @@ export const listAppointments = async (req: Request, res: Response): Promise<Res
                 time: appointments.startTime,
                 status: appointments.status,
                 tripPurpose: appointments.tripPurpose,
-                tripCount: appointments.tripCount,
+                tripType: appointments.tripType,
                 // Client
                 clientId: appointments.clientId,
                 clientFirstName: clients.firstName,
@@ -138,7 +138,7 @@ export const createAppointment = async (req: Request, res: Response): Promise<Re
                 estimatedDurationMinutes: data.estimatedDurationMinutes || null,
                 pickupLocation: pickupLocationId,
                 destinationLocation: destinationLocationId,
-                tripCount: data.tripCount || 1,
+                tripType: data.tripType || "roundTrip",
                 tripPurpose: data.tripPurpose || null,
                 notes: data.notes || null,
                 donationType: data.donationType || "None",
@@ -204,7 +204,7 @@ export const updateAppointment = async (req: Request, res: Response): Promise<Re
         if (data.tripPurpose !== undefined) updateData.tripPurpose = data.tripPurpose;
         if (data.estimatedDurationMinutes)
             updateData.estimatedDurationMinutes = data.estimatedDurationMinutes;
-        if (data.tripCount) updateData.tripCount = data.tripCount;
+        if (data.tripType) updateData.tripType = data.tripType;
         if (data.notes !== undefined) updateData.notes = data.notes;
         if (data.donationType) updateData.donationType = data.donationType;
         if (data.donationAmount !== undefined) updateData.donationAmount = data.donationAmount;

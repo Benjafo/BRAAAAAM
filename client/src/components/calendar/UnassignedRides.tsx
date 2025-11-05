@@ -24,7 +24,7 @@ type Ride = {
     dispatcherFirstName: string | null;
     dispatcherLastName: string | null;
     tripPurpose: string | null;
-    tripCount: number;
+    tripType: "roundTrip" | "oneWayFrom" | "oneWayTo";
     pickupLocationId: string;
     pickupAddressLine1: string | null;
     pickupAddressLine2: string | null;
@@ -113,7 +113,7 @@ const mapRideToFormValues = (ride: Ride): Partial<RideFormValues> & { id?: strin
         clientZip: ride.pickupZip || "",
         tripDate: new Date(ride.date),
         appointmentTime: ride.time,
-        tripType: ride.tripCount === 2 ? "roundTrip" : "oneWay",
+        tripType: ride.tripType,
         destinationAddress: ride.destinationAddressLine1 || "",
         destinationCity: ride.destinationCity || "",
         destinationState: ride.destinationState || "",

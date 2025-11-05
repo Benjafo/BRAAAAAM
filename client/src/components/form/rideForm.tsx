@@ -83,7 +83,7 @@ const rideSchema = z
             .regex(/^\d{5}(-\d{4})?$/, "Please enter a valid US zip code."),
         purposeOfTrip: z.string().min(1, "Must have a purpose.").max(255),
         tripDate: z.date("Please select a date."),
-        tripType: z.enum(["roundTrip", "oneWay"], {
+        tripType: z.enum(["roundTrip", "oneWayFrom", "oneWayTo"], {
             message: "Please specify the trip type.",
         }),
         appointmentTime: z.string().min(1, "Please select a time."),
@@ -413,13 +413,13 @@ export default function EditRideForm({
                     }}
                 />
 
-                {/* Trip Purpose */}
+                {/* Round Trip/One Way */}
                 <FormField
                     control={form.control}
                     name="purposeOfTrip"
                     render={({ field }) => (
                         <FormItem className="w-full">
-                            <FormLabel>Purpose of trip</FormLabel>
+                            <FormLabel>Round Trip/One Way</FormLabel>
                             <FormControl className="w-full">
                                 <Input placeholder="Value" {...field} className="w-full" />
                             </FormControl>
@@ -571,13 +571,13 @@ export default function EditRideForm({
                     )}
                 />
 
-                {/* Round Trip/One Way */}
+                {/* Trip Type */}
                 <FormField
                     control={form.control}
                     name="tripType"
                     render={({ field }) => (
                         <FormItem className="w-full">
-                            <FormLabel>Round Trip/One Way</FormLabel>
+                            <FormLabel>Trip Type</FormLabel>
                             <FormControl className="w-full">
                                 <Select value={field.value} onValueChange={field.onChange}>
                                     <SelectTrigger className="w-full">
@@ -585,7 +585,8 @@ export default function EditRideForm({
                                     </SelectTrigger>
                                     <SelectContent>
                                         <SelectItem value="roundTrip">Round Trip</SelectItem>
-                                        <SelectItem value="oneWay">One Way</SelectItem>
+                                        <SelectItem value="oneWayFrom">One Way From</SelectItem>
+                                        <SelectItem value="oneWayTo">One Way To</SelectItem>
                                     </SelectContent>
                                 </Select>
                             </FormControl>

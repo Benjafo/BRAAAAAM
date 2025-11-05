@@ -205,7 +205,7 @@ export default function RideModal({
                 dispatcherId: userId,
                 createdByUserId: userId,
                 tripPurpose: values.purposeOfTrip || null,
-                tripCount: values.tripType === "roundTrip" ? 2 : 1, // Convert tripType to tripCount
+                tripType: values.tripType,
                 pickupAddress: {
                     addressLine1: selectedClient.address.addressLine1,
                     addressLine2: selectedClient.address.addressLine2 || null,

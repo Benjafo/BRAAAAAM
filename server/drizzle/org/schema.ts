@@ -37,6 +37,7 @@ export const donationType = pgEnum("donation_type", [
     "None",
 ]);
 export const genderOptions = pgEnum("gender_options", ["Male", "Female", "Other"]);
+export const tripType = pgEnum("trip_type", ["roundTrip", "oneWayFrom", "oneWayTo"]);
 export const messageStatus = pgEnum("message_status", ["sent", "pending", "failed"]);
 export const messageType = pgEnum("message_type", ["Email", "Text Message"]);
 export const permissionAction = pgEnum("permission_action", [
@@ -390,7 +391,7 @@ export const appointments = pgTable(
         estimatedDurationMinutes: integer("estimated_duration_minutes"),
         pickupLocation: uuid("pickup_location").notNull(),
         destinationLocation: uuid("destination_location").notNull(),
-        tripCount: integer("trip_count").default(1).notNull(),
+        tripType: tripType("trip_type").default("oneWayFrom").notNull(),
         tripPurpose: text("trip_purpose"),
         notes: text(),
         donationType: donationType("donation_type").default("None").notNull(),
