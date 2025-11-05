@@ -102,111 +102,111 @@ components:
 
 
 paths:
-  /sign-in:
-    post:
-      tags: [Auth]
-      summary: Sign in
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              type: object
-              required: [email, password]
-              properties:
-                email: { type: string, format: email }
-                password: { type: string }
-      responses:
-        '200':
-          description: OK
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  access_token: { type: string }
-                  refresh_token: { type: string }
-                  expires_in:   { type: integer, example: 3600 }
+    /sign-in:
+        post:
+            tags: [Auth]
+            summary: Sign in
+            requestBody:
+                required: true
+                content:
+                    application/json:
+                        schema:
+                            type: object
+                            required: [email, password]
+                            properties:
+                                email: { type: string, format: email }
+                                password: { type: string }
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                type: object
+                                properties:
+                                    access_token: { type: string }
+                                    refresh_token: { type: string }
+                                    expires_in: { type: integer, example: 3600 }
 
-  /sign-out:
-    post:
-      tags: [Auth]
-      summary: Sign out (revoke refresh token / session)
-      security: [ { bearerAuth: [] }]
-      responses:
-        '204': { description: Signed out }
+    /sign-out:
+        post:
+            tags: [Auth]
+            summary: Sign out (revoke refresh token / session)
+            security: [{ bearerAuth: [] }]
+            responses:
+                "204": { description: Signed out }
 
-  /token-refresh:
-    post:
-      tags: [Auth]
-      summary: Refresh access token
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              type: object
-              required: [refresh_token]
-              properties:
-                refresh_token: { type: string }
-      responses:
-        '200':
-          description: New token issued
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  access_token: { type: string }
-                  refresh_token: { type: string }
+    /token-refresh:
+        post:
+            tags: [Auth]
+            summary: Refresh access token
+            requestBody:
+                required: true
+                content:
+                    application/json:
+                        schema:
+                            type: object
+                            required: [refresh_token]
+                            properties:
+                                refresh_token: { type: string }
+            responses:
+                "200":
+                    description: New token issued
+                    content:
+                        application/json:
+                            schema:
+                                type: object
+                                properties:
+                                    access_token: { type: string }
+                                    refresh_token: { type: string }
 
-  /request-reset-password:
-    post:
-      tags: [Auth]
-      summary: Request password reset email
-      description: Always returns 202 even if email does not exist (prevents user enumeration).
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              type: object
-              required: [email]
-              properties:
-                email: { type: string, format: email }
-      responses:
-        '202': { description: Email sent (if applicable) }
-        '429': { description: Too many requests }
+    /request-reset-password:
+        post:
+            tags: [Auth]
+            summary: Request password reset email
+            description: Always returns 202 even if email does not exist (prevents user enumeration).
+            requestBody:
+                required: true
+                content:
+                    application/json:
+                        schema:
+                            type: object
+                            required: [email]
+                            properties:
+                                email: { type: string, format: email }
+            responses:
+                "202": { description: Email sent (if applicable) }
+                "429": { description: Too many requests }
 
-  /reset-password:
-    post:
-      tags: [Auth]
-      summary: Complete password reset
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              type: object
-              required: [token, new_password]
-              properties:
-                token:        { type: string, description: "Reset token from email" }
-                new_password: { type: string, minLength: 8 }
-      responses:
-        '204': { description: Password updated }
-        '400': { description: Invalid or expired token }
-        '422': { description: Password failed policy }
+    /reset-password:
+        post:
+            tags: [Auth]
+            summary: Complete password reset
+            requestBody:
+                required: true
+                content:
+                    application/json:
+                        schema:
+                            type: object
+                            required: [token, new_password]
+                            properties:
+                                token: { type: string, description: "Reset token from email" }
+                                new_password: { type: string, minLength: 8 }
+            responses:
+                "204": { description: Password updated }
+                "400": { description: Invalid or expired token }
+                "422": { description: Password failed policy }
 
-  /sse:
-    get:
-      tags: [SSE]
-      summary: Server-Sent Events stream
-      responses:
-        '200':
-          description: Event stream
-          content:
-            text/event-stream:
-              schema: { type: string }
+    /sse:
+        get:
+            tags: [SSE]
+            summary: Server-Sent Events stream
+            responses:
+                "200":
+                    description: Event stream
+                    content:
+                        text/event-stream:
+                            schema: { type: string }
 
   # Users
   /o/{orgId}/users:
@@ -281,55 +281,55 @@ paths:
       responses:
         '204': { description: Deleted }
 
-  /o/{orgId}/users/{userId}/unavailability:
-    post:
-      tags: [Users]
-      summary: Create unavailability
-      parameters:
-        - $ref: '#/components/parameters/OrgId'
-        - $ref: '#/components/parameters/UserId'
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              type: object
-              required: [startDate, endDate]
-              properties:
-                startDate: { type: string }
-                startTime: { type: string }
-                endDate:   { type: string }
-                endTime:   { type: string }
-      responses:
-        '201': { description: Created }
-    get:
-      tags: [Users]
-      summary: List unavailability
-      parameters:
-        - $ref: '#/components/parameters/OrgId'
-        - $ref: '#/components/parameters/UserId'
-      responses:
-        '200': { description: OK }
+    /o/{orgId}/users/{userId}/unavailability:
+        post:
+            tags: [Users]
+            summary: Create unavailability
+            parameters:
+                - $ref: "#/components/parameters/OrgId"
+                - $ref: "#/components/parameters/UserId"
+            requestBody:
+                required: true
+                content:
+                    application/json:
+                        schema:
+                            type: object
+                            required: [startDate, endDate]
+                            properties:
+                                startDate: { type: string }
+                                startTime: { type: string }
+                                endDate: { type: string }
+                                endTime: { type: string }
+            responses:
+                "201": { description: Created }
+        get:
+            tags: [Users]
+            summary: List unavailability
+            parameters:
+                - $ref: "#/components/parameters/OrgId"
+                - $ref: "#/components/parameters/UserId"
+            responses:
+                "200": { description: OK }
 
-  /o/{orgId}/users/{userId}/unavailability/{unavailabilityId}:
-    put:
-      tags: [Users]
-      summary: Update unavailability
-      parameters:
-        - $ref: '#/components/parameters/OrgId'
-        - $ref: '#/components/parameters/UserId'
-        - $ref: '#/components/parameters/UnavailabilityId'
-      responses:
-        '200': { description: Updated }
-    delete:
-      tags: [Users]
-      summary: Delete unavailability
-      parameters:
-        - $ref: '#/components/parameters/OrgId'
-        - $ref: '#/components/parameters/UserId'
-        - $ref: '#/components/parameters/UnavailabilityId'
-      responses:
-        '204': { description: Deleted }
+    /o/{orgId}/users/{userId}/unavailability/{unavailabilityId}:
+        put:
+            tags: [Users]
+            summary: Update unavailability
+            parameters:
+                - $ref: "#/components/parameters/OrgId"
+                - $ref: "#/components/parameters/UserId"
+                - $ref: "#/components/parameters/UnavailabilityId"
+            responses:
+                "200": { description: Updated }
+        delete:
+            tags: [Users]
+            summary: Delete unavailability
+            parameters:
+                - $ref: "#/components/parameters/OrgId"
+                - $ref: "#/components/parameters/UserId"
+                - $ref: "#/components/parameters/UnavailabilityId"
+            responses:
+                "204": { description: Deleted }
 
   # Clients
   /o/{orgId}/clients:
@@ -551,32 +551,32 @@ paths:
       responses:
         '200': { description: Updated }
 
-  /o/{orgId}/settings/audit-log:
-    get:
-      tags: [Settings]
-      summary: List audit log
-      parameters: [ { $ref: '#/components/parameters/OrgId' } ]
-      responses:
-        '200': { description: OK }
+    /o/{orgId}/settings/audit-log:
+        get:
+            tags: [Settings]
+            summary: List audit log
+            parameters: [{ $ref: "#/components/parameters/OrgId" }]
+            responses:
+                "200": { description: OK }
 
-  /o/{orgId}/settings/audit-log/{logId}:
-    get:
-      tags: [Settings]
-      summary: Get audit log entry
-      parameters:
-        - $ref: '#/components/parameters/OrgId'
-        - $ref: '#/components/parameters/LogId'
-      responses:
-        '200': { description: OK }
-        '404': { description: Not found }
+    /o/{orgId}/settings/audit-log/{logId}:
+        get:
+            tags: [Settings]
+            summary: Get audit log entry
+            parameters:
+                - $ref: "#/components/parameters/OrgId"
+                - $ref: "#/components/parameters/LogId"
+            responses:
+                "200": { description: OK }
+                "404": { description: Not found }
 
-  /o/{orgId}/settings/permissions:
-    get:
-      tags: [Settings]
-      summary: Get permissions
-      parameters: [ { $ref: '#/components/parameters/OrgId' } ]
-      responses:
-        '200': { description: OK }
+    /o/{orgId}/settings/permissions:
+        get:
+            tags: [Settings]
+            summary: Get permissions
+            parameters: [{ $ref: "#/components/parameters/OrgId" }]
+            responses:
+                "200": { description: OK }
 
   # Roles
   /o/{orgId}/settings/roles:
@@ -646,14 +646,14 @@ paths:
       responses:
         '204': { description: Deleted }
 
-  # Locations
-  /o/{orgId}/settings/location:
-    get:
-      tags: [Locations]
-      summary: Get current location
-      parameters: [ { $ref: '#/components/parameters/OrgId' } ]
-      responses:
-        '200': { description: OK }
+    # Locations
+    /o/{orgId}/settings/location:
+        get:
+            tags: [Locations]
+            summary: Get current location
+            parameters: [{ $ref: "#/components/parameters/OrgId" }]
+            responses:
+                "200": { description: OK }
 
   /o/{orgId}/settings/locations:
     post:
@@ -721,14 +721,14 @@ paths:
       responses:
         '200': { description: Updated }
 
-    delete:
-      tags: [Locations]
-      summary: Delete location
-      parameters:
-        - $ref: '#/components/parameters/OrgId'
-        - $ref: '#/components/parameters/LocationId'
-      responses:
-        '204': { description: Deleted }
+        delete:
+            tags: [Locations]
+            summary: Delete location
+            parameters:
+                - $ref: "#/components/parameters/OrgId"
+                - $ref: "#/components/parameters/LocationId"
+            responses:
+                "204": { description: Deleted }
 
   # Appointments & tags
   /o/{orgId}/appointments:
@@ -823,61 +823,61 @@ paths:
       responses:
         '201': { description: Created }
 
-  /o/{orgId}/appointments/tags/{tagId}:
-    put:
-      tags: [Appointments]
-      summary: Update tag
-      parameters:
-        - $ref: '#/components/parameters/OrgId'
-        - $ref: '#/components/parameters/TagId'
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              type: object
-              required: [name]
-              properties:
-                name: { type: string }
-      responses:
-        '200': { description: Updated }
+    /o/{orgId}/appointments/tags/{tagId}:
+        put:
+            tags: [Appointments]
+            summary: Update tag
+            parameters:
+                - $ref: "#/components/parameters/OrgId"
+                - $ref: "#/components/parameters/TagId"
+            requestBody:
+                required: true
+                content:
+                    application/json:
+                        schema:
+                            type: object
+                            required: [name]
+                            properties:
+                                name: { type: string }
+            responses:
+                "200": { description: Updated }
 
-    delete:
-      tags: [Appointments]
-      summary: Delete tag
-      parameters:
-        - $ref: '#/components/parameters/OrgId'
-        - $ref: '#/components/parameters/TagId'
-      responses:
-        '204': { description: Deleted }
+        delete:
+            tags: [Appointments]
+            summary: Delete tag
+            parameters:
+                - $ref: "#/components/parameters/OrgId"
+                - $ref: "#/components/parameters/TagId"
+            responses:
+                "204": { description: Deleted }
 
-  # Notifications
-  /o/{orgId}/notifications:
-    get:
-      tags: [Notifications]
-      summary: List notifications
-      parameters: [ { $ref: '#/components/parameters/OrgId' } ]
-      responses:
-        '200': { description: OK }
+    # Notifications
+    /o/{orgId}/notifications:
+        get:
+            tags: [Notifications]
+            summary: List notifications
+            parameters: [{ $ref: "#/components/parameters/OrgId" }]
+            responses:
+                "200": { description: OK }
 
-  /o/{orgId}/notifications/{notificationId}:
-    get:
-      tags: [Notifications]
-      summary: Get notification
-      parameters:
-        - $ref: '#/components/parameters/OrgId'
-        - $ref: '#/components/parameters/NotificationId'
-      responses:
-        '200': { description: OK }
-        '404': { description: Not found }
-    delete:
-      tags: [Notifications]
-      summary: Delete notification
-      parameters:
-        - $ref: '#/components/parameters/OrgId'
-        - $ref: '#/components/parameters/NotificationId'
-      responses:
-        '204': { description: Deleted }
+    /o/{orgId}/notifications/{notificationId}:
+        get:
+            tags: [Notifications]
+            summary: Get notification
+            parameters:
+                - $ref: "#/components/parameters/OrgId"
+                - $ref: "#/components/parameters/NotificationId"
+            responses:
+                "200": { description: OK }
+                "404": { description: Not found }
+        delete:
+            tags: [Notifications]
+            summary: Delete notification
+            parameters:
+                - $ref: "#/components/parameters/OrgId"
+                - $ref: "#/components/parameters/NotificationId"
+            responses:
+                "204": { description: Deleted }
 
   # Reports
   /o/{orgId}/reports:
@@ -904,79 +904,79 @@ paths:
       responses:
         '201': { description: Created }
 
-  /o/{orgId}/reports/{reportId}:
-    get:
-      tags: [Reports]
-      summary: Get report
-      parameters:
-        - $ref: '#/components/parameters/OrgId'
-        - $ref: '#/components/parameters/ReportId'
-      responses:
-        '200': { description: OK }
-        '404': { description: Not found }
-    put:
-      tags: [Reports]
-      summary: Update report
-      parameters:
-        - $ref: '#/components/parameters/OrgId'
-        - $ref: '#/components/parameters/ReportId'
-      responses:
-        '200': { description: Updated }
-    delete:
-      tags: [Reports]
-      summary: Delete report
-      parameters:
-        - $ref: '#/components/parameters/OrgId'
-        - $ref: '#/components/parameters/ReportId'
-      responses:
-        '204': { description: Deleted }
+    /o/{orgId}/reports/{reportId}:
+        get:
+            tags: [Reports]
+            summary: Get report
+            parameters:
+                - $ref: "#/components/parameters/OrgId"
+                - $ref: "#/components/parameters/ReportId"
+            responses:
+                "200": { description: OK }
+                "404": { description: Not found }
+        put:
+            tags: [Reports]
+            summary: Update report
+            parameters:
+                - $ref: "#/components/parameters/OrgId"
+                - $ref: "#/components/parameters/ReportId"
+            responses:
+                "200": { description: Updated }
+        delete:
+            tags: [Reports]
+            summary: Delete report
+            parameters:
+                - $ref: "#/components/parameters/OrgId"
+                - $ref: "#/components/parameters/ReportId"
+            responses:
+                "204": { description: Deleted }
 
-  /o/{orgId}/reports/{reportId}/generate:
-    get:
-      tags: [Reports]
-      summary: Generate report
-      parameters:
-        - $ref: '#/components/parameters/OrgId'
-        - $ref: '#/components/parameters/ReportId'
-      responses:
-        '202': { description: Generation started or in progress }
-        '200': { description: Ready }
+    /o/{orgId}/reports/{reportId}/generate:
+        get:
+            tags: [Reports]
+            summary: Generate report
+            parameters:
+                - $ref: "#/components/parameters/OrgId"
+                - $ref: "#/components/parameters/ReportId"
+            responses:
+                "202": { description: Generation started or in progress }
+                "200": { description: Ready }
 
-  /s/organizations:
-    get:
-      tags: [Organizations]
-      summary: List organizations
-      responses:
-        '200': { description: OK }
-    post:
-      tags: [Organizations]
-      summary: Create organization
-      responses:
-        '201': { description: Created }
+    /s/organizations:
+        get:
+            tags: [Organizations]
+            summary: List organizations
+            responses:
+                "200": { description: OK }
+        post:
+            tags: [Organizations]
+            summary: Create organization
+            responses:
+                "201": { description: Created }
 
-  /s/organizations/{orgId}:
-    get:
-      tags: [Organizations]
-      summary: Get organization
-      parameters: [ { $ref: '#/components/parameters/OrgId' } ]
-      responses:
-        '200': { description: OK }
-        '404': { description: Not found }
-    put:
-      tags: [Organizations]
-      summary: Update organization
-      parameters: [ { $ref: '#/components/parameters/OrgId' } ]
-      responses:
-        '200': { description: Updated }
+    /s/organizations/{orgId}:
+        get:
+            tags: [Organizations]
+            summary: Get organization
+            parameters: [{ $ref: "#/components/parameters/OrgId" }]
+            responses:
+                "200": { description: OK }
+                "404": { description: Not found }
+        put:
+            tags: [Organizations]
+            summary: Update organization
+            parameters: [{ $ref: "#/components/parameters/OrgId" }]
+            responses:
+                "200": { description: Updated }
 
-  /s/settings:
-    get:
-      tags: [Settings]
-      summary: Get system settings
-      responses:
-        '200': { description: OK }
-    put:
-      tags: [Settings]
-      summary: Update system settings
-      responses:
-        '200': { description: Updated }
+    /s/settings:
+        get:
+            tags: [Settings]
+            summary: Get system settings
+            responses:
+                "200": { description: OK }
+        put:
+            tags: [Settings]
+            summary: Update system settings
+            responses:
+                "200": { description: Updated }

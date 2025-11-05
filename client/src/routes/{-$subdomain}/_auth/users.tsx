@@ -4,21 +4,21 @@ import { authStore } from "@/components/stores/authStore";
 import { PERMISSIONS } from "@/lib/permissions";
 import { createFileRoute, redirect } from "@tanstack/react-router";
 
-export const Route = createFileRoute("/users")({
+export const Route = createFileRoute("/{-$subdomain}/_auth/users")({
     beforeLoad: async ({ location }) => {
         const s = authStore.getState();
         const isAuthed = Boolean(s.user && s.accessToken);
 
         if (!isAuthed) {
             throw redirect({
-                to: "/sign-in",
+                to: "/{-$subdomain}/sign-in",
                 search: { redirect: location.pathname },
             });
         }
 
         if (!s.hasPermission(PERMISSIONS.USERS_READ)) {
             throw redirect({
-                to: "/dashboard",
+                to: "/{-$subdomain}/dashboard",
             });
         }
 

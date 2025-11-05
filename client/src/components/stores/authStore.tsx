@@ -5,11 +5,12 @@ import { createJSONStorage, persist } from "zustand/middleware";
 import { createStore } from "zustand/vanilla";
 
 type AuthState = {
-    user: User | null;
-    role: string | null;
-    permissions: string[];
-    accessToken: string | null;
-    refreshToken: string | null;
+  subdomain: string | null;
+  user: User | null;
+  role: string | null;
+  permissions: string[];
+  accessToken: string | null;
+  refreshToken: string | null;
 };
 
 type AuthActions = {
@@ -24,6 +25,7 @@ type AuthActions = {
 export type AuthStore = AuthState & AuthActions;
 
 const initialState: AuthState = {
+    subdomain: null,
     user: null,
     role: null,
     permissions: [],
@@ -61,6 +63,7 @@ export const authStore = createStore<AuthStore>()(
             name: "auth-store",
             storage: createJSONStorage(() => localStorage),
             partialize: (s) => ({
+                subdomain: s.subdomain,
                 user: s.user,
                 role: s.role,
                 permissions: s.permissions,

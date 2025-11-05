@@ -2,7 +2,7 @@ import RequestPasswordResetForm from "@/components/form/RequestPasswordResetForm
 import { Button } from "@/components/ui/button";
 import { createFileRoute, Link } from "@tanstack/react-router";
 
-export const Route = createFileRoute("/_login/forget-password")({
+export const Route = createFileRoute("/{-$subdomain}/_login/forget-password")({
     component: RouteComponent,
 });
 
@@ -17,7 +17,7 @@ function RouteComponent() {
              * Add "Request Admin Help" link that goes to a page with instructions 
              * to contact the system administrator for help resetting the password.
             */}
-            <Link to={"/"}>
+            <Link to={"/{-$subdomain}"}>
                 <Button variant="link" className="w-full mt-3">
                     Request Admin Help
                 </Button>

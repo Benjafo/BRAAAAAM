@@ -5,36 +5,39 @@ import { http } from "@/services/auth/serviceResolver";
 import { useState } from "react";
 import type { UserFormValues } from "../form/userForm";
 import NewUserModal from "../modals/userModal";
+// import { useUsers } from "@/hooks/org/useUsers";
+// import { toast } from "sonner";
+import type { TableUser } from "@/types/org/users";
 
-type User = {
-    id: string;
-    firstName: string;
-    lastName: string;
-    email: string;
-    phone: string;
-    contactPreference: string | null;
-    birthYear: number | null;
-    birthMonth: number | null;
-    emergencyContactName: string | null;
-    emergencyContactPhone: string | null;
-    emergencyContactRelationship: string | null;
-    isActive: boolean;
-    isDriver: boolean;
-    roleId: string | null;
-    roleName: string | null;
-    address: {
-        id: string;
-        addressLine1: string;
-        addressLine2?: string | null;
-        city: string;
-        state: string;
-        zip: string;
-    };
-};
+// type User = {
+//     id: string;
+//     firstName: string;
+//     lastName: string;
+//     email: string;
+//     phone: string;
+//     contactPreference: string | null;
+//     birthYear: number | null;
+//     birthMonth: number | null;
+//     emergencyContactName: string | null;
+//     emergencyContactPhone: string | null;
+//     emergencyContactRelationship: string | null;
+//     isActive: boolean;
+//     isDriver: boolean;
+//     roleId: string | null;
+//     roleName: string | null;
+//     address: {
+//         id: string;
+//         addressLine1: string;
+//         addressLine2?: string | null;
+//         city: string;
+//         state: string;
+//         zip: string;
+//     };
+// };
 
 // Helper function to map API User to form values
 // derived from the mapClientToFormValues from ai
-function mapUserToFormValues(user: User): Partial<UserFormValues> & { id: string } {
+function mapUserToFormValues(user: TableUser): Partial<UserFormValues> & { id: string } {
     return {
         id: user.id, // Include ID for edit detection
         firstName: user.firstName,
@@ -70,6 +73,10 @@ export function UsersTable() {
     const hasCreatePermission = useAuthStore((s) => s.hasPermission(PERMISSIONS.USERS_CREATE));
     const hasEditPermission = useAuthStore((s) => s.hasPermission(PERMISSIONS.USERS_UPDATE));
 
+    // const getUsers = useUsers()
+    // const { isPending, isError, data: users, error } = getUsers()
+    /** @TODO extract fetch logic outside of datatable */
+
     const fetchUsers = async (params: Record<string, any>) => {
         const searchParams = new URLSearchParams();
         Object.entries(params).forEach(([key, value]) => {
@@ -77,20 +84,31 @@ export function UsersTable() {
                 searchParams.set(key, String(value));
             }
         });
+        
+        /** @TODO fix passing in url params */
 
-        const orgID = "braaaaam";
-        const response = (await http
-            .get(`o/${orgID}/users`, {
-                headers: {
-                    "x-org-subdomain": orgID,
-                },
-            })
-            .json()) as { results: User[]; total: number };
-        console.log("Fetched users:", response);
+        // if(isError && !isPending) {
+        //     toast.error('Failed to fetch users', {
+        //         description: error.message
+        //     });
+
+        //     if(import.meta.env.DEV) {
+        //         console.error(error)
+        //     }
+        // }
+
+        // return {
+        //     data: users ?? [],
+        //     total: users?.length ?? 0
+        // }
+
+        const response = await http.get(`/o/users`).json<TableUser[]>()
+        console.log("Fetched users:", response)
+
         return {
-            data: response.results,
-            total: response.total,
-        };
+            data: response,
+            total: response.length
+        }
     };
 
     const handleCreateUser = () => {
@@ -98,7 +116,7 @@ export function UsersTable() {
         setIsUserModalOpen(true);
     };
 
-    const handleEditUser = (user: User) => {
+    const handleEditUser = (user: TableUser) => {
         setSelectedUserData(mapUserToFormValues(user));
         setIsUserModalOpen(true);
     };

@@ -65,7 +65,7 @@ function SignInForm({
     });
 
     useEffect(() => {
-        if(isAuthed) navigate({to: '/'});
+        if(isAuthed) navigate({to: '/{-$subdomain}'});
     }, [isAuthed, navigate])
 
     // Effect: Handle successful authentication by redirecting user

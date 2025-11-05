@@ -6,8 +6,8 @@ import { seedAll, verifySeed } from "./seeders/permissions.seeder.js";
 
 async function seedTemplateDatabase() {
     // Loacal .env for running npm scripts outside docker
-    dotenv.config({ path: ".env.local" });
-    console.log("[seed] Using .env.local for database connection");
+    // dotenv.config({ path: ".env.local" });
+    // console.log("[seed] Using .env.local for database connection");
 
     const { ORG_DATABASE_URL } = process.env;
 

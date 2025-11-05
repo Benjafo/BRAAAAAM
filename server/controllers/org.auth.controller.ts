@@ -81,7 +81,8 @@ const signIn = async (req: Request, res: Response) => {
             message: "Signed in successfully",
             accessToken,
             user: userResponse,
-            permissions: allPermissions
+            permissions: allPermissions,
+            subdomain: req.org?.subdomain,
         });
 
 

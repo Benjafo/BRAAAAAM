@@ -8,6 +8,8 @@ export const withOrg: RequestHandler = async (req: Request, res: Response, next:
     const header = req.header('x-org-subdomain');
     let subdomain = header;
 
+    console.log(subdomain)
+
     // if not in header, try to extract from url (in host)
     if(!subdomain) {
 
@@ -27,6 +29,8 @@ export const withOrg: RequestHandler = async (req: Request, res: Response, next:
         const organization = await sysDb.query.organizations.findFirst({
             where: eq(organizations.subdomain, subdomain)
         });
+
+        console.log(organization);
 
         if(!organization) {
             res.status(400).json({

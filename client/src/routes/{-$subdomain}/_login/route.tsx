@@ -1,7 +1,7 @@
 import { LoginNavigation } from "@/components/Navigation";
 import { createFileRoute, Outlet, useLocation } from "@tanstack/react-router";
 
-export const Route = createFileRoute("/_login")({
+export const Route = createFileRoute("/{-$subdomain}/_login")({
     component: RouteComponent,
 });
 

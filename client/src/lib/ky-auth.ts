@@ -17,6 +17,9 @@ const kyWithAuth = ky.create({
                 if (!isAuthed || !accessToken) return;
                 request.headers.set("Authorization", `Bearer ${accessToken}`);
 
+                // const { subdomain } = useParams({strict: false});
+                // if(subdomain) {request.headers.set('x-org-subdomain', subdomain);}
+
                 /**
                  * Possibly add a TTL for the refresh token in the response
                  * to let a user know when their session is about to expire
@@ -50,7 +53,7 @@ const kyWithAuth = ky.create({
                         duration: Infinity,
                         cancel: {
                             label: "Sign-in",
-                            onClick: () => navigate({ to: "/sign-in" }) /**Probably not an issue */,
+                            onClick: () => navigate({ to: "/{-$subdomain}/sign-in" }) /**Probably not an issue */,
                         },
                     });
                 }

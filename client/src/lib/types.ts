@@ -86,6 +86,7 @@ export type Credentials = { email: string; password: string };
 // };
 
 export type LoginResponse = {
+    subdomain?: string;
     user: User;
     role: string;
     permissions: {
@@ -118,7 +119,7 @@ export type ResetPasswordCredentials = {
 export interface AuthService {
     login(form: Credentials): Promise<LoginResponse>;
     logout(): Promise<void>;
-    resetPassword(form: ResetPasswordCredentials & { token: string }): Promise<void>;
+    resetPassword(form: ResetPasswordCredentials & { token: string, id: string }): Promise<void>;
     forgotPassword(form: { email: string }): Promise<ForgotPasswordResponse>;
     refresh?(refreshToken: string): Promise<RefreshResponse>;
 }

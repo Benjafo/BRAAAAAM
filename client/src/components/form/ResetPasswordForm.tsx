@@ -52,10 +52,11 @@ function ResetPasswordForm({
     const navigate = useNavigate();
 
     const search = useSearch({
-        from: "/_login/reset-password",
+        from: "/{-$subdomain}/_login/reset-password",
     });
 
     const token = search.token;
+    const id = search.id; //userId
 
     const resetPassword = useResetPassword();
 
@@ -81,10 +82,10 @@ function ResetPasswordForm({
             return;
         }
 
-        resetPassword.mutate({ ...value, token }, {
+        resetPassword.mutate({ ...value, token, id }, {
             onSuccess: () => {
                 toast.success('Password reset successfully!');
-                navigate({ to: '/sign-in' });
+                navigate({ to: '/{-$subdomain}/sign-in' });
             },
             onError: (error) => {
                 toast.error("Password failed to reset", {
