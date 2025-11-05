@@ -209,11 +209,10 @@ export function DataTable<T extends Record<string, unknown>>({
     // (ai made this function)
     React.useEffect(() => {
         if (onRowSelectionChange) {
-            const selectedIndices = Object.keys(rowSelection);
-            const selectedData = selectedIndices.map((idx) => data[parseInt(idx)]).filter(Boolean);
-            onRowSelectionChange(selectedData);
+            const selectedRows = table.getFilteredSelectedRowModel().rows.map((row) => row.original);
+            onRowSelectionChange(selectedRows);
         }
-    }, [rowSelection, data, onRowSelectionChange]);
+    }, [rowSelection, data, onRowSelectionChange, table]);
 
     // Columns that can be filtered
     const filterableCols = table.getAllColumns().filter((col) => col.getCanFilter());
