@@ -2,11 +2,7 @@ import { NextFunction, Response } from "express";
 import { AuthRequest } from "../types/auth.types.js";
 import { verifyAccessToken } from "../utils/jwt.js";
 
-export const withAuth = (
-    req: AuthRequest,
-    res: Response,
-    next: NextFunction
-): Response | void => {
+export const withAuth = (req: AuthRequest, res: Response, next: NextFunction): Response | void => {
     const authHeader = req.headers["authorization"];
     const token = authHeader?.split(" ")[1];
 

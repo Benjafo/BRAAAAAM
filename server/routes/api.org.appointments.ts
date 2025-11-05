@@ -9,8 +9,16 @@ router.get("/", withPermission({ permissions: "appointments.read" }), appt.listA
 router.post("/", withPermission({ permissions: "appointments.create" }), appt.createAppointment);
 
 // /o/:orgId/appointments/:appointmentId
-router.get("/:appointmentId", withPermission({ permissions: "appointments.read" }), appt.getAppointment);
-router.put("/:appointmentId", withPermission({ permissions: "appointments.update" }), appt.updateAppointment);
+router.get(
+    "/:appointmentId",
+    withPermission({ permissions: "appointments.read" }),
+    appt.getAppointment
+);
+router.put(
+    "/:appointmentId",
+    withPermission({ permissions: "appointments.update" }),
+    appt.updateAppointment
+);
 
 // /o/:orgId/appointments/tags
 // router.get("/tags", appt.listTags);

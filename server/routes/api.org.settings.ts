@@ -9,7 +9,11 @@ router.get("/", withPermission({ permissions: "settings.read" }), settings.getSe
 router.put("/", withPermission({ permissions: "settings.update" }), settings.updateSettings);
 
 // /operation-hours
-router.get("/operation-hours", withPermission({ permissions: "settings.read" }), settings.getOperationHours);
+router.get(
+    "/operation-hours",
+    withPermission({ permissions: "settings.read" }),
+    settings.getOperationHours
+);
 
 // TODO Using settings permissions for now until forms permissions are created
 // TODO: Make Forms router seperate from settings

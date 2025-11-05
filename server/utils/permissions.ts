@@ -14,7 +14,6 @@ type OrgDb = NodePgDatabase<typeof orgSchema>;
  * Combines role permissions and user-specific permission overrides
  */
 export async function getUserPermissions(userId: string, orgDb: OrgDb): Promise<string[]> {
-
     // Query user with role
     const [user] = await orgDb
         .select({
