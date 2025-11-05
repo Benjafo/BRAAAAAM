@@ -1,7 +1,29 @@
 export type Permission = {
     id: string;
-    title?: string;
-    description?: string;
+    permKey: string;
+    resource: string;
+    action: string;
+    name: string;
+    description: string;
+};
+
+export type Role = {
+    id: string;
+    roleKey: string;
+    name: string;
+    description: string;
+    isSystem: boolean;
+    permissionCount: number;
+    createdAt: string;
+};
+
+export type RoleDetail = {
+    id: string;
+    roleName: string;
+    description: string;
+    isSystem: boolean;
+    permissions: Permission[];
+    permissionIds: string[];
 };
 
 export interface User {
@@ -55,12 +77,26 @@ export type Credentials = { email: string; password: string };
 
 // export type Permission = 'read' | 'write' | 'publish' | 'admin';
 
+// export type LoginResponse = {
+//     user: User;
+//     role: string;
+//     permissions: Permission[];
+//     accessToken: string;
+//     refreshToken?: string;
+// };
+
 export type LoginResponse = {
     user: User;
     role: string;
-    permissions: Permission[];
+    permissions: {
+        permKey: string;
+        roleGrant: boolean | null;
+        userGrant: boolean | null;
+        effective: boolean;
+    }[];
     accessToken: string;
     refreshToken?: string;
+    message?: string;
 };
 
 export type RefreshResponse = {

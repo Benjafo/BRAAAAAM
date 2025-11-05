@@ -98,53 +98,70 @@ export const MainNavigation = ({
     // Can probably refactor this to pull from a config file or something
     navItems = [
         {
+            text: "Organizations",
+            link: "/organizations",
+            permission: PERMISSIONS.ORGANIZATIONS_READ,
+        },
+        {
             text: "Dashboard",
             link: "/dashboard",
-            permission: PERMISSIONS.VIEW_DASHBOARD,
+            permission: PERMISSIONS.DASHBOARD_READ,
         },
         {
             text: "Schedule",
             link: "/schedule",
-            permission: PERMISSIONS.VIEW_SCHEDULE,
+            permission: PERMISSIONS.APPOINTMENTS_READ,
         },
         {
-            text: "Notifications",
-            link: "/notifications",
-            permission: PERMISSIONS.VIEW_NOTIFICATIONS,
+            text: "Unassigned Rides",
+            link: "/unassigned-rides",
         },
+        {
+            text: "Unvailability",
+            link: "/unavailability",
+        },
+        // {
+        //     text: "Notifications",
+        //     link: "/notifications",
+        //     permission: PERMISSIONS.VIEW_NOTIFICATIONS,
+        // },
         {
             text: "Client Management",
             link: "/clients",
-            permission: PERMISSIONS.VIEW_CLIENTS,
+            permission: PERMISSIONS.CLIENTS_READ,
         },
         {
             text: "User Management",
             link: "/users",
-            permission: PERMISSIONS.VIEW_USERS,
+            permission: PERMISSIONS.USERS_READ,
         },
-        {
-            text: "Reports",
-            link: "/reports",
-            permission: PERMISSIONS.VIEW_REPORTS,
-        },
+        // {
+        //     text: "Reports",
+        //     link: "/reports",
+        //     permission: PERMISSIONS.VIEW_REPORTS,
+        // },
         {
             text: "Settings",
             link: "/admin-settings",
-            permission: PERMISSIONS.VIEW_SETTINGS,
+            permission: PERMISSIONS.SETTINGS_READ,
         },
-        {
-            text: "Help Center",
-            link: "/help",
-        },
+        // {
+        //     text: "Help Center",
+        //     link: "/help",
+        // },
     ],
 }: MainNavProps) => {
     const navigate = useNavigate();
     const user = useAuthStore((s) => s.user);
-    //maybe check for isAuthed, possibly not required.
+    const hasPermission = useAuthStore((s) => s.hasPermission);
     const logout = useLogout();
-    /**
-     * @TODO Add useUser() hook to get user information
-     */
+
+    const visibleNavItems = navItems.filter((item) => {
+        // Show the item if no permission required
+        if (!item.permission) return true;
+        // Otherwise check permission
+        return hasPermission(item.permission);
+    });
 
     const handleSignOut = async () => {
         logout.mutate(undefined, {
@@ -152,13 +169,6 @@ export const MainNavigation = ({
                 navigate({ to: "/sign-in" });
             },
         });
-        // try {
-        //     if(isAuthed) logout.mutate()
-        // } catch (error) {
-        //     console.error("Sign out error:", error);
-        // } finally {
-        //     navigate({to: '/sign-in'})
-        // }
     };
 
     return (
@@ -170,10 +180,7 @@ export const MainNavigation = ({
                         <AvatarImage src={logo.src} />
                         <AvatarFallback>{logo.fallbackText}</AvatarFallback>
                     </Avatar>
-                    {navItems.map((button, idx) => (
-                        /**
-                         * @TODO Add permission check here
-                         */
+                    {visibleNavItems.map((button, idx) => (
                         <Link key={button.link ?? idx} to={button.link}>
                             <Button size="sm" className="active:bg-primary/90">
                                 {button.text}

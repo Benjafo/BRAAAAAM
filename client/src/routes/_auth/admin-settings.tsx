@@ -1,12 +1,28 @@
 import type { AdminGeneralFormRef } from "@/components/form/AdminGeneralForm";
 import AdminGeneralForm from "@/components/form/AdminGeneralForm";
 import { MainNavigation } from "@/components/Navigation";
+import { AuditLogTable } from "@/components/tables/AuditLogTable";
+import { LocationsTable } from "@/components/tables/LocationsTable";
+import { RolesTable } from "@/components/tables/RolesTable";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { createFileRoute } from "@tanstack/react-router";
+import { authStore } from "@/components/stores/authStore";
+import { PERMISSIONS } from "@/lib/permissions";
+import { createFileRoute, redirect } from "@tanstack/react-router";
 import { useCallback, useRef, useState } from "react";
 
 export const Route = createFileRoute("/_auth/admin-settings")({
+    beforeLoad: async () => {
+        const s = authStore.getState();
+
+        if (!s.hasPermission(PERMISSIONS.SETTINGS_READ)) {
+            throw redirect({
+                to: "/dashboard",
+            });
+        }
+
+        return { user: s.user };
+    },
     component: RouteComponent,
 });
 
@@ -116,15 +132,15 @@ function RouteComponent() {
                     </TabsContent>
 
                     <TabsContent value="roles">
-                        <p className="text-muted-foreground">{/* Roles content */}</p>
+                        <RolesTable />
                     </TabsContent>
 
                     <TabsContent value="audit-log">
-                        <p className="text-muted-foreground">{/* Audit log content */}</p>
+                        <AuditLogTable />
                     </TabsContent>
 
                     <TabsContent value="locations">
-                        <p className="text-muted-foreground">{/* Locations content */}</p>
+                        <LocationsTable />
                     </TabsContent>
                 </Tabs>
             </div>

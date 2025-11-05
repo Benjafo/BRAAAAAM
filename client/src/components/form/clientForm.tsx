@@ -25,11 +25,12 @@ import {
     CommandList,
 } from "@/components/ui/command";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { MapPin } from "lucide-react";
+import { GoogleAddressFields } from "../GoogleAddressFields";
 import { Checkbox } from "../ui/checkbox";
 import { DatePickerInput } from "../ui/datePickerField";
 import { RadioGroup, RadioGroupItem } from "../ui/radio-group";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../ui/select";
+import { Textarea } from "../ui/textarea";
 
 /* --------------------------------- Schema --------------------------------- */
 /* using z.enum for select values that we know are included */
@@ -47,29 +48,31 @@ const clientSchema = z
             .string()
             .min(1, "Please enter the last name.")
             .max(255, "Max characters allowed is 255."),
-        primaryContactPref: z
+        contactPref: z
             .string()
             .min(1, "Write in how you want to be contacted. ")
             .max(255, "Max characters allowed is 255."),
-        birthMonth: z.string().min(1, "Please select a month."),
+        birthMonth: z.string().optional(),
         birthYear: z.string().min(1, "Please select a year."),
-        secondaryContactPref: z
-            .string()
-            .max(255, "Max characters allowed is 255.")
-            .optional()
-            .or(z.literal("")),
         homeAddress: z
             .string()
             .min(1, "Home address is required")
             .max(255, "Max characters allowed is 255."),
-        clientGender: z.enum(["Male", "Female", "Other"], {
-            message: "Please specify the clients gender.",
-        }),
+        city: z.string().min(1, "City is required").max(255, "Max characters allowed is 255."),
+        state: z.string().min(1, "State is required").max(255, "Max characters allowed is 255."),
+        zipCode: z
+            .string()
+            .min(5, "Zip Code is required")
+            .max(10, "Max characters allowed is 10.")
+            .regex(/^\d{5}(-\d{4})?$/, "Please enter a valid US zip code."),
         homeAddress2: z
             .string()
             .max(255, "Max characters allowed is 255.")
             .optional()
             .or(z.literal("")),
+        clientGender: z.enum(["Male", "Female", "Other"], {
+            message: "Please specify the clients gender.",
+        }),
         clientStatus: z.enum(["Permanent client", "Temporary client"], {
             message: "Please specify if the client is a permanent or temporary client",
         }),
@@ -91,7 +94,7 @@ const clientSchema = z
 
         primaryPhoneIsCellPhone: z.boolean(),
         okToTextPrimaryPhone: z.boolean(),
-        endActiveStatus: z.date("Please select the date the active status for the client ends."),
+        endActiveStatus: z.date().optional(),
         secondaryPhoneNumber: z
             .string()
             .regex(
@@ -102,9 +105,38 @@ const clientSchema = z
             .optional(),
         secondaryPhoneIsCellPhone: z.boolean(),
         okToTextSecondaryPhone: z.boolean(),
+        emergencyContactName: z
+            .string()
+            .max(255, "Max characters allowed is 255.")
+            .optional()
+            .or(z.literal("")),
+        emergencyContactPhone: z
+            .string()
+            .regex(
+                /^(\+1\s?)?(\([0-9]{3}\)\s?|[0-9]{3}[-.\s]?)[0-9]{3}[-.\s]?[0-9]{4}$/,
+                "Please enter a valid US phone number."
+            )
+            .or(z.literal(""))
+            .optional(),
+        emergencyContactRelationship: z
+            .string()
+            .max(100, "Max characters allowed is 100.")
+            .optional()
+            .or(z.literal("")),
+        notes: z.string().optional().or(z.literal("")),
+        pickupInstructions: z.string().optional().or(z.literal("")),
     })
     .superRefine((data, ctx) => {
         // AI helped on the super refine
+        // If client status is "Temporary client", endActiveStatus must be provided
+        if (data.clientStatus === "Temporary client" && !data.endActiveStatus) {
+            ctx.addIssue({
+                code: "custom",
+                message: "Please select the date the active status for the client ends.",
+                path: ["endActiveStatus"],
+            });
+        }
+
         // If volunteering status is "On leave", onLeaveUntil must be provided
         if (data.volunteeringStatus === "On leave" && !data.onLeaveUntil) {
             ctx.addIssue({
@@ -182,13 +214,15 @@ export default function ClientForm({ defaultValues, onSubmit }: Props) {
             firstName: defaultValues.firstName ?? "",
             livingAlone: defaultValues.livingAlone ?? "Lives alone",
             lastName: defaultValues.lastName ?? "",
-            primaryContactPref: defaultValues.primaryContactPref ?? "",
+            contactPref: defaultValues.contactPref ?? "",
             birthMonth: defaultValues.birthMonth ?? "",
             birthYear: defaultValues.birthYear ?? "",
-            secondaryContactPref: defaultValues.secondaryContactPref ?? "",
             homeAddress: defaultValues.homeAddress ?? "",
-            clientGender: defaultValues.clientGender ?? "Other",
+            city: defaultValues.city ?? "",
+            state: defaultValues.state ?? "",
+            zipCode: defaultValues.zipCode ?? "",
             homeAddress2: defaultValues.homeAddress2 ?? "",
+            clientGender: defaultValues.clientGender ?? "Other",
             clientStatus: defaultValues.clientStatus ?? "Permanent client",
             volunteeringStatus: defaultValues.volunteeringStatus ?? "Active",
             onLeaveUntil: defaultValues.onLeaveUntil,
@@ -203,11 +237,18 @@ export default function ClientForm({ defaultValues, onSubmit }: Props) {
             secondaryPhoneNumber: defaultValues.secondaryPhoneNumber ?? "",
             secondaryPhoneIsCellPhone: defaultValues.secondaryPhoneIsCellPhone ?? false,
             okToTextSecondaryPhone: defaultValues.okToTextSecondaryPhone ?? false,
+            emergencyContactName: defaultValues.emergencyContactName ?? "",
+            emergencyContactPhone: defaultValues.emergencyContactPhone ?? "",
+            emergencyContactRelationship: defaultValues.emergencyContactRelationship ?? "",
+            notes: defaultValues.notes ?? "",
+            pickupInstructions: defaultValues.pickupInstructions ?? "",
         },
     });
 
     const clientStatus = form.watch("clientStatus");
     const volunteeringStatus = form.watch("volunteeringStatus");
+    const primaryPhoneIsCellPhone = form.watch("primaryPhoneIsCellPhone");
+    const secondaryPhoneIsCellPhone = form.watch("secondaryPhoneIsCellPhone");
 
     const [monthOpen, setMonthOpen] = useState(false);
     const [yearOpen, setYearOpen] = useState(false);
@@ -226,6 +267,21 @@ export default function ClientForm({ defaultValues, onSubmit }: Props) {
                     render={({ field }) => (
                         <FormItem className="w-full">
                             <FormLabel>First Name</FormLabel>
+                            <FormControl className="w-full">
+                                <Input placeholder="Value" {...field} className="w-full" />
+                            </FormControl>
+                            <FormMessage />
+                        </FormItem>
+                    )}
+                />
+
+                {/* Last name */}
+                <FormField
+                    control={form.control}
+                    name="lastName"
+                    render={({ field }) => (
+                        <FormItem className="w-full">
+                            <FormLabel>Last Name</FormLabel>
                             <FormControl className="w-full">
                                 <Input placeholder="Value" {...field} className="w-full" />
                             </FormControl>
@@ -271,30 +327,24 @@ export default function ClientForm({ defaultValues, onSubmit }: Props) {
                         </FormItem>
                     )}
                 />
-                {/* Last name */}
-                <FormField
-                    control={form.control}
-                    name="lastName"
-                    render={({ field }) => (
-                        <FormItem className="w-full">
-                            <FormLabel>Last Name</FormLabel>
-                            <FormControl className="w-full">
-                                <Input placeholder="Value" {...field} className="w-full" />
-                            </FormControl>
-                            <FormMessage />
-                        </FormItem>
-                    )}
-                />
 
                 {/* Primary contact preference */}
                 <FormField
                     control={form.control}
-                    name="primaryContactPref"
+                    name="contactPref"
                     render={({ field }) => (
                         <FormItem className="w-full">
-                            <FormLabel>Primary Contact Preference</FormLabel>
+                            <FormLabel>Contact Preference</FormLabel>
                             <FormControl className="w-full">
-                                <Input placeholder="Value" {...field} className="w-full" />
+                                <Select value={field.value} onValueChange={field.onChange}>
+                                    <SelectTrigger className="w-full">
+                                        <SelectValue placeholder="Contact Preference" />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        <SelectItem value="Phone">Phone</SelectItem>
+                                        <SelectItem value="Email">Email</SelectItem>
+                                    </SelectContent>
+                                </Select>
                             </FormControl>
                             <FormMessage />
                         </FormItem>
@@ -365,21 +415,6 @@ export default function ClientForm({ defaultValues, onSubmit }: Props) {
                     )}
                 />
 
-                {/* Secondary contact preference */}
-                <FormField
-                    control={form.control}
-                    name="secondaryContactPref"
-                    render={({ field }) => (
-                        <FormItem className="w-full">
-                            <FormLabel>Secondary Contact Preference</FormLabel>
-                            <FormControl className="w-full">
-                                <Input placeholder="Value" {...field} className="w-full" />
-                            </FormControl>
-                            <FormMessage />
-                        </FormItem>
-                    )}
-                />
-
                 {/* Birth Year, AI helped create this  */}
                 <FormField
                     control={form.control}
@@ -443,67 +478,78 @@ export default function ClientForm({ defaultValues, onSubmit }: Props) {
                     )}
                 />
 
-                {/* Client Gender */}
-                <FormField
-                    control={form.control}
-                    name="clientGender"
-                    render={({ field }) => (
-                        <FormItem>
-                            <FormLabel>Client Gender</FormLabel>
-                            <FormControl>
-                                <RadioGroup
-                                    className="flex flex-col gap-2"
-                                    value={field.value}
-                                    onValueChange={field.onChange}
-                                >
-                                    <div className="flex items-center space-x-2">
-                                        <RadioGroupItem id="male" value="Male" />
-                                        <FormLabel htmlFor="male" className="font-normal">
-                                            Male
-                                        </FormLabel>
-                                    </div>
-                                    <div className="flex items-center space-x-2">
-                                        <RadioGroupItem id="female" value="Female" />
-                                        <FormLabel htmlFor="female" className="font-normal">
-                                            Female
-                                        </FormLabel>
-                                    </div>
-
-                                    <div className="flex items-center space-x-2">
-                                        <RadioGroupItem id="other" value="Other" />
-                                        <FormLabel htmlFor="other" className="font-normal">
-                                            Other
-                                        </FormLabel>
-                                    </div>
-                                </RadioGroup>
-                            </FormControl>
-                            <FormMessage />
-                        </FormItem>
-                    )}
-                />
-
                 {/* Home Address */}
-                <FormField
-                    control={form.control}
-                    name="homeAddress"
-                    render={({ field }) => (
-                        <FormItem>
-                            <FormLabel>Address</FormLabel>
-                            <FormControl>
-                                <div className="relative">
-                                    <Input
-                                        placeholder="(Replace with Google autocomplete)"
-                                        {...field}
-                                    />
-                                    <MapPin className="absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-                                </div>
-                            </FormControl>
-                            <FormMessage />
-                        </FormItem>
-                    )}
-                />
+                <div className="md:col-span-2">
+                    {/* className="md:col-span-2" */}
+                    <GoogleAddressFields
+                        control={form.control}
+                        setValue={form.setValue}
+                        addressFieldName="homeAddress"
+                        cityFieldName="city"
+                        stateFieldName="state"
+                        zipFieldName="zipCode"
+                    />
+                </div>
 
-                {/* Client Status */}
+                {/* Home Unit/Apartment/Suite */}
+                <div className="md:col-span-2">
+                    <FormField
+                        control={form.control}
+                        name="homeAddress2"
+                        render={({ field }) => (
+                            <FormItem>
+                                <FormLabel>Unit/Apartment/Suite</FormLabel>
+                                <FormControl>
+                                    <Input placeholder="Unit, apartment, suite, etc." {...field} />
+                                </FormControl>
+                                <FormMessage />
+                            </FormItem>
+                        )}
+                    />{" "}
+                </div>
+
+                {/* Client Gender */}
+                <div className="space-y-4">
+                    <FormField
+                        control={form.control}
+                        name="clientGender"
+                        render={({ field }) => (
+                            <FormItem>
+                                <FormLabel>Client Gender</FormLabel>
+                                <FormControl>
+                                    <RadioGroup
+                                        className="flex flex-col gap-2"
+                                        value={field.value}
+                                        onValueChange={field.onChange}
+                                    >
+                                        <div className="flex items-center space-x-2">
+                                            <RadioGroupItem id="male" value="Male" />
+                                            <FormLabel htmlFor="male" className="font-normal">
+                                                Male
+                                            </FormLabel>
+                                        </div>
+                                        <div className="flex items-center space-x-2">
+                                            <RadioGroupItem id="female" value="Female" />
+                                            <FormLabel htmlFor="female" className="font-normal">
+                                                Female
+                                            </FormLabel>
+                                        </div>
+
+                                        <div className="flex items-center space-x-2">
+                                            <RadioGroupItem id="other" value="Other" />
+                                            <FormLabel htmlFor="other" className="font-normal">
+                                                Other
+                                            </FormLabel>
+                                        </div>
+                                    </RadioGroup>
+                                </FormControl>
+                                <FormMessage />
+                            </FormItem>
+                        )}
+                    />
+                </div>
+
+                {/* Client Permanency Status */}
                 <div className="space-y-4">
                     <FormField
                         control={form.control}
@@ -571,28 +617,7 @@ export default function ClientForm({ defaultValues, onSubmit }: Props) {
                     </div>
                 </div>
 
-                {/* Home Unit/Apartment/Suite */}
-                <FormField
-                    control={form.control}
-                    name="homeAddress2"
-                    render={({ field }) => (
-                        <FormItem>
-                            <FormLabel>Unit/Apartment/Suite</FormLabel>
-                            <FormControl>
-                                <div className="relative">
-                                    <Input
-                                        placeholder="(Replace with Google autocomplete)"
-                                        {...field}
-                                    />
-                                    <MapPin className="absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-                                </div>
-                            </FormControl>
-                            <FormMessage />
-                        </FormItem>
-                    )}
-                />
-
-                {/* Additional Rider with conditional date pickers */}
+                {/* Client Status */}
                 <div className="space-y-4">
                     <FormField
                         control={form.control}
@@ -697,6 +722,21 @@ export default function ClientForm({ defaultValues, onSubmit }: Props) {
                     )}
                 </div>
 
+                {/* Email */}
+                <FormField
+                    control={form.control}
+                    name="clientEmail"
+                    render={({ field }) => (
+                        <FormItem>
+                            <FormLabel>Email</FormLabel>
+                            <FormControl>
+                                <Input placeholder="Value" {...field} />
+                            </FormControl>
+                            <FormMessage />
+                        </FormItem>
+                    )}
+                />
+
                 {/* Primary Phone, adding div to make checkboxes align underneath primary phone number. */}
                 <div className="space-y-4">
                     <FormField
@@ -734,41 +774,28 @@ export default function ClientForm({ defaultValues, onSubmit }: Props) {
                         )}
                     />
 
-                    <FormField
-                        control={form.control}
-                        name="okToTextPrimaryPhone"
-                        render={({ field }) => (
-                            <FormItem className="flex flex-row items-start">
-                                <FormControl>
-                                    <Checkbox
-                                        checked={field.value}
-                                        onCheckedChange={field.onChange}
-                                    />
-                                </FormControl>
-                                <div className="space-y-1 leading-none">
-                                    <FormLabel className="font-normal">
-                                        OK to text primary phone
-                                    </FormLabel>
-                                </div>
-                            </FormItem>
-                        )}
-                    />
-                </div>
-
-                {/* Email */}
-                <FormField
-                    control={form.control}
-                    name="clientEmail"
-                    render={({ field }) => (
-                        <FormItem>
-                            <FormLabel>Email</FormLabel>
-                            <FormControl>
-                                <Input placeholder="Value" {...field} />
-                            </FormControl>
-                            <FormMessage />
-                        </FormItem>
+                    {primaryPhoneIsCellPhone && (
+                        <FormField
+                            control={form.control}
+                            name="okToTextPrimaryPhone"
+                            render={({ field }) => (
+                                <FormItem className="flex flex-row items-start">
+                                    <FormControl>
+                                        <Checkbox
+                                            checked={field.value}
+                                            onCheckedChange={field.onChange}
+                                        />
+                                    </FormControl>
+                                    <div className="space-y-1 leading-none">
+                                        <FormLabel className="font-normal">
+                                            OK to text primary phone
+                                        </FormLabel>
+                                    </div>
+                                </FormItem>
+                            )}
+                        />
                     )}
-                />
+                </div>
 
                 {/* Secondary Phone, adding div to make checkboxes align underneath secondary phone number. */}
                 <div className="space-y-4">
@@ -807,22 +834,107 @@ export default function ClientForm({ defaultValues, onSubmit }: Props) {
                         )}
                     />
 
+                    {secondaryPhoneIsCellPhone && (
+                        <FormField
+                            control={form.control}
+                            name="okToTextSecondaryPhone"
+                            render={({ field }) => (
+                                <FormItem className="flex flex-row items-start">
+                                    <FormControl>
+                                        <Checkbox
+                                            checked={field.value}
+                                            onCheckedChange={field.onChange}
+                                        />
+                                    </FormControl>
+                                    <div className="space-y-1 leading-none">
+                                        <FormLabel className="font-normal">
+                                            OK to text secondary phone
+                                        </FormLabel>
+                                    </div>
+                                </FormItem>
+                            )}
+                        />
+                    )}
+                </div>
+
+                {/* Emergency Contact Information */}
+                <FormField
+                    control={form.control}
+                    name="emergencyContactName"
+                    render={({ field }) => (
+                        <FormItem>
+                            <FormLabel>Emergency Contact Name</FormLabel>
+                            <FormControl>
+                                <Input placeholder="Value" {...field} />
+                            </FormControl>
+                            <FormMessage />
+                        </FormItem>
+                    )}
+                />
+
+                <FormField
+                    control={form.control}
+                    name="emergencyContactPhone"
+                    render={({ field }) => (
+                        <FormItem>
+                            <FormLabel>Emergency Contact Phone</FormLabel>
+                            <FormControl>
+                                <Input placeholder="Value" {...field} />
+                            </FormControl>
+                            <FormMessage />
+                        </FormItem>
+                    )}
+                />
+
+                <FormField
+                    control={form.control}
+                    name="emergencyContactRelationship"
+                    render={({ field }) => (
+                        <FormItem>
+                            <FormLabel>Emergency Contact Relationship</FormLabel>
+                            <FormControl>
+                                <Input placeholder="Value" {...field} />
+                            </FormControl>
+                            <FormMessage />
+                        </FormItem>
+                    )}
+                />
+
+                {/* Comments/Notes */}
+                <div className="md:col-span-2">
                     <FormField
                         control={form.control}
-                        name="okToTextSecondaryPhone"
+                        name="notes"
                         render={({ field }) => (
-                            <FormItem className="flex flex-row items-start">
+                            <FormItem>
+                                <FormLabel>Comments/Notes</FormLabel>
                                 <FormControl>
-                                    <Checkbox
-                                        checked={field.value}
-                                        onCheckedChange={field.onChange}
+                                    <Textarea
+                                        placeholder="Enter any comments or notes..."
+                                        {...field}
                                     />
                                 </FormControl>
-                                <div className="space-y-1 leading-none">
-                                    <FormLabel className="font-normal">
-                                        OK to text secondary phone
-                                    </FormLabel>
-                                </div>
+                                <FormMessage />
+                            </FormItem>
+                        )}
+                    />
+                </div>
+
+                {/* Pickup Instructions */}
+                <div className="md:col-span-2">
+                    <FormField
+                        control={form.control}
+                        name="pickupInstructions"
+                        render={({ field }) => (
+                            <FormItem>
+                                <FormLabel>Pickup Instructions</FormLabel>
+                                <FormControl>
+                                    <Textarea
+                                        placeholder="Enter pickup instructions..."
+                                        {...field}
+                                    />
+                                </FormControl>
+                                <FormMessage />
                             </FormItem>
                         )}
                     />

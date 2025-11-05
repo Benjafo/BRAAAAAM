@@ -22,8 +22,9 @@ import { z } from "zod";
 
 import type { ClientProfile } from "@/lib/types";
 import { cn } from "@/lib/utils";
-import { Check, ChevronsUpDown, MapPin } from "lucide-react";
+import { Check, ChevronsUpDown } from "lucide-react";
 import { useState } from "react";
+import { GoogleAddressFields } from "../GoogleAddressFields";
 import { Button } from "../ui/button";
 import {
     Command,
@@ -40,6 +41,7 @@ import { Popover, PopoverContent, PopoverTrigger } from "../ui/popover";
 /* using z.enum for select values that we know are included */
 const rideSchema = z
     .object({
+        clientId: z.string().uuid(),
         clientName: z
             .string()
             .min(1, "Please select an option.")
@@ -48,17 +50,43 @@ const rideSchema = z
             .string()
             .min(1, "Must have a pickup address.")
             .max(255, "Max characters allowed is 255."),
+        clientCity: z
+            .string()
+            .min(1, "City is required")
+            .max(255, "Max characters allowed is 255."),
+        clientState: z
+            .string()
+            .min(1, "State is required")
+            .max(255, "Max characters allowed is 255."),
+        clientZip: z
+            .string()
+            .min(5, "ZIP code is required")
+            .max(10, "Max characters allowed is 10.")
+            .regex(/^\d{5}(-\d{4})?$/, "Please enter a valid US zip code."),
         destinationAddress: z
             .string()
             .min(1, "Destination address is required")
             .max(255, "Max characters allowed is 255."),
         destinationAddress2: z.string().max(255, "Max characters allowed is 255.").optional(),
+        destinationCity: z
+            .string()
+            .min(1, "City is required")
+            .max(255, "Max characters allowed is 255."),
+        destinationState: z
+            .string()
+            .min(1, "State is required")
+            .max(255, "Max characters allowed is 255."),
+        destinationZip: z
+            .string()
+            .min(5, "ZIP code is required")
+            .max(10, "Max characters allowed is 10.")
+            .regex(/^\d{5}(-\d{4})?$/, "Please enter a valid US zip code."),
         purposeOfTrip: z.string().min(1, "Must have a purpose.").max(255),
         tripDate: z.date("Please select a date."),
         tripType: z.enum(["roundTrip", "oneWay"], {
             message: "Please specify the trip type.",
         }),
-        appointmentType: z.string().min(1, "Please select a time."),
+        appointmentTime: z.string().min(1, "Please select a time."),
         additionalRider: z.enum(["Yes", "No"], {
             message: "Please specify if there's an additional rider.",
         }),
@@ -67,18 +95,9 @@ const rideSchema = z
         relationshipToClient: z.string().max(255).optional(),
         assignedDriver: z.string().optional(),
         rideStatus: z
-            .enum(
-                [
-                    "completedRoundTrip",
-                    "completedOneWayTo",
-                    "completedOneWayFrom",
-                    "cancelledClient",
-                    "cancelledDriver",
-                ],
-                {
-                    message: "Please select a ride status.",
-                }
-            )
+            .enum(["Unassigned", "Scheduled", "Cancelled", "Completed", "Withdrawn"], {
+                message: "Please select a valid ride status.",
+            })
             .optional(),
         tripDuration: z
             .number()
@@ -153,6 +172,27 @@ const rideSchema = z
                 });
             }
         }
+
+        // Driver assignment validation based on ride status
+        if (data.rideStatus === "Unassigned") {
+            if (data.assignedDriver?.trim()) {
+                ctx.addIssue({
+                    code: "custom",
+                    message: "Cannot assign a driver to an unassigned ride.",
+                    path: ["assignedDriver"],
+                });
+            }
+        }
+
+        if (data.rideStatus === "Scheduled" || data.rideStatus === "Completed") {
+            if (!data.assignedDriver?.trim()) {
+                ctx.addIssue({
+                    code: "custom",
+                    message: "A driver must be assigned for scheduled or completed rides.",
+                    path: ["assignedDriver"],
+                });
+            }
+        }
     });
 
 export type RideFormValues = z.infer<typeof rideSchema>;
@@ -163,9 +203,10 @@ type Props = {
     defaultValues: Partial<RideFormValues>;
     onSubmit: (values: RideFormValues) => void | Promise<void>;
     // Use these props for AI integration later
-    clients?: Array<{ value: string; label: string; profile?: ClientProfile }>;
+    clients?: Array<{ id: string; value: string; label: string; profile?: ClientProfile }>;
     drivers?: Array<{ value: string; label: string }>;
     onClientChange?: (clientValue: string) => void;
+    isLoading: boolean;
 };
 
 /* --------------------------------- Form ----------------------------------- */
@@ -175,24 +216,30 @@ export default function EditRideForm({
     clients: clientsProp,
     drivers: driversProp,
     onClientChange,
+    isLoading,
 }: Props) {
     const form = useForm<RideFormValues>({
         resolver: zodResolver(rideSchema),
         mode: "onBlur",
-
         defaultValues: {
+            clientId: defaultValues.clientId,
             clientName: defaultValues.clientName ?? "",
             clientStreetAddress: defaultValues.clientStreetAddress ?? "",
+            clientCity: defaultValues.clientCity ?? "",
+            clientState: defaultValues.clientState ?? "",
+            clientZip: defaultValues.clientZip ?? "",
             destinationAddress: defaultValues.destinationAddress ?? "",
+            destinationCity: defaultValues.destinationCity ?? "",
+            destinationState: defaultValues.destinationState ?? "",
+            destinationZip: defaultValues.destinationZip ?? "",
             destinationAddress2: defaultValues.destinationAddress2 ?? "",
             purposeOfTrip: defaultValues.purposeOfTrip ?? "",
             tripDate: defaultValues.tripDate ?? new Date(),
             tripType: defaultValues.tripType,
-            appointmentType: defaultValues.appointmentType ?? "12:00:00",
+            appointmentTime: defaultValues.appointmentTime ?? "12:00:00",
             additionalRider: defaultValues.additionalRider ?? "No",
             additionalRiderFirstName: defaultValues.additionalRiderFirstName ?? "",
             assignedDriver: defaultValues.assignedDriver ?? "",
-
             additionalRiderLastName: defaultValues.additionalRiderLastName ?? "",
             relationshipToClient: defaultValues.relationshipToClient ?? "",
             rideStatus: defaultValues.rideStatus,
@@ -223,18 +270,24 @@ export default function EditRideForm({
             field.onChange(isNaN(parsed) ? undefined : parsed);
         };
 
-    /* Client data information, Update with API information later  */
+    // Client and driver lists
     const clients = clientsProp ?? [];
-
-    /* Driver data information, update with API information later */
-    const drivers = driversProp ?? [
-        { value: "driverOne", label: "Bob Smith" },
-        { value: "driverTwo", label: "Samantha Noel" },
-    ];
+    const drivers = driversProp ?? [];
 
     /* Controls opening for client, and driver pop ups  */
     const [clientOpen, setClientOpen] = useState(false);
     const [driverOpen, setDriverOpen] = useState(false);
+
+    if (isLoading) {
+        return (
+            <div className="h-full flex items-center justify-center">
+                <div className="text-center">
+                    <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-gray-900 mx-auto"></div>
+                    <p className="mt-4 text-gray-600">Loading...</p>
+                </div>
+            </div>
+        );
+    }
 
     return (
         <Form {...form}>
@@ -281,11 +334,33 @@ export default function EditRideForm({
                                                                 onSelect={() => {
                                                                     field.onChange(client.value);
                                                                     onClientChange?.(client.value);
+                                                                    form.setValue(
+                                                                        "clientId",
+                                                                        client.id
+                                                                    );
                                                                     // Set the client's street address from their profile
                                                                     if (client.profile?.address) {
                                                                         form.setValue(
                                                                             "clientStreetAddress",
                                                                             client.profile.address
+                                                                        );
+                                                                    }
+                                                                    if (client.profile?.city) {
+                                                                        form.setValue(
+                                                                            "clientCity",
+                                                                            client.profile.city
+                                                                        );
+                                                                    }
+                                                                    if (client.profile?.state) {
+                                                                        form.setValue(
+                                                                            "clientState",
+                                                                            client.profile.state
+                                                                        );
+                                                                    }
+                                                                    if (client.profile?.zip) {
+                                                                        form.setValue(
+                                                                            "clientZip",
+                                                                            client.profile.zip
                                                                         );
                                                                     }
                                                                     setClientOpen(false);
@@ -313,66 +388,7 @@ export default function EditRideForm({
                         );
                     }}
                 />
-                {/* Client Street Address - populated from selected client's profile */}
-                <FormField
-                    control={form.control}
-                    name="clientStreetAddress"
-                    render={({ field }) => (
-                        <FormItem className="w-full">
-                            <FormLabel>Client Street Address</FormLabel>
-                            <FormControl className="w-full">
-                                <Input
-                                    placeholder="Select a client to populate"
-                                    {...field}
-                                    className="w-full"
-                                    readOnly
-                                />
-                            </FormControl>
-                            <FormMessage />
-                        </FormItem>
-                    )}
-                    disabled
-                />
-                {/* Street Address */}
-                <FormField
-                    control={form.control}
-                    name="destinationAddress"
-                    render={({ field }) => (
-                        <FormItem>
-                            <FormLabel>Organization Street Address</FormLabel>
-                            <FormControl>
-                                <div className="relative">
-                                    <Input
-                                        placeholder="(Replace with Google autocomplete)"
-                                        {...field}
-                                    />
-                                    <MapPin className="absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-                                </div>
-                            </FormControl>
-                            <FormMessage />
-                        </FormItem>
-                    )}
-                />
-                {/* Destination Unit/Apartment/Suite  */}
-                <FormField
-                    control={form.control}
-                    name="destinationAddress2"
-                    render={({ field }) => (
-                        <FormItem>
-                            <FormLabel>Organization Street Unit/Apartment/Suite</FormLabel>
-                            <FormControl>
-                                <div className="relative">
-                                    <Input
-                                        placeholder="(Replace with Google autocomplete)"
-                                        {...field}
-                                    />
-                                    <MapPin className="absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-                                </div>
-                            </FormControl>
-                            <FormMessage />
-                        </FormItem>
-                    )}
-                />
+
                 {/* Trip Purpose */}
                 <FormField
                     control={form.control}
@@ -387,13 +403,127 @@ export default function EditRideForm({
                         </FormItem>
                     )}
                 />
+
+                {/* Client Street Address - populated from selected client's profile */}
+                <FormField
+                    control={form.control}
+                    name="clientStreetAddress"
+                    render={({ field }) => (
+                        <div className="md:col-span-2">
+                            <FormItem>
+                                <FormLabel>Client Street Address</FormLabel>
+                                <FormControl>
+                                    <Input
+                                        placeholder="Select a client to populate"
+                                        {...field}
+                                        disabled
+                                    />
+                                </FormControl>
+                                <FormMessage />
+                            </FormItem>
+                        </div>
+                    )}
+                />
+
+                {/* Client City - populated from selected client's profile */}
+                <FormField
+                    control={form.control}
+                    name="clientCity"
+                    render={({ field }) => (
+                        <FormItem>
+                            <FormLabel>Client City</FormLabel>
+                            <FormControl>
+                                <Input
+                                    placeholder="Select a client to populate"
+                                    {...field}
+                                    disabled
+                                />
+                            </FormControl>
+                            <FormMessage />
+                        </FormItem>
+                    )}
+                />
+
+                {/* Client State - populated from selected client's profile */}
+                <FormField
+                    control={form.control}
+                    name="clientState"
+                    render={({ field }) => (
+                        <FormItem>
+                            <FormLabel>Client State</FormLabel>
+                            <FormControl>
+                                <Input
+                                    placeholder="Select a client to populate"
+                                    {...field}
+                                    disabled
+                                />
+                            </FormControl>
+                            <FormMessage />
+                        </FormItem>
+                    )}
+                />
+
+                {/* Client ZIP Code - populated from selected client's profile */}
+                <FormField
+                    control={form.control}
+                    name="clientZip"
+                    render={({ field }) => (
+                        <div className="md:col-span-2">
+                            <FormItem>
+                                <FormLabel>Client ZIP Code</FormLabel>
+                                <FormControl>
+                                    <Input
+                                        placeholder="Select a client to populate"
+                                        {...field}
+                                        disabled
+                                    />
+                                </FormControl>
+                                <FormMessage />
+                            </FormItem>
+                        </div>
+                    )}
+                />
+
+                {/* Destination Address with Google Autocomplete */}
+                <div className="md:col-span-2">
+                    <GoogleAddressFields
+                        control={form.control}
+                        setValue={form.setValue}
+                        addressFieldLabel="Destination Street Address"
+                        addressFieldName="destinationAddress"
+                        cityFieldLabel="Destination City"
+                        cityFieldName="destinationCity"
+                        stateFieldLabel="Destination State"
+                        stateFieldName="destinationState"
+                        zipFieldLabel="Destination ZIP Code"
+                        zipFieldName="destinationZip"
+                    />
+                </div>
+
+                {/* Destination Unit/Apartment/Suite  */}
+                <div className="md:col-span-2">
+                    <FormField
+                        control={form.control}
+                        name="destinationAddress2"
+                        render={({ field }) => (
+                            <FormItem>
+                                <FormLabel>Destination Unit/Apartment/Suite</FormLabel>
+                                <FormControl>
+                                    <Input placeholder="Unit, apartment, suite, etc." {...field} />
+                                </FormControl>
+                                <FormMessage />
+                            </FormItem>
+                        )}
+                    />
+                </div>
+
                 {/* Date of Trip */}
                 <FormField
                     control={form.control}
                     name="tripDate"
                     render={({ field }) => (
                         <FormItem>
-                            <FormLabel>Trip Date</FormLabel>
+                            <FormLabel>Appointment Date</FormLabel>
                             <FormControl>
                                 <DatePickerInput value={field.value} onChange={field.onChange} />
                             </FormControl>
@@ -401,6 +531,22 @@ export default function EditRideForm({
                         </FormItem>
                     )}
                 />
+
+                {/* Appointment Time */}
+                <FormField
+                    control={form.control}
+                    name="appointmentTime"
+                    render={({ field }) => (
+                        <FormItem className="w-full">
+                            <FormLabel>Appointment Time</FormLabel>
+                            <FormControl className="w-full">
+                                <Input type="time" {...field} />
+                            </FormControl>
+                            <FormMessage />
+                        </FormItem>
+                    )}
+                />
+
                 {/* Round Trip/One Way */}
                 <FormField
                     control={form.control}
@@ -423,42 +569,7 @@ export default function EditRideForm({
                         </FormItem>
                     )}
                 />
-                {/* Appointment Time */}
-                <FormField
-                    control={form.control}
-                    name="appointmentType"
-                    render={({ field }) => (
-                        <FormItem className="w-full">
-                            <FormLabel>Appointment Time</FormLabel>
-                            <FormControl className="w-full">
-                                <Input type="time" {...field} />
-                            </FormControl>
-                            <FormMessage />
-                        </FormItem>
-                    )}
-                />
-                {/* Additional Rider */}
-                <FormField
-                    control={form.control}
-                    name="additionalRider"
-                    render={({ field }) => (
-                        <FormItem className="w-full">
-                            <FormLabel>Additional Rider</FormLabel>
-                            <FormControl className="w-full">
-                                <Select value={field.value} onValueChange={field.onChange}>
-                                    <SelectTrigger className="w-full">
-                                        <SelectValue placeholder="Select a value" />
-                                    </SelectTrigger>
-                                    <SelectContent>
-                                        <SelectItem value="Yes">Yes</SelectItem>
-                                        <SelectItem value="No">No</SelectItem>
-                                    </SelectContent>
-                                </Select>
-                            </FormControl>
-                            <FormMessage />
-                        </FormItem>
-                    )}
-                />
+
                 {/* Assigned Driver, select or type from the dropdowns, replace with information from API later. Using ShadCN Combo box.  */}
                 <FormField
                     control={form.control}
@@ -521,7 +632,31 @@ export default function EditRideForm({
                         );
                     }}
                 />
-                {/* Additional Rider First Name */}
+
+                {/* Additional Rider */}
+                <FormField
+                    control={form.control}
+                    name="additionalRider"
+                    render={({ field }) => (
+                        <FormItem className="w-full">
+                            <FormLabel>Additional Rider</FormLabel>
+                            <FormControl className="w-full">
+                                <Select value={field.value} onValueChange={field.onChange}>
+                                    <SelectTrigger className="w-full">
+                                        <SelectValue placeholder="Select a value" />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        <SelectItem value="Yes">Yes</SelectItem>
+                                        <SelectItem value="No">No</SelectItem>
+                                    </SelectContent>
+                                </Select>
+                            </FormControl>
+                            <FormMessage />
+                        </FormItem>
+                    )}
+                />
+
+                {/* Fields only shown when additional rider is selected */}
                 {additionalRider === "Yes" && (
                     <FormField
                         control={form.control}
@@ -537,7 +672,6 @@ export default function EditRideForm({
                         )}
                     />
                 )}
-                {/* Additional Rider Last Name  */}
                 {additionalRider === "Yes" && (
                     <FormField
                         control={form.control}
@@ -553,7 +687,6 @@ export default function EditRideForm({
                         )}
                     />
                 )}
-                {/* Relationship to client */}
                 {additionalRider === "Yes" && (
                     <FormField
                         control={form.control}
@@ -569,6 +702,7 @@ export default function EditRideForm({
                         )}
                     />
                 )}
+
                 {/* Ride Status: Completed Round Trip, Completed One Way To, Completed One Way From, Cancelled by Client, Cancelled by Driver */}
                 <FormField
                     control={form.control}
@@ -582,21 +716,11 @@ export default function EditRideForm({
                                         <SelectValue placeholder="Select Ride Status" />
                                     </SelectTrigger>
                                     <SelectContent>
-                                        <SelectItem value="completedRoundTrip">
-                                            Completed Round Trip
-                                        </SelectItem>
-                                        <SelectItem value="completedOneWayTo">
-                                            Completed One Way To
-                                        </SelectItem>
-                                        <SelectItem value="completedOneWayFrom">
-                                            Completed One Way From
-                                        </SelectItem>
-                                        <SelectItem value="cancelledClient">
-                                            Cancelled by Client
-                                        </SelectItem>
-                                        <SelectItem value="cancelledDriver">
-                                            Cancelled by Driver
-                                        </SelectItem>
+                                        <SelectItem value="Unassigned">Unassigned</SelectItem>
+                                        <SelectItem value="Scheduled">Scheduled</SelectItem>
+                                        <SelectItem value="Cancelled">Cancelled</SelectItem>
+                                        <SelectItem value="Completed">Completed</SelectItem>
+                                        <SelectItem value="Withdrawn">Withdrawn</SelectItem>
                                     </SelectContent>
                                 </Select>
                             </FormControl>
@@ -604,8 +728,8 @@ export default function EditRideForm({
                         </FormItem>
                     )}
                 />
-                {/* Trip Duration */}
-                {/* Volunteer Hours - Only show for completed rides */}
+
+                {/* Fields only shown for completed rides */}
                 {isCompleted && (
                     <FormField
                         control={form.control}

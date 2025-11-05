@@ -4,7 +4,7 @@ import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Check, ChevronsUpDown } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 
@@ -26,7 +26,7 @@ import {
     FormMessage,
 } from "@/components/ui/form";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { MapPin } from "lucide-react";
+import { GoogleAddressFields } from "../GoogleAddressFields";
 import { Checkbox } from "../ui/checkbox";
 import { DatePickerInput } from "../ui/datePickerField";
 import { RadioGroup, RadioGroupItem } from "../ui/radio-group";
@@ -40,15 +40,13 @@ const userSchema = z
             .string()
             .min(1, "Please enter the first name.")
             .max(255, "Max characters allowed is 255."),
-        userRole: z.enum(["Driver", "Admin", "Dispatcher"], {
-            message: "Please specify the users role.",
-        }),
+        userRole: z.string().min(1, "Please select a user role."),
         lastName: z
             .string()
             .min(1, "Please enter the last name.")
             .max(255, "Max characters allowed is 255."),
         clientEmail: z.email("Please enter a valid email address."),
-        birthMonth: z.string().min(1, "Please select a month."),
+        birthMonth: z.string().optional(),
         birthYear: z.string().min(1, "Please select a year."),
         streetAddress: z
             .string()
@@ -59,6 +57,13 @@ const userSchema = z
             .max(255, "Max characters allowed is 255.")
             .optional()
             .or(z.literal("")),
+        city: z.string().min(1, "City is required").max(255, "Max characters allowed is 255."),
+        state: z.string().min(1, "State is required").max(255, "Max characters allowed is 255."),
+        zipCode: z
+            .string()
+            .min(5, "Zip Code is required")
+            .max(10, "Max characters allowed is 10.")
+            .regex(/^\d{5}(-\d{4})?$/, "Please enter a valid US zip code."),
         volunteeringStatus: z.enum(["Active", "On leave", "Inactive", "Away"], {
             message: "Please specify the volunteering status.",
         }),
@@ -115,6 +120,24 @@ const userSchema = z
             .min(0.1, "Cannot be 0 miles.")
             .optional(),
         lifeSpanReimbursement: z.enum(["Yes", "No"]).optional(),
+        emergencyContactName: z
+            .string()
+            .max(255, "Max characters allowed is 255.")
+            .optional()
+            .or(z.literal("")),
+        emergencyContactPhone: z
+            .string()
+            .regex(
+                /^(\+1\s?)?(\([0-9]{3}\)\s?|[0-9]{3}[-.\s]?)[0-9]{3}[-.\s]?[0-9]{4}$/,
+                "Please enter a valid US phone number."
+            )
+            .or(z.literal(""))
+            .optional(),
+        emergencyContactRelationship: z
+            .string()
+            .max(100, "Max characters allowed is 100.")
+            .optional()
+            .or(z.literal("")),
     })
     .superRefine((data, ctx) => {
         // AI helped on the super refine
@@ -154,8 +177,9 @@ const userSchema = z
             }
         }
 
-        // Driver-specific validation
-        if (data.userRole === "Driver") {
+        // TODO we cant access the whether the user's role is a driver here, this needs fix
+        // eslint-disable-next-line no-constant-condition
+        if (false) {
             if (!data.vehicleType) {
                 ctx.addIssue({
                     code: "custom",
@@ -191,7 +215,7 @@ const userSchema = z
                     path: ["destinationLimitations"],
                 });
             }
-            if (data.distanceLimitation === undefined || data.distanceLimitation < 0.1) {
+            if (data.distanceLimitation === undefined) {
                 ctx.addIssue({
                     code: "custom",
                     message: "Must enter the maximum number of miles driver is willing to go.",
@@ -212,9 +236,18 @@ const userSchema = z
 export type UserFormValues = z.infer<typeof userSchema>;
 
 /* --------------------------------- Props ---------------------------------- */
+type Role = {
+    id: string;
+    name: string;
+    roleKey: string;
+    description: string;
+};
+
 type Props = {
     defaultValues: Partial<UserFormValues>;
     onSubmit: (values: UserFormValues) => void | Promise<void>;
+    availableRoles?: Role[];
+    isLoadingRoles?: boolean;
 };
 
 const MONTHS = [
@@ -238,18 +271,33 @@ const YEARS = Array.from({ length: 100 }, (_, i) => {
 });
 
 /* --------------------------------- Form ----------------------------------- */
-export default function NewUserForm({ defaultValues, onSubmit }: Props) {
+export default function NewUserForm({
+    defaultValues,
+    onSubmit,
+    availableRoles = [],
+    isLoadingRoles,
+}: Props) {
+    // Find default role, dispatcher by default or first available
+    const defaultRoleId =
+        defaultValues.userRole ??
+        availableRoles?.find((r) => r.roleKey === "dispatcher")?.id ??
+        availableRoles?.[0]?.id ??
+        "";
+
     const form = useForm<UserFormValues>({
         resolver: zodResolver(userSchema),
         mode: "onBlur",
 
         defaultValues: {
             firstName: defaultValues.firstName ?? "",
-            userRole: defaultValues.userRole ?? "Dispatcher",
+            userRole: defaultRoleId,
             lastName: defaultValues.lastName ?? "",
             birthMonth: defaultValues.birthMonth ?? "",
             birthYear: defaultValues.birthYear ?? "",
             streetAddress: defaultValues.streetAddress ?? "",
+            city: defaultValues.city ?? "",
+            state: defaultValues.state ?? "",
+            zipCode: defaultValues.zipCode ?? "",
             streetAddress2: defaultValues.streetAddress2 ?? "",
             volunteeringStatus: defaultValues.volunteeringStatus ?? "Active",
             onLeaveUntil: defaultValues.onLeaveUntil,
@@ -271,6 +319,9 @@ export default function NewUserForm({ defaultValues, onSubmit }: Props) {
             destinationLimitations: defaultValues.destinationLimitations ?? "",
             distanceLimitation: defaultValues.distanceLimitation,
             lifeSpanReimbursement: defaultValues.lifeSpanReimbursement ?? "No",
+            emergencyContactName: defaultValues.emergencyContactName ?? "",
+            emergencyContactPhone: defaultValues.emergencyContactPhone ?? "",
+            emergencyContactRelationship: defaultValues.emergencyContactRelationship ?? "",
         },
     });
 
@@ -279,6 +330,22 @@ export default function NewUserForm({ defaultValues, onSubmit }: Props) {
     const secondaryPhoneIsCellPhone = form.watch("secondaryPhoneIsCellPhone");
 
     const userRole = form.watch("userRole");
+    // Check if selected role is a driver role
+    const selectedRole = availableRoles?.find((role) => role.id === userRole);
+    const isDriverRole = selectedRole?.roleKey === "driver";
+
+    // Update form when roles load and no role is selected yet
+    useEffect(() => {
+        if (availableRoles?.length > 0 && !userRole) {
+            const defaultRole =
+                availableRoles?.find((r) => r.roleKey === "dispatcher")?.id ??
+                availableRoles[0]?.id;
+            if (defaultRole) {
+                form.setValue("userRole", defaultRole);
+            }
+        }
+    }, [availableRoles, userRole, form]);
+
     const [monthOpen, setMonthOpen] = useState(false);
     const [yearOpen, setYearOpen] = useState(false);
 
@@ -316,30 +383,6 @@ export default function NewUserForm({ defaultValues, onSubmit }: Props) {
                     )}
                 />
 
-                {/* User role */}
-                <FormField
-                    control={form.control}
-                    name="userRole"
-                    render={({ field }) => (
-                        <FormItem className="w-full">
-                            <FormLabel>User Role</FormLabel>
-                            <FormControl className="w-full">
-                                <Select value={field.value} onValueChange={field.onChange}>
-                                    <SelectTrigger className="w-full">
-                                        <SelectValue placeholder="User Role" />
-                                    </SelectTrigger>
-                                    <SelectContent>
-                                        <SelectItem value="Admin">Admin</SelectItem>
-                                        <SelectItem value="Driver">Driver</SelectItem>
-                                        <SelectItem value="Dispatcher">Dispatcher</SelectItem>
-                                    </SelectContent>
-                                </Select>
-                            </FormControl>
-                            <FormMessage />
-                        </FormItem>
-                    )}
-                />
-
                 {/* Last name */}
                 <FormField
                     control={form.control}
@@ -369,6 +412,71 @@ export default function NewUserForm({ defaultValues, onSubmit }: Props) {
                         </FormItem>
                     )}
                 />
+
+                {/* User role */}
+                <FormField
+                    control={form.control}
+                    name="userRole"
+                    render={({ field }) => (
+                        <FormItem className="w-full">
+                            <FormLabel>User Role</FormLabel>
+                            <FormControl className="w-full">
+                                <Select
+                                    value={field.value}
+                                    onValueChange={field.onChange}
+                                    disabled={isLoadingRoles}
+                                >
+                                    <SelectTrigger className="w-full">
+                                        <SelectValue
+                                            placeholder={
+                                                isLoadingRoles
+                                                    ? "Loading roles..."
+                                                    : "Select user role"
+                                            }
+                                        />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        {availableRoles?.map((role) => (
+                                            <SelectItem key={role.id} value={role.id}>
+                                                {role.name}
+                                            </SelectItem>
+                                        ))}
+                                    </SelectContent>
+                                </Select>
+                            </FormControl>
+                            <FormMessage />
+                        </FormItem>
+                    )}
+                />
+
+                {/* Address Fields with Google Autocomplete */}
+                <div className="md:col-span-2">
+                    <GoogleAddressFields
+                        control={form.control}
+                        setValue={form.setValue}
+                        addressFieldName="streetAddress"
+                        cityFieldName="city"
+                        stateFieldName="state"
+                        zipFieldName="zipCode"
+                    />
+                </div>
+
+                {/* Unit/Apartment/Suite */}
+                <div className="md:col-span-2">
+                    <FormField
+                        control={form.control}
+                        name="streetAddress2"
+                        render={({ field }) => (
+                            <FormItem>
+                                <FormLabel>Unit/Apartment/Suite</FormLabel>
+                                <FormControl>
+                                    <Input placeholder="Unit, apartment, suite, etc." {...field} />
+                                </FormControl>
+                                <FormMessage />
+                            </FormItem>
+                        )}
+                    />
+                </div>
 
                 {/* Birth Month */}
                 <FormField
@@ -429,27 +537,6 @@ export default function NewUserForm({ defaultValues, onSubmit }: Props) {
                                     </Command>
                                 </PopoverContent>
                             </Popover>
-                            <FormMessage />
-                        </FormItem>
-                    )}
-                />
-
-                {/* Street Address */}
-                <FormField
-                    control={form.control}
-                    name="streetAddress"
-                    render={({ field }) => (
-                        <FormItem>
-                            <FormLabel>Street Address</FormLabel>
-                            <FormControl>
-                                <div className="relative">
-                                    <Input
-                                        placeholder="(Replace with Google autocomplete)"
-                                        {...field}
-                                    />
-                                    <MapPin className="absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-                                </div>
-                            </FormControl>
                             <FormMessage />
                         </FormItem>
                     )}
@@ -518,28 +605,127 @@ export default function NewUserForm({ defaultValues, onSubmit }: Props) {
                     )}
                 />
 
-                {/* Street Unit/Apartment/Suite */}
-                <FormField
-                    control={form.control}
-                    name="streetAddress2"
-                    render={({ field }) => (
-                        <FormItem>
-                            <FormLabel>Street Unit/Apartment/Suite</FormLabel>
-                            <FormControl>
-                                <div className="relative">
-                                    <Input
-                                        placeholder="(Replace with Google autocomplete)"
-                                        {...field}
-                                    />
-                                    <MapPin className="absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-                                </div>
-                            </FormControl>
-                            <FormMessage />
-                        </FormItem>
-                    )}
-                />
+                {/* Primary Phone, adding div to make checkboxes align underneath primary phone number. */}
+                <div className="space-y-4">
+                    <FormField
+                        control={form.control}
+                        name="primaryPhoneNumber"
+                        render={({ field }) => (
+                            <FormItem>
+                                <FormLabel>Primary Phone Number</FormLabel>
+                                <FormControl>
+                                    <Input placeholder="Value" {...field} />
+                                </FormControl>
+                                <FormMessage />
+                            </FormItem>
+                        )}
+                    />
 
-                {/* Additional Rider with conditional date pickers */}
+                    {/* Primary Phone is Cell Phone Checkbox */}
+                    <FormField
+                        control={form.control}
+                        name="primaryPhoneIsCellPhone"
+                        render={({ field }) => (
+                            <FormItem className="flex flex-row items-start">
+                                <FormControl>
+                                    <Checkbox
+                                        checked={field.value}
+                                        onCheckedChange={field.onChange}
+                                    />
+                                </FormControl>
+                                <div className="space-y-1 leading-none">
+                                    <FormLabel className="font-normal">
+                                        Primary phone is a cell phone
+                                    </FormLabel>
+                                </div>
+                            </FormItem>
+                        )}
+                    />
+
+                    {primaryPhoneIsCellPhone && (
+                        <FormField
+                            control={form.control}
+                            name="okToTextPrimaryPhone"
+                            render={({ field }) => (
+                                <FormItem className="flex flex-row items-start">
+                                    <FormControl>
+                                        <Checkbox
+                                            checked={field.value}
+                                            onCheckedChange={field.onChange}
+                                        />
+                                    </FormControl>
+                                    <div className="space-y-1 leading-none">
+                                        <FormLabel className="font-normal">
+                                            OK to text primary phone
+                                        </FormLabel>
+                                    </div>
+                                </FormItem>
+                            )}
+                        />
+                    )}
+                </div>
+
+                {/* Secondary Phone, adding div to make checkboxes align underneath secondary phone number. */}
+                <div className="space-y-4">
+                    <FormField
+                        control={form.control}
+                        name="secondaryPhoneNumber"
+                        render={({ field }) => (
+                            <FormItem>
+                                <FormLabel>Secondary Phone Number</FormLabel>
+                                <FormControl>
+                                    <Input placeholder="Value" {...field} />
+                                </FormControl>
+                                <FormMessage />
+                            </FormItem>
+                        )}
+                    />
+
+                    {/* Secondary Phone is Cell Phone Checkbox */}
+                    <FormField
+                        control={form.control}
+                        name="secondaryPhoneIsCellPhone"
+                        render={({ field }) => (
+                            <FormItem className="flex flex-row items-start">
+                                <FormControl>
+                                    <Checkbox
+                                        checked={field.value}
+                                        onCheckedChange={field.onChange}
+                                    />
+                                </FormControl>
+                                <div className="space-y-1 leading-none">
+                                    <FormLabel className="font-normal">
+                                        Secondary phone is a cell phone
+                                    </FormLabel>
+                                </div>
+                            </FormItem>
+                        )}
+                    />
+
+                    {secondaryPhoneIsCellPhone && (
+                        <FormField
+                            control={form.control}
+                            name="okToTextSecondaryPhone"
+                            render={({ field }) => (
+                                <FormItem className="flex flex-row items-start">
+                                    <FormControl>
+                                        <Checkbox
+                                            checked={field.value}
+                                            onCheckedChange={field.onChange}
+                                        />
+                                    </FormControl>
+                                    <div className="space-y-1 leading-none">
+                                        <FormLabel className="font-normal">
+                                            OK to text secondary phone
+                                        </FormLabel>
+                                    </div>
+                                </FormItem>
+                            )}
+                        />
+                    )}
+                </div>
+
+                {/* User status */}
                 <div className="space-y-4">
                     <FormField
                         control={form.control}
@@ -644,66 +830,6 @@ export default function NewUserForm({ defaultValues, onSubmit }: Props) {
                     )}
                 </div>
 
-                {/* Primary Phone, adding div to make checkboxes align underneath primary phone number. */}
-                <div className="space-y-4">
-                    <FormField
-                        control={form.control}
-                        name="primaryPhoneNumber"
-                        render={({ field }) => (
-                            <FormItem>
-                                <FormLabel>Primary Phone Number</FormLabel>
-                                <FormControl>
-                                    <Input placeholder="Value" {...field} />
-                                </FormControl>
-                                <FormMessage />
-                            </FormItem>
-                        )}
-                    />
-
-                    {/* Primary Phone is Cell Phone Checkbox */}
-                    {primaryPhoneIsCellPhone && (
-                        <FormField
-                            control={form.control}
-                            name="primaryPhoneIsCellPhone"
-                            render={({ field }) => (
-                                <FormItem className="flex flex-row items-start">
-                                    <FormControl>
-                                        <Checkbox
-                                            checked={field.value}
-                                            onCheckedChange={field.onChange}
-                                        />
-                                    </FormControl>
-                                    <div className="space-y-1 leading-none">
-                                        <FormLabel className="font-normal">
-                                            Primary phone is a cell phone
-                                        </FormLabel>
-                                    </div>
-                                </FormItem>
-                            )}
-                        />
-                    )}
-
-                    <FormField
-                        control={form.control}
-                        name="okToTextPrimaryPhone"
-                        render={({ field }) => (
-                            <FormItem className="flex flex-row items-start">
-                                <FormControl>
-                                    <Checkbox
-                                        checked={field.value}
-                                        onCheckedChange={field.onChange}
-                                    />
-                                </FormControl>
-                                <div className="space-y-1 leading-none">
-                                    <FormLabel className="font-normal">
-                                        OK to text primary phone
-                                    </FormLabel>
-                                </div>
-                            </FormItem>
-                        )}
-                    />
-                </div>
-
                 {/* Contact preference */}
                 <FormField
                     control={form.control}
@@ -727,68 +853,8 @@ export default function NewUserForm({ defaultValues, onSubmit }: Props) {
                     )}
                 />
 
-                {/* Secondary Phone, adding div to make checkboxes align underneath secondary phone number. */}
-                <div className="space-y-4">
-                    <FormField
-                        control={form.control}
-                        name="secondaryPhoneNumber"
-                        render={({ field }) => (
-                            <FormItem>
-                                <FormLabel>Secondary Phone Number</FormLabel>
-                                <FormControl>
-                                    <Input placeholder="Value" {...field} />
-                                </FormControl>
-                                <FormMessage />
-                            </FormItem>
-                        )}
-                    />
-
-                    {/* Secondary Phone is Cell Phone Checkbox */}
-                    {secondaryPhoneIsCellPhone && (
-                        <FormField
-                            control={form.control}
-                            name="secondaryPhoneIsCellPhone"
-                            render={({ field }) => (
-                                <FormItem className="flex flex-row items-start">
-                                    <FormControl>
-                                        <Checkbox
-                                            checked={field.value}
-                                            onCheckedChange={field.onChange}
-                                        />
-                                    </FormControl>
-                                    <div className="space-y-1 leading-none">
-                                        <FormLabel className="font-normal">
-                                            Secondary phone is a cell phone
-                                        </FormLabel>
-                                    </div>
-                                </FormItem>
-                            )}
-                        />
-                    )}
-
-                    <FormField
-                        control={form.control}
-                        name="okToTextSecondaryPhone"
-                        render={({ field }) => (
-                            <FormItem className="flex flex-row items-start">
-                                <FormControl>
-                                    <Checkbox
-                                        checked={field.value}
-                                        onCheckedChange={field.onChange}
-                                    />
-                                </FormControl>
-                                <div className="space-y-1 leading-none">
-                                    <FormLabel className="font-normal">
-                                        OK to text secondary phone
-                                    </FormLabel>
-                                </div>
-                            </FormItem>
-                        )}
-                    />
-                </div>
-
-                {/* Driver-specific fields - only shown when userRole is "Driver" */}
-                {userRole === "Driver" && (
+                {/* Driver-specific fields - only shown when role is driver */}
+                {isDriverRole && (
                     <>
                         {/* Vehicle Type */}
                         <FormField
@@ -929,6 +995,49 @@ export default function NewUserForm({ defaultValues, onSubmit }: Props) {
                         />
                     </>
                 )}
+
+                {/* Emergency Contact Information */}
+                <FormField
+                    control={form.control}
+                    name="emergencyContactName"
+                    render={({ field }) => (
+                        <FormItem>
+                            <FormLabel>Emergency Contact Name</FormLabel>
+                            <FormControl>
+                                <Input placeholder="Value" {...field} />
+                            </FormControl>
+                            <FormMessage />
+                        </FormItem>
+                    )}
+                />
+
+                <FormField
+                    control={form.control}
+                    name="emergencyContactPhone"
+                    render={({ field }) => (
+                        <FormItem>
+                            <FormLabel>Emergency Contact Phone</FormLabel>
+                            <FormControl>
+                                <Input placeholder="Value" {...field} />
+                            </FormControl>
+                            <FormMessage />
+                        </FormItem>
+                    )}
+                />
+
+                <FormField
+                    control={form.control}
+                    name="emergencyContactRelationship"
+                    render={({ field }) => (
+                        <FormItem>
+                            <FormLabel>Emergency Contact Relationship</FormLabel>
+                            <FormControl>
+                                <Input placeholder="Value" {...field} />
+                            </FormControl>
+                            <FormMessage />
+                        </FormItem>
+                    )}
+                />
             </form>
         </Form>
     );
