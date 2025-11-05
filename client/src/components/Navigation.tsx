@@ -117,7 +117,7 @@ export const MainNavigation = ({
             link: "/unassigned-rides",
         },
         {
-            text: "Unvailability",
+            text: "Unavailability",
             link: "/unavailability",
         },
         // {
