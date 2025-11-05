@@ -73,11 +73,10 @@ export function UsersTable() {
     const hasCreatePermission = useAuthStore((s) => s.hasPermission(PERMISSIONS.USERS_CREATE));
     const hasEditPermission = useAuthStore((s) => s.hasPermission(PERMISSIONS.USERS_UPDATE));
 
-    // const getUsers = useUsers()
-    // const { isPending, isError, data: users, error } = getUsers()
+    // const { isPending, isError, data: users, error } = useUsers({})
     /** @TODO extract fetch logic outside of datatable */
 
-    const fetchUsers = async (params: Record<string, any>) => {
+    const fetchUsers = async (params: Record<string, unknown>) => {
         const searchParams = new URLSearchParams();
         Object.entries(params).forEach(([key, value]) => {
             if (value !== undefined && value !== null) {
@@ -102,12 +101,19 @@ export function UsersTable() {
         //     total: users?.length ?? 0
         // }
 
-        const response = await http.get(`/o/users`).json<TableUser[]>()
+        type TableUserResponse = {
+            page: number,
+            pageSize: number,
+            results: TableUser[],
+            total: number,
+        }
+
+        const response = await http.get(`o/users`).json<TableUserResponse>()
         console.log("Fetched users:", response)
 
         return {
-            data: response,
-            total: response.length
+            data: response.results,
+            total: response.total,
         }
     };
 

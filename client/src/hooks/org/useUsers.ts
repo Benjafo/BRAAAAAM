@@ -5,61 +5,45 @@ import type { SearchParamsOption } from "ky";
 
 const users = makeUserService(api);
 
-export function useUserById() {
+export const useUserById = (id: string) => useQuery({
+    queryKey: ['user', id],
+    queryFn: () => users.get(id)
+})
 
-    return (id: string) => useQuery({
-        queryKey: ['user', id],
-        queryFn: () => users.get(id)
-    })
-}
+/** @TODO */
+// export const useCreateUser = () => useMutation({
+//         mutationFn: () => {},
+//         onSuccess: () => {},
+//         onError: (error) => {
+//             if(import.meta.env.DEV) {
+//                 console.error("useCreateUser error", error)
+//             }
+//         }
+// })
 
-export function useCreateUser() {
+/** @TODO */
+// export const useUpdateUserById = () => useMutation({
+//         mutationFn: () => {},
+//         onSuccess: () => {},
+//         onError: (error) => {
+//             if(import.meta.env.DEV) {
+//                 console.error("useUpdateUserById error", error)
+//             }
+//         }
+// })
 
-    /** @TODO */
-    // return useMutation({
-    //     mutationFn: () => {},
-    //     onSuccess: () => {},
-    //     onError: (error) => {
-    //         if(import.meta.env.DEV) {
-    //             console.error("useUpdateUserById error", error)
-    //         }
-    //     }
-    // })
-}
+/** @TODO */
+// export const useDeleteUserById = () => useMutation({
+//         mutationFn: () => {},
+//         onSuccess: () => {},
+//         onError: (error) => {
+//             if(import.meta.env.DEV) {
+//                 console.error("useDeleteUserById error", error)
+//             }
+//         }
+// })
 
-export function useUpdateUserById() {
-
-    /** @TODO */
-    // return useMutation({
-    //     mutationFn: () => {},
-    //     onSuccess: () => {},
-    //     onError: (error) => {
-    //         if(import.meta.env.DEV) {
-    //             console.error("useUpdateUserById error", error)
-    //         }
-    //     }
-    // })
-}
-
-export function useDeleteUserById() {
-
-    /** @TODO */
-    // return useMutation({
-    //     mutationFn: () => {},
-    //     onSuccess: () => {},
-    //     onError: (error) => {
-    //         if(import.meta.env.DEV) {
-    //             console.error("useUpdateUserById error", error)
-    //         }
-    //     }
-    // })
-}
-
-export function useUsers() {
-
-    //defaults to no filters
-    return (filters: SearchParamsOption = {}) => useQuery({
-        queryKey: ['users', filters],
-        queryFn: () => users.getAll(filters)
-    })
-}
+export const useUsers = (filters: SearchParamsOption) => useQuery({
+    queryKey: ['users'],
+    queryFn: () => users.getAll(filters)
+})

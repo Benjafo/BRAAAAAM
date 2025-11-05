@@ -1,6 +1,6 @@
-export interface LocationService {
-    /**@TODO */
-}
+/**@TODO */
+// export interface LocationService {
+// }
 
 export type Location = {
     id: string,

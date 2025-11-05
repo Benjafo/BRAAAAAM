@@ -14,9 +14,25 @@ router.put("/:userId", withPermission({ permissions: "users.update" }), users.up
 router.delete("/:userId", withPermission({ permissions: "users.delete" }), users.deleteUser);
 
 // Unavailability
-router.post("/:userId/unavailability", withPermission({ permissions: "users.update" }), users.createUnavailability);
-router.get("/:userId/unavailability", withPermission({ permissions: "users.read" }), users.listUnavailability);
-router.put("/:userId/unavailability/:unavailabilityId", withPermission({ permissions: "users.update" }), users.updateUnavailability);
-router.delete("/:userId/unavailability/:unavailabilityId", withPermission({ permissions: "users.update" }), users.deleteUnavailability);
+router.post(
+    "/:userId/unavailability",
+    withPermission({ permissions: "users.update" }),
+    users.createUnavailability
+);
+router.get(
+    "/:userId/unavailability",
+    withPermission({ permissions: "users.read" }),
+    users.listUnavailability
+);
+router.put(
+    "/:userId/unavailability/:unavailabilityId",
+    withPermission({ permissions: "users.update" }),
+    users.updateUnavailability
+);
+router.delete(
+    "/:userId/unavailability/:unavailabilityId",
+    withPermission({ permissions: "users.update" }),
+    users.deleteUnavailability
+);
 
 export default router;

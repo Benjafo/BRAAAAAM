@@ -64,6 +64,7 @@ export function useAuthService(): AuthService {
 /**@TODO use http/api.ts instead */
 export const http = createHttpClient({
   baseUrl: import.meta.env.BASE_URL,
+  getSubdomain: () => authStore.getState().subdomain ?? undefined,
   getAccessToken: () => authStore.getState().accessToken,
   onUnauthorized: () => authStore.getState().clearAuth(),
 });

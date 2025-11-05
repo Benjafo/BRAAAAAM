@@ -1,5 +1,7 @@
-import { Request } from "express";
+/* eslint-disable @typescript-eslint/no-explicit-any */
+
 import { asc, desc, ilike, or, sql } from "drizzle-orm";
+import { Request } from "express";
 
 export interface QueryModifiers {
     where: any;

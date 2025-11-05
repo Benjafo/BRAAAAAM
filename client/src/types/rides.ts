@@ -11,7 +11,7 @@ export interface CalendarEvent extends Event {
         details?: string;
         driver?: string;
         location?: string;
-        [key: string]: any;
+        [key: string]: unknown;
     };
 }
 

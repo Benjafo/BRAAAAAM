@@ -1,38 +1,43 @@
 import { rolePermissions, userPermissions, users, permissions } from "../drizzle/org/schema.js";
-import { requestPasswordResetSchema, signInSchema, createPasswordSchema } from "../schemas/auth.schema.js";
+import {
+    requestPasswordResetSchema,
+    signInSchema,
+    createPasswordSchema,
+} from "../schemas/auth.schema.js";
 import { Request, Response } from "express";
 import { eq, and, sql } from "drizzle-orm";
 import { comparePassword, hashPassword } from "../utils/password.js";
-import { generateAccessToken, generatePasswordResetToken, generateRefreshToken, verifyPasswordResetToken, verifyRefreshToken } from "../utils/jwt.js";
+import {
+    generateAccessToken,
+    generatePasswordResetToken,
+    generateRefreshToken,
+    verifyPasswordResetToken,
+    verifyRefreshToken,
+} from "../utils/jwt.js";
 import { TokenPayload } from "../types/auth.types.js";
 import { alias } from "drizzle-orm/pg-core";
 
 const signIn = async (req: Request, res: Response) => {
-
     try {
-
         const parsed = signInSchema.safeParse(req.body);
 
-        if(!parsed.success) {
+        if (!parsed.success) {
             return res.status(401).json({ error: "Invalid email or password" });
         }
 
-        const { email, password } = parsed.data; 
+        const { email, password } = parsed.data;
 
-        console.log('starting db query', req.org?.subdomain)
+        console.log("starting db query", req.org?.subdomain);
 
         const user = await req.org?.db.query.users.findFirst({
-            where: eq(users.email, email)
+            where: eq(users.email, email),
         });
 
         if (!user) {
             return res.status(401).json({ error: "Invalid email or password" });
         }
 
-        const isValidPassword = await comparePassword(
-            password, 
-            user.passwordHash ?? ''
-        );
+        const isValidPassword = await comparePassword(password, user.passwordHash ?? "");
 
         if (!isValidPassword) {
             return res.status(401).json({ error: "Invalid email or password" });
@@ -50,8 +55,8 @@ const signIn = async (req: Request, res: Response) => {
                 action: p.action,
                 name: p.name,
                 description: p.description,
-                roleGrant: rp.grantAccess,     // nullable
-                userGrant: up.grantAccess,     // nullable
+                roleGrant: rp.grantAccess, // nullable
+                userGrant: up.grantAccess, // nullable
                 effective: sql<boolean>`COALESCE(${up.grantAccess}, ${rp.grantAccess}, false)`,
             })
             .from(p)
@@ -62,20 +67,20 @@ const signIn = async (req: Request, res: Response) => {
         const tokenPayload: TokenPayload = {
             id: user.id,
             email: user.email,
-            db: req.org?.subdomain || ''
-        }
+            db: req.org?.subdomain || "",
+        };
 
         const accessToken = generateAccessToken(tokenPayload);
         const refreshToken = generateRefreshToken(tokenPayload);
 
-        res.cookie('refresh-token', refreshToken, {
+        res.cookie("refresh-token", refreshToken, {
             httpOnly: true,
             secure: true,
-            sameSite: 'strict',
-            maxAge: 7 * 24 * 60 * 60 * 1000 // 7 days
+            sameSite: "strict",
+            maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
         });
 
-        const { passwordHash, ...userResponse } = user
+        const { passwordHash, ...userResponse } = user;
 
         return res.json({
             message: "Signed in successfully",
@@ -84,53 +89,47 @@ const signIn = async (req: Request, res: Response) => {
             permissions: allPermissions,
             subdomain: req.org?.subdomain,
         });
-
-
     } catch (error) {
-
         console.error("orgSignIn error:", error);
-        return res.status(500).json({error: "Internal server error"});
+        return res.status(500).json({ error: "Internal server error" });
     }
-    
-}
+};
 
 const signOut = async (req: Request, res: Response) => {
     try {
-        if( !req.user ) {
-            return res.status(401).json({ error: 'Unauthorized'});
+        if (!req.user) {
+            return res.status(401).json({ error: "Unauthorized" });
         }
 
-        res.clearCookie('refresh-token');
-        
-        return res.json({
-            message: 'Signed out successfully'
-        })
-    } catch (error) {
+        res.clearCookie("refresh-token");
 
+        return res.json({
+            message: "Signed out successfully",
+        });
+    } catch (error) {
         console.error("signOut error:", error);
         return res.status(500).json({
-            error: "Internal server error"
-        })
+            error: "Internal server error",
+        });
     }
-}
+};
 
 const refreshToken = async (req: Request, res: Response) => {
     try {
-
-        const refreshToken = req.cookies['refresh-token'];
+        const refreshToken = req.cookies["refresh-token"];
 
         if (!refreshToken) {
             return res.status(400).json({
-                error: "Refresh token is required"
+                error: "Refresh token is required",
             });
         }
 
         let decoded: TokenPayload;
         try {
-            decoded = verifyRefreshToken(refreshToken)
+            decoded = verifyRefreshToken(refreshToken);
         } catch {
             return res.status(401).json({
-                error: "Invalid or expired refresh token"
+                error: "Invalid or expired refresh token",
             });
         }
 
@@ -140,32 +139,29 @@ const refreshToken = async (req: Request, res: Response) => {
             id: decoded.id,
             email: decoded.email,
             db: decoded.db,
-        }
+        };
 
         const accessToken = generateAccessToken(tokenPayload);
 
         return res.json({
             message: "Token refreshed successfully",
-            accessToken
-        })
-
+            accessToken,
+        });
     } catch (error) {
         console.error("refreshToken error:", error);
         return res.status(500).json({
-            error: "Internal server error"
-        })
+            error: "Internal server error",
+        });
     }
-}
+};
 
 const requestPasswordReset = async (req: Request, res: Response) => {
-
     try {
-
         const parsed = requestPasswordResetSchema.safeParse(req.body);
 
-        if(!parsed.success) {
+        if (!parsed.success) {
             return res.status(400).json({
-                error: "Invalid email"
+                error: "Invalid email",
             });
         }
 
@@ -177,19 +173,19 @@ const requestPasswordReset = async (req: Request, res: Response) => {
                 email: true,
                 passwordHash: true,
             },
-            where: eq(users.email, email)
+            where: eq(users.email, email),
         });
 
-        if(!user) {
+        if (!user) {
             return res.json({
-                message: "If the email exists, a password reset link has been sent"
-            })
+                message: "If the email exists, a password reset link has been sent",
+            });
         }
 
         const resetToken = generatePasswordResetToken({
             userId: user.id,
             email: user.email,
-            password: user.passwordHash ?? ''
+            password: user.passwordHash ?? "",
         });
 
         /**
@@ -198,49 +194,45 @@ const requestPasswordReset = async (req: Request, res: Response) => {
          * to the found email address.
          */
 
-        console.log('requestResetPassword link:', `?token=${resetToken}&id=${user.id}`)
+        console.log("requestResetPassword link:", `?token=${resetToken}&id=${user.id}`);
 
         return res.json({
-            message: "If the email exists, a password reset link has been sent"
+            message: "If the email exists, a password reset link has been sent",
         });
-
     } catch (error) {
-
         console.error("requestPasswordReset error:", error);
         return res.status(500).json({
-            error: "Internal server error"
-        })
+            error: "Internal server error",
+        });
     }
-}
+};
 
 const resetPassword = async (req: Request, res: Response) => {
-    
     try {
-
-        const token = req.query['token'] as string;
-        const userId = req.query['id'] as string;
+        const token = req.query["token"] as string;
+        const userId = req.query["id"] as string;
 
         if (!token || !userId) {
             return res.status(400).json({
-                error: "Bad request"
-            })
+                error: "Bad request",
+            });
         }
 
-        let decoded: {userPassword: string, email: string};
+        let decoded: { userPassword: string; email: string };
         try {
-            decoded = verifyPasswordResetToken(token, userId)
+            decoded = verifyPasswordResetToken(token, userId);
         } catch {
             return res.status(401).json({
-                error: "invalid or expired password reset token"
+                error: "invalid or expired password reset token",
             });
         }
 
         const parsed = createPasswordSchema.safeParse(req.body);
-        
-        if(!parsed.success) {
+
+        if (!parsed.success) {
             return res.status(400).json({
                 error: "Failed password reset validation",
-                details: parsed.error.issues
+                details: parsed.error.issues,
             });
         }
 
@@ -248,9 +240,9 @@ const resetPassword = async (req: Request, res: Response) => {
 
         const newHashPassword = await hashPassword(newPassword);
 
-        if(newHashPassword === decoded.userPassword) {
+        if (newHashPassword === decoded.userPassword) {
             return res.status(400).json({
-                error: "Password cannot match an existing password"
+                error: "Password cannot match an existing password",
             });
         }
 
@@ -262,20 +254,18 @@ const resetPassword = async (req: Request, res: Response) => {
         /**
          * @TODO Send email to user that password reset has
          * been successful.
-         */        
+         */
 
         return res.json({
-            message: "Reset password successfully"
+            message: "Reset password successfully",
         });
-
     } catch (error) {
-
         console.error("resetPassword error:", error);
         return res.status(500).json({
-            error: "Internal server error"
+            error: "Internal server error",
         });
     }
-}
+};
 
 export default {
     signIn,
@@ -283,4 +273,4 @@ export default {
     refreshToken,
     requestPasswordReset,
     resetPassword,
-}
+};

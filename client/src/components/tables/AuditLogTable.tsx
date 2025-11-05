@@ -9,7 +9,7 @@ type AuditLogEntry = {
 const API_AUDIT_LOG_ENDPOINT = `http://localhost:3000/dummy/audit-log`; //TODO fix this
 
 export function AuditLogTable() {
-    const fetchAuditLogEntries = async (params: Record<string, any>) => {
+    const fetchAuditLogEntries = async (params: Record<string, unknown>) => {
         const searchParams = new URLSearchParams();
         Object.entries(params).forEach(([key, value]) => {
             if (value !== undefined && value !== null) {

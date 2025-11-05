@@ -42,7 +42,9 @@ export function OrganizationsTable() {
         s.hasPermission(PERMISSIONS.ORGANIZATIONS_UPDATE)
     );
 
-    const fetchOrganizations = async (_params: Record<string, any>) => {
+    const fetchOrganizations = async (params: Record<string, unknown>) => {
+        console.log("Params: ", params);
+
         const response = (await http.get(`s/organizations`).json()) as {
             results: Organization[];
             total: number;

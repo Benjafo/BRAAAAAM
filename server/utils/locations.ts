@@ -1,8 +1,7 @@
 import { and, eq, isNull } from "drizzle-orm";
-import { NodePgDatabase } from "drizzle-orm/node-postgres";
 import { locations } from "../drizzle/org/schema.js";
 
-type Address = {
+export type Address = {
     addressLine1?: string;
     addressLine2?: string | null;
     city?: string;
@@ -74,7 +73,8 @@ type Address = {
 //     return addressId;
 // }
 // Find or create a location
-export const findOrCreateLocation = async (db: any, address: any): Promise<string> => {
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export const findOrCreateLocation = async (db: any, address: Address): Promise<string> => {
     const addr1 = address.addressLine1?.trim() ?? "";
     const addr2 = address.addressLine2?.trim() || null;
     const city = address.city?.trim() ?? "";

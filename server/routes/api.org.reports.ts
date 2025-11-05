@@ -12,6 +12,10 @@ router.put("/:reportId", reports.updateReport);
 router.delete("/:reportId", reports.deleteReport);
 
 // /o/:orgId/reports/:reportId/generate
-router.get("/:reportId/generate", withPermission({ permissions: "reports.export" }), reports.generateReport);
+router.get(
+    "/:reportId/generate",
+    withPermission({ permissions: "reports.export" }),
+    reports.generateReport
+);
 
 export default router;

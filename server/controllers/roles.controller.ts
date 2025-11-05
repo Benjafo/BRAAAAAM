@@ -27,7 +27,9 @@ export const listRoles = async (req: Request, res: Response): Promise<Response> 
         ]);
 
         // Exclude system roles from the list
-        const whereClause = where ? and(where, eq(roles.isSystem, false)) : eq(roles.isSystem, false);
+        const whereClause = where
+            ? and(where, eq(roles.isSystem, false))
+            : eq(roles.isSystem, false);
 
         const [{ total }] = await db
             .select({ total: sql<number>`count(*)` })

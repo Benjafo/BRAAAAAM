@@ -10,7 +10,7 @@ type Location = {
 const API_LOCATIONS_ENDPOINT = `http://localhost:3000/dummy/locations`; //TODO fix this
 
 export function LocationsTable() {
-    const fetchLocations = async (params: Record<string, any>) => {
+    const fetchLocations = async (params: Record<string, unknown>) => {
         const searchParams = new URLSearchParams();
         Object.entries(params).forEach(([key, value]) => {
             if (value !== undefined && value !== null) {

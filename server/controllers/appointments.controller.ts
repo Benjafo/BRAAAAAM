@@ -177,7 +177,7 @@ export const updateAppointment = async (req: Request, res: Response): Promise<Re
         const db = req.org?.db;
         if (!db) return res.status(400).json({ message: "Organization context missing" });
 
-        const updateData: any = {};
+        const updateData: Record<string, unknown> = {};
         if (data.pickupAddress) {
             updateData.pickupLocation = await findOrCreateLocation(db, data.pickupAddress);
         }

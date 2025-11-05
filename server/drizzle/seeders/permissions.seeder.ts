@@ -23,6 +23,7 @@ export async function seedPermissions(db: OrgDb) {
             await db.insert(orgSchema.permissions).values({
                 permKey: permission.permKey,
                 resource: permission.resource,
+                // eslint-disable-next-line @typescript-eslint/no-explicit-any
                 action: permission.action as any, // Cast to match the enum type
                 name: permission.name,
                 description: permission.description,
@@ -34,6 +35,7 @@ export async function seedPermissions(db: OrgDb) {
                 .update(orgSchema.permissions)
                 .set({
                     resource: permission.resource,
+                    // eslint-disable-next-line @typescript-eslint/no-explicit-any
                     action: permission.action as any,
                     name: permission.name,
                     description: permission.description,

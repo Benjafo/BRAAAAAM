@@ -1,8 +1,8 @@
-import dotenv from "dotenv";
+// import dotenv from "dotenv";
 import { drizzle } from "drizzle-orm/node-postgres";
 import { Pool } from "pg";
 import * as orgSchema from "./org/schema.js";
-import { seedAll, verifySeed } from "./seeders/permissions.seeder.js";
+import { seedAll } from "./seeders/permissions.seeder.js";
 
 async function seedTemplateDatabase() {
     // Loacal .env for running npm scripts outside docker
