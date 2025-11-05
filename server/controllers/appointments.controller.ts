@@ -1,7 +1,7 @@
 import { eq, sql } from "drizzle-orm";
 import { alias } from "drizzle-orm/pg-core";
 import { Request, Response } from "express";
-import { appointments, clients, locations, users } from "../drizzle/org/schema.js";
+import { appointments, clients, locations, roles, users } from "../drizzle/org/schema.js";
 import { findOrCreateLocation } from "../utils/locations.js";
 import { applyQueryFilters } from "../utils/queryParams.js";
 
@@ -216,6 +216,59 @@ export const updateAppointment = async (req: Request, res: Response): Promise<Re
         return res.status(200).json(updated);
     } catch (err) {
         console.error("Error updating appointment:", err);
+        return res.status(500).send();
+    }
+};
+
+export const getMatchingDrivers = async (req: Request, res: Response): Promise<Response> => {
+    const { appointmentId } = req.params;
+
+    try {
+        const db = req.org?.db;
+        if (!db) return res.status(400).json({ message: "Organization context missing" });
+
+        // Verify appointment exists
+        const [appointment] = await db
+            .select()
+            .from(appointments)
+            .where(eq(appointments.id, appointmentId));
+
+        if (!appointment) {
+            return res.status(404).json({ message: "Appointment not found" });
+        }
+
+        // TODO better matching logic
+        // Current placeholder just returns the first 10 active drivers
+        const matchingDrivers = await db
+            .select({
+                id: users.id,
+                firstName: users.firstName,
+                lastName: users.lastName,
+                email: users.email,
+                phone: users.phone,
+                contactPreference: users.contactPreference,
+                isActive: users.isActive,
+                roleId: users.roleId,
+                roleName: roles.name,
+                address: {
+                    id: locations.id,
+                    addressLine1: locations.addressLine1,
+                    addressLine2: locations.addressLine2,
+                    city: locations.city,
+                    state: locations.state,
+                    zip: locations.zip,
+                    country: locations.country,
+                },
+            })
+            .from(users)
+            .leftJoin(locations, eq(users.addressLocation, locations.id))
+            .leftJoin(roles, eq(users.roleId, roles.id))
+            .where(sql`${users.isDriver} = true AND ${users.isActive} = true`)
+            .limit(10);
+
+        return res.status(200).json({ results: matchingDrivers });
+    } catch (err) {
+        console.error("Error fetching matching drivers:", err);
         return res.status(500).send();
     }
 };

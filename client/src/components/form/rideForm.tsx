@@ -206,6 +206,7 @@ type Props = {
     clients?: Array<{ id: string; value: string; label: string; profile?: ClientProfile }>;
     drivers?: Array<{ value: string; label: string }>;
     onClientChange?: (clientValue: string) => void;
+    onFindMatchingDrivers?: () => void;
     isLoading: boolean;
 };
 
@@ -216,6 +217,7 @@ export default function EditRideForm({
     clients: clientsProp,
     drivers: driversProp,
     onClientChange,
+    onFindMatchingDrivers,
     isLoading,
 }: Props) {
     const form = useForm<RideFormValues>({
@@ -577,7 +579,18 @@ export default function EditRideForm({
                     render={({ field }) => {
                         return (
                             <FormItem className="w-full">
-                                <FormLabel>Assigned Driver</FormLabel>
+                                <div className="flex items-center justify-between">
+                                    <FormLabel>Assigned Driver</FormLabel>
+                                    {onFindMatchingDrivers && (
+                                        <button
+                                            type="button"
+                                            onClick={onFindMatchingDrivers}
+                                            className="text-xs text-blue-600 hover:text-blue-800 hover:underline"
+                                        >
+                                            Find matching drivers
+                                        </button>
+                                    )}
+                                </div>
                                 <FormControl className="w-full">
                                     <Popover open={driverOpen} onOpenChange={setDriverOpen}>
                                         <PopoverTrigger asChild>

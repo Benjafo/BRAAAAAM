@@ -12,6 +12,7 @@ import {
 import { http } from "@/services/auth/serviceResolver";
 import * as React from "react";
 import { toast } from "sonner";
+import AssignRideModal from "./assignRideModal";
 import { useAuthStore } from "../stores/authStore";
 
 // Type matching the API response from listClients
@@ -77,6 +78,7 @@ export default function RideModal({
     const [drivers, setDrivers] = React.useState<User[]>([]);
     const [isLoadingClients, setIsLoadingClients] = React.useState(false);
     const [isLoadingDrivers, setIsLoadingDrivers] = React.useState(false);
+    const [isAssignDriverModalOpen, setIsAssignDriverModalOpen] = React.useState(false);
 
     React.useEffect(() => {
         if (!open) return; // Only fetch when modal is open
@@ -168,6 +170,15 @@ export default function RideModal({
         console.log(`Client changed: ${clientId}`);
     }
 
+    // Handle opening assign driver modal
+    function handleFindMatchingDrivers() {
+        if (!isEditing) {
+            toast.info("Please save the ride first to find matching drivers");
+            return;
+        }
+        setIsAssignDriverModalOpen(true);
+    }
+
     async function handleSubmit(values: RideFormValues) {
         try {
             console.log("Form values:", values);
@@ -246,6 +257,7 @@ export default function RideModal({
     }
 
     return (
+        <>
         <Dialog open={open} onOpenChange={onOpenChange}>
             <DialogContent className="!max-w-[692px] w-[95vw] max-h-[90vh] overflow-y-auto scroll-smooth p-6">
                 <DialogHeader className="mb-4">
@@ -258,6 +270,7 @@ export default function RideModal({
                     clients={clientList}
                     drivers={driverList}
                     onClientChange={handleClientChange}
+                    onFindMatchingDrivers={handleFindMatchingDrivers}
                     isLoading={isLoadingClients || isLoadingDrivers}
                 />
 
@@ -271,5 +284,17 @@ export default function RideModal({
                 </DialogFooter>
             </DialogContent>
         </Dialog>
+        {isEditing && defaultValuesProp.id && (
+            <AssignRideModal
+                appointmentId={defaultValuesProp.id}
+                open={isAssignDriverModalOpen}
+                onOpenChange={setIsAssignDriverModalOpen}
+                onDriverAssigned={() => {
+                    // Refresh or notify that driver was assigned
+                    toast.success("Driver assigned! Please refresh to see updates.");
+                }}
+            />
+        )}
+    </>
     );
 }

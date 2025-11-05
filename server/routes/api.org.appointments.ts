@@ -20,6 +20,12 @@ router.put(
     appt.updateAppointment
 );
 
+router.get(
+    "/:appointmentId/matching-drivers",
+    withPermission({ permissions: "appointments.read" }),
+    appt.getMatchingDrivers
+);
+
 // /o/:orgId/appointments/tags
 // router.get("/tags", appt.listTags);
 // router.post("/tags", appt.createTag);
