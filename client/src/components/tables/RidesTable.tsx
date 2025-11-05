@@ -15,6 +15,8 @@ type Ride = {
     clientFirstName: string | null;
     clientLastName: string | null;
     driverId: string | null;
+    driverFirstName: string | null;
+    driverLastName: string | null;
     dispatcherId: string;
     dispatcherFirstName: string | null;
     dispatcherLastName: string | null;
@@ -134,6 +136,13 @@ export function RidesTable({
                         accessorFn: (row) => `${row.clientFirstName} ${row.clientLastName}`,
                     },
                     { header: "Destination", accessorFn: (row) => row.destinationAddressLine1 },
+                    {
+                        header: "Driver",
+                        accessorFn: (row) =>
+                            row.driverFirstName && row.driverLastName
+                                ? `${row.driverFirstName} ${row.driverLastName}`
+                                : "Unassigned",
+                    },
                     {
                         header: "Dispatcher",
                         accessorFn: (row) => `${row.dispatcherFirstName} ${row.dispatcherLastName}`,

@@ -30,6 +30,7 @@ export const listAppointments = async (req: Request, res: Response): Promise<Res
         // Create aliases for pickup and destination locations to join both
         const pickupLocations = alias(locations, "pickup_locations");
         const destinationLocations = alias(locations, "destination_locations");
+        const driverUsers = alias(users, "driver_users");
 
         // Search + Sort + Pagination
         const { where, orderBy, limit, offset, page, pageSize } = applyQueryFilters(req, [
@@ -45,18 +46,24 @@ export const listAppointments = async (req: Request, res: Response): Promise<Res
         const allAppointments = await db
             .select({
                 id: appointments.id,
+                // Appointment info
                 date: appointments.startDate,
                 time: appointments.startTime,
                 status: appointments.status,
+                tripPurpose: appointments.tripPurpose,
+                tripCount: appointments.tripCount,
+                // Client
                 clientId: appointments.clientId,
                 clientFirstName: clients.firstName,
                 clientLastName: clients.lastName,
+                // Driver
                 driverId: appointments.driverId,
+                driverFirstName: driverUsers.firstName,
+                driverLastName: driverUsers.lastName,
+                // Dispatcher
                 dispatcherId: appointments.dispatcherId,
                 dispatcherFirstName: users.firstName,
                 dispatcherLastName: users.lastName,
-                tripPurpose: appointments.tripPurpose,
-                tripCount: appointments.tripCount,
                 // Pickup location
                 pickupLocationId: appointments.pickupLocation,
                 pickupAddressLine1: pickupLocations.addressLine1,
@@ -75,6 +82,7 @@ export const listAppointments = async (req: Request, res: Response): Promise<Res
             .from(appointments)
             .leftJoin(clients, eq(appointments.clientId, clients.id))
             .leftJoin(users, eq(appointments.dispatcherId, users.id))
+            .leftJoin(driverUsers, eq(appointments.driverId, driverUsers.id))
             .leftJoin(pickupLocations, eq(appointments.pickupLocation, pickupLocations.id))
             .leftJoin(
                 destinationLocations,
