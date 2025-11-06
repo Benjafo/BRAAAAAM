@@ -52,6 +52,7 @@ export const DEFAULT_ROLES: RoleDefinition[] = [
 
             // Settings
             "settings.read",
+            "settings.update",
         ],
     },
     {

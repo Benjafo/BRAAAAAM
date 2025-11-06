@@ -13,11 +13,6 @@ router.put(
     withPermission({ permissions: "settings.update" }),
     customForms.updateCustomForm
 );
-router.delete(
-    "/:formId",
-    withPermission({ permissions: "settings.delete" }),
-    customForms.deleteCustomForm
-);
 
 // Form responses (available to users with entity permissions)
 router.get("/responses/:entityType/:entityId", customForms.getEntityResponses);
