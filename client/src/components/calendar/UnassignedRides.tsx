@@ -3,7 +3,7 @@
  * This component is used by dispatchers to view and assign unassigned rides
  */
 
-import ky from "ky";
+import { http } from "@/services/auth/serviceResolver";
 import { useEffect, useState } from "react";
 import type { SlotInfo } from "react-big-calendar";
 import type { BusinessHoursConfig, CalendarEvent } from "../../types/rides";
@@ -151,7 +151,7 @@ export default function UnassignedRides() {
                 setLoading(true);
 
                 const orgId = "braaaaam";
-                const data = await ky
+                const data = await http
                     .get(`o/${orgId}/appointments?pageSize=1000`, {
                         headers: {
                             "x-org-subdomain": orgId,

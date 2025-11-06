@@ -243,8 +243,8 @@ app.use("/api", apiRouter);
 app.use("/auth", withOrg, orgAuthRouter);
 
 // Protected org-scoped routes with authentication
-app.use("/o/users", withAuth, withOrg, usersRouter);
-app.use("/o/clients", withAuth, withOrg, clientsRouter);
+app.use("/o/:orgId/users", withAuth, withOrg, usersRouter);
+app.use("/o/:orgId/clients", withAuth, withOrg, clientsRouter);
 app.use("/o/:orgId/settings", withAuth, withOrg, orgSettingsRouter);
 app.use("/o/:orgId/appointments", withAuth, withOrg, appointmentsRouter);
 app.use("/o/:orgId/notifications", withAuth, withOrg, notificationsRouter);

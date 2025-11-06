@@ -83,13 +83,16 @@ export function ClientsTable() {
             }
         });
 
-        const response = await http.get(`o/clients`).json<{results: Client[], total: number}>()
-        console.log('Fetched clients:', response);
+        const SUBDOMAIN = "braaaaam";
+        const response = await http
+            .get(`o/${SUBDOMAIN}/clients`)
+            .json<{ results: Client[]; total: number }>();
+        console.log("Fetched clients:", response);
 
         return {
             data: response.results,
             total: response.total,
-        }
+        };
     };
 
     const handleCreateClient = () => {

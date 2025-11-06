@@ -83,7 +83,7 @@ export function UsersTable() {
                 searchParams.set(key, String(value));
             }
         });
-        
+
         /** @TODO fix passing in url params */
 
         // if(isError && !isPending) {
@@ -102,19 +102,20 @@ export function UsersTable() {
         // }
 
         type TableUserResponse = {
-            page: number,
-            pageSize: number,
-            results: TableUser[],
-            total: number,
-        }
+            page: number;
+            pageSize: number;
+            results: TableUser[];
+            total: number;
+        };
 
-        const response = await http.get(`o/users`).json<TableUserResponse>()
-        console.log("Fetched users:", response)
+        const SUBDOMAIN = "braaaaam";
+        const response = await http.get(`o/${SUBDOMAIN}/users`).json<TableUserResponse>();
+        console.log("Fetched users:", response);
 
         return {
             data: response.results,
             total: response.total,
-        }
+        };
     };
 
     const handleCreateUser = () => {
