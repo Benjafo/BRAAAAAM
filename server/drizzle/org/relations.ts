@@ -1,18 +1,21 @@
 import { relations } from "drizzle-orm/relations";
 import {
-    roles,
-    users,
+    appointments,
     auditLogs,
-    locations,
-    clients,
     callLogs,
     callLogTypes,
-    appointments,
-    messages,
+    clients,
+    customFormFields,
+    customFormResponses,
+    customForms,
+    locations,
     messageRecipients,
-    rolePermissions,
+    messages,
     permissions,
+    rolePermissions,
+    roles,
     userPermissions,
+    users,
 } from "./schema";
 
 export const usersRelations = relations(users, ({ one, many }) => ({
@@ -34,6 +37,7 @@ export const usersRelations = relations(users, ({ one, many }) => ({
     messages: many(messages),
     messageRecipients: many(messageRecipients),
     userPermissions: many(userPermissions),
+    customFormResponses: many(customFormResponses),
 }));
 
 export const rolesRelations = relations(roles, ({ many }) => ({
@@ -155,6 +159,28 @@ export const userPermissionsRelations = relations(userPermissions, ({ one }) => 
     }),
     user: one(users, {
         fields: [userPermissions.userId],
+        references: [users.id],
+    }),
+}));
+
+// We need to check these... not fully sure if this is correct
+export const customFormsRelations = relations(customForms, ({ many }) => ({
+    fields: many(customFormFields),
+    responses: many(customFormResponses),
+}));
+export const customFormFieldsRelations = relations(customFormFields, ({ one }) => ({
+    form: one(customForms, {
+        fields: [customFormFields.formId],
+        references: [customForms.id],
+    }),
+}));
+export const customFormResponsesRelations = relations(customFormResponses, ({ one }) => ({
+    form: one(customForms, {
+        fields: [customFormResponses.formId],
+        references: [customForms.id],
+    }),
+    submitter: one(users, {
+        fields: [customFormResponses.submittedBy],
         references: [users.id],
     }),
 }));
