@@ -10,6 +10,7 @@ import sseRouter from "./routes/sse.js";
 // org-scoped
 import appointmentsRouter from "./routes/api.org.appointments.js";
 import clientsRouter from "./routes/api.org.clients.js";
+import customFormsRouter from "./routes/api.org.custom-forms.js";
 import locationsRouter from "./routes/api.org.locations.js";
 import notificationsRouter from "./routes/api.org.notifications.js";
 import reportsRouter from "./routes/api.org.reports.js";
@@ -251,6 +252,7 @@ app.use("/o/:orgId/notifications", withAuth, withOrg, notificationsRouter);
 app.use("/o/:orgId/reports", withAuth, withOrg, reportsRouter);
 app.use("/o/:orgId/settings/roles", withAuth, withOrg, rolesRouter);
 app.use("/o/:orgId/settings/locations", withAuth, withOrg, locationsRouter);
+app.use("/o/:orgId/custom-forms", withAuth, withOrg, customFormsRouter);
 
 // Protected system-scoped routes with authentication
 app.use("/s/settings", withAuth, sysSettingsRouter);
