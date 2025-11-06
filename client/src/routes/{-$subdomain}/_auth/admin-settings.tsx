@@ -2,6 +2,7 @@ import type { AdminGeneralFormRef } from "@/components/form/AdminGeneralForm";
 import AdminGeneralForm from "@/components/form/AdminGeneralForm";
 import { MainNavigation } from "@/components/Navigation";
 import { AuditLogTable } from "@/components/tables/AuditLogTable";
+import CustomFormsTable from "@/components/tables/CustomFormsTable";
 import { LocationsTable } from "@/components/tables/LocationsTable";
 import { RolesTable } from "@/components/tables/RolesTable";
 import { Button } from "@/components/ui/button";
@@ -128,7 +129,7 @@ function RouteComponent() {
                     </TabsContent>
 
                     <TabsContent value="forms">
-                        <p className="text-muted-foreground">{/* Forms content */}</p>
+                        <CustomFormsTable />
                     </TabsContent>
 
                     <TabsContent value="roles">
