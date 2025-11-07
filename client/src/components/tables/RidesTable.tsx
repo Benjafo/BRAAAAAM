@@ -34,6 +34,7 @@ type Ride = {
     destinationCity: string | null;
     destinationState: string | null;
     destinationZip: string | null;
+    customFields?: Record<string, any>;
 };
 
 const mapRideToFormValues = (ride: Ride): Partial<RideFormValues> & { id?: string } => {
@@ -56,6 +57,7 @@ const mapRideToFormValues = (ride: Ride): Partial<RideFormValues> & { id?: strin
         purposeOfTrip: ride.tripPurpose || "",
         assignedDriver: ride.driverId || undefined,
         rideStatus: ride.status,
+        customFields: ride.customFields || {},
         // Note: additionalRider fields not yet in database schema
     };
 };
@@ -71,10 +73,16 @@ export function RidesTable({
     const [selectedRideData, setSelectedRideData] = useState<
         Partial<RideFormValues> & { id?: string }
     >({});
+    const [refreshKey, setRefreshKey] = useState(0);
     const hasCreatePermission = useAuthStore((s) =>
         s.hasPermission(PERMISSIONS.APPOINTMENTS_CREATE)
     );
     const hasEditPermission = useAuthStore((s) => s.hasPermission(PERMISSIONS.APPOINTMENTS_UPDATE));
+
+    // hacky fix to force refresh for the custom fields
+    const handleRefresh = () => {
+        setRefreshKey((prev) => prev + 1);
+    };
 
     const fetchRides = async (params: Record<string, unknown>) => {
         console.log("Params: ", params);
@@ -127,6 +135,7 @@ export function RidesTable({
     return (
         <>
             <DataTable
+                key={refreshKey}
                 fetchData={fetchRides}
                 columns={[
                     { header: "Date", accessorKey: "date" },
@@ -163,6 +172,7 @@ export function RidesTable({
                 open={isRideModalOpen}
                 onOpenChange={setIsRideModalOpen}
                 defaultValues={selectedRideData}
+                onSuccess={handleRefresh}
             />
         </>
     );

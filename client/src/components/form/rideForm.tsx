@@ -23,7 +23,7 @@ import { z } from "zod";
 import type { ClientProfile } from "@/lib/types";
 import { cn } from "@/lib/utils";
 import { Check, ChevronsUpDown, X } from "lucide-react";
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { GoogleAddressFields } from "../GoogleAddressFields";
 import { Button } from "../ui/button";
 import {
@@ -36,6 +36,7 @@ import {
 } from "../ui/command";
 import { DatePickerInput } from "../ui/datePickerField";
 import { Popover, PopoverContent, PopoverTrigger } from "../ui/popover";
+import DynamicFormFields, { type DynamicFormFieldsRef } from "./DynamicFormFields";
 
 /* --------------------------------- Schema --------------------------------- */
 /* using z.enum for select values that we know are included */
@@ -130,6 +131,7 @@ const rideSchema = z
             ),
         donationType: z.enum(["Check", "Cash", "unopenedEnvelope"]).optional(),
         donationAmount: z.number().min(1, "Donation amount must be at least $1.").optional(),
+        customFields: z.record(z.string(), z.any()).optional(),
     })
     .superRefine((data, ctx) => {
         if (data.additionalRider === "Yes") {
@@ -220,6 +222,8 @@ export default function EditRideForm({
     onFindMatchingDrivers,
     isLoading,
 }: Props) {
+    const dynamicFieldsRef = useRef<DynamicFormFieldsRef>(null);
+
     const form = useForm<RideFormValues>({
         resolver: zodResolver(rideSchema),
         mode: "onBlur",
@@ -249,6 +253,7 @@ export default function EditRideForm({
             tripDistance: defaultValues.tripDistance,
             donationType: defaultValues.donationType,
             donationAmount: defaultValues.donationAmount,
+            customFields: defaultValues.customFields ?? {},
         },
     });
 
@@ -280,6 +285,14 @@ export default function EditRideForm({
     const [clientOpen, setClientOpen] = useState(false);
     const [driverOpen, setDriverOpen] = useState(false);
 
+    const handleFormSubmit = (values: RideFormValues) => {
+        // Validate custom fields before submitting
+        const isValid = dynamicFieldsRef.current?.validateCustomFields(values.customFields || {});
+        if (!isValid) return;
+
+        onSubmit(values);
+    };
+
     if (isLoading) {
         return (
             <div className="h-full flex items-center justify-center">
@@ -296,7 +309,7 @@ export default function EditRideForm({
             <form
                 id="create-ride-form"
                 className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-6 w-full items-start pt-5"
-                onSubmit={form.handleSubmit(onSubmit)}
+                onSubmit={form.handleSubmit(handleFormSubmit)}
             >
                 {/* Client Name, on all the dropdowns, replace with information from API later. Using ShadCN Combo box. */}
                 <FormField
@@ -878,6 +891,16 @@ export default function EditRideForm({
                         )}
                     />
                 )}
+
+                {/* Custom Fields */}
+                <div className="md:col-span-2">
+                    <DynamicFormFields
+                        ref={dynamicFieldsRef}
+                        control={form.control}
+                        entityType="appointment"
+                        setError={form.setError}
+                    />
+                </div>
             </form>
         </Form>
     );

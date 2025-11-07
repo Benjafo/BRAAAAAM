@@ -25,6 +25,7 @@ type Client = {
     emergencyContactRelationship: string | null;
     notes: string | null;
     pickupInstructions: string | null;
+    customFields?: Record<string, any>;
     address: {
         id: string;
         addressLine1: string;
@@ -61,6 +62,7 @@ function mapClientToFormValues(client: Client): Partial<ClientFormValues> & { id
         city: client.address.city,
         state: client.address.state,
         zipCode: client.address.zip,
+        customFields: client.customFields || {},
         // TODO: add clientStatus, volunteeringStatus when available from API
         // okToText fields are not included
         // derived date fields for volunteer status are also not included
@@ -72,8 +74,14 @@ export function ClientsTable() {
     const [selectedClientData, setSelectedClientData] = useState<
         Partial<ClientFormValues> & { id?: string }
     >({});
+    const [refreshKey, setRefreshKey] = useState(0);
     const hasCreatePermission = useAuthStore((s) => s.hasPermission(PERMISSIONS.CLIENTS_CREATE));
     const hasEditPermission = useAuthStore((s) => s.hasPermission(PERMISSIONS.CLIENTS_UPDATE));
+
+    // hacky fix to force refresh for the custom fields
+    const handleRefresh = () => {
+        setRefreshKey((prev) => prev + 1);
+    };
 
     const fetchClients = async (params: Record<string, unknown>) => {
         const searchParams = new URLSearchParams();
@@ -83,13 +91,16 @@ export function ClientsTable() {
             }
         });
 
-        const response = await http.get(`o/clients`).json<{results: Client[], total: number}>()
-        console.log('Fetched clients:', response);
+        const SUBDOMAIN = "braaaaam";
+        const response = await http
+            .get(`o/${SUBDOMAIN}/clients`)
+            .json<{ results: Client[]; total: number }>();
+        console.log("Fetched clients:", response);
 
         return {
             data: response.results,
             total: response.total,
-        }
+        };
     };
 
     const handleCreateClient = () => {
@@ -105,6 +116,7 @@ export function ClientsTable() {
     return (
         <>
             <DataTable
+                key={refreshKey}
                 fetchData={fetchClients}
                 columns={[
                     {
@@ -152,6 +164,7 @@ export function ClientsTable() {
                 open={isClientModalOpen}
                 onOpenChange={setIsClientModalOpen}
                 defaultValues={selectedClientData}
+                onSuccess={handleRefresh}
             />
         </>
     );

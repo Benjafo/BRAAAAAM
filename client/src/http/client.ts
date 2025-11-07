@@ -10,7 +10,6 @@ type CreateHttpClientOpts = {
 };
 
 export const createHttpClient = (opts: CreateHttpClientOpts = {}): KyInstance => {
-
     const { baseUrl, getSubdomain, getAccessToken, onUnauthorized, onRefresh } = opts;
 
     // This is a temp fix for build for unused variables. @TODO NEED TO AMEND tsconfig.build.json
@@ -21,13 +20,19 @@ export const createHttpClient = (opts: CreateHttpClientOpts = {}): KyInstance =>
         hooks: {
             beforeRequest: [
                 (request) => {
-                    const token = getAccessToken?.()
-                    if(token) request.headers.set('Authorization', `Bearer ${token}`);
-                    request.headers.set('Content-Type', 'application/json');
-                    request.headers.set('Accept', 'application/json');
+                    const token = getAccessToken?.();
+                    if (token) request.headers.set("Authorization", `Bearer ${token}`);
+                    request.headers.set("Content-Type", "application/json");
+                    request.headers.set("Accept", "application/json");
 
-                    const subdomain = getSubdomain?.()
-                    if(subdomain) {request.headers.set('x-org-subdomain', subdomain);}
+                    const subdomain = getSubdomain?.();
+                    console.log("Subdomain from getSubdomain:", subdomain);
+
+                    const SUBDOMAIN = "braaaaam"; // TODO remove hardcoded
+
+                    if (SUBDOMAIN) {
+                        request.headers.set("x-org-subdomain", SUBDOMAIN);
+                    }
                 },
             ],
             beforeRetry: [
@@ -35,7 +40,7 @@ export const createHttpClient = (opts: CreateHttpClientOpts = {}): KyInstance =>
                 async ({ request }) => {
                     const token = getAccessToken?.();
                     if (token) request.headers.set("Authorization", `Bearer ${token}`);
-                    request.headers.set("x-org-subdomain", "braaaaam");
+                    request.headers.set("x-org-subdomain", "braaaaam"); // TODO fix hardcoded
                 },
             ],
             afterResponse: [

@@ -47,6 +47,16 @@ export const permissionAction = pgEnum("permission_action", [
     "delete",
     "export",
 ]);
+export const fieldTypeEnum = pgEnum("field_type", [
+    "text",
+    "textarea",
+    "number",
+    "date",
+    "select",
+    "radio",
+    "checkbox",
+    "checkboxGroup",
+]);
 
 export const roles = pgTable(
     "roles",
@@ -533,5 +543,90 @@ export const userPermissions = pgTable(
             name: "user_permissions_user_id_fkey",
         }).onDelete("cascade"),
         primaryKey({ columns: [table.permissionId, table.userId], name: "user_permissions_pkey" }),
+    ]
+);
+
+export const customForms = pgTable("custom_forms", {
+    id: uuid().defaultRandom().primaryKey().notNull(),
+    name: varchar({ length: 255 }).notNull(),
+    description: text(),
+    targetEntity: varchar("target_entity", { length: 50 }).notNull(),
+    isActive: boolean("is_active").default(true).notNull(),
+    displayOrder: integer("display_order").default(0).notNull(),
+    createdAt: timestamp("created_at", { withTimezone: true, mode: "string" })
+        .defaultNow()
+        .notNull(),
+    updatedAt: timestamp("updated_at", { withTimezone: true, mode: "string" })
+        .defaultNow()
+        .notNull(),
+});
+
+export const customFormFields = pgTable(
+    "custom_form_fields",
+    {
+        id: uuid().defaultRandom().primaryKey().notNull(),
+        formId: uuid("form_id").notNull(),
+        fieldKey: varchar("field_key", { length: 100 }).notNull(),
+        label: varchar({ length: 255 }).notNull(),
+        fieldType: fieldTypeEnum("field_type").notNull(),
+        placeholder: varchar({ length: 255 }),
+        defaultValue: text("default_value"),
+        isRequired: boolean("is_required").default(false).notNull(),
+        displayOrder: integer("display_order").notNull(),
+        options: jsonb("options"),
+        createdAt: timestamp("created_at", { withTimezone: true, mode: "string" })
+            .defaultNow()
+            .notNull(),
+        updatedAt: timestamp("updated_at", { withTimezone: true, mode: "string" })
+            .defaultNow()
+            .notNull(),
+    },
+    (table) => [
+        foreignKey({
+            columns: [table.formId],
+            foreignColumns: [customForms.id],
+            name: "custom_form_fields_form_id_fkey",
+        }).onDelete("cascade"),
+        uniqueIndex("custom_form_fields_form_field_key_idx").on(table.formId, table.fieldKey),
+    ]
+);
+
+export const customFormResponses = pgTable(
+    "custom_form_responses",
+    {
+        id: uuid().defaultRandom().primaryKey().notNull(),
+        formId: uuid("form_id").notNull(),
+        entityId: uuid("entity_id").notNull(),
+        entityType: varchar("entity_type", { length: 50 }).notNull(),
+        responseData: jsonb("response_data").notNull().default({}),
+        submittedBy: uuid("submitted_by"),
+        submittedAt: timestamp("submitted_at", { withTimezone: true, mode: "string" })
+            .defaultNow()
+            .notNull(),
+        updatedAt: timestamp("updated_at", { withTimezone: true, mode: "string" })
+            .defaultNow()
+            .notNull(),
+    },
+    (table) => [
+        foreignKey({
+            columns: [table.formId],
+            foreignColumns: [customForms.id],
+            name: "custom_form_responses_form_id_fkey",
+        }),
+        foreignKey({
+            columns: [table.submittedBy],
+            foreignColumns: [users.id],
+            name: "custom_form_responses_submitted_by_fkey",
+        }),
+        index("custom_form_responses_entity_idx").using(
+            "btree",
+            table.entityType.asc().nullsLast(),
+            table.entityId.asc().nullsLast()
+        ),
+        uniqueIndex("custom_form_responses_unique_idx").on(
+            table.formId,
+            table.entityType,
+            table.entityId
+        ),
     ]
 );

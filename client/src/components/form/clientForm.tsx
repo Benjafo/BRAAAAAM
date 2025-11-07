@@ -2,7 +2,7 @@ import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Check, ChevronsUpDown } from "lucide-react";
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 
@@ -31,6 +31,7 @@ import { DatePickerInput } from "../ui/datePickerField";
 import { RadioGroup, RadioGroupItem } from "../ui/radio-group";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../ui/select";
 import { Textarea } from "../ui/textarea";
+import DynamicFormFields, { type DynamicFormFieldsRef } from "./DynamicFormFields";
 
 /* --------------------------------- Schema --------------------------------- */
 /* using z.enum for select values that we know are included */
@@ -125,6 +126,7 @@ const clientSchema = z
             .or(z.literal("")),
         notes: z.string().optional().or(z.literal("")),
         pickupInstructions: z.string().optional().or(z.literal("")),
+        customFields: z.record(z.string(), z.any()).optional(),
     })
     .superRefine((data, ctx) => {
         // AI helped on the super refine
@@ -206,6 +208,7 @@ const YEARS = Array.from({ length: 100 }, (_, i) => {
 });
 /* --------------------------------- Form ----------------------------------- */
 export default function ClientForm({ defaultValues, onSubmit }: Props) {
+    const dynamicFieldsRef = useRef<DynamicFormFieldsRef>(null);
     const form = useForm<ClientFormValues>({
         resolver: zodResolver(clientSchema),
         mode: "onBlur",
@@ -242,6 +245,7 @@ export default function ClientForm({ defaultValues, onSubmit }: Props) {
             emergencyContactRelationship: defaultValues.emergencyContactRelationship ?? "",
             notes: defaultValues.notes ?? "",
             pickupInstructions: defaultValues.pickupInstructions ?? "",
+            customFields: defaultValues.customFields ?? {},
         },
     });
 
@@ -253,12 +257,20 @@ export default function ClientForm({ defaultValues, onSubmit }: Props) {
     const [monthOpen, setMonthOpen] = useState(false);
     const [yearOpen, setYearOpen] = useState(false);
 
+    // Call custom fields validation before submitting
+    const handleFormSubmit = (values: ClientFormValues) => {
+        const isValid = dynamicFieldsRef.current?.validateCustomFields(values.customFields || {});
+        if (!isValid) return;
+
+        onSubmit(values);
+    };
+
     return (
         <Form {...form}>
             <form
                 id="new-client-form"
                 className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-6 w-full items-start pt-"
-                onSubmit={form.handleSubmit(onSubmit)}
+                onSubmit={form.handleSubmit(handleFormSubmit)}
             >
                 {/* First name */}
                 <FormField
@@ -937,6 +949,16 @@ export default function ClientForm({ defaultValues, onSubmit }: Props) {
                                 <FormMessage />
                             </FormItem>
                         )}
+                    />
+                </div>
+
+                {/* Custom Fields */}
+                <div className="md:col-span-2">
+                    <DynamicFormFields
+                        ref={dynamicFieldsRef}
+                        control={form.control}
+                        entityType="client"
+                        setError={form.setError}
                     />
                 </div>
             </form>

@@ -4,7 +4,7 @@ import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Check, ChevronsUpDown } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 
@@ -31,6 +31,7 @@ import { Checkbox } from "../ui/checkbox";
 import { DatePickerInput } from "../ui/datePickerField";
 import { RadioGroup, RadioGroupItem } from "../ui/radio-group";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../ui/select";
+import DynamicFormFields, { type DynamicFormFieldsRef } from "./DynamicFormFields";
 
 /* --------------------------------- Schema --------------------------------- */
 
@@ -134,6 +135,7 @@ const userSchema = z
             .max(100, "Max characters allowed is 100.")
             .optional()
             .or(z.literal("")),
+        customFields: z.record(z.string(), z.any()).optional(),
     })
     .superRefine((data, ctx) => {
         // AI helped on the super refine
@@ -265,6 +267,8 @@ export default function NewUserForm({
     availableRoles = [],
     isLoadingRoles,
 }: Props) {
+    const dynamicFieldsRef = useRef<DynamicFormFieldsRef>(null);
+
     // Find default role, dispatcher by default or first available
     const defaultRoleId =
         defaultValues.userRole ??
@@ -309,6 +313,7 @@ export default function NewUserForm({
             emergencyContactName: defaultValues.emergencyContactName ?? "",
             emergencyContactPhone: defaultValues.emergencyContactPhone ?? "",
             emergencyContactRelationship: defaultValues.emergencyContactRelationship ?? "",
+            customFields: defaultValues.customFields ?? {},
         },
     });
 
@@ -348,12 +353,20 @@ export default function NewUserForm({
             field.onChange(isNaN(parsed) ? undefined : parsed);
         };
 
+    const handleFormSubmit = (values: UserFormValues) => {
+        // Validate custom fields before submitting
+        const isValid = dynamicFieldsRef.current?.validateCustomFields(values.customFields || {});
+        if (!isValid) return;
+
+        onSubmit(values);
+    };
+
     return (
         <Form {...form}>
             <form
                 id="new-user-form"
                 className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-6 w-full items-start"
-                onSubmit={form.handleSubmit(onSubmit)}
+                onSubmit={form.handleSubmit(handleFormSubmit)}
             >
                 {/* First name */}
                 <FormField
@@ -1002,6 +1015,16 @@ export default function NewUserForm({
                         </FormItem>
                     )}
                 />
+
+                {/* Custom Fields */}
+                <div className="md:col-span-2">
+                    <DynamicFormFields
+                        ref={dynamicFieldsRef}
+                        control={form.control}
+                        entityType="user"
+                        setError={form.setError}
+                    />
+                </div>
             </form>
         </Form>
     );

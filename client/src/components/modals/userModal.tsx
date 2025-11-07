@@ -24,12 +24,14 @@ type NewUserModalProps = {
     defaultValues?: Partial<UserFormValues> & { id?: string };
     open: boolean;
     onOpenChange: (open: boolean) => void;
+    onSuccess?: () => void;
 };
 
 export default function NewUserModal({
     defaultValues = {},
     open,
     onOpenChange,
+    onSuccess,
 }: NewUserModalProps) {
     const [roles, setRoles] = useState<Role[]>([]);
     const [isLoadingRoles, setIsLoadingRoles] = useState(false);
@@ -38,6 +40,8 @@ export default function NewUserModal({
     const isEditing = Boolean(defaultValues.id);
     const modalTitle = isEditing ? "Edit User" : "New User";
     const successMessage = isEditing ? "User Updated" : "New User Created";
+
+    console.log("Default Values:", defaultValues);
 
     // Fetch roles when modal opens
     useEffect(() => {
@@ -97,6 +101,7 @@ export default function NewUserModal({
                 isActive: values.volunteeringStatus === "Active",
                 roleId: values.userRole, // Now sending roleId instead of role name
                 isDriver, // Determined from role selection
+                customFields: values.customFields,
                 address: {
                     addressLine1: values.streetAddress,
                     addressLine2: values.streetAddress2 || null,
@@ -129,6 +134,7 @@ export default function NewUserModal({
             }
 
             toast.success(successMessage);
+            onSuccess?.();
             onOpenChange(false);
         } catch (error) {
             console.error("Failed to save user:", error);

@@ -1,6 +1,6 @@
-import { eq, sql } from "drizzle-orm";
+import { and, eq, inArray, sql } from "drizzle-orm";
 import { Request, Response } from "express";
-import { locations, roles, users } from "../drizzle/org/schema.js";
+import { customFormResponses, customForms, locations, roles, users } from "../drizzle/org/schema.js";
 import { findOrCreateLocation } from "../utils/locations.js";
 import { hashPassword } from "../utils/password.js";
 import { applyQueryFilters } from "../utils/queryParams.js";
@@ -100,11 +100,38 @@ export const listUsers = async (req: Request, res: Response): Promise<Response> 
             .limit(limit)
             .offset(offset);
 
+        // Fetch custom field responses for all users
+        const userIds = data.map((user) => user.id);
+        const customFieldResponses =
+            userIds.length > 0
+                ? await db
+                      .select()
+                      .from(customFormResponses)
+                      .where(
+                          and(
+                              eq(customFormResponses.entityType, "user"),
+                              inArray(customFormResponses.entityId, userIds)
+                          )
+                      )
+                : [];
+
+        // Create a map of userId -> customFields
+        const customFieldsMap = new Map();
+        for (const response of customFieldResponses) {
+            customFieldsMap.set(response.entityId, response.responseData);
+        }
+
+        // Add customFields to each user
+        const resultsWithCustomFields = data.map((user) => ({
+            ...user,
+            customFields: customFieldsMap.get(user.id) || {},
+        }));
+
         return res.status(200).json({
             page,
             pageSize,
             total: Number(total),
-            results: data,
+            results: resultsWithCustomFields,
         });
     } catch (err) {
         console.error("Error listing users:", err);
@@ -175,6 +202,25 @@ export const createUser = async (req: Request, res: Response): Promise<Response>
             })
             .returning();
 
+        // Save custom field responses if provided
+        const customFields = req.body.customFields;
+        if (customFields && Object.keys(customFields).length > 0) {
+            const [userForm] = await db
+                .select()
+                .from(customForms)
+                .where(and(eq(customForms.targetEntity, "user"), eq(customForms.isActive, true)));
+
+            if (userForm) {
+                await db.insert(customFormResponses).values({
+                    formId: userForm.id,
+                    entityId: newUser.id,
+                    entityType: "user",
+                    responseData: customFields,
+                    submittedBy: req.user?.id,
+                });
+            }
+        }
+
         return res.status(201).json(newUser);
     } catch (err) {
         console.error("Error creating user:", err);
@@ -225,7 +271,18 @@ export const getUser = async (req: Request, res: Response): Promise<Response> =>
             return res.status(404).json({ message: "User not found" });
         }
 
-        return res.status(200).json(userData);
+        // Fetch custom field responses
+        const [response] = await db
+            .select()
+            .from(customFormResponses)
+            .where(and(eq(customFormResponses.entityId, userId), eq(customFormResponses.entityType, "user")));
+
+        const userWithCustomFields = {
+            ...userData,
+            customFields: response?.responseData || {},
+        };
+
+        return res.status(200).json(userWithCustomFields);
     } catch (err) {
         console.error("Error fetching user:", err);
         return res.status(500).json({ error: "Internal server error" });
@@ -270,6 +327,51 @@ export const updateUser = async (req: Request, res: Response): Promise<Response>
 
         if (!updatedUser) {
             return res.status(404).json({ message: "User not found" });
+        }
+
+        // Update custom field responses if provided
+        const customFields = req.body.customFields;
+        if (customFields) {
+            const [userForm] = await db
+                .select()
+                .from(customForms)
+                .where(and(eq(customForms.targetEntity, "user"), eq(customForms.isActive, true)));
+
+            if (userForm) {
+                const userId = req.params.userId;
+                // Check if response already exists
+                const [existingResponse] = await db
+                    .select()
+                    .from(customFormResponses)
+                    .where(
+                        and(
+                            eq(customFormResponses.formId, userForm.id),
+                            eq(customFormResponses.entityId, userId),
+                            eq(customFormResponses.entityType, "user")
+                        )
+                    );
+
+                if (existingResponse) {
+                    // Update existing response
+                    await db
+                        .update(customFormResponses)
+                        .set({
+                            responseData: customFields,
+                            submittedBy: req.user?.id,
+                            updatedAt: new Date().toISOString(),
+                        })
+                        .where(eq(customFormResponses.id, existingResponse.id));
+                } else {
+                    // Create new response
+                    await db.insert(customFormResponses).values({
+                        formId: userForm.id,
+                        entityId: userId,
+                        entityType: "user",
+                        responseData: customFields,
+                        submittedBy: req.user?.id,
+                    });
+                }
+            }
         }
 
         return res.status(200).json(updatedUser);

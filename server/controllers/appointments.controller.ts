@@ -1,7 +1,15 @@
-import { eq, sql } from "drizzle-orm";
+import { and, eq, inArray, sql } from "drizzle-orm";
 import { alias } from "drizzle-orm/pg-core";
 import { Request, Response } from "express";
-import { appointments, clients, locations, roles, users } from "../drizzle/org/schema.js";
+import {
+    appointments,
+    clients,
+    customFormResponses,
+    customForms,
+    locations,
+    roles,
+    users,
+} from "../drizzle/org/schema.js";
 import { findOrCreateLocation } from "../utils/locations.js";
 import { applyQueryFilters } from "../utils/queryParams.js";
 
@@ -93,11 +101,38 @@ export const listAppointments = async (req: Request, res: Response): Promise<Res
             .limit(limit)
             .offset(offset);
 
+        // Fetch custom field responses for all appointments
+        const appointmentIds = allAppointments.map((appointment) => appointment.id);
+        const customFieldResponses =
+            appointmentIds.length > 0
+                ? await db
+                      .select()
+                      .from(customFormResponses)
+                      .where(
+                          and(
+                              eq(customFormResponses.entityType, "appointment"),
+                              inArray(customFormResponses.entityId, appointmentIds)
+                          )
+                      )
+                : [];
+
+        // Create a map of appointmentId -> customFields
+        const customFieldsMap = new Map();
+        for (const response of customFieldResponses) {
+            customFieldsMap.set(response.entityId, response.responseData);
+        }
+
+        // Add customFields to each appointment
+        const resultsWithCustomFields = allAppointments.map((appointment) => ({
+            ...appointment,
+            customFields: customFieldsMap.get(appointment.id) || {},
+        }));
+
         return res.status(200).json({
             page,
             pageSize,
             total: Number(total),
-            results: allAppointments,
+            results: resultsWithCustomFields,
         });
     } catch (err) {
         console.error("Error listing appointments:", err);
@@ -147,6 +182,26 @@ export const createAppointment = async (req: Request, res: Response): Promise<Re
             })
             .returning();
 
+        // Save custom field responses if provided
+        if (data.customFields && Object.keys(data.customFields).length > 0) {
+            const [appointmentForm] = await db
+                .select()
+                .from(customForms)
+                .where(
+                    and(eq(customForms.targetEntity, "appointment"), eq(customForms.isActive, true))
+                );
+
+            if (appointmentForm) {
+                await db.insert(customFormResponses).values({
+                    formId: appointmentForm.id,
+                    entityId: newAppointment.id,
+                    entityType: "appointment",
+                    responseData: data.customFields,
+                    submittedBy: req.user?.id || data.createdByUserId,
+                });
+            }
+        }
+
         return res.status(201).json(newAppointment);
     } catch (err) {
         console.error("Error creating appointment:", err);
@@ -170,7 +225,23 @@ export const getAppointment = async (req: Request, res: Response): Promise<Respo
             return res.status(404).json({ message: "Appointment not found" });
         }
 
-        return res.status(200).json(appointment);
+        // Fetch custom field responses
+        const [response] = await db
+            .select()
+            .from(customFormResponses)
+            .where(
+                and(
+                    eq(customFormResponses.entityId, appointmentId),
+                    eq(customFormResponses.entityType, "appointment")
+                )
+            );
+
+        const appointmentWithCustomFields = {
+            ...appointment,
+            customFields: response?.responseData || {},
+        };
+
+        return res.status(200).json(appointmentWithCustomFields);
     } catch (err) {
         console.error("Error fetching appointment:", err);
         return res.status(500).send();
@@ -219,6 +290,51 @@ export const updateAppointment = async (req: Request, res: Response): Promise<Re
         // No appointment with fetched ID
         if (!updated) {
             return res.status(404).json({ message: "Appointment not found" });
+        }
+
+        // Update custom field responses if provided
+        if (data.customFields) {
+            const [appointmentForm] = await db
+                .select()
+                .from(customForms)
+                .where(
+                    and(eq(customForms.targetEntity, "appointment"), eq(customForms.isActive, true))
+                );
+
+            if (appointmentForm) {
+                // Check if response already exists
+                const [existingResponse] = await db
+                    .select()
+                    .from(customFormResponses)
+                    .where(
+                        and(
+                            eq(customFormResponses.formId, appointmentForm.id),
+                            eq(customFormResponses.entityId, appointmentId),
+                            eq(customFormResponses.entityType, "appointment")
+                        )
+                    );
+
+                if (existingResponse) {
+                    // Update existing response
+                    await db
+                        .update(customFormResponses)
+                        .set({
+                            responseData: data.customFields,
+                            submittedBy: req.user?.id,
+                            updatedAt: new Date().toISOString(),
+                        })
+                        .where(eq(customFormResponses.id, existingResponse.id));
+                } else {
+                    // Create new response
+                    await db.insert(customFormResponses).values({
+                        formId: appointmentForm.id,
+                        entityId: appointmentId,
+                        entityType: "appointment",
+                        responseData: data.customFields,
+                        submittedBy: req.user?.id,
+                    });
+                }
+            }
         }
 
         return res.status(200).json(updated);

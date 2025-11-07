@@ -145,3 +145,57 @@ export type LocationSelectorProps = {
     value?: string;
     onChange?: (value: string) => void;
 };
+
+// Custom Forms Types
+export type FieldType =
+    | "text"
+    | "textarea"
+    | "number"
+    | "date"
+    | "select"
+    | "radio"
+    | "checkbox"
+    | "checkboxGroup";
+
+export type FieldOption = {
+    label: string;
+    value: string;
+};
+
+export type CustomFormField = {
+    id: string;
+    formId: string;
+    fieldKey: string;
+    label: string;
+    fieldType: FieldType;
+    placeholder?: string;
+    defaultValue?: string;
+    isRequired: boolean;
+    displayOrder: number;
+    options?: FieldOption[];
+    createdAt: string;
+    updatedAt: string;
+};
+
+export type CustomForm = {
+    id: string;
+    name: string;
+    description?: string;
+    targetEntity: "client" | "user" | "appointment";
+    isActive: boolean;
+    displayOrder: number;
+    fields?: CustomFormField[];
+    createdAt: string;
+    updatedAt: string;
+};
+
+export type CustomFormResponse = {
+    id: string;
+    formId: string;
+    entityId: string;
+    entityType: string;
+    responseData: Record<string, unknown>;
+    submittedBy?: string;
+    submittedAt: string;
+    updatedAt: string;
+};
