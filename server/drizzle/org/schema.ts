@@ -573,8 +573,6 @@ export const customFormFields = pgTable(
         isRequired: boolean("is_required").default(false).notNull(),
         displayOrder: integer("display_order").notNull(),
         options: jsonb("options"),
-        validationRules: jsonb("validation_rules"),
-        conditionalLogic: jsonb("conditional_logic"),
         createdAt: timestamp("created_at", { withTimezone: true, mode: "string" })
             .defaultNow()
             .notNull(),

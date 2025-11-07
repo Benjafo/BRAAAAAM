@@ -115,8 +115,6 @@ export const createCustomForm = async (req: Request, res: Response): Promise<Res
                 defaultValue: field.defaultValue,
                 isRequired: field.isRequired || false,
                 options: field.options,
-                validationRules: field.validationRules,
-                conditionalLogic: field.conditionalLogic,
                 displayOrder: field.displayOrder ?? index,
             }));
 
@@ -177,8 +175,6 @@ export const updateCustomForm = async (req: Request, res: Response): Promise<Res
                     defaultValue: field.defaultValue,
                     isRequired: field.isRequired || false,
                     options: field.options,
-                    validationRules: field.validationRules,
-                    conditionalLogic: field.conditionalLogic,
                     displayOrder: field.displayOrder ?? index,
                 }));
 

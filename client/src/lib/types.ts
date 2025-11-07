@@ -162,24 +162,6 @@ export type FieldOption = {
     value: string;
 };
 
-export type ValidationRules = {
-    min?: number;
-    max?: number;
-    minLength?: number;
-    maxLength?: number;
-    pattern?: string;
-    email?: boolean;
-    url?: boolean;
-};
-
-export type ConditionalLogic = {
-    showIf?: {
-        fieldKey: string;
-        operator: "equals" | "notEquals" | "contains" | "greaterThan" | "lessThan";
-        value: string | number | boolean;
-    };
-};
-
 export type CustomFormField = {
     id: string;
     formId: string;
@@ -191,8 +173,6 @@ export type CustomFormField = {
     isRequired: boolean;
     displayOrder: number;
     options?: FieldOption[];
-    validationRules?: ValidationRules;
-    conditionalLogic?: ConditionalLogic;
     createdAt: string;
     updatedAt: string;
 };

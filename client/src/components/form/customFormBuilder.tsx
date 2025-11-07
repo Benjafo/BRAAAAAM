@@ -70,15 +70,6 @@ const formSchema = z.object({
                         })
                     )
                     .optional(),
-                validationRules: z
-                    .object({
-                        min: z.number().optional(),
-                        max: z.number().optional(),
-                        minLength: z.number().optional(),
-                        maxLength: z.number().optional(),
-                        pattern: z.string().optional(),
-                    })
-                    .optional(),
             })
             .refine(
                 (field) => {
@@ -422,13 +413,6 @@ export default function CustomFormBuilder({ defaultValues, onSubmit }: Props) {
                                                     />
                                                 )}
 
-                                                {/* Validation Rules */}
-                                                <ValidationRulesEditor
-                                                    form={form}
-                                                    fieldIndex={index}
-                                                    fieldType={fields[index].fieldType}
-                                                />
-
                                                 {/* Actions */}
                                                 <div className="flex gap-2 pt-4 border-t">
                                                     <Button
@@ -525,104 +509,6 @@ function FieldOptionsEditor({ form, fieldIndex }: { form: any; fieldIndex: numbe
                     ))}
                 </div>
             )}
-        </div>
-    );
-}
-
-// Validation Rules Editor Component
-function ValidationRulesEditor({
-    form,
-    fieldIndex,
-    fieldType,
-}: {
-    form: any;
-    fieldIndex: number;
-    fieldType: FieldType;
-}) {
-    const showMinMax = ["number"].includes(fieldType);
-    const showLength = ["text", "textarea"].includes(fieldType);
-
-    if (!showMinMax && !showLength) return null;
-
-    return (
-        <div className="space-y-3 p-4 border rounded-lg">
-            <FormLabel>Validation Rules (Optional)</FormLabel>
-
-            <div className="grid grid-cols-2 gap-4">
-                {showMinMax && (
-                    <>
-                        <FormField
-                            control={form.control}
-                            name={`fields.${fieldIndex}.validationRules.min`}
-                            render={({ field }) => (
-                                <FormItem>
-                                    <FormLabel className="text-sm">Minimum Value</FormLabel>
-                                    <FormControl>
-                                        <Input
-                                            type="number"
-                                            {...field}
-                                            onChange={(e) => field.onChange(Number(e.target.value))}
-                                        />
-                                    </FormControl>
-                                </FormItem>
-                            )}
-                        />
-                        <FormField
-                            control={form.control}
-                            name={`fields.${fieldIndex}.validationRules.max`}
-                            render={({ field }) => (
-                                <FormItem>
-                                    <FormLabel className="text-sm">Maximum Value</FormLabel>
-                                    <FormControl>
-                                        <Input
-                                            type="number"
-                                            {...field}
-                                            onChange={(e) => field.onChange(Number(e.target.value))}
-                                        />
-                                    </FormControl>
-                                </FormItem>
-                            )}
-                        />
-                    </>
-                )}
-
-                {showLength && (
-                    <>
-                        <FormField
-                            control={form.control}
-                            name={`fields.${fieldIndex}.validationRules.minLength`}
-                            render={({ field }) => (
-                                <FormItem>
-                                    <FormLabel className="text-sm">Minimum Length</FormLabel>
-                                    <FormControl>
-                                        <Input
-                                            type="number"
-                                            {...field}
-                                            onChange={(e) => field.onChange(Number(e.target.value))}
-                                        />
-                                    </FormControl>
-                                </FormItem>
-                            )}
-                        />
-                        <FormField
-                            control={form.control}
-                            name={`fields.${fieldIndex}.validationRules.maxLength`}
-                            render={({ field }) => (
-                                <FormItem>
-                                    <FormLabel className="text-sm">Maximum Length</FormLabel>
-                                    <FormControl>
-                                        <Input
-                                            type="number"
-                                            {...field}
-                                            onChange={(e) => field.onChange(Number(e.target.value))}
-                                        />
-                                    </FormControl>
-                                </FormItem>
-                            )}
-                        />
-                    </>
-                )}
-            </div>
         </div>
     );
 }

@@ -111,8 +111,6 @@ function DynamicField<T extends FieldValues>({ field, control, disabled }: Dynam
                         disabled={disabled}
                         value={value || field.defaultValue || ""}
                         onChange={(e) => onChange(e.target.value ? Number(e.target.value) : "")}
-                        min={field.validationRules?.min}
-                        max={field.validationRules?.max}
                     />
                 );
 
@@ -211,24 +209,6 @@ function DynamicField<T extends FieldValues>({ field, control, disabled }: Dynam
             name={fieldName}
             rules={{
                 required: field.isRequired ? `${field.label} is required` : false,
-                ...(field.validationRules?.minLength && {
-                    minLength: {
-                        value: field.validationRules.minLength,
-                        message: `Minimum length is ${field.validationRules.minLength}`,
-                    },
-                }),
-                ...(field.validationRules?.maxLength && {
-                    maxLength: {
-                        value: field.validationRules.maxLength,
-                        message: `Maximum length is ${field.validationRules.maxLength}`,
-                    },
-                }),
-                ...(field.validationRules?.pattern && {
-                    pattern: {
-                        value: new RegExp(field.validationRules.pattern),
-                        message: "Invalid format",
-                    },
-                }),
             }}
             render={({ field: formField }) => (
                 <FormItem>
