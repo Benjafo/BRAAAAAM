@@ -31,6 +31,7 @@ import { Checkbox } from "../ui/checkbox";
 import { DatePickerInput } from "../ui/datePickerField";
 import { RadioGroup, RadioGroupItem } from "../ui/radio-group";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../ui/select";
+import DynamicFormFields from "./DynamicFormFields";
 
 /* --------------------------------- Schema --------------------------------- */
 
@@ -138,6 +139,7 @@ const userSchema = z
             .max(100, "Max characters allowed is 100.")
             .optional()
             .or(z.literal("")),
+        customFields: z.record(z.string(), z.any()).optional(),
     })
     .superRefine((data, ctx) => {
         // AI helped on the super refine
@@ -322,6 +324,7 @@ export default function NewUserForm({
             emergencyContactName: defaultValues.emergencyContactName ?? "",
             emergencyContactPhone: defaultValues.emergencyContactPhone ?? "",
             emergencyContactRelationship: defaultValues.emergencyContactRelationship ?? "",
+            customFields: defaultValues.customFields ?? {},
         },
     });
 
@@ -1038,6 +1041,11 @@ export default function NewUserForm({
                         </FormItem>
                     )}
                 />
+
+                {/* Custom Fields */}
+                <div className="md:col-span-2">
+                    <DynamicFormFields control={form.control} entityType="user" />
+                </div>
             </form>
         </Form>
     );

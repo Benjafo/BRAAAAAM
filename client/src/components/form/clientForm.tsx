@@ -31,6 +31,7 @@ import { DatePickerInput } from "../ui/datePickerField";
 import { RadioGroup, RadioGroupItem } from "../ui/radio-group";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../ui/select";
 import { Textarea } from "../ui/textarea";
+import DynamicFormFields from "./DynamicFormFields";
 
 /* --------------------------------- Schema --------------------------------- */
 /* using z.enum for select values that we know are included */
@@ -125,6 +126,7 @@ const clientSchema = z
             .or(z.literal("")),
         notes: z.string().optional().or(z.literal("")),
         pickupInstructions: z.string().optional().or(z.literal("")),
+        customFields: z.record(z.string(), z.any()).optional(),
     })
     .superRefine((data, ctx) => {
         // AI helped on the super refine
@@ -242,6 +244,7 @@ export default function ClientForm({ defaultValues, onSubmit }: Props) {
             emergencyContactRelationship: defaultValues.emergencyContactRelationship ?? "",
             notes: defaultValues.notes ?? "",
             pickupInstructions: defaultValues.pickupInstructions ?? "",
+            customFields: defaultValues.customFields ?? {},
         },
     });
 
@@ -938,6 +941,11 @@ export default function ClientForm({ defaultValues, onSubmit }: Props) {
                             </FormItem>
                         )}
                     />
+                </div>
+
+                {/* Custom Fields */}
+                <div className="md:col-span-2">
+                    <DynamicFormFields control={form.control} entityType="client" />
                 </div>
             </form>
         </Form>
