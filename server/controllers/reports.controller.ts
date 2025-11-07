@@ -115,13 +115,13 @@ export const exportClients = async (req: Request, res: Response): Promise<Respon
         let dateFilter = undefined;
         if (startDate && endDate) {
             dateFilter = and(
-                gte(clients.createdAt, new Date(startDate)),
-                lte(clients.createdAt, new Date(endDate))
+                gte(clients.createdAt, new Date(startDate).toISOString()),
+                lte(clients.createdAt, new Date(endDate).toISOString())
             );
         } else if (startDate) {
-            dateFilter = gte(clients.createdAt, new Date(startDate));
+            dateFilter = gte(clients.createdAt, new Date(startDate).toISOString());
         } else if (endDate) {
-            dateFilter = lte(clients.createdAt, new Date(endDate));
+            dateFilter = lte(clients.createdAt, new Date(endDate).toISOString());
         }
 
         // Get total count
@@ -231,13 +231,13 @@ export const exportUsers = async (req: Request, res: Response): Promise<Response
         let dateFilter = undefined;
         if (startDate && endDate) {
             dateFilter = and(
-                gte(users.createdAt, new Date(startDate)),
-                lte(users.createdAt, new Date(endDate))
+                gte(users.createdAt, new Date(startDate).toISOString()),
+                lte(users.createdAt, new Date(endDate).toISOString())
             );
         } else if (startDate) {
-            dateFilter = gte(users.createdAt, new Date(startDate));
+            dateFilter = gte(users.createdAt, new Date(startDate).toISOString());
         } else if (endDate) {
-            dateFilter = lte(users.createdAt, new Date(endDate));
+            dateFilter = lte(users.createdAt, new Date(endDate).toISOString());
         }
 
         // Get total count

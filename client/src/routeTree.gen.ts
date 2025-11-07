@@ -20,6 +20,7 @@ import { Route as Char123SubdomainChar125AuthUsersRouteImport } from './routes/{
 import { Route as Char123SubdomainChar125AuthUnavailabilityRouteImport } from './routes/{-$subdomain}/_auth/unavailability'
 import { Route as Char123SubdomainChar125AuthUnassignedRidesRouteImport } from './routes/{-$subdomain}/_auth/unassigned-rides'
 import { Route as Char123SubdomainChar125AuthScheduleRouteImport } from './routes/{-$subdomain}/_auth/schedule'
+import { Route as Char123SubdomainChar125AuthReportsRouteImport } from './routes/{-$subdomain}/_auth/reports'
 import { Route as Char123SubdomainChar125AuthOrganizationsRouteImport } from './routes/{-$subdomain}/_auth/organizations'
 import { Route as Char123SubdomainChar125AuthDashboardRouteImport } from './routes/{-$subdomain}/_auth/dashboard'
 import { Route as Char123SubdomainChar125AuthClientsRouteImport } from './routes/{-$subdomain}/_auth/clients'
@@ -89,6 +90,12 @@ const Char123SubdomainChar125AuthScheduleRoute =
     path: '/schedule',
     getParentRoute: () => Char123SubdomainChar125AuthRouteRoute,
   } as any)
+const Char123SubdomainChar125AuthReportsRoute =
+  Char123SubdomainChar125AuthReportsRouteImport.update({
+    id: '/reports',
+    path: '/reports',
+    getParentRoute: () => Char123SubdomainChar125AuthRouteRoute,
+  } as any)
 const Char123SubdomainChar125AuthOrganizationsRoute =
   Char123SubdomainChar125AuthOrganizationsRouteImport.update({
     id: '/organizations',
@@ -121,6 +128,7 @@ export interface FileRoutesByFullPath {
   '/{-$subdomain}/clients': typeof Char123SubdomainChar125AuthClientsRoute
   '/{-$subdomain}/dashboard': typeof Char123SubdomainChar125AuthDashboardRoute
   '/{-$subdomain}/organizations': typeof Char123SubdomainChar125AuthOrganizationsRoute
+  '/{-$subdomain}/reports': typeof Char123SubdomainChar125AuthReportsRoute
   '/{-$subdomain}/schedule': typeof Char123SubdomainChar125AuthScheduleRoute
   '/{-$subdomain}/unassigned-rides': typeof Char123SubdomainChar125AuthUnassignedRidesRoute
   '/{-$subdomain}/unavailability': typeof Char123SubdomainChar125AuthUnavailabilityRoute
@@ -135,6 +143,7 @@ export interface FileRoutesByTo {
   '/{-$subdomain}/clients': typeof Char123SubdomainChar125AuthClientsRoute
   '/{-$subdomain}/dashboard': typeof Char123SubdomainChar125AuthDashboardRoute
   '/{-$subdomain}/organizations': typeof Char123SubdomainChar125AuthOrganizationsRoute
+  '/{-$subdomain}/reports': typeof Char123SubdomainChar125AuthReportsRoute
   '/{-$subdomain}/schedule': typeof Char123SubdomainChar125AuthScheduleRoute
   '/{-$subdomain}/unassigned-rides': typeof Char123SubdomainChar125AuthUnassignedRidesRoute
   '/{-$subdomain}/unavailability': typeof Char123SubdomainChar125AuthUnavailabilityRoute
@@ -153,6 +162,7 @@ export interface FileRoutesById {
   '/{-$subdomain}/_auth/clients': typeof Char123SubdomainChar125AuthClientsRoute
   '/{-$subdomain}/_auth/dashboard': typeof Char123SubdomainChar125AuthDashboardRoute
   '/{-$subdomain}/_auth/organizations': typeof Char123SubdomainChar125AuthOrganizationsRoute
+  '/{-$subdomain}/_auth/reports': typeof Char123SubdomainChar125AuthReportsRoute
   '/{-$subdomain}/_auth/schedule': typeof Char123SubdomainChar125AuthScheduleRoute
   '/{-$subdomain}/_auth/unassigned-rides': typeof Char123SubdomainChar125AuthUnassignedRidesRoute
   '/{-$subdomain}/_auth/unavailability': typeof Char123SubdomainChar125AuthUnavailabilityRoute
@@ -170,6 +180,7 @@ export interface FileRouteTypes {
     | '/{-$subdomain}/clients'
     | '/{-$subdomain}/dashboard'
     | '/{-$subdomain}/organizations'
+    | '/{-$subdomain}/reports'
     | '/{-$subdomain}/schedule'
     | '/{-$subdomain}/unassigned-rides'
     | '/{-$subdomain}/unavailability'
@@ -184,6 +195,7 @@ export interface FileRouteTypes {
     | '/{-$subdomain}/clients'
     | '/{-$subdomain}/dashboard'
     | '/{-$subdomain}/organizations'
+    | '/{-$subdomain}/reports'
     | '/{-$subdomain}/schedule'
     | '/{-$subdomain}/unassigned-rides'
     | '/{-$subdomain}/unavailability'
@@ -201,6 +213,7 @@ export interface FileRouteTypes {
     | '/{-$subdomain}/_auth/clients'
     | '/{-$subdomain}/_auth/dashboard'
     | '/{-$subdomain}/_auth/organizations'
+    | '/{-$subdomain}/_auth/reports'
     | '/{-$subdomain}/_auth/schedule'
     | '/{-$subdomain}/_auth/unassigned-rides'
     | '/{-$subdomain}/_auth/unavailability'
@@ -293,6 +306,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof Char123SubdomainChar125AuthScheduleRouteImport
       parentRoute: typeof Char123SubdomainChar125AuthRouteRoute
     }
+    '/{-$subdomain}/_auth/reports': {
+      id: '/{-$subdomain}/_auth/reports'
+      path: '/reports'
+      fullPath: '/{-$subdomain}/reports'
+      preLoaderRoute: typeof Char123SubdomainChar125AuthReportsRouteImport
+      parentRoute: typeof Char123SubdomainChar125AuthRouteRoute
+    }
     '/{-$subdomain}/_auth/organizations': {
       id: '/{-$subdomain}/_auth/organizations'
       path: '/organizations'
@@ -329,6 +349,7 @@ interface Char123SubdomainChar125AuthRouteRouteChildren {
   Char123SubdomainChar125AuthClientsRoute: typeof Char123SubdomainChar125AuthClientsRoute
   Char123SubdomainChar125AuthDashboardRoute: typeof Char123SubdomainChar125AuthDashboardRoute
   Char123SubdomainChar125AuthOrganizationsRoute: typeof Char123SubdomainChar125AuthOrganizationsRoute
+  Char123SubdomainChar125AuthReportsRoute: typeof Char123SubdomainChar125AuthReportsRoute
   Char123SubdomainChar125AuthScheduleRoute: typeof Char123SubdomainChar125AuthScheduleRoute
   Char123SubdomainChar125AuthUnassignedRidesRoute: typeof Char123SubdomainChar125AuthUnassignedRidesRoute
   Char123SubdomainChar125AuthUnavailabilityRoute: typeof Char123SubdomainChar125AuthUnavailabilityRoute
@@ -345,6 +366,8 @@ const Char123SubdomainChar125AuthRouteRouteChildren: Char123SubdomainChar125Auth
       Char123SubdomainChar125AuthDashboardRoute,
     Char123SubdomainChar125AuthOrganizationsRoute:
       Char123SubdomainChar125AuthOrganizationsRoute,
+    Char123SubdomainChar125AuthReportsRoute:
+      Char123SubdomainChar125AuthReportsRoute,
     Char123SubdomainChar125AuthScheduleRoute:
       Char123SubdomainChar125AuthScheduleRoute,
     Char123SubdomainChar125AuthUnassignedRidesRoute:

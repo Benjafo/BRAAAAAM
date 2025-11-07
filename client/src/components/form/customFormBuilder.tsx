@@ -66,7 +66,7 @@ const formSchema = z.object({
                     .array(
                         z.object({
                             label: z.string(),
-                            value: z.string(),
+                            value: z.string().optional(),
                         })
                     )
                     .optional(),

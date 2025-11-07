@@ -137,11 +137,11 @@ export const MainNavigation = ({
             link: "/users",
             permission: PERMISSIONS.USERS_READ,
         },
-        // {
-        //     text: "Reports",
-        //     link: "/reports",
-        //     permission: PERMISSIONS.VIEW_REPORTS,
-        // },
+        {
+            text: "Reports",
+            link: "/reports",
+            permission: PERMISSIONS.REPORTS_EXPORT,
+        },
         {
             text: "Settings",
             link: "/admin-settings",
