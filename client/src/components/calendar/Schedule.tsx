@@ -34,6 +34,7 @@ type Ride = {
     destinationCity: string | null;
     destinationState: string | null;
     destinationZip: string | null;
+    customFields?: Record<string, any>;
 };
 
 // Transform API ride data to CalendarEvent format
@@ -122,6 +123,7 @@ const mapRideToFormValues = (ride: Ride): Partial<RideFormValues> & { id?: strin
         purposeOfTrip: ride.tripPurpose || "",
         assignedDriver: ride.driverId || undefined,
         rideStatus: ride.status,
+        customFields: ride.customFields || {},
     };
 };
 

@@ -73,6 +73,12 @@ const formSchema = z.object({
             })
             .refine(
                 (field) => {
+                    // Only validate mutual exclusivity for fields that support placeholders
+                    const supportsPlaceholder = !["checkbox", "radio", "checkboxGroup"].includes(
+                        field.fieldType
+                    );
+                    if (!supportsPlaceholder) return true;
+
                     const hasPlaceholder =
                         field.placeholder && field.placeholder.trim() !== "";
                     const hasDefaultValue =
@@ -136,6 +142,10 @@ export default function CustomFormBuilder({ defaultValues, onSubmit }: Props) {
 
     const fieldTypeRequiresOptions = (type: FieldType) => {
         return ["select", "radio", "checkboxGroup"].includes(type);
+    };
+
+    const fieldTypeSupportsPlaceholder = (type: FieldType) => {
+        return !["checkbox", "radio", "checkboxGroup"].includes(type);
     };
 
     // Preprocess form data to convert null to undefined for optional fields
@@ -211,27 +221,6 @@ export default function CustomFormBuilder({ defaultValues, onSubmit }: Props) {
                                     <AccordionContent>
                                         <Card>
                                             <CardContent className="pt-6 space-y-4">
-                                                {/* Field Key */}
-                                                <FormField
-                                                    control={form.control}
-                                                    name={`fields.${index}.fieldKey`}
-                                                    render={({ field }) => (
-                                                        <FormItem>
-                                                            <FormLabel>
-                                                                Field Key (Unique ID)
-                                                            </FormLabel>
-                                                            <FormControl>
-                                                                <Input {...field} />
-                                                            </FormControl>
-                                                            <p className="text-xs text-muted-foreground">
-                                                                Used for data storage. Only
-                                                                alphanumeric and underscores.
-                                                            </p>
-                                                            <FormMessage />
-                                                        </FormItem>
-                                                    )}
-                                                />
-
                                                 {/* Label */}
                                                 <FormField
                                                     control={form.control}
@@ -296,24 +285,28 @@ export default function CustomFormBuilder({ defaultValues, onSubmit }: Props) {
                                                 />
 
                                                 {/* Placeholder */}
-                                                <FormField
-                                                    control={form.control}
-                                                    name={`fields.${index}.placeholder`}
-                                                    render={({ field }) => (
-                                                        <FormItem>
-                                                            <FormLabel>
-                                                                Placeholder Text (Optional)
-                                                            </FormLabel>
-                                                            <FormControl>
-                                                                <Input
-                                                                    {...field}
-                                                                    value={field.value ?? ""}
-                                                                />
-                                                            </FormControl>
-                                                            <FormMessage />
-                                                        </FormItem>
-                                                    )}
-                                                />
+                                                {fieldTypeSupportsPlaceholder(
+                                                    fields[index].fieldType
+                                                ) && (
+                                                    <FormField
+                                                        control={form.control}
+                                                        name={`fields.${index}.placeholder`}
+                                                        render={({ field }) => (
+                                                            <FormItem>
+                                                                <FormLabel>
+                                                                    Placeholder Text (Optional)
+                                                                </FormLabel>
+                                                                <FormControl>
+                                                                    <Input
+                                                                        {...field}
+                                                                        value={field.value ?? ""}
+                                                                    />
+                                                                </FormControl>
+                                                                <FormMessage />
+                                                            </FormItem>
+                                                        )}
+                                                    />
+                                                )}
 
                                                 {/* Default Value */}
                                                 <FormField
@@ -321,6 +314,8 @@ export default function CustomFormBuilder({ defaultValues, onSubmit }: Props) {
                                                     name={`fields.${index}.defaultValue`}
                                                     render={({ field }) => {
                                                         const currentField = fields[index];
+                                                        const isCheckbox =
+                                                            currentField.fieldType === "checkbox";
                                                         const hasOptions = fieldTypeRequiresOptions(
                                                             currentField.fieldType
                                                         );
@@ -333,7 +328,28 @@ export default function CustomFormBuilder({ defaultValues, onSubmit }: Props) {
                                                                     Default Value (Optional)
                                                                 </FormLabel>
                                                                 <FormControl>
-                                                                    {hasOptions ? (
+                                                                    {isCheckbox ? (
+                                                                        <Select
+                                                                            onValueChange={
+                                                                                field.onChange
+                                                                            }
+                                                                            value={
+                                                                                field.value ?? ""
+                                                                            }
+                                                                        >
+                                                                            <SelectTrigger>
+                                                                                <SelectValue placeholder="Select default state" />
+                                                                            </SelectTrigger>
+                                                                            <SelectContent>
+                                                                                <SelectItem value="true">
+                                                                                    Checked
+                                                                                </SelectItem>
+                                                                                <SelectItem value="false">
+                                                                                    Unchecked
+                                                                                </SelectItem>
+                                                                            </SelectContent>
+                                                                        </Select>
+                                                                    ) : hasOptions ? (
                                                                         <Select
                                                                             onValueChange={
                                                                                 field.onChange
@@ -346,25 +362,34 @@ export default function CustomFormBuilder({ defaultValues, onSubmit }: Props) {
                                                                                 <SelectValue placeholder="Select default option" />
                                                                             </SelectTrigger>
                                                                             <SelectContent>
-                                                                                {fieldOptions.map(
-                                                                                    (
-                                                                                        option: any,
-                                                                                        optIdx: number
-                                                                                    ) => (
-                                                                                        <SelectItem
-                                                                                            key={
-                                                                                                optIdx
-                                                                                            }
-                                                                                            value={toSnakeCase(
-                                                                                                option.label
-                                                                                            )}
-                                                                                        >
-                                                                                            {
-                                                                                                option.label
-                                                                                            }
-                                                                                        </SelectItem>
+                                                                                {fieldOptions
+                                                                                    .filter(
+                                                                                        (
+                                                                                            option: any
+                                                                                        ) =>
+                                                                                            option.label &&
+                                                                                            option.label.trim() !==
+                                                                                                ""
                                                                                     )
-                                                                                )}
+                                                                                    .map(
+                                                                                        (
+                                                                                            option: any,
+                                                                                            optIdx: number
+                                                                                        ) => (
+                                                                                            <SelectItem
+                                                                                                key={
+                                                                                                    optIdx
+                                                                                                }
+                                                                                                value={toSnakeCase(
+                                                                                                    option.label
+                                                                                                )}
+                                                                                            >
+                                                                                                {
+                                                                                                    option.label
+                                                                                                }
+                                                                                            </SelectItem>
+                                                                                        )
+                                                                                    )}
                                                                             </SelectContent>
                                                                         </Select>
                                                                     ) : (
