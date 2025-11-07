@@ -1,23 +1,23 @@
+import { and, eq } from "drizzle-orm";
 import { Request, Response } from "express";
-import { customForms, customFormFields, customFormResponses } from "../drizzle/org/schema.js";
-import { eq, and } from "drizzle-orm";
+import { customFormFields, customFormResponses, customForms } from "../drizzle/org/schema.js";
 
 export const listCustomForms = async (req: Request, res: Response): Promise<Response> => {
     try {
         const db = req.org?.db;
         if (!db) return res.status(500).json({ error: "Database not initialized" });
 
-        const { targetEntity } = req.query; // Optional filter
+        const { entity } = req.query;
 
-        let whereClause = eq(customForms.isActive, true);
-        if (targetEntity) {
-            whereClause = and(whereClause, eq(customForms.targetEntity, targetEntity as string)) as any;
+        let where = eq(customForms.isActive, true);
+        if (entity) {
+            where = and(where, eq(customForms.targetEntity, entity as string)) as any;
         }
 
         const forms = await db
             .select()
             .from(customForms)
-            .where(whereClause)
+            .where(where)
             .orderBy(customForms.displayOrder, customForms.name);
 
         // Get fields for each form
@@ -112,7 +112,6 @@ export const createCustomForm = async (req: Request, res: Response): Promise<Res
                 label: field.label,
                 fieldType: field.fieldType,
                 placeholder: field.placeholder,
-                helpText: field.helpText,
                 defaultValue: field.defaultValue,
                 isRequired: field.isRequired || false,
                 options: field.options,
@@ -175,7 +174,6 @@ export const updateCustomForm = async (req: Request, res: Response): Promise<Res
                     label: field.label,
                     fieldType: field.fieldType,
                     placeholder: field.placeholder,
-                    helpText: field.helpText,
                     defaultValue: field.defaultValue,
                     isRequired: field.isRequired || false,
                     options: field.options,

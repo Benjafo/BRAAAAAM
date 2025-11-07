@@ -1,6 +1,6 @@
-import { and, eq, sql } from "drizzle-orm";
+import { and, eq, inArray, sql } from "drizzle-orm";
 import { Request, Response } from "express";
-import { clients, locations } from "../drizzle/org/schema.js";
+import { clients, customFormResponses, customForms, locations } from "../drizzle/org/schema.js";
 import { findOrCreateLocation } from "../utils/locations.js";
 import { applyQueryFilters } from "../utils/queryParams.js";
 
@@ -90,11 +90,38 @@ export const listClients = async (req: Request, res: Response): Promise<Response
             .limit(limit)
             .offset(offset);
 
+        // Fetch custom field responses for all clients
+        const clientIds = data.map((client) => client.id);
+        const customFieldResponses =
+            clientIds.length > 0
+                ? await db
+                      .select()
+                      .from(customFormResponses)
+                      .where(
+                          and(
+                              eq(customFormResponses.entityType, "client"),
+                              inArray(customFormResponses.entityId, clientIds)
+                          )
+                      )
+                : [];
+
+        // Create a map of clientId -> customFields
+        const customFieldsMap = new Map();
+        for (const response of customFieldResponses) {
+            customFieldsMap.set(response.entityId, response.responseData);
+        }
+
+        // Add customFields to each client
+        const resultsWithCustomFields = data.map((client) => ({
+            ...client,
+            customFields: customFieldsMap.get(client.id) || {},
+        }));
+
         return res.status(200).json({
             page,
             pageSize,
             total: Number(total),
-            results: data,
+            results: resultsWithCustomFields,
         });
     } catch (err) {
         console.error("Error listing clients:", err);
@@ -200,6 +227,25 @@ export const createClient = async (req: Request, res: Response): Promise<Respons
             })
             .returning(); // Return full client row
 
+        // Save custom field responses if provided
+        const customFields = req.body.customFields;
+        if (customFields && Object.keys(customFields).length > 0) {
+            const [clientForm] = await db
+                .select()
+                .from(customForms)
+                .where(and(eq(customForms.targetEntity, "client"), eq(customForms.isActive, true)));
+
+            if (clientForm) {
+                await db.insert(customFormResponses).values({
+                    formId: clientForm.id,
+                    entityId: newClient.id,
+                    entityType: "client",
+                    responseData: customFields,
+                    submittedBy: req.user?.id,
+                });
+            }
+        }
+
         return res.status(201).json(newClient);
     } catch (err) {
         console.error("Error creating client:", err);
@@ -259,7 +305,20 @@ export const getClient = async (req: Request, res: Response): Promise<Response> 
             return res.status(404).json({ message: "Client not found" });
         }
 
-        return res.status(200).json(clientData);
+        // Fetch custom field responses
+        const [response] = await db
+            .select()
+            .from(customFormResponses)
+            .where(
+                and(eq(customFormResponses.entityId, clientId), eq(customFormResponses.entityType, "client"))
+            );
+
+        const clientWithCustomFields = {
+            ...clientData,
+            customFields: response?.responseData || {},
+        };
+
+        return res.status(200).json(clientWithCustomFields);
     } catch (err) {
         console.error("Error fetching client:", err);
         return res.status(500).json({ error: "Internal server error" });
@@ -305,6 +364,50 @@ export const updateClient = async (req: Request, res: Response): Promise<Respons
         // No client found
         if (!updatedClient) {
             return res.status(404).json({ message: "Client not found" });
+        }
+
+        // Update custom field responses if provided
+        const customFields = req.body.customFields;
+        if (customFields) {
+            const [clientForm] = await db
+                .select()
+                .from(customForms)
+                .where(and(eq(customForms.targetEntity, "client"), eq(customForms.isActive, true)));
+
+            if (clientForm) {
+                // Check if response already exists
+                const [existingResponse] = await db
+                    .select()
+                    .from(customFormResponses)
+                    .where(
+                        and(
+                            eq(customFormResponses.formId, clientForm.id),
+                            eq(customFormResponses.entityId, clientId),
+                            eq(customFormResponses.entityType, "client")
+                        )
+                    );
+
+                if (existingResponse) {
+                    // Update existing response
+                    await db
+                        .update(customFormResponses)
+                        .set({
+                            responseData: customFields,
+                            submittedBy: req.user?.id,
+                            updatedAt: new Date().toISOString(),
+                        })
+                        .where(eq(customFormResponses.id, existingResponse.id));
+                } else {
+                    // Create new response
+                    await db.insert(customFormResponses).values({
+                        formId: clientForm.id,
+                        entityId: clientId,
+                        entityType: "client",
+                        responseData: customFields,
+                        submittedBy: req.user?.id,
+                    });
+                }
+            }
         }
 
         return res.status(200).json(updatedClient);

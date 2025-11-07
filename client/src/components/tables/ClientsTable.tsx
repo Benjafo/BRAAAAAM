@@ -25,6 +25,7 @@ type Client = {
     emergencyContactRelationship: string | null;
     notes: string | null;
     pickupInstructions: string | null;
+    customFields?: Record<string, any>;
     address: {
         id: string;
         addressLine1: string;
@@ -61,6 +62,7 @@ function mapClientToFormValues(client: Client): Partial<ClientFormValues> & { id
         city: client.address.city,
         state: client.address.state,
         zipCode: client.address.zip,
+        customFields: client.customFields || {},
         // TODO: add clientStatus, volunteeringStatus when available from API
         // okToText fields are not included
         // derived date fields for volunteer status are also not included

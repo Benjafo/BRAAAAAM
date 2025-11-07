@@ -16,15 +16,19 @@ type NewClientModalProps = {
     defaultValues?: Partial<ClientFormValues> & { id?: string };
     open: boolean;
     onOpenChange: (open: boolean) => void;
+    onSuccess?: () => void;
 };
 export default function ClientModal({
     defaultValues = {},
     open,
     onOpenChange,
+    onSuccess,
 }: NewClientModalProps) {
     const isEditing = Boolean(defaultValues.id);
     const modalTitle = isEditing ? "Edit Client" : "New Client";
     const successMessage = isEditing ? "Client Updated" : "New Client Created";
+
+    console.log("Default Values:", defaultValues);
 
     async function handleSubmit(values: ClientFormValues) {
         try {
@@ -49,6 +53,7 @@ export default function ClientModal({
                 emergencyContactRelationship: values.emergencyContactRelationship || null,
                 notes: values.notes || null,
                 pickupInstructions: values.pickupInstructions || null,
+                customFields: values.customFields,
                 address: {
                     addressLine1: values.homeAddress,
                     addressLine2: values.homeAddress2 || null,
@@ -81,6 +86,7 @@ export default function ClientModal({
             }
 
             toast.success(successMessage);
+            onSuccess?.();
             onOpenChange(false);
         } catch (error) {
             console.error("Failed to save client:", error);
