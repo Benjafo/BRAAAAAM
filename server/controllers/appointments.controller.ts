@@ -1,4 +1,4 @@
-import { and, eq, sql } from "drizzle-orm";
+import { and, eq, inArray, sql } from "drizzle-orm";
 import { alias } from "drizzle-orm/pg-core";
 import { Request, Response } from "express";
 import {
@@ -92,11 +92,38 @@ export const listAppointments = async (req: Request, res: Response): Promise<Res
             .limit(limit)
             .offset(offset);
 
+        // Fetch custom field responses for all appointments
+        const appointmentIds = allAppointments.map((appointment) => appointment.id);
+        const customFieldResponses =
+            appointmentIds.length > 0
+                ? await db
+                      .select()
+                      .from(customFormResponses)
+                      .where(
+                          and(
+                              eq(customFormResponses.entityType, "appointment"),
+                              inArray(customFormResponses.entityId, appointmentIds)
+                          )
+                      )
+                : [];
+
+        // Create a map of appointmentId -> customFields
+        const customFieldsMap = new Map();
+        for (const response of customFieldResponses) {
+            customFieldsMap.set(response.entityId, response.responseData);
+        }
+
+        // Add customFields to each appointment
+        const resultsWithCustomFields = allAppointments.map((appointment) => ({
+            ...appointment,
+            customFields: customFieldsMap.get(appointment.id) || {},
+        }));
+
         return res.status(200).json({
             page,
             pageSize,
             total: Number(total),
-            results: allAppointments,
+            results: resultsWithCustomFields,
         });
     } catch (err) {
         console.error("Error listing appointments:", err);

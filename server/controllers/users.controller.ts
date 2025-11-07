@@ -1,4 +1,4 @@
-import { and, eq, sql } from "drizzle-orm";
+import { and, eq, inArray, sql } from "drizzle-orm";
 import { Request, Response } from "express";
 import { customFormResponses, customForms, locations, roles, users } from "../drizzle/org/schema.js";
 import { findOrCreateLocation } from "../utils/locations.js";
@@ -100,11 +100,38 @@ export const listUsers = async (req: Request, res: Response): Promise<Response> 
             .limit(limit)
             .offset(offset);
 
+        // Fetch custom field responses for all users
+        const userIds = data.map((user) => user.id);
+        const customFieldResponses =
+            userIds.length > 0
+                ? await db
+                      .select()
+                      .from(customFormResponses)
+                      .where(
+                          and(
+                              eq(customFormResponses.entityType, "user"),
+                              inArray(customFormResponses.entityId, userIds)
+                          )
+                      )
+                : [];
+
+        // Create a map of userId -> customFields
+        const customFieldsMap = new Map();
+        for (const response of customFieldResponses) {
+            customFieldsMap.set(response.entityId, response.responseData);
+        }
+
+        // Add customFields to each user
+        const resultsWithCustomFields = data.map((user) => ({
+            ...user,
+            customFields: customFieldsMap.get(user.id) || {},
+        }));
+
         return res.status(200).json({
             page,
             pageSize,
             total: Number(total),
-            results: data,
+            results: resultsWithCustomFields,
         });
     } catch (err) {
         console.error("Error listing users:", err);

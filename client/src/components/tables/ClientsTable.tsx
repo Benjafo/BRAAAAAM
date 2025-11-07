@@ -74,8 +74,14 @@ export function ClientsTable() {
     const [selectedClientData, setSelectedClientData] = useState<
         Partial<ClientFormValues> & { id?: string }
     >({});
+    const [refreshKey, setRefreshKey] = useState(0);
     const hasCreatePermission = useAuthStore((s) => s.hasPermission(PERMISSIONS.CLIENTS_CREATE));
     const hasEditPermission = useAuthStore((s) => s.hasPermission(PERMISSIONS.CLIENTS_UPDATE));
+
+    // hacky fix to force refresh for the custom fields
+    const handleRefresh = () => {
+        setRefreshKey((prev) => prev + 1);
+    };
 
     const fetchClients = async (params: Record<string, unknown>) => {
         const searchParams = new URLSearchParams();
@@ -110,6 +116,7 @@ export function ClientsTable() {
     return (
         <>
             <DataTable
+                key={refreshKey}
                 fetchData={fetchClients}
                 columns={[
                     {
@@ -157,6 +164,7 @@ export function ClientsTable() {
                 open={isClientModalOpen}
                 onOpenChange={setIsClientModalOpen}
                 defaultValues={selectedClientData}
+                onSuccess={handleRefresh}
             />
         </>
     );

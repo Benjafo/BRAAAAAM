@@ -50,6 +50,7 @@ type RideModalProps = {
     open: boolean;
     onOpenChange: (open: boolean) => void;
     defaultValues?: Partial<RideFormValues> & { id?: string };
+    onSuccess?: () => void;
 };
 
 // Type matching the API response from listUsers
@@ -68,6 +69,7 @@ export default function RideModal({
     open,
     onOpenChange,
     defaultValues: defaultValuesProp = {},
+    onSuccess,
 }: RideModalProps) {
     const isEditing = Boolean(defaultValuesProp.id);
     const modalTitle = isEditing ? "Edit Ride" : "Create Ride";
@@ -77,6 +79,8 @@ export default function RideModal({
     const [drivers, setDrivers] = React.useState<User[]>([]);
     const [isLoadingClients, setIsLoadingClients] = React.useState(false);
     const [isLoadingDrivers, setIsLoadingDrivers] = React.useState(false);
+
+    console.log("Default Values:", defaultValuesProp);
 
     React.useEffect(() => {
         if (!open) return; // Only fetch when modal is open
@@ -212,6 +216,7 @@ export default function RideModal({
                     country: "USA",
                 },
                 status: values.rideStatus || "unassigned",
+                customFields: values.customFields,
             };
 
             console.log("Sending to API:", requestBody);
@@ -238,6 +243,7 @@ export default function RideModal({
             }
 
             toast.success(successMessage);
+            onSuccess?.();
             onOpenChange(false);
         } catch (error) {
             console.error("Failed to create appointment:", error);

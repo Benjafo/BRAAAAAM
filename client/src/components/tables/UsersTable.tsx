@@ -70,8 +70,13 @@ export function UsersTable() {
     const [selectedUserData, setSelectedUserData] = useState<
         Partial<UserFormValues> & { id?: string }
     >({});
+    const [refreshKey, setRefreshKey] = useState(0);
     const hasCreatePermission = useAuthStore((s) => s.hasPermission(PERMISSIONS.USERS_CREATE));
     const hasEditPermission = useAuthStore((s) => s.hasPermission(PERMISSIONS.USERS_UPDATE));
+
+    const handleRefresh = () => {
+        setRefreshKey((prev) => prev + 1);
+    };
 
     // const { isPending, isError, data: users, error } = useUsers({})
     /** @TODO extract fetch logic outside of datatable */
@@ -131,6 +136,7 @@ export function UsersTable() {
     return (
         <>
             <DataTable
+                key={refreshKey}
                 fetchData={fetchUsers}
                 columns={[
                     {
@@ -182,6 +188,7 @@ export function UsersTable() {
                 open={isUserModalOpen}
                 onOpenChange={setIsUserModalOpen}
                 defaultValues={selectedUserData}
+                onSuccess={handleRefresh}
             />
         </>
     );

@@ -29,7 +29,7 @@ const CUSTOM_FORMS: CustomFormConfig[] = [
     },
     {
         type: "appointment",
-        title: "Ride/Appointment Form",
+        title: "Ride Form",
         description: "Additional fields for ride bookings",
         icon: Calendar,
     },
@@ -38,6 +38,7 @@ const CUSTOM_FORMS: CustomFormConfig[] = [
 export default function CustomFormsTable() {
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [selectedForm, setSelectedForm] = useState<CustomForm | null>(null);
+    const [selectedEntityType, setSelectedEntityType] = useState<EntityType>("client");
     const [forms, setForms] = useState<CustomForm[]>([]);
     const [loading, setLoading] = useState(true);
 
@@ -60,6 +61,7 @@ export default function CustomFormsTable() {
     const handleCardClick = (entityType: EntityType) => {
         const existingForm = forms.find((f) => f.targetEntity === entityType);
         setSelectedForm(existingForm || null);
+        setSelectedEntityType(entityType);
         setIsModalOpen(true);
     };
 
@@ -102,32 +104,13 @@ export default function CustomFormsTable() {
                             </CardHeader>
                             <CardContent>
                                 {form ? (
-                                    <div className="space-y-2 text-sm">
-                                        <div>
-                                            <span className="text-muted-foreground">Status: </span>
-                                            <span
-                                                className={
-                                                    form.isActive
-                                                        ? "text-green-600 font-medium"
-                                                        : "text-gray-500"
-                                                }
-                                            >
-                                                {form.isActive ? "Active" : "Inactive"}
-                                            </span>
-                                        </div>
-                                        <div>
-                                            <span className="text-muted-foreground">
-                                                Custom Fields:{" "}
-                                            </span>
-                                            <span className="font-medium">
-                                                {form.fields?.length || 0}
-                                            </span>
-                                        </div>
-                                        {form.description && (
-                                            <p className="text-muted-foreground mt-2 line-clamp-2">
-                                                {form.description}
-                                            </p>
-                                        )}
+                                    <div className="text-sm">
+                                        <span className="text-muted-foreground">
+                                            Custom Fields:{" "}
+                                        </span>
+                                        <span className="font-medium">
+                                            {form.fields?.length || 0}
+                                        </span>
                                     </div>
                                 ) : (
                                     <p className="text-sm text-muted-foreground">
@@ -144,6 +127,7 @@ export default function CustomFormsTable() {
                 open={isModalOpen}
                 onOpenChange={setIsModalOpen}
                 defaultValues={selectedForm || undefined}
+                targetEntity={selectedEntityType}
                 onSuccess={handleSuccess}
             />
         </>

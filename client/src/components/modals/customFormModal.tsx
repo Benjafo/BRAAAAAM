@@ -17,26 +17,46 @@ type Props = {
     open: boolean;
     onOpenChange: (open: boolean) => void;
     defaultValues?: Partial<CustomFormBuilderValues>;
+    targetEntity: "client" | "user" | "appointment";
     onSuccess?: () => void;
 };
 
-export default function CustomFormModal({ open, onOpenChange, defaultValues, onSuccess }: Props) {
+export default function CustomFormModal({
+    open,
+    onOpenChange,
+    defaultValues,
+    targetEntity,
+    onSuccess,
+}: Props) {
     const [isSubmitting, setIsSubmitting] = useState(false);
     const isEditing = !!(defaultValues as any)?.id;
+
+    const entityLabels = {
+        client: "Client",
+        user: "User",
+        appointment: "Ride",
+    };
 
     async function handleSubmit(values: CustomFormBuilderValues) {
         setIsSubmitting(true);
         try {
             const orgID = "braaaaam"; // TODO fix hardcoded
-            
+
+            const requestBody = {
+                ...values,
+                name: `${entityLabels[targetEntity]} Form`,
+                targetEntity,
+                isActive: true,
+            };
+
             if (isEditing) {
                 await http.put(`o/${orgID}/custom-forms/${(defaultValues as any).id}`, {
-                    json: values,
+                    json: requestBody,
                 });
                 toast.success("Custom form updated successfully");
             } else {
                 await http.post(`o/${orgID}/custom-forms`, {
-                    json: values,
+                    json: requestBody,
                 });
                 toast.success("Custom form created successfully");
             }
@@ -54,7 +74,7 @@ export default function CustomFormModal({ open, onOpenChange, defaultValues, onS
         <Dialog open={open} onOpenChange={onOpenChange}>
             <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
                 <DialogHeader>
-                    <DialogTitle>{isEditing ? "Edit" : "Create"} Custom Form</DialogTitle>
+                    <DialogTitle>Custom {entityLabels[targetEntity]} Form Fields</DialogTitle>
                 </DialogHeader>
 
                 <CustomFormBuilder defaultValues={defaultValues} onSubmit={handleSubmit} />
