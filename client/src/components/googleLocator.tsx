@@ -155,9 +155,9 @@ const GoogleLocator: React.FC<LocationSelectorProps> = ({
     if (error) {
         return (
             <div className="relative w-full">
-                <div className="flex items-center space-x-2 p-3 bg-red-50 border border-red-200 rounded-md">
-                    <AlertCircle className="w-4 h-4 text-red-500 flex-shrink-0" />
-                    <span className="text-sm text-red-700">{error}</span>
+                <div className="flex items-center space-x-2 p-3 bg-red-50 border border-destructive rounded-md">
+                    <AlertCircle className="w-4 h-4 text-destructive flex-shrink-0" />
+                    <span className="text-sm text-destructive">{error}</span>
                 </div>
             </div>
         );
@@ -177,9 +177,9 @@ const GoogleLocator: React.FC<LocationSelectorProps> = ({
                     className="w-full pr-12 truncate"
                 />
                 {isLoading ? (
-                    <Loader2 className="absolute right-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400 animate-spin" />
+                    <Loader2 className="absolute right-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-muted-foreground animate-spin" />
                 ) : (
-                    <MapPin className="absolute right-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400 pointer-events-none" />
+                    <MapPin className="absolute right-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-muted-foreground pointer-events-none" />
                 )}
             </div>
         </div>

@@ -24,7 +24,7 @@ const FormField: React.FC<FormFieldProps> = ({
     <div className="mb-4">
         <label
             htmlFor={id}
-            className="mb-1 block text-sm font-medium text-gray-700 text-left w-full"
+            className="mb-1 block text-sm font-medium text-muted-foreground text-left w-full"
         >
             {label}
         </label>
@@ -36,7 +36,7 @@ const FormField: React.FC<FormFieldProps> = ({
             className="text-sm"
             {...register}
         />
-        {error && <p className="text-red-500 text-sm mt-1">{error.message}</p>}
+        {error && <p className="text-destructive text-sm mt-1">{error.message}</p>}
     </div>
 );
 

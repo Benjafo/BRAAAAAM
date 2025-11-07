@@ -361,8 +361,16 @@ export default function BaseCalendar({
     const EventComponent = ({ event }: { event: CalendarEvent }) => {
         const isMonthView = currentView === Views.MONTH;
         const clientName = String(event.resource?.clientName || event.title);
-        const driverName = event.resource?.driverName ? String(event.resource.driverName) : event.resource?.driver ? String(event.resource.driver) : undefined;
-        const purpose = event.resource?.purpose ? String(event.resource.purpose) : event.resource?.details ? String(event.resource.details) : undefined;
+        const driverName = event.resource?.driverName
+            ? String(event.resource.driverName)
+            : event.resource?.driver
+              ? String(event.resource.driver)
+              : undefined;
+        const purpose = event.resource?.purpose
+            ? String(event.resource.purpose)
+            : event.resource?.details
+              ? String(event.resource.details)
+              : undefined;
         const status = String(event.resource?.status || "scheduled");
 
         // Build tooltip content
@@ -763,7 +771,7 @@ export default function BaseCalendar({
             <style>{customStyles}</style>
 
             {/* Top Navigation Bar  */}
-            <div className="border-b border-gray-600 px-4 py-2">
+            <div className="border-b border-muted-foreground px-4 py-2">
                 <div className="flex justify-between items-center">
                     <div className="flex items-center space-x-4">
                         <div className="flex items-center space-x-2">

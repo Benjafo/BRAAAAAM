@@ -167,7 +167,7 @@ const RegisterPage = ({
                     {/* Login link for existing users */}
                     <div className="mt-3 text-center">
                         <Link to="/sign-in">
-                            <span className="text-sm text-gray-700 hover:underline cursor-pointer">
+                            <span className="text-sm hover:underline cursor-pointer">
                                 {loginText}
                             </span>
                         </Link>
