@@ -131,7 +131,7 @@ export default function CustomFormsTable() {
                                     </div>
                                 ) : (
                                     <p className="text-sm text-muted-foreground">
-                                        Click to create custom form
+                                        Click to begin adding custom fields
                                     </p>
                                 )}
                             </CardContent>

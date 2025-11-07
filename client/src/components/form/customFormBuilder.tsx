@@ -54,8 +54,8 @@ const formSchema = z.object({
                 "checkbox",
                 "checkboxGroup",
             ]),
-            placeholder: z.string().max(255).optional(),
-            defaultValue: z.string().optional(),
+            placeholder: z.string().max(255).nullable().optional(),
+            defaultValue: z.string().nullable().optional(),
             isRequired: z.boolean(),
             options: z
                 .array(
@@ -107,6 +107,8 @@ export default function CustomFormBuilder({ defaultValues, onSubmit }: Props) {
             fieldKey: `field_${Date.now()}`,
             label: "New Field",
             fieldType: "text" as FieldType,
+            placeholder: undefined,
+            defaultValue: undefined,
             isRequired: false,
             options: [],
         };
@@ -131,11 +133,29 @@ export default function CustomFormBuilder({ defaultValues, onSubmit }: Props) {
         return ["select", "radio", "checkboxGroup"].includes(type);
     };
 
+    // Preprocess form data to convert null to undefined for optional fields
+    const handleFormSubmit = (values: CustomFormBuilderValues) => {
+        const processedValues = {
+            ...values,
+            fields: values.fields.map(field => ({
+                ...field,
+                placeholder: field.placeholder || undefined,
+                defaultValue: field.defaultValue || undefined,
+            })),
+        };
+        return onSubmit(processedValues);
+    };
+
     return (
         <Form {...form}>
             <form
                 id="custom-form-builder"
-                onSubmit={form.handleSubmit(onSubmit)}
+                onSubmit={form.handleSubmit(
+                    handleFormSubmit,
+                    (errors) => {
+                        console.error("Form validation errors:", errors);
+                    }
+                )}
                 className="space-y-6"
             >
                 {/* Basic Information */}
@@ -364,7 +384,7 @@ export default function CustomFormBuilder({ defaultValues, onSubmit }: Props) {
                                                                 Placeholder Text (Optional)
                                                             </FormLabel>
                                                             <FormControl>
-                                                                <Input {...field} />
+                                                                <Input {...field} value={field.value ?? ""} />
                                                             </FormControl>
                                                             <FormMessage />
                                                         </FormItem>
@@ -381,7 +401,7 @@ export default function CustomFormBuilder({ defaultValues, onSubmit }: Props) {
                                                                 Default Value (Optional)
                                                             </FormLabel>
                                                             <FormControl>
-                                                                <Input {...field} />
+                                                                <Input {...field} value={field.value ?? ""} />
                                                             </FormControl>
                                                             <p className="text-xs text-muted-foreground">
                                                                 Pre-fill this field with a default
