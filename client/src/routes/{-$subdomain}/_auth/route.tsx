@@ -1,7 +1,7 @@
 import { authStore } from "@/components/stores/authStore";
 import { createFileRoute, redirect, Outlet } from "@tanstack/react-router";
 
-export const Route = createFileRoute("/_auth")({
+export const Route = createFileRoute("/{-$subdomain}/_auth")({
     beforeLoad: async ({ location }) => {
         // Get auth state from Zustand store
         const s = authStore.getState();
@@ -11,7 +11,7 @@ export const Route = createFileRoute("/_auth")({
         // Check if user is authenticated
         if (!isAuthed) {
             throw redirect({
-                to: "/sign-in",
+                to: "/{-$subdomain}/sign-in",
                 search: {
                     redirect: location.pathname,
                 },

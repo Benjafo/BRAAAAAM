@@ -11,13 +11,13 @@ import { PERMISSIONS } from "@/lib/permissions";
 import { createFileRoute, redirect } from "@tanstack/react-router";
 import { useCallback, useRef, useState } from "react";
 
-export const Route = createFileRoute("/_auth/admin-settings")({
+export const Route = createFileRoute("/{-$subdomain}/_auth/admin-settings")({
     beforeLoad: async () => {
         const s = authStore.getState();
 
         if (!s.hasPermission(PERMISSIONS.SETTINGS_READ)) {
             throw redirect({
-                to: "/dashboard",
+                to: "/{-$subdomain}/dashboard",
             });
         }
 

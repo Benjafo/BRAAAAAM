@@ -4,9 +4,10 @@ import z from "zod";
 
 const resetPasswordSearchSchema = z.object({
     token: z.string(),
+    id: z.string(),
 });
 
-export const Route = createFileRoute("/_login/reset-password")({
+export const Route = createFileRoute("/{-$subdomain}/_login/reset-password")({
     component: RouteComponent,
     validateSearch: resetPasswordSearchSchema.parse,
 });

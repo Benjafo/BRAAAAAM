@@ -5,6 +5,7 @@ import { http } from "@/services/auth/serviceResolver";
 import { useState } from "react";
 import type { ClientFormValues } from "../form/clientForm";
 import ClientModal from "../modals/clientModal";
+// import { useParams } from "@tanstack/react-router";
 
 type Client = {
     id: string;
@@ -82,19 +83,13 @@ export function ClientsTable() {
             }
         });
 
-        const orgID = "braaaaam";
-        const response = (await http
-            .get(`o/${orgID}/clients`, {
-                headers: {
-                    "x-org-subdomain": orgID,
-                },
-            })
-            .json()) as { results: Client[]; total: number };
-        console.log("Fetched clients:", response);
+        const response = await http.get(`o/clients`).json<{results: Client[], total: number}>()
+        console.log('Fetched clients:', response);
+
         return {
             data: response.results,
             total: response.total,
-        };
+        }
     };
 
     const handleCreateClient = () => {

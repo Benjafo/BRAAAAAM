@@ -57,7 +57,7 @@ function RequestPasswordResetForm({
             console.log("RequestPasswordResetForm onSubmit data", data);
         }
 
-        forgotPassword.mutate({ ...data }, {
+        forgotPassword.mutate(data, {
             onSuccess: (res, vars) => {
                 const now = new Date();
                 const expiresAt = new Date(res.expiresAt);

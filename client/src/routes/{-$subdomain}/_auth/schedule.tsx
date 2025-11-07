@@ -1,12 +1,33 @@
-import UnassignedRides from "@/components/calendar/UnassignedRides";
+import Schedule from "@/components/calendar/Schedule";
 import { MainNavigation } from "@/components/Navigation";
 import { RidesTable } from "@/components/tables/RidesTable";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@radix-ui/react-tabs";
-import { createFileRoute } from "@tanstack/react-router";
+import { authStore } from "@/components/stores/authStore";
+import { PERMISSIONS } from "@/lib/permissions";
+import { createFileRoute, redirect } from "@tanstack/react-router";
 import { useCallback, useState } from "react";
 
-export const Route = createFileRoute("/unassigned-rides")({
+export const Route = createFileRoute("/{-$subdomain}/_auth/schedule")({
+    beforeLoad: async ({ location }) => {
+        const s = authStore.getState();
+        const isAuthed = Boolean(s.user && s.accessToken);
+
+        if (!isAuthed) {
+            throw redirect({
+                to: "/{-$subdomain}/sign-in",
+                search: { redirect: location.pathname },
+            });
+        }
+
+        if (!s.hasPermission(PERMISSIONS.APPOINTMENTS_READ)) {
+            throw redirect({
+                to: "/{-$subdomain}/dashboard",
+            });
+        }
+
+        return { user: s.user, isAuthed };
+    },
     component: RouteComponent,
 });
 
@@ -33,10 +54,10 @@ function RouteComponent() {
                 </div>
 
                 <TabsContent value="calendar">
-                    <UnassignedRides />
+                    <Schedule />
                 </TabsContent>
                 <TabsContent value="list">
-                    <RidesTable isUnassignedRidesOnly={true} hideActionButton={true} />
+                    <RidesTable />
                 </TabsContent>
             </Tabs>
         </>

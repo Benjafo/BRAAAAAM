@@ -1,8 +1,8 @@
-import AdminDashboard from "@/components/AdminDashboardPage";
+import Unavailability from "@/components/calendar/Unavailability";
 import { MainNavigation } from "@/components/Navigation";
 import { createFileRoute } from "@tanstack/react-router";
 
-export const Route = createFileRoute("/_auth/dashboard")({
+export const Route = createFileRoute("/{-$subdomain}/_auth/unavailability")({
     component: RouteComponent,
 });
 
@@ -10,7 +10,7 @@ function RouteComponent() {
     return (
         <>
             <MainNavigation />
-            <AdminDashboard />
+            <Unavailability />
         </>
     );
 }

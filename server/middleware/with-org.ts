@@ -12,6 +12,8 @@ export const withOrg: RequestHandler = async (
     const header = req.header("x-org-subdomain");
     let subdomain = header;
 
+    console.log(subdomain)
+
     // if not in header, try to extract from url (in host)
     if (!subdomain) {
         const host = req.headers.host || "";

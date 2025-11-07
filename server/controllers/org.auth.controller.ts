@@ -87,6 +87,7 @@ const signIn = async (req: Request, res: Response) => {
             accessToken,
             user: userResponse,
             permissions: allPermissions,
+            subdomain: req.org?.subdomain,
         });
     } catch (error) {
         console.error("orgSignIn error:", error);
