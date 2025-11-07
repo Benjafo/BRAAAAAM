@@ -61,7 +61,7 @@ function mapUserToFormValues(user: TableUser): Partial<UserFormValues> & { id: s
         city: user.address?.city || "",
         state: user.address?.state || "",
         zipCode: user.address?.zip || "",
-        // TODO: add other fields from api?? not 100% but im pretty sure some are missing
+        customFields: user.customFields || {},
     };
 }
 

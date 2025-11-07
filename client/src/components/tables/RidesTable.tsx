@@ -32,6 +32,7 @@ type Ride = {
     destinationCity: string | null;
     destinationState: string | null;
     destinationZip: string | null;
+    customFields?: Record<string, any>;
 };
 
 const mapRideToFormValues = (ride: Ride): Partial<RideFormValues> & { id?: string } => {
@@ -54,6 +55,7 @@ const mapRideToFormValues = (ride: Ride): Partial<RideFormValues> & { id?: strin
         purposeOfTrip: ride.tripPurpose || "",
         assignedDriver: ride.driverId || undefined,
         rideStatus: ride.status,
+        customFields: ride.customFields || {},
         // Note: additionalRider fields not yet in database schema
     };
 };

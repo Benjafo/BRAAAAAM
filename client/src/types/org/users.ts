@@ -32,5 +32,6 @@ export type User = {
 
 export type TableUser = Omit<User, 'role'> & {
     roleId: string | null,
-    roleName: string | null
+    roleName: string | null,
+    customFields?: Record<string, any>
 }
