@@ -26,11 +26,9 @@ export const createHttpClient = (opts: CreateHttpClientOpts = {}): KyInstance =>
                     request.headers.set("Accept", "application/json");
 
                     const subdomain = getSubdomain?.();
-                    console.log(`Fetched subdomain (overriding): ${subdomain}`);
-                    // console.log(`Fetched subdomain: ${subdomain}`);
+                    console.log("Subdomain from getSubdomain:", subdomain);
 
-                    // TODO for testing only
-                    const SUBDOMAIN = "braaaaam";
+                    const SUBDOMAIN = "braaaaam"; // TODO remove hardcoded
 
                     if (SUBDOMAIN) {
                         request.headers.set("x-org-subdomain", SUBDOMAIN);
