@@ -13,20 +13,25 @@ import {
 import { Textarea } from "@/components/ui/textarea";
 import { type CustomForm, type CustomFormField } from "@/lib/types";
 import { http } from "@/services/auth/serviceResolver";
-import { useEffect, useState } from "react";
-import { type Control, type FieldValues, type Path } from "react-hook-form";
+import { forwardRef, useEffect, useImperativeHandle, useState } from "react";
+import { type Control, type FieldValues, type Path, type UseFormSetError } from "react-hook-form";
 
 type Props<T extends FieldValues> = {
     control: Control<T>;
     entityType: "client" | "user" | "appointment";
     disabled?: boolean;
+    setError: UseFormSetError<T>;
 };
 
-export default function DynamicFormFields<T extends FieldValues>({
-    control,
-    entityType,
-    disabled = false,
-}: Props<T>) {
+// ai helped with this... not sure if this is great but seems like the simplest way to required fields
+export type DynamicFormFieldsRef = {
+    validateCustomFields: (customFields: Record<string, any>) => boolean;
+};
+
+function DynamicFormFieldsInner<T extends FieldValues>(
+    { control, entityType, disabled = false, setError }: Props<T>,
+    ref: React.Ref<DynamicFormFieldsRef>
+) {
     const [customForm, setCustomForm] = useState<CustomForm | null>(null);
     const [loading, setLoading] = useState(true);
     const orgID = "braaaaam"; // TODO: Get from context
@@ -51,6 +56,32 @@ export default function DynamicFormFields<T extends FieldValues>({
         fetchCustomForm();
     }, [entityType, orgID]);
 
+    // Expose validation function to parent
+    // again, ai helped with this
+    useImperativeHandle(ref, () => ({
+        validateCustomFields: (customFields: Record<string, any>) => {
+            if (!customForm?.fields) return true;
+
+            let isValid = true;
+
+            for (const field of customForm.fields) {
+                if (field.isRequired) {
+                    const value = customFields?.[field.fieldKey];
+                    // Check if value is empty, null, undefined, or empty string
+                    if (value === null || value === undefined || value === "") {
+                        setError(`customFields.${field.fieldKey}` as Path<T>, {
+                            type: "required",
+                            message: `${field.label} is required`,
+                        });
+                        isValid = false;
+                    }
+                }
+            }
+
+            return isValid;
+        },
+    }));
+
     if (loading) {
         return <div className="text-sm text-muted-foreground">Loading custom fields...</div>;
     }
@@ -70,6 +101,12 @@ export default function DynamicFormFields<T extends FieldValues>({
         </div>
     );
 }
+
+const DynamicFormFields = forwardRef(DynamicFormFieldsInner) as <T extends FieldValues>(
+    props: Props<T> & { ref?: React.Ref<DynamicFormFieldsRef> }
+) => ReturnType<typeof DynamicFormFieldsInner>;
+
+export default DynamicFormFields;
 
 type DynamicFieldProps<T extends FieldValues> = {
     field: CustomFormField;
