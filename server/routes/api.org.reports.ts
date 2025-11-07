@@ -18,4 +18,9 @@ router.get(
     reports.generateReport
 );
 
+// Export routes for data export
+router.get("/clients/export", withPermission({ permissions: "reports.export" }), reports.exportClients);
+router.get("/users/export", withPermission({ permissions: "reports.export" }), reports.exportUsers);
+router.get("/appointments/export", withPermission({ permissions: "reports.export" }), reports.exportAppointments);
+
 export default router;
