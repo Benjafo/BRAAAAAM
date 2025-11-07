@@ -241,9 +241,6 @@ function DynamicField<T extends FieldValues>({ field, control, disabled }: Dynam
                     <FormControl>
                         {renderFieldInput(formField.onChange, formField.value)}
                     </FormControl>
-                    {field.helpText && (
-                        <p className="text-sm text-muted-foreground">{field.helpText}</p>
-                    )}
                     <FormMessage />
                 </FormItem>
             )}

@@ -55,7 +55,6 @@ const formSchema = z.object({
                 "checkboxGroup",
             ]),
             placeholder: z.string().max(255).optional(),
-            helpText: z.string().optional(),
             defaultValue: z.string().optional(),
             isRequired: z.boolean(),
             options: z
@@ -366,23 +365,6 @@ export default function CustomFormBuilder({ defaultValues, onSubmit }: Props) {
                                                             </FormLabel>
                                                             <FormControl>
                                                                 <Input {...field} />
-                                                            </FormControl>
-                                                            <FormMessage />
-                                                        </FormItem>
-                                                    )}
-                                                />
-
-                                                {/* Help Text */}
-                                                <FormField
-                                                    control={form.control}
-                                                    name={`fields.${index}.helpText`}
-                                                    render={({ field }) => (
-                                                        <FormItem>
-                                                            <FormLabel>
-                                                                Help Text (Optional)
-                                                            </FormLabel>
-                                                            <FormControl>
-                                                                <Textarea {...field} rows={2} />
                                                             </FormControl>
                                                             <FormMessage />
                                                         </FormItem>

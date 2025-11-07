@@ -569,7 +569,6 @@ export const customFormFields = pgTable(
         label: varchar({ length: 255 }).notNull(),
         fieldType: fieldTypeEnum("field_type").notNull(),
         placeholder: varchar({ length: 255 }),
-        helpText: text("help_text"),
         defaultValue: text("default_value"),
         isRequired: boolean("is_required").default(false).notNull(),
         displayOrder: integer("display_order").notNull(),

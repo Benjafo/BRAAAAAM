@@ -187,7 +187,6 @@ export type CustomFormField = {
     label: string;
     fieldType: FieldType;
     placeholder?: string;
-    helpText?: string;
     defaultValue?: string;
     isRequired: boolean;
     displayOrder: number;
