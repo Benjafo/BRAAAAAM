@@ -70,7 +70,6 @@ function RouteComponent() {
 
     // Dummy button text for other tabs for now
     const tabButtonText: Record<string, string> = {
-        forms: "Edit Text",
         roles: "New Role",
         "audit-log": "Export",
         locations: "New Alias",
@@ -117,9 +116,11 @@ function RouteComponent() {
                                     </Button>
                                 </>
                             ) : (
-                                <Button variant="outline" onClick={() => {}}>
-                                    {tabButtonText[activeTab]}
-                                </Button>
+                                tabButtonText[activeTab] && (
+                                    <Button variant="outline" onClick={() => {}}>
+                                        {tabButtonText[activeTab]}
+                                    </Button>
+                                )
                             )}
                         </div>
                     </div>

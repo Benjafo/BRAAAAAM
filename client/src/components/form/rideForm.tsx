@@ -36,6 +36,7 @@ import {
 } from "../ui/command";
 import { DatePickerInput } from "../ui/datePickerField";
 import { Popover, PopoverContent, PopoverTrigger } from "../ui/popover";
+import DynamicFormFields from "./DynamicFormFields";
 
 /* --------------------------------- Schema --------------------------------- */
 /* using z.enum for select values that we know are included */
@@ -130,6 +131,7 @@ const rideSchema = z
             ),
         donationType: z.enum(["Check", "Cash", "unopenedEnvelope"]).optional(),
         donationAmount: z.number().min(1, "Donation amount must be at least $1.").optional(),
+        customFields: z.record(z.string(), z.any()).optional(),
     })
     .superRefine((data, ctx) => {
         if (data.additionalRider === "Yes") {
@@ -247,6 +249,7 @@ export default function EditRideForm({
             tripDistance: defaultValues.tripDistance,
             donationType: defaultValues.donationType,
             donationAmount: defaultValues.donationAmount,
+            customFields: defaultValues.customFields ?? {},
         },
     });
 
@@ -825,6 +828,11 @@ export default function EditRideForm({
                         )}
                     />
                 )}
+
+                {/* Custom Fields */}
+                <div className="md:col-span-2">
+                    <DynamicFormFields control={form.control} entityType="appointment" />
+                </div>
             </form>
         </Form>
     );
