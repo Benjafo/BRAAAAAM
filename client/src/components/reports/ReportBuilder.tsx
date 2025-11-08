@@ -4,18 +4,23 @@ import { useAuthStore } from "@/components/stores/authStore";
 import { exportToCSV } from "@/lib/csvExport";
 import { PERMISSIONS } from "@/lib/permissions";
 import { type ColumnDefinition, getColumnsForEntity } from "@/lib/reportColumns";
+import { type ReportTemplate } from "@/lib/reportTemplates";
 import { http } from "@/services/auth/serviceResolver";
-import { Download, Loader2 } from "lucide-react";
+import { Download, Loader2, Save, Settings } from "lucide-react";
 import { useState } from "react";
+import { toast } from "sonner";
+import { ManageTemplatesModal } from "../modals/ManageTemplatesModal";
+import { SaveTemplateModal } from "../modals/SaveTemplateModal";
 import { Button } from "../ui/button";
 import { ColumnSelector } from "./ColumnSelector";
 import { DateRangeSelector } from "./DateRangeSelector";
 import { EntitySelector } from "./EntitySelector";
+import { TemplateList } from "./TemplateList";
 
-type EntityType = "clients" | "users" | "appointments";
+type SelectionMode = "clients" | "users" | "appointments" | "templates";
 
 export function ReportBuilder() {
-    const [entityType, setEntityType] = useState<EntityType>("clients");
+    const [selectionMode, setSelectionMode] = useState<SelectionMode>("clients");
     const [selectedColumns, setSelectedColumns] = useState<ColumnDefinition[]>([]);
     const [dateRange, setDateRange] = useState<{ start: Date; end: Date }>({
         start: new Date(new Date().setDate(new Date().getDate() - 30)), // Default to last 30 days
@@ -25,22 +30,55 @@ export function ReportBuilder() {
     const [error, setError] = useState<string | null>(null);
     const [previewData, setPreviewData] = useState<Record<string, unknown>[]>([]);
     const [totalRecords, setTotalRecords] = useState(0);
+    const [saveTemplateDialogOpen, setSaveTemplateDialogOpen] = useState(false);
+    const [manageTemplatesDialogOpen, setManageTemplatesDialogOpen] = useState(false);
+    const [selectedTemplate, setSelectedTemplate] = useState<ReportTemplate | null>(null);
 
     // Check if user has export permission
     const hasExportPermission = useAuthStore((s) => s.hasPermission(PERMISSIONS.REPORTS_EXPORT));
 
-    // Get available columns for the selected entity type
-    const availableColumns = getColumnsForEntity(entityType);
+    // Get the actual entity type for data fetching (from mode or template)
+    const getEntityType = (): "clients" | "users" | "appointments" => {
+        if (selectionMode === "templates" && selectedTemplate) {
+            return selectedTemplate.entityType;
+        }
+        return selectionMode as "clients" | "users" | "appointments";
+    };
+
+    // Get available columns for column selector (when not in templates mode)
+    const availableColumns =
+        selectionMode !== "templates" ? getColumnsForEntity(selectionMode as any) : [];
 
     /**
-     * Handle entity type change - reset selected columns
+     * Handle mode change - reset selected columns and template
      */
-    const handleEntityChange = (newEntityType: EntityType) => {
-        setEntityType(newEntityType);
+    const handleModeChange = (newMode: SelectionMode) => {
+        setSelectionMode(newMode);
         setSelectedColumns([]);
+        setSelectedTemplate(null);
         setPreviewData([]);
         setTotalRecords(0);
         setError(null);
+    };
+
+    /**
+     * Handle template selection
+     */
+    const handleTemplateSelect = (template: ReportTemplate) => {
+        setSelectedTemplate(template);
+
+        // Map column keys to ColumnDefinition objects
+        const allColumns = getColumnsForEntity(template.entityType);
+        const templateColumns = allColumns.filter((col) =>
+            template.selectedColumns.includes(col.key)
+        );
+
+        setSelectedColumns(templateColumns);
+        setPreviewData([]);
+        setTotalRecords(0);
+        setError(null);
+
+        toast.success(`Loaded template: ${template.name}`);
     };
 
     /**
@@ -63,6 +101,7 @@ export function ReportBuilder() {
      */
     const fetchData = async (): Promise<Record<string, unknown>[]> => {
         const orgId = "braaaaam"; // TODO: Get from context
+        const entityType = getEntityType();
         const startDate = dateRange.start.toISOString();
         const endDate = dateRange.end.toISOString();
         const allData: Record<string, unknown>[] = [];
@@ -141,7 +180,7 @@ export function ReportBuilder() {
 
         try {
             const data = await fetchData();
-            exportToCSV(data, selectedColumns, entityType, dateRange);
+            exportToCSV(data, selectedColumns, getEntityType(), dateRange);
         } catch (err: unknown) {
             console.error("Error exporting CSV:", err);
             const errorMessage = err instanceof Error ? err.message : "Failed to export CSV";
@@ -158,20 +197,35 @@ export function ReportBuilder() {
         return path.split(".").reduce((current, key) => current?.[key], obj);
     };
 
+    /**
+     * Check if we can save as template (must be in non-template mode with columns selected)
+     */
+    const canSaveTemplate = selectionMode !== "templates" && selectedColumns.length > 0;
+
     return (
         <div className="space-y-6">
             {/* Header */}
             <div className="ml-4">
                 <h2 className="text-2xl font-bold">Custom Report Builder</h2>
                 <p className="text-gray-600 mt-2">
-                    Select an entity, customize columns, choose a date range, and export to CSV
+                    Select an entity or template, choose a date range, and export to CSV
                 </p>
             </div>
 
-            {/* Step 1: Entity Selection */}
+            {/* Step 1: Mode Selection */}
             <div className="bg-white rounded-lg border p-6">
-                <h3 className="text-lg font-semibold mb-4">Step 1: Select Entity Type</h3>
-                <EntitySelector selectedEntity={entityType} onEntityChange={handleEntityChange} />
+                <div className="flex items-center justify-between mb-4">
+                    <h3 className="text-lg font-semibold">Step 1: Select Report Type</h3>
+                    <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => setManageTemplatesDialogOpen(true)}
+                    >
+                        <Settings className="w-4 h-4 mr-2" />
+                        Manage Templates
+                    </Button>
+                </div>
+                <EntitySelector selectedEntity={selectionMode} onEntityChange={handleModeChange} />
             </div>
 
             {/* Step 2: Date Range Selection */}
@@ -184,16 +238,40 @@ export function ReportBuilder() {
                 />
             </div>
 
-            {/* Step 3: Column Selection */}
+            {/* Step 3: Conditional - Templates or Columns */}
             <div className="bg-white rounded-lg border p-6">
-                <h3 className="text-lg font-semibold mb-4">
-                    Step 3: Select Columns ({selectedColumns.length} selected)
-                </h3>
-                <ColumnSelector
-                    availableColumns={availableColumns}
-                    selectedColumns={selectedColumns}
-                    onSelectionChange={handleColumnSelectionChange}
-                />
+                {selectionMode === "templates" ? (
+                    <>
+                        <h3 className="text-lg font-semibold mb-4">
+                            Step 3: Select Template
+                            {selectedTemplate && ` - ${selectedTemplate.name}`}
+                        </h3>
+                        <TemplateList onTemplateSelect={handleTemplateSelect} />
+                    </>
+                ) : (
+                    <>
+                        <div className="flex items-center justify-between mb-4">
+                            <h3 className="text-lg font-semibold">
+                                Step 3: Select Columns ({selectedColumns.length} selected)
+                            </h3>
+                            {canSaveTemplate && (
+                                <Button
+                                    variant="outline"
+                                    size="sm"
+                                    onClick={() => setSaveTemplateDialogOpen(true)}
+                                >
+                                    <Save className="w-4 h-4 mr-2" />
+                                    Save as Template
+                                </Button>
+                            )}
+                        </div>
+                        <ColumnSelector
+                            availableColumns={availableColumns}
+                            selectedColumns={selectedColumns}
+                            onSelectionChange={handleColumnSelectionChange}
+                        />
+                    </>
+                )}
             </div>
 
             {/* Error Display */}
@@ -203,7 +281,7 @@ export function ReportBuilder() {
                 </div>
             )}
 
-            {/* Actions */}
+            {/* Step 4: Generate Report */}
             <div className="bg-white rounded-lg border p-6">
                 <h3 className="text-lg font-semibold mb-4">Step 4: Generate Report</h3>
                 <div className="flex gap-4">
@@ -301,6 +379,20 @@ export function ReportBuilder() {
                     </div>
                 </div>
             )}
+
+            {/* Modals */}
+            <SaveTemplateModal
+                open={saveTemplateDialogOpen}
+                onOpenChange={setSaveTemplateDialogOpen}
+                entityType={selectionMode as "clients" | "users" | "appointments"}
+                selectedColumns={selectedColumns}
+                onTemplateSaved={() => toast.success("Template saved!")}
+            />
+
+            <ManageTemplatesModal
+                open={manageTemplatesDialogOpen}
+                onOpenChange={setManageTemplatesDialogOpen}
+            />
         </div>
     );
 }

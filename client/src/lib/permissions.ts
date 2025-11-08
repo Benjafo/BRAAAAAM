@@ -25,6 +25,7 @@ export const PERMISSIONS = {
     ROLES_READ: "roles.read",
     ROLES_CREATE: "roles.create",
     ROLES_UPDATE: "roles.update",
+    ROLES_DELETE: "roles.delete",
 
     // Settings
     SETTINGS_READ: "settings.read",

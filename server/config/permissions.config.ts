@@ -93,6 +93,13 @@ export const PERMISSIONS: PermissionDefinition[] = [
         name: "Export Reports",
         description: "Export report data to external formats",
     },
+    {
+        permKey: "reports.read",
+        resource: "reports",
+        action: "read",
+        name: "Read Reports",
+        description: "Read reports",
+    },
 
     // Roles & Permissions
     {
@@ -115,6 +122,13 @@ export const PERMISSIONS: PermissionDefinition[] = [
         action: "update",
         name: "Update Roles",
         description: "Modify role permissions",
+    },
+    {
+        permKey: "roles.delete",
+        resource: "roles",
+        action: "delete",
+        name: "Delete Roles",
+        description: "Delete unused roles",
     },
     {
         permKey: "permissions.read",

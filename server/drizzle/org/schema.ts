@@ -630,3 +630,40 @@ export const customFormResponses = pgTable(
         ),
     ]
 );
+
+export const reportTemplates = pgTable(
+    "report_templates",
+    {
+        id: uuid().defaultRandom().primaryKey().notNull(),
+        name: varchar({ length: 255 }).notNull(),
+        description: text(),
+        entityType: text("entity_type").notNull(),
+        selectedColumns: jsonb("selected_columns").$type<string[]>().notNull(),
+        createdByUserId: uuid("created_by_user_id")
+            .notNull()
+            .references(() => users.id, { onDelete: "cascade" }),
+        isShared: boolean("is_shared").default(false).notNull(),
+        createdAt: timestamp("created_at", { withTimezone: true, mode: "string" })
+            .defaultNow()
+            .notNull(),
+        updatedAt: timestamp("updated_at", { withTimezone: true, mode: "string" })
+            .defaultNow()
+            .notNull(),
+    },
+    (table) => [
+        index("idx_report_templates_entity_type").using(
+            "btree",
+            table.entityType.asc().nullsLast()
+        ),
+        index("idx_report_templates_created_by").using(
+            "btree",
+            table.createdByUserId.asc().nullsLast()
+        ),
+        index("idx_report_templates_is_shared").using("btree", table.isShared.asc().nullsLast()),
+        unique("report_templates_name_unique_per_user").on(table.createdByUserId, table.name),
+        check(
+            "report_templates_entity_type_check",
+            sql`entity_type IN ('clients', 'users', 'appointments')`
+        ),
+    ]
+);

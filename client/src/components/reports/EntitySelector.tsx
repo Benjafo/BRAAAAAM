@@ -1,6 +1,6 @@
-import { Calendar, UserCircle, Users } from "lucide-react";
+import { BookmarkCheck, Calendar, UserCircle, Users } from "lucide-react";
 
-type EntityType = "clients" | "users" | "appointments";
+type EntityType = "clients" | "users" | "appointments" | "templates";
 
 interface EntityOption {
     value: EntityType;
@@ -33,11 +33,17 @@ const ENTITY_OPTIONS: EntityOption[] = [
         description: "Export ride data including client, driver, and location details",
         icon: <Calendar className="w-6 h-6" />,
     },
+    {
+        value: "templates",
+        label: "Saved Templates",
+        description: "Load a saved report template with pre-configured columns",
+        icon: <BookmarkCheck className="w-6 h-6" />,
+    },
 ];
 
 export function EntitySelector({ selectedEntity, onEntityChange }: EntitySelectorProps) {
     return (
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
             {ENTITY_OPTIONS.map((option) => {
                 const isSelected = selectedEntity === option.value;
 

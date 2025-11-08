@@ -1,4 +1,4 @@
-import { and, between, eq, gte, inArray, lte, sql } from "drizzle-orm";
+import { and, between, eq, gte, inArray, lte, or, sql } from "drizzle-orm";
 import { alias } from "drizzle-orm/pg-core";
 import { Request, Response } from "express";
 import {
@@ -6,99 +6,91 @@ import {
     clients,
     customFormResponses,
     locations,
+    reportTemplates,
     roles,
     users,
 } from "../drizzle/org/schema.js";
 
-interface Report {
-    id: string;
-    title: string;
-    query: string;
-}
+// interface Report {
+//     id: string;
+//     title: string;
+//     query: string;
+// }
 
-const reports: Report[] = [];
+// const reports: Report[] = [];
 
-export const listReports = (req: Request, res: Response): Response => {
-    return res.status(200).json(reports);
-    // return res.status(500).send();
-};
+// export const listReports = (req: Request, res: Response): Response => {
+//     return res.status(200).json(reports);
+// };
 
-export const createReport = (req: Request, res: Response): Response => {
-    const data = req.body;
+// export const createReport = (req: Request, res: Response): Response => {
+//     const data = req.body;
 
-    if (!data.title || !data.query) {
-        return res.status(400).json({ message: "Missing required fields" });
-    }
+//     if (!data.title || !data.query) {
+//         return res.status(400).json({ message: "Missing required fields" });
+//     }
 
-    // If no ID is given or it's already used, create one from reports.length + 1
-    if (!data.id || reports.find((r) => r.id === data.id)) {
-        data.id = (reports.length + 1).toString();
-    }
+//     if (!data.id || reports.find((r) => r.id === data.id)) {
+//         data.id = (reports.length + 1).toString();
+//     }
 
-    const newReport: Report = {
-        id: data.id,
-        title: data.title,
-        query: data.query,
-    };
+//     const newReport: Report = {
+//         id: data.id,
+//         title: data.title,
+//         query: data.query,
+//     };
 
-    reports.push(newReport);
-    return res.status(201).json(newReport);
-    // return res.status(500).send();
-};
+//     reports.push(newReport);
+//     return res.status(201).json(newReport);
+// };
 
-export const getReport = (req: Request, res: Response): Response => {
-    const { reportId } = req.params;
-    const report = reports.find((r) => r.id === reportId);
+// export const getReport = (req: Request, res: Response): Response => {
+//     const { reportId } = req.params;
+//     const report = reports.find((r) => r.id === reportId);
 
-    if (!report) {
-        return res.status(404).json({ message: "Report not found" });
-    }
+//     if (!report) {
+//         return res.status(404).json({ message: "Report not found" });
+//     }
 
-    return res.status(200).json(report);
-    // return res.status(500).send();
-};
+//     return res.status(200).json(report);
+// };
 
-export const updateReport = (req: Request, res: Response): Response => {
-    const { reportId } = req.params;
-    const data = req.body;
+// export const updateReport = (req: Request, res: Response): Response => {
+//     const { reportId } = req.params;
+//     const data = req.body;
 
-    const index = reports.findIndex((r) => r.id === reportId);
-    if (index === -1) {
-        return res.status(404).json({ message: "Report not found" });
-    }
+//     const index = reports.findIndex((r) => r.id === reportId);
+//     if (index === -1) {
+//         return res.status(404).json({ message: "Report not found" });
+//     }
 
-    // Merge existing report data with new fields
-    reports[index] = { ...reports[index], ...data };
-    return res.status(200).json(reports[index]);
-    // return res.status(500).send();
-};
+//     reports[index] = { ...reports[index], ...data };
+//     return res.status(200).json(reports[index]);
+// };
 
-export const deleteReport = (req: Request, res: Response): Response => {
-    const { reportId } = req.params;
+// export const deleteReport = (req: Request, res: Response): Response => {
+//     const { reportId } = req.params;
 
-    const index = reports.findIndex((r) => r.id === reportId);
-    if (index === -1) {
-        return res.status(404).json({ message: "Report not found" });
-    }
+//     const index = reports.findIndex((r) => r.id === reportId);
+//     if (index === -1) {
+//         return res.status(404).json({ message: "Report not found" });
+//     }
 
-    reports.splice(index, 1);
-    return res.status(204).send();
-    // return res.status(500).send();
-};
+//     reports.splice(index, 1);
+//     return res.status(204).send();
+// };
 
-export const generateReport = (req: Request, res: Response): Response => {
-    const { reportId } = req.params;
-    const report = reports.find((r) => r.id === reportId);
+// export const generateReport = (req: Request, res: Response): Response => {
+//     const { reportId } = req.params;
+//     const report = reports.find((r) => r.id === reportId);
 
-    if (!report) {
-        return res.status(404).json({ message: "Report not found" });
-    }
+//     if (!report) {
+//         return res.status(404).json({ message: "Report not found" });
+//     }
 
-    return res.status(202).json({ message: `Report ${reportId} generated` });
-    // return res.status(500).send();
-};
+//     return res.status(202).json({ message: `Report ${reportId} generated` });
+// };
 
-// Export Clients
 export const exportClients = async (req: Request, res: Response): Promise<Response> => {
     try {
         const db = req.org?.db;
@@ -214,7 +206,6 @@ export const exportClients = async (req: Request, res: Response): Promise<Respon
     }
 };
 
-// Export Users
 export const exportUsers = async (req: Request, res: Response): Promise<Response> => {
     try {
         const db = req.org?.db;
@@ -329,7 +320,6 @@ export const exportUsers = async (req: Request, res: Response): Promise<Response
     }
 };
 
-// Export Appointments
 export const exportAppointments = async (req: Request, res: Response): Promise<Response> => {
     try {
         const db = req.org?.db;
@@ -470,6 +460,221 @@ export const exportAppointments = async (req: Request, res: Response): Promise<R
         });
     } catch (err) {
         console.error("Error exporting appointments:", err);
+        return res.status(500).json({ error: "Internal server error" });
+    }
+};
+
+export const listReportTemplates = async (req: Request, res: Response): Promise<Response> => {
+    try {
+        const db = req.org?.db;
+        if (!db) return res.status(500).json({ error: "Database not initialized" });
+
+        const userId = req.user?.id;
+        if (!userId) return res.status(401).json({ error: "Unauthorized" });
+
+        const entityType = req.query.entityType as string | undefined;
+
+        // Build filter: user's own templates OR shared templates
+        let whereClause = or(
+            eq(reportTemplates.createdByUserId, userId),
+            eq(reportTemplates.isShared, true)
+        );
+
+        // Optionally filter by entity type
+        if (entityType) {
+            whereClause = and(whereClause, eq(reportTemplates.entityType, entityType));
+        }
+
+        const templates = await db
+            .select({
+                id: reportTemplates.id,
+                name: reportTemplates.name,
+                description: reportTemplates.description,
+                entityType: reportTemplates.entityType,
+                selectedColumns: reportTemplates.selectedColumns,
+                isShared: reportTemplates.isShared,
+                createdBy: {
+                    id: users.id,
+                    firstName: users.firstName,
+                    lastName: users.lastName,
+                },
+                createdAt: reportTemplates.createdAt,
+                updatedAt: reportTemplates.updatedAt,
+            })
+            .from(reportTemplates)
+            .leftJoin(users, eq(reportTemplates.createdByUserId, users.id))
+            .where(whereClause)
+            .orderBy(reportTemplates.name);
+
+        return res.status(200).json({ templates });
+    } catch (err) {
+        console.error("Error listing report templates:", err);
+        return res.status(500).json({ error: "Internal server error" });
+    }
+};
+
+export const createReportTemplate = async (req: Request, res: Response): Promise<Response> => {
+    try {
+        const db = req.org?.db;
+        if (!db) return res.status(500).json({ error: "Database not initialized" });
+
+        const userId = req.user?.id;
+        if (!userId) return res.status(401).json({ error: "Unauthorized" });
+
+        const { name, description, entityType, selectedColumns, isShared } = req.body;
+
+        // Validate required fields
+        if (!name || !entityType || !selectedColumns || !Array.isArray(selectedColumns)) {
+            return res.status(400).json({ message: "Missing or invalid required fields" });
+        }
+
+        // Validate entity type
+        if (!["clients", "users", "appointments"].includes(entityType)) {
+            return res.status(400).json({ message: "Invalid entity type" });
+        }
+
+        // Create template
+        const [newTemplate] = await db
+            .insert(reportTemplates)
+            .values({
+                name,
+                description: description || null,
+                entityType,
+                selectedColumns,
+                createdByUserId: userId,
+                isShared: isShared || false,
+            })
+            .returning();
+
+        return res.status(201).json({ template: newTemplate });
+    } catch (err: any) {
+        console.error("Error creating report template:", err);
+
+        // Handle duplicate name error
+        if (err.code === "23505") {
+            return res
+                .status(409)
+                .json({ message: "A template with this name already exists" });
+        }
+
+        return res.status(500).json({ error: "Internal server error" });
+    }
+};
+
+export const getReportTemplate = async (req: Request, res: Response): Promise<Response> => {
+    try {
+        const db = req.org?.db;
+        if (!db) return res.status(500).json({ error: "Database not initialized" });
+
+        const { templateId } = req.params;
+        const userId = req.user?.id;
+        if (!userId) return res.status(401).json({ error: "Unauthorized" });
+
+        const [template] = await db
+            .select()
+            .from(reportTemplates)
+            .where(
+                and(
+                    eq(reportTemplates.id, templateId),
+                    or(
+                        eq(reportTemplates.createdByUserId, userId),
+                        eq(reportTemplates.isShared, true)
+                    )
+                )
+            );
+
+        if (!template) {
+            return res.status(404).json({ message: "Template not found" });
+        }
+
+        return res.status(200).json({ template });
+    } catch (err) {
+        console.error("Error getting report template:", err);
+        return res.status(500).json({ error: "Internal server error" });
+    }
+};
+
+export const updateReportTemplate = async (req: Request, res: Response): Promise<Response> => {
+    try {
+        const db = req.org?.db;
+        if (!db) return res.status(500).json({ error: "Database not initialized" });
+
+        const { templateId } = req.params;
+        const userId = req.user?.id;
+        if (!userId) return res.status(401).json({ error: "Unauthorized" });
+
+        const { name, description, entityType, selectedColumns, isShared } = req.body;
+
+        // Verify ownership
+        const [existing] = await db
+            .select()
+            .from(reportTemplates)
+            .where(
+                and(
+                    eq(reportTemplates.id, templateId),
+                    eq(reportTemplates.createdByUserId, userId)
+                )
+            );
+
+        if (!existing) {
+            return res
+                .status(404)
+                .json({ message: "Template not found or you don't have permission to edit it" });
+        }
+
+        // Update template
+        const [updated] = await db
+            .update(reportTemplates)
+            .set({
+                name: name || existing.name,
+                description: description !== undefined ? description : existing.description,
+                entityType: entityType || existing.entityType,
+                selectedColumns: selectedColumns || existing.selectedColumns,
+                isShared: isShared !== undefined ? isShared : existing.isShared,
+            })
+            .where(eq(reportTemplates.id, templateId))
+            .returning();
+
+        return res.status(200).json({ template: updated });
+    } catch (err) {
+        console.error("Error updating report template:", err);
+        return res.status(500).json({ error: "Internal server error" });
+    }
+};
+
+export const deleteReportTemplate = async (req: Request, res: Response): Promise<Response> => {
+    try {
+        const db = req.org?.db;
+        if (!db) return res.status(500).json({ error: "Database not initialized" });
+
+        const { templateId } = req.params;
+        const userId = req.user?.id;
+        if (!userId) return res.status(401).json({ error: "Unauthorized" });
+
+        // Verify ownership
+        const [existing] = await db
+            .select()
+            .from(reportTemplates)
+            .where(
+                and(
+                    eq(reportTemplates.id, templateId),
+                    eq(reportTemplates.createdByUserId, userId)
+                )
+            );
+
+        if (!existing) {
+            return res
+                .status(404)
+                .json({
+                    message: "Template not found or you don't have permission to delete it",
+                });
+        }
+
+        await db.delete(reportTemplates).where(eq(reportTemplates.id, templateId));
+
+        return res.status(204).send();
+    } catch (err) {
+        console.error("Error deleting report template:", err);
         return res.status(500).json({ error: "Internal server error" });
     }
 };

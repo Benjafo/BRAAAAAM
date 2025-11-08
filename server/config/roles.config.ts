@@ -40,6 +40,7 @@ export const DEFAULT_ROLES: RoleDefinition[] = [
 
             // Reports
             "reports.export",
+            "reports.read",
 
             // Roles
             "roles.read",

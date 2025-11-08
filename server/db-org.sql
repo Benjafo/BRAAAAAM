@@ -310,10 +310,28 @@ CREATE TRIGGER appointments_set_updated_at
     BEFORE UPDATE ON appointments
     FOR EACH ROW EXECUTE FUNCTION set_updated_at();
 
--- Custom reports
-CREATE TABLE custom_reports (
+-- Report Templates
+CREATE TABLE report_templates (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    name VARCHAR(255) NOT NULL,
+    description TEXT,
+    entity_type TEXT NOT NULL CHECK (entity_type IN ('clients', 'users', 'appointments')),
+    selected_columns JSONB NOT NULL,
+    created_by_user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    is_shared BOOLEAN DEFAULT FALSE NOT NULL,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
 
+    CONSTRAINT report_templates_name_unique_per_user UNIQUE (created_by_user_id, name)
 );
+
+CREATE INDEX idx_report_templates_entity_type ON report_templates(entity_type);
+CREATE INDEX idx_report_templates_created_by ON report_templates(created_by_user_id);
+CREATE INDEX idx_report_templates_is_shared ON report_templates(is_shared);
+
+CREATE TRIGGER report_templates_set_updated_at
+    BEFORE UPDATE ON report_templates
+    FOR EACH ROW EXECUTE FUNCTION set_updated_at();
 
 -- Notifications
 CREATE TABLE notifications (
@@ -326,7 +344,6 @@ CREATE TABLE notifications (
 );
 
 -- Messages
-
 CREATE TABLE messages (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     sender_id UUID REFERENCES users(id),
