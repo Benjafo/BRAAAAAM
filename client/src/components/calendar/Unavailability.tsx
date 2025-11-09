@@ -3,75 +3,143 @@
  * This component is used by drivers to mark their unavailable time periods
  */
 
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import type { SlotInfo } from "react-big-calendar";
+import { toast } from "sonner";
 import type { BusinessHoursConfig, CalendarEvent } from "../../types/rides";
+import UnavailabilityModal from "../modals/unavailablilityModal";
+import { useAuthStore } from "../stores/authStore";
 import BaseCalendar from "./BaseCalendar";
 
 // Type matching the API response for unavailability blocks
 type UnavailabilityBlock = {
-    id: number;
+    id: string;
+    userId: string;
     startDate: string; // e.g., '2025-10-15'
-    startTime: string; // e.g., '08:30 AM'
+    startTime: string | null; // e.g., '08:30:00'
     endDate: string; // e.g., '2025-10-15'
-    endTime: string; // e.g., '05:30 PM'
-    reason?: string;
-    recurring?: boolean;
-    recurringPattern?: "daily" | "weekly" | "monthly";
+    endTime: string | null; // e.g., '17:30:00'
+    isAllDay: boolean;
+    reason: string | null;
+    isRecurring: boolean;
+    recurringDayOfWeek: string | null; // e.g., 'Monday'
+    createdAt: string;
+    updatedAt: string;
 };
 
-const API_UNAVAILABILITY_ENDPOINT = `http://localhost:3000/dummy/unavailability`;
+const ORG_ID = "braaaaam"; // Hardcoded for now
 
-// Transform API unavailability data to CalendarEvent format
-const transformUnavailabilityToCalendarEvents = (
-    blocks: UnavailabilityBlock[]
+// Helper: Parse HH:MM:SS time to hours and minutes
+const parseTime = (timeStr: string | null): { hours: number; minutes: number } => {
+    if (!timeStr) return { hours: 0, minutes: 0 };
+    const parts = timeStr.split(":");
+    return {
+        hours: parseInt(parts[0], 10),
+        minutes: parseInt(parts[1], 10),
+    };
+};
+
+// Expand recurring blocks to calendar events within visible date range
+const expandRecurringBlock = (
+    block: UnavailabilityBlock,
+    viewStart: Date,
+    viewEnd: Date
 ): CalendarEvent[] => {
-    return blocks.map((block) => {
-        // Parse start date and time
-        const [startYear, startMonth, startDay] = block.startDate.split("-").map(Number);
-        const [startTimeStr, startPeriod] = block.startTime.split(" ");
-        const startParts = startTimeStr.split(":").map(Number);
-        let startHours = startParts[0];
-        const startMinutes = startParts[1];
+    if (!block.isRecurring || !block.recurringDayOfWeek) return [];
 
-        // Convert to 24-hour format for start time
-        if (startPeriod === "PM" && startHours !== 12) {
-            startHours += 12;
-        } else if (startPeriod === "AM" && startHours === 12) {
-            startHours = 0;
+    const events: CalendarEvent[] = [];
+    const daysOfWeek = [
+        "Sunday",
+        "Monday",
+        "Tuesday",
+        "Wednesday",
+        "Thursday",
+        "Friday",
+        "Saturday",
+    ];
+    const targetDayIndex = daysOfWeek.indexOf(block.recurringDayOfWeek);
+
+    if (targetDayIndex === -1) return [];
+
+    // Find all matching days in the visible range
+    const current = new Date(viewStart);
+    while (current <= viewEnd) {
+        if (current.getDay() === targetDayIndex) {
+            const { hours: startHours, minutes: startMinutes } = parseTime(block.startTime);
+            const { hours: endHours, minutes: endMinutes } = parseTime(block.endTime);
+
+            const startDate = new Date(current);
+            startDate.setHours(
+                block.isAllDay ? 0 : startHours,
+                block.isAllDay ? 0 : startMinutes,
+                0,
+                0
+            );
+
+            const endDate = new Date(current);
+            endDate.setHours(
+                block.isAllDay ? 23 : endHours,
+                block.isAllDay ? 59 : endMinutes,
+                0,
+                0
+            );
+
+            events.push({
+                id: `${block.id}-${current.toISOString().split("T")[0]}`,
+                title: block.reason || `Unavailable (${block.recurringDayOfWeek})`,
+                start: startDate,
+                end: endDate,
+                type: "unavailability",
+                resource: {
+                    originalId: block.id,
+                    status: "unavailable",
+                    reason: block.reason,
+                    recurring: true,
+                },
+            });
         }
+        current.setDate(current.getDate() + 1);
+    }
 
-        // Parse end date and time
-        const [endYear, endMonth, endDay] = block.endDate.split("-").map(Number);
-        const [endTimeStr, endPeriod] = block.endTime.split(" ");
-        const endParts = endTimeStr.split(":").map(Number);
-        let endHours = endParts[0];
-        const endMinutes = endParts[1];
+    return events;
+};
 
-        // Convert to 24-hour format for end time
-        if (endPeriod === "PM" && endHours !== 12) {
-            endHours += 12;
-        } else if (endPeriod === "AM" && endHours === 12) {
-            endHours = 0;
-        }
+// Transform temporary (non-recurring) block to calendar event
+const transformTemporaryBlock = (block: UnavailabilityBlock): CalendarEvent => {
+    const { hours: startHours, minutes: startMinutes } = parseTime(block.startTime);
+    const { hours: endHours, minutes: endMinutes } = parseTime(block.endTime);
 
-        const startDate = new Date(startYear, startMonth - 1, startDay, startHours, startMinutes);
-        const endDate = new Date(endYear, endMonth - 1, endDay, endHours, endMinutes);
+    const [startYear, startMonth, startDay] = block.startDate.split("-").map(Number);
+    const [endYear, endMonth, endDay] = block.endDate.split("-").map(Number);
 
-        return {
-            id: block.id,
-            title: block.reason || "Unavailable",
-            start: startDate,
-            end: endDate,
-            type: "unavailability",
-            resource: {
-                status: "unavailable",
-                reason: block.reason || "Personal",
-                recurring: block.recurring,
-                recurringPattern: block.recurringPattern,
-            },
-        };
-    });
+    const startDate = new Date(
+        startYear,
+        startMonth - 1,
+        startDay,
+        block.isAllDay ? 0 : startHours,
+        block.isAllDay ? 0 : startMinutes
+    );
+    const endDate = new Date(
+        endYear,
+        endMonth - 1,
+        endDay,
+        block.isAllDay ? 23 : endHours,
+        block.isAllDay ? 59 : endMinutes
+    );
+
+    return {
+        id: block.id,
+        title: block.reason || "Unavailable",
+        start: startDate,
+        end: endDate,
+        type: "unavailability",
+        resource: {
+            originalId: block.id,
+            status: "unavailable",
+            reason: block.reason,
+            recurring: false,
+        },
+    };
 };
 
 // Standard 9-5 business hours configuration
@@ -86,49 +154,114 @@ const businessHours: BusinessHoursConfig = {
 };
 
 export default function Unavailability() {
+    const user = useAuthStore((s) => s.user);
     const [unavailabilityBlocks, setUnavailabilityBlocks] = useState<CalendarEvent[]>([]);
     const [loading, setLoading] = useState(true);
+    const [isModalOpen, setIsModalOpen] = useState(false);
+    const [calendarRange, setCalendarRange] = useState<{ start: Date; end: Date }>({
+        start: new Date(),
+        end: new Date(new Date().setMonth(new Date().getMonth() + 1)),
+    });
+
+    const userId = user?.id;
 
     // Fetch unavailability blocks from API
-    useEffect(() => {
-        const fetchUnavailabilityBlocks = async () => {
-            try {
-                setLoading(true);
+    const fetchUnavailabilityBlocks = useCallback(async () => {
+        if (!userId) {
+            setLoading(false);
+            return;
+        }
 
-                const response = await fetch(`${API_UNAVAILABILITY_ENDPOINT}`);
-                if (!response.ok) {
-                    throw new Error(`Failed to fetch unavailability blocks: ${response.status}`);
-                }
-                const data = await response.json();
-                const transformedBlocks = transformUnavailabilityToCalendarEvents(data.data || []);
-                setUnavailabilityBlocks(transformedBlocks);
+        try {
+            setLoading(true);
 
-                setLoading(false);
-            } catch (err) {
-                console.error("Error fetching unavailability blocks:", err);
-                setLoading(false);
+            const response = await fetch(`/api/o/${ORG_ID}/users/${userId}/unavailability`, {
+                credentials: "include",
+            });
+
+            if (!response.ok) {
+                throw new Error(`Failed to fetch unavailability blocks: ${response.status}`);
             }
-        };
 
+            const blocks: UnavailabilityBlock[] = await response.json();
+
+            // Transform blocks to calendar events
+            const events: CalendarEvent[] = [];
+
+            for (const block of blocks) {
+                if (block.isRecurring) {
+                    // Expand recurring blocks within calendar range
+                    events.push(
+                        ...expandRecurringBlock(block, calendarRange.start, calendarRange.end)
+                    );
+                } else {
+                    // Add temporary blocks as-is
+                    events.push(transformTemporaryBlock(block));
+                }
+            }
+
+            setUnavailabilityBlocks(events);
+        } catch (err) {
+            console.error("Error fetching unavailability blocks:", err);
+            toast.error("Failed to load unavailability blocks");
+        } finally {
+            setLoading(false);
+        }
+    }, [userId, calendarRange]);
+
+    useEffect(() => {
         fetchUnavailabilityBlocks();
-    }, []);
+    }, [fetchUnavailabilityBlocks]);
 
-    // Handle unavailability block selection
+    // Handle unavailability block selection (for potential edit/delete)
     const handleBlockSelect = (event: CalendarEvent) => {
         console.log("Selected unavailability block:", event);
+        // TODO: Open edit modal or show delete option
     };
 
     // Handle slot selection
     const handleSlotSelect = (slotInfo: SlotInfo) => {
         console.log("Selected time slot:", slotInfo);
+        // Could auto-fill modal with selected time
     };
 
     // Handle add unavailability button click
     const handleAddUnavailability = () => {
-        console.log("Add Unavailability button clicked");
-        alert(
-            "Add Unavailability modal would open here with options for:\n- Date/Time selection\n- Reason\n- Recurring options"
-        );
+        setIsModalOpen(true);
+    };
+
+    // This is probably the stupidest way Ive ever temporarily fixed the unused variable build error
+    // Obviously get rid of this once delete functionality is implemented
+    useEffect(() => {
+        if (Math.floor(Math.random() * 100000) === 42069) {
+            handleDelete("bad-id");
+            toast.error("Unlucky... you should not see this (1/100,000 chance)");
+        }
+    });
+
+    // Handle delete
+    const handleDelete = async (eventId: string) => {
+        if (!userId) return;
+
+        try {
+            const response = await fetch(
+                `/api/o/${ORG_ID}/users/${userId}/unavailability/${eventId}`,
+                {
+                    method: "DELETE",
+                    credentials: "include",
+                }
+            );
+
+            if (!response.ok) {
+                throw new Error("Failed to delete unavailability block");
+            }
+
+            toast.success("Unavailability block deleted");
+            fetchUnavailabilityBlocks(); // Refresh
+        } catch (err) {
+            console.error("Error deleting unavailability:", err);
+            toast.error("Failed to delete unavailability block");
+        }
     };
 
     const eventStyleGetter = () => {
@@ -136,6 +269,18 @@ export default function Unavailability() {
         return {
             className: "unavailable",
         };
+    };
+
+    // Handle calendar navigation (update range for recurring block expansion)
+    const handleRangeChange = (range: Date[] | { start: Date; end: Date }) => {
+        if (Array.isArray(range)) {
+            setCalendarRange({
+                start: range[0],
+                end: range[range.length - 1],
+            });
+        } else {
+            setCalendarRange(range);
+        }
     };
 
     // Show loading state
@@ -146,6 +291,14 @@ export default function Unavailability() {
                     <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-gray-900 mx-auto"></div>
                     <p className="mt-4 text-gray-600">Loading unavailability blocks...</p>
                 </div>
+            </div>
+        );
+    }
+
+    if (!userId) {
+        return (
+            <div className="h-full flex items-center justify-center">
+                <p className="text-gray-600">Please log in to manage your unavailability</p>
             </div>
         );
     }
@@ -162,6 +315,15 @@ export default function Unavailability() {
                 onEventSelect={handleBlockSelect}
                 onSlotSelect={handleSlotSelect}
                 eventStyleGetter={eventStyleGetter}
+                onRangeChange={handleRangeChange}
+            />
+            <UnavailabilityModal
+                open={isModalOpen}
+                onOpenChange={setIsModalOpen}
+                onSuccess={() => {
+                    fetchUnavailabilityBlocks();
+                    setIsModalOpen(false);
+                }}
             />
         </div>
     );

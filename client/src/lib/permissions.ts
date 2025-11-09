@@ -17,6 +17,12 @@ export const PERMISSIONS = {
     APPOINTMENTS_CREATE: "appointments.create",
     APPOINTMENTS_UPDATE: "appointments.update",
 
+    // Unavailability
+    UNAVAILABILITY_READ: "unavailability.read",
+    UNAVAILABILITY_CREATE: "unavailability.create",
+    UNAVAILABILITY_UPDATE: "unavailability.update",
+    UNAVAILABILITY_DELETE: "unavailability.delete",
+
     // Reports
     REPORTS_READ: "reports.read",
     REPORTS_EXPORT: "reports.export",

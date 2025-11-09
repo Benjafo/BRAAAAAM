@@ -25,6 +25,7 @@ const schema = z
         endDate: z.date("Please select a date").optional(),
         startTime: z.string().min(1, "Please select a time.").optional(),
         endTime: z.string().min(1, "Please select a time.").optional(),
+        reason: z.string().optional(),
     })
     .superRefine((data, ctx) => {
         // Validate endDate is required when multiDay is true
@@ -94,6 +95,7 @@ export default function TempUnavailabilityForm({ defaultValues, onSubmit }: Prop
             endDate: defaultValues?.endDate,
             startTime: defaultValues?.startTime ?? "08:00",
             endTime: defaultValues?.endTime ?? "10:00",
+            reason: defaultValues?.reason ?? "",
         },
     });
 
@@ -207,6 +209,20 @@ export default function TempUnavailabilityForm({ defaultValues, onSubmit }: Prop
                         />
                     </div>
                 )}
+
+                <FormField
+                    control={form.control}
+                    name="reason"
+                    render={({ field }) => (
+                        <FormItem>
+                            <FormLabel>Reason (Optional)</FormLabel>
+                            <FormControl>
+                                <Input placeholder="e.g., Doctor appointment" {...field} />
+                            </FormControl>
+                            <FormMessage />
+                        </FormItem>
+                    )}
+                />
             </form>
         </Form>
     );

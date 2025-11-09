@@ -33,6 +33,7 @@ const recurringUnavailabilitySchema = z
         allDay: z.boolean(),
         startTime: z.string().min(1, "Please select a time.").optional(),
         endTime: z.string().min(1, "Please select a time.").optional(),
+        reason: z.string().optional(),
     })
     .superRefine((data, ctx) => {
         // Validate times when not allDay
@@ -82,6 +83,7 @@ export default function RecurringUnavailabilityForm({ defaultValues, onSubmit }:
             allDay: false,
             startTime: defaultValues?.startTime ?? "08:00",
             endTime: defaultValues?.endTime ?? "10:00",
+            reason: defaultValues?.reason ?? "",
         },
     });
 
@@ -174,6 +176,20 @@ export default function RecurringUnavailabilityForm({ defaultValues, onSubmit }:
                         />
                     </div>
                 )}
+
+                <FormField
+                    control={form.control}
+                    name="reason"
+                    render={({ field }) => (
+                        <FormItem>
+                            <FormLabel>Reason (Optional)</FormLabel>
+                            <FormControl>
+                                <Input placeholder="e.g., Weekly team meeting" {...field} />
+                            </FormControl>
+                            <FormMessage />
+                        </FormItem>
+                    )}
+                />
             </form>
         </Form>
     );

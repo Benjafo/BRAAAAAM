@@ -120,7 +120,7 @@ export const MainNavigation = ({
         {
             text: "Unavailability",
             link: "/unavailability",
-            permission: PERMISSIONS.APPOINTMENTS_READ,
+            permission: PERMISSIONS.UNAVAILABILITY_READ,
         },
         // {
         //     text: "Notifications",
