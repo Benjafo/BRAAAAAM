@@ -3,7 +3,8 @@
  * This component is used by drivers to mark their unavailable time periods
  */
 
-import { useCallback, useEffect, useState } from "react";
+import { http } from "@/services/auth/serviceResolver";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import type { SlotInfo } from "react-big-calendar";
 import { toast } from "sonner";
 import type { BusinessHoursConfig, CalendarEvent } from "../../types/rides";
@@ -153,17 +154,83 @@ const businessHours: BusinessHoursConfig = {
     sunday: [], // Closed on Sunday
 };
 
+// Map to form values for editing
+const mapEventToFormValues = (event: CalendarEvent) => {
+    const resource = event.resource;
+    const isRecurring = resource?.recurring || false;
+
+    if (isRecurring) {
+        return {
+            recurring: {
+                id: resource?.originalId,
+                day: event.start.toLocaleDateString("en-US", { weekday: "long" }) as
+                    | "Monday"
+                    | "Tuesday"
+                    | "Wednesday"
+                    | "Thursday"
+                    | "Friday"
+                    | "Saturday"
+                    | "Sunday",
+                allDay: event.start.getHours() === 0 && event.end.getHours() === 23,
+                startTime:
+                    event.start.getHours() === 0 && event.end.getHours() === 23
+                        ? undefined
+                        : `${String(event.start.getHours()).padStart(2, "0")}:${String(event.start.getMinutes()).padStart(2, "0")}`,
+                endTime:
+                    event.start.getHours() === 0 && event.end.getHours() === 23
+                        ? undefined
+                        : `${String(event.end.getHours()).padStart(2, "0")}:${String(event.end.getMinutes()).padStart(2, "0")}`,
+                reason: resource?.reason || "",
+            },
+            defaultTab: "recurring" as const,
+        };
+    } else {
+        const isMultiDay = event.start.toDateString() !== event.end.toDateString();
+        const isAllDay = event.start.getHours() === 0 && event.end.getHours() === 23;
+
+        return {
+            temp: {
+                id: resource?.originalId,
+                multiDay: isMultiDay,
+                allDay: isAllDay,
+                startDate: event.start,
+                endDate: isMultiDay ? event.end : undefined,
+                startTime: isAllDay
+                    ? undefined
+                    : `${String(event.start.getHours()).padStart(2, "0")}:${String(event.start.getMinutes()).padStart(2, "0")}`,
+                endTime: isAllDay
+                    ? undefined
+                    : `${String(event.end.getHours()).padStart(2, "0")}:${String(event.end.getMinutes()).padStart(2, "0")}`,
+                reason: resource?.reason || "",
+            },
+            defaultTab: "temporary" as const,
+        };
+    }
+};
+
 export default function Unavailability() {
     const user = useAuthStore((s) => s.user);
     const [unavailabilityBlocks, setUnavailabilityBlocks] = useState<CalendarEvent[]>([]);
     const [loading, setLoading] = useState(true);
+    const [error, setError] = useState<string | null>(null);
     const [isModalOpen, setIsModalOpen] = useState(false);
-    const [calendarRange, setCalendarRange] = useState<{ start: Date; end: Date }>({
-        start: new Date(),
-        end: new Date(new Date().setMonth(new Date().getMonth() + 1)),
-    });
+    const [selectedUnavailability, setSelectedUnavailability] = useState<{
+        temp?: any;
+        recurring?: any;
+        defaultTab?: "temporary" | "recurring";
+    }>({});
 
     const userId = user?.id;
+
+    // Expand recurring blocks for +/- 2 years from today
+    // TODO hardcoded for recurring unavailability, potentially fix this in the future
+    const calendarRange = useMemo(() => {
+        const now = new Date();
+        return {
+            start: new Date(now.getFullYear() - 2, now.getMonth(), now.getDate()),
+            end: new Date(now.getFullYear() + 2, now.getMonth(), now.getDate()),
+        };
+    }, []);
 
     // Fetch unavailability blocks from API
     const fetchUnavailabilityBlocks = useCallback(async () => {
@@ -174,16 +241,17 @@ export default function Unavailability() {
 
         try {
             setLoading(true);
+            setError(null);
 
-            const response = await fetch(`/api/o/${ORG_ID}/users/${userId}/unavailability`, {
-                credentials: "include",
-            });
+            const blocks: UnavailabilityBlock[] = await http
+                .get(`o/${ORG_ID}/users/${userId}/unavailability`, {
+                    headers: {
+                        "x-org-subdomain": ORG_ID,
+                    },
+                })
+                .json();
 
-            if (!response.ok) {
-                throw new Error(`Failed to fetch unavailability blocks: ${response.status}`);
-            }
-
-            const blocks: UnavailabilityBlock[] = await response.json();
+            console.log("Fetched unavailability blocks:", blocks);
 
             // Transform blocks to calendar events
             const events: CalendarEvent[] = [];
@@ -201,9 +269,12 @@ export default function Unavailability() {
             }
 
             setUnavailabilityBlocks(events);
+            setError(null);
         } catch (err) {
             console.error("Error fetching unavailability blocks:", err);
-            toast.error("Failed to load unavailability blocks");
+            const errorMessage = "Failed to load unavailability blocks";
+            setError(errorMessage);
+            toast.error(errorMessage);
         } finally {
             setLoading(false);
         }
@@ -213,10 +284,12 @@ export default function Unavailability() {
         fetchUnavailabilityBlocks();
     }, [fetchUnavailabilityBlocks]);
 
-    // Handle unavailability block selection (for potential edit/delete)
+    // Handle unavailability block selection (for editing)
     const handleBlockSelect = (event: CalendarEvent) => {
         console.log("Selected unavailability block:", event);
-        // TODO: Open edit modal or show delete option
+        const formValues = mapEventToFormValues(event);
+        setSelectedUnavailability(formValues);
+        setIsModalOpen(true);
     };
 
     // Handle slot selection
@@ -227,6 +300,7 @@ export default function Unavailability() {
 
     // Handle add unavailability button click
     const handleAddUnavailability = () => {
+        setSelectedUnavailability({});
         setIsModalOpen(true);
     };
 
@@ -244,17 +318,11 @@ export default function Unavailability() {
         if (!userId) return;
 
         try {
-            const response = await fetch(
-                `/api/o/${ORG_ID}/users/${userId}/unavailability/${eventId}`,
-                {
-                    method: "DELETE",
-                    credentials: "include",
-                }
-            );
-
-            if (!response.ok) {
-                throw new Error("Failed to delete unavailability block");
-            }
+            await http.delete(`o/${ORG_ID}/users/${userId}/unavailability/${eventId}`, {
+                headers: {
+                    "x-org-subdomain": ORG_ID,
+                },
+            });
 
             toast.success("Unavailability block deleted");
             fetchUnavailabilityBlocks(); // Refresh
@@ -269,18 +337,6 @@ export default function Unavailability() {
         return {
             className: "unavailable",
         };
-    };
-
-    // Handle calendar navigation (update range for recurring block expansion)
-    const handleRangeChange = (range: Date[] | { start: Date; end: Date }) => {
-        if (Array.isArray(range)) {
-            setCalendarRange({
-                start: range[0],
-                end: range[range.length - 1],
-            });
-        } else {
-            setCalendarRange(range);
-        }
     };
 
     // Show loading state
@@ -303,6 +359,25 @@ export default function Unavailability() {
         );
     }
 
+    if (error) {
+        return (
+            <div className="h-full flex items-center justify-center">
+                <div className="text-center">
+                    <p className="text-red-600 mb-4">{error}</p>
+                    <button
+                        onClick={() => {
+                            setError(null);
+                            fetchUnavailabilityBlocks();
+                        }}
+                        className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
+                    >
+                        Retry
+                    </button>
+                </div>
+            </div>
+        );
+    }
+
     return (
         <div className="h-full">
             <BaseCalendar
@@ -315,11 +390,13 @@ export default function Unavailability() {
                 onEventSelect={handleBlockSelect}
                 onSlotSelect={handleSlotSelect}
                 eventStyleGetter={eventStyleGetter}
-                onRangeChange={handleRangeChange}
             />
             <UnavailabilityModal
                 open={isModalOpen}
                 onOpenChange={setIsModalOpen}
+                defaultTab={selectedUnavailability.defaultTab}
+                tempInitial={selectedUnavailability.temp}
+                recurringInitial={selectedUnavailability.recurring}
                 onSuccess={() => {
                     fetchUnavailabilityBlocks();
                     setIsModalOpen(false);

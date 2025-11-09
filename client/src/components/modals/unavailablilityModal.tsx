@@ -12,7 +12,6 @@ import {
     DialogFooter,
     DialogHeader,
     DialogTitle,
-    DialogTrigger,
 } from "@/components/ui/dialog";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { http } from "@/services/auth/serviceResolver";
@@ -25,8 +24,8 @@ type Props = {
     open: boolean;
     onOpenChange: (open: boolean) => void;
     defaultTab?: "temporary" | "recurring";
-    tempInitial?: Partial<TempUnavailabilityFormValues>;
-    recurringInitial?: Partial<RecurringUnavailabilityFormValues>;
+    tempInitial?: Partial<TempUnavailabilityFormValues> & { id?: string };
+    recurringInitial?: Partial<RecurringUnavailabilityFormValues> & { id?: string };
     onSuccess?: () => void;
 };
 
@@ -45,6 +44,11 @@ export default function UnavailabilityModal({
 
     const userId = useAuthStore((s) => s.user)?.id;
     const orgId = "braaaaam"; // TODO hardcoded
+
+    const isEditingTemp = Boolean(tempInitial?.id);
+    const isEditingRecurring = Boolean(recurringInitial?.id);
+    const isEditing = isEditingTemp || isEditingRecurring;
+    const modalTitle = isEditing ? "Edit Unavailability" : "Add Unavailability";
 
     async function handleTempSubmit(values: TempUnavailabilityFormValues, ignoreOverlap = false) {
         if (!userId) {
@@ -69,16 +73,33 @@ export default function UnavailabilityModal({
         };
 
         try {
-            const url = ignoreOverlap
-                ? `/api/o/${orgId}/users/${userId}/unavailability?ignoreOverlap=true`
-                : `/api/o/${orgId}/users/${userId}/unavailability`;
+            let response: Response;
 
-            const response: Response = await http.post(url, {
-                json: requestBody,
-                headers: {
-                    "x-org-subdomain": orgId,
-                },
-            });
+            if (isEditingTemp && tempInitial?.id) {
+                // Update existing unavailability
+                const url = ignoreOverlap
+                    ? `o/${orgId}/users/${userId}/unavailability/${tempInitial.id}?ignoreOverlap=true`
+                    : `o/${orgId}/users/${userId}/unavailability/${tempInitial.id}`;
+
+                response = await http.put(url, {
+                    json: requestBody,
+                    headers: {
+                        "x-org-subdomain": orgId,
+                    },
+                });
+            } else {
+                // Create new unavailability
+                const url = ignoreOverlap
+                    ? `o/${orgId}/users/${userId}/unavailability?ignoreOverlap=true`
+                    : `o/${orgId}/users/${userId}/unavailability`;
+
+                response = await http.post(url, {
+                    json: requestBody,
+                    headers: {
+                        "x-org-subdomain": orgId,
+                    },
+                });
+            }
 
             // Handle overlap conflict
             if (response.status === 409) {
@@ -89,11 +110,13 @@ export default function UnavailabilityModal({
             }
 
             if (!response.ok) {
-                throw new Error("Failed to create unavailability");
+                throw new Error(
+                    isEditingTemp ? "Failed to update unavailability" : "Failed to create unavailability"
+                );
             }
 
-            toast.success("Temporary unavailability created");
-            setOpen(false);
+            toast.success(isEditingTemp ? "Unavailability updated" : "Temporary unavailability created");
+            onOpenChange(false);
             onSuccess?.();
         } catch (err) {
             console.error("Error creating unavailability:", err);
@@ -127,18 +150,33 @@ export default function UnavailabilityModal({
         };
 
         try {
-            const url = ignoreOverlap
-                ? `/api/o/${orgId}/users/${userId}/unavailability?ignoreOverlap=true`
-                : `/api/o/${orgId}/users/${userId}/unavailability`;
+            let response: Response;
 
-            const response: Response = await http
-                .post(url, {
+            if (isEditingRecurring && recurringInitial?.id) {
+                // Update existing recurring unavailability
+                const url = ignoreOverlap
+                    ? `o/${orgId}/users/${userId}/unavailability/${recurringInitial.id}?ignoreOverlap=true`
+                    : `o/${orgId}/users/${userId}/unavailability/${recurringInitial.id}`;
+
+                response = await http.put(url, {
                     json: requestBody,
                     headers: {
                         "x-org-subdomain": orgId,
                     },
-                })
-                .json();
+                });
+            } else {
+                // Create new recurring unavailability
+                const url = ignoreOverlap
+                    ? `o/${orgId}/users/${userId}/unavailability?ignoreOverlap=true`
+                    : `o/${orgId}/users/${userId}/unavailability`;
+
+                response = await http.post(url, {
+                    json: requestBody,
+                    headers: {
+                        "x-org-subdomain": orgId,
+                    },
+                });
+            }
 
             // Handle overlap conflict
             if (response.status === 409) {
@@ -149,11 +187,17 @@ export default function UnavailabilityModal({
             }
 
             if (!response.ok) {
-                throw new Error("Failed to create unavailability");
+                throw new Error(
+                    isEditingRecurring
+                        ? "Failed to update unavailability"
+                        : "Failed to create unavailability"
+                );
             }
 
-            toast.success("Recurring unavailability created");
-            setOpen(false);
+            toast.success(
+                isEditingRecurring ? "Unavailability updated" : "Recurring unavailability created"
+            );
+            onOpenChange(false);
             onSuccess?.();
         } catch (err) {
             console.error("Error creating unavailability:", err);
@@ -180,13 +224,10 @@ export default function UnavailabilityModal({
 
     return (
         <>
-            <Dialog open={open} onOpenChange={setOpen}>
-                <DialogTrigger asChild>
-                    <Button variant="outline">Add Unavailability</Button>
-                </DialogTrigger>
+            <Dialog open={open} onOpenChange={onOpenChange}>
                 <DialogContent className="!max-w-[388px]">
                     <DialogHeader className="pb-2.5">
-                        <DialogTitle>Add Unavailability</DialogTitle>
+                        <DialogTitle>{modalTitle}</DialogTitle>
                     </DialogHeader>
 
                     <Tabs
@@ -214,7 +255,7 @@ export default function UnavailabilityModal({
                     </Tabs>
 
                     <DialogFooter className="flex flex-row justify-end gap-3 mt-3">
-                        <Button variant="outline" onClick={() => setOpen(false)}>
+                        <Button variant="outline" onClick={() => onOpenChange(false)}>
                             Cancel
                         </Button>
                         <Button

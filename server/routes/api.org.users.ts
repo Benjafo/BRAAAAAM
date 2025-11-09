@@ -16,22 +16,22 @@ router.delete("/:userId", withPermission({ permissions: "users.delete" }), users
 // Unavailability
 router.post(
     "/:userId/unavailability",
-    withPermission({ permissions: "users.update" }),
+    withPermission({ permissions: "unavailability.create" }),
     users.createUnavailability
 );
 router.get(
     "/:userId/unavailability",
-    withPermission({ permissions: "users.read" }),
+    withPermission({ permissions: "unavailability.read" }),
     users.listUnavailability
 );
 router.put(
     "/:userId/unavailability/:unavailabilityId",
-    withPermission({ permissions: "users.update" }),
+    withPermission({ permissions: "unavailability.update" }),
     users.updateUnavailability
 );
 router.delete(
     "/:userId/unavailability/:unavailabilityId",
-    withPermission({ permissions: "users.update" }),
+    withPermission({ permissions: "unavailability.delete" }),
     users.deleteUnavailability
 );
 

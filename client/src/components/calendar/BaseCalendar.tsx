@@ -361,8 +361,16 @@ export default function BaseCalendar({
     const EventComponent = ({ event }: { event: CalendarEvent }) => {
         const isMonthView = currentView === Views.MONTH;
         const clientName = String(event.resource?.clientName || event.title);
-        const driverName = event.resource?.driverName ? String(event.resource.driverName) : event.resource?.driver ? String(event.resource.driver) : undefined;
-        const purpose = event.resource?.purpose ? String(event.resource.purpose) : event.resource?.details ? String(event.resource.details) : undefined;
+        const driverName = event.resource?.driverName
+            ? String(event.resource.driverName)
+            : event.resource?.driver
+              ? String(event.resource.driver)
+              : undefined;
+        const purpose = event.resource?.purpose
+            ? String(event.resource.purpose)
+            : event.resource?.details
+              ? String(event.resource.details)
+              : undefined;
         const status = String(event.resource?.status || "scheduled");
 
         // Build tooltip content
@@ -891,7 +899,6 @@ export default function BaseCalendar({
                     scrollToTime={minTime}
                     onSelectEvent={handleEventSelect}
                     onSelectSlot={handleSlotSelect}
-                    selectable
                 />
             </div>
         </div>
