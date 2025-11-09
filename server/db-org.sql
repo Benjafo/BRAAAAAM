@@ -27,6 +27,7 @@ BEGIN
     DROP TYPE IF EXISTS contact_preference CASCADE;
     DROP TYPE IF EXISTS audit_action CASCADE;
     DROP TYPE IF EXISTS gender_options CASCADE;
+    DROP TYPE IF EXISTS day_of_week CASCADE;
 END $$;
 
 CREATE EXTENSION IF NOT EXISTS pgcrypto;
@@ -56,6 +57,7 @@ CREATE TYPE message_status AS ENUM ('sent', 'pending', 'failed');
 -- Might want to change appointment_status to a table if they want user defined portion of it?
 CREATE TYPE appointment_status ENUM ('Unassigned', 'Scheduled', 'Cancelled', 'Completed', 'Withdrawn');
 CREATE TYPE donation_type ENUM ('Cash', 'Check', 'Envelope', 'Electronic', 'None');
+CREATE TYPE day_of_week AS ENUM ('Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday');
 
 -- Settings
 -- Not sure how to implement this since some of this 
@@ -134,7 +136,27 @@ CREATE TABLE user_permissions (
 );
 
 -- User Unavailability
--- Complexity that we need to go over !!! TODO
+CREATE TABLE user_unavailability (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    start_date DATE NOT NULL,
+    start_time TIME,
+    end_date DATE NOT NULL,
+    end_time TIME,
+    is_all_day BOOLEAN NOT NULL DEFAULT FALSE,
+    reason TEXT,
+    is_recurring BOOLEAN NOT NULL DEFAULT FALSE,
+    recurring_day_of_week day_of_week,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+CREATE INDEX idx_user_unavailability_user_id ON user_unavailability(user_id);
+CREATE INDEX idx_user_unavailability_dates ON user_unavailability(start_date, end_date);
+
+CREATE TRIGGER user_unavailability_set_updated_at
+    BEFORE UPDATE ON user_unavailability
+    FOR EACH ROW EXECUTE FUNCTION set_updated_at();
 
 -- Audit logs
 CREATE TABLE audit_logs (

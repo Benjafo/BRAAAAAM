@@ -57,6 +57,15 @@ export const fieldTypeEnum = pgEnum("field_type", [
     "checkbox",
     "checkboxGroup",
 ]);
+export const dayOfWeek = pgEnum("day_of_week", [
+    "Monday",
+    "Tuesday",
+    "Wednesday",
+    "Thursday",
+    "Friday",
+    "Saturday",
+    "Sunday",
+]);
 
 export const roles = pgTable(
     "roles",
@@ -664,6 +673,44 @@ export const reportTemplates = pgTable(
         check(
             "report_templates_entity_type_check",
             sql`entity_type IN ('clients', 'users', 'appointments')`
+        ),
+    ]
+);
+
+export const userUnavailability = pgTable(
+    "user_unavailability",
+    {
+        id: uuid().defaultRandom().primaryKey().notNull(),
+        userId: uuid("user_id").notNull(),
+        startDate: date("start_date").notNull(),
+        startTime: time("start_time"),
+        endDate: date("end_date").notNull(),
+        endTime: time("end_time"),
+        isAllDay: boolean("is_all_day").default(false).notNull(),
+        reason: text(),
+        isRecurring: boolean("is_recurring").default(false).notNull(),
+        recurringDayOfWeek: dayOfWeek("recurring_day_of_week"),
+        createdAt: timestamp("created_at", { withTimezone: true, mode: "string" })
+            .defaultNow()
+            .notNull(),
+        updatedAt: timestamp("updated_at", { withTimezone: true, mode: "string" })
+            .defaultNow()
+            .notNull(),
+    },
+    (table) => [
+        foreignKey({
+            columns: [table.userId],
+            foreignColumns: [users.id],
+            name: "user_unavailability_user_id_fkey",
+        }).onDelete("cascade"),
+        index("idx_user_unavailability_user_id").using(
+            "btree",
+            table.userId.asc().nullsLast().op("uuid_ops")
+        ),
+        index("idx_user_unavailability_dates").using(
+            "btree",
+            table.startDate.asc().nullsLast(),
+            table.endDate.asc().nullsLast()
         ),
     ]
 );
