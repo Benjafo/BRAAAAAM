@@ -102,7 +102,8 @@ export type LoginResponse = {
 
 export type RefreshResponse = {
     accessToken: string;
-    refreshToken?: string;
+    // refreshToken?: string;
+    message: string;
 };
 
 export type ForgotPasswordResponse = {

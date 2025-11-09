@@ -1,5 +1,8 @@
+import { authStore } from "@/components/stores/authStore";
+import type { RefreshResponse } from "@/lib/types";
 import type { KyInstance } from "ky";
 import ky from "ky";
+import { toast } from "sonner";
 
 type CreateHttpClientOpts = {
     baseUrl?: string;
@@ -26,13 +29,7 @@ export const createHttpClient = (opts: CreateHttpClientOpts = {}): KyInstance =>
                     request.headers.set("Accept", "application/json");
 
                     const subdomain = getSubdomain?.();
-                    console.log("Subdomain from getSubdomain:", subdomain);
-
-                    const SUBDOMAIN = "braaaaam"; // TODO remove hardcoded
-
-                    if (SUBDOMAIN) {
-                        request.headers.set("x-org-subdomain", SUBDOMAIN);
-                    }
+                    if(subdomain) request.headers.set("x-org-subdomain", subdomain);
                 },
             ],
             beforeRetry: [
@@ -40,13 +37,29 @@ export const createHttpClient = (opts: CreateHttpClientOpts = {}): KyInstance =>
                 async ({ request }) => {
                     const token = getAccessToken?.();
                     if (token) request.headers.set("Authorization", `Bearer ${token}`);
-                    request.headers.set("x-org-subdomain", "braaaaam"); // TODO fix hardcoded
+                    // request.headers.set("x-org-subdomain", "braaaaam"); // TODO fix hardcoded
                 },
             ],
             afterResponse: [
-                async (_request, _options, response) => {
-                    if (response.status === 401 && onUnauthorized) {
-                        await onUnauthorized();
+                async (_request, _options, response, state) => {
+                    if (response.status === 401 && state.retryCount === 0) {
+
+                        try {
+                            const { accessToken } = await ky.post('auth/refresh', {prefixUrl: baseUrl}).json<RefreshResponse>();
+                            authStore.getState().setAuth({accessToken: accessToken});
+                        } catch {
+                            console.log('Failed to refresh token');
+                            toast.error('You have been logged out', {
+                                description: 'Please sign-in again.',
+                                duration: Infinity,
+                                // cancel: {
+                                //     label: 'Sign-in',
+                                //     onClick: () => window.location.href = '/',
+                                // },
+                            });
+
+                            await onUnauthorized?.(); //sign-out script
+                        }
                     }
                 },
             ],
