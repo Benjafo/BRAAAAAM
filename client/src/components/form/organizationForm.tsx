@@ -36,14 +36,14 @@ const organizationSchema = z.object({
         .min(1, "Phone number is required")
         .regex(
             /^(\+1\s?)?(\([0-9]{3}\)\s?|[0-9]{3}[-.\s]?)[0-9]{3}[-.\s]?[0-9]{4}$/,
-            "Please enter a valid US phone number."
+            "Please enter a 10 digit phone number."
         ),
     phoneRides: z
         .string()
         // .min(1, "Phone number is required")
         // .regex(
         //     /^(\+1\s?)?(\([0-9]{3}\)\s?|[0-9]{3}[-.\s]?)[0-9]{3}[-.\s]?[0-9]{4}$/,
-        //     "Please enter a valid US phone number."
+        //     "Please enter a 10 digit phone number."
         // )
         .optional(),
     email: z.email(),

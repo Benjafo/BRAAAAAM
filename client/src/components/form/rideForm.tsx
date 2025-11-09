@@ -236,13 +236,13 @@ export default function EditRideForm({
             purposeOfTrip: defaultValues.purposeOfTrip ?? "",
             tripDate: defaultValues.tripDate ?? new Date(),
             tripType: defaultValues.tripType,
-            appointmentTime: defaultValues.appointmentTime ?? "12:00:00",
+            appointmentTime: defaultValues.appointmentTime ?? "12:00",
             additionalRider: defaultValues.additionalRider ?? "No",
             additionalRiderFirstName: defaultValues.additionalRiderFirstName ?? "",
             assignedDriver: defaultValues.assignedDriver ?? "",
             additionalRiderLastName: defaultValues.additionalRiderLastName ?? "",
             relationshipToClient: defaultValues.relationshipToClient ?? "",
-            rideStatus: defaultValues.rideStatus,
+            rideStatus: defaultValues.rideStatus ?? "Unassigned",
             tripDuration: defaultValues.tripDuration,
             tripDistance: defaultValues.tripDistance,
             donationType: defaultValues.donationType,
@@ -397,7 +397,7 @@ export default function EditRideForm({
                         <FormItem className="w-full">
                             <FormLabel>Purpose of trip</FormLabel>
                             <FormControl className="w-full">
-                                <Input placeholder="Value" {...field} className="w-full" />
+                                <Input {...field} className="w-full" />
                             </FormControl>
                             <FormMessage />
                         </FormItem>
@@ -413,11 +413,7 @@ export default function EditRideForm({
                             <FormItem>
                                 <FormLabel>Client Street Address</FormLabel>
                                 <FormControl>
-                                    <Input
-                                        placeholder="Select a client to populate"
-                                        {...field}
-                                        disabled
-                                    />
+                                    <Input {...field} disabled />
                                 </FormControl>
                                 <FormMessage />
                             </FormItem>
@@ -433,11 +429,7 @@ export default function EditRideForm({
                         <FormItem>
                             <FormLabel>Client City</FormLabel>
                             <FormControl>
-                                <Input
-                                    placeholder="Select a client to populate"
-                                    {...field}
-                                    disabled
-                                />
+                                <Input {...field} disabled />
                             </FormControl>
                             <FormMessage />
                         </FormItem>
@@ -452,11 +444,7 @@ export default function EditRideForm({
                         <FormItem>
                             <FormLabel>Client State</FormLabel>
                             <FormControl>
-                                <Input
-                                    placeholder="Select a client to populate"
-                                    {...field}
-                                    disabled
-                                />
+                                <Input {...field} disabled />
                             </FormControl>
                             <FormMessage />
                         </FormItem>
@@ -472,11 +460,7 @@ export default function EditRideForm({
                             <FormItem>
                                 <FormLabel>Client ZIP Code</FormLabel>
                                 <FormControl>
-                                    <Input
-                                        placeholder="Select a client to populate"
-                                        {...field}
-                                        disabled
-                                    />
+                                    <Input {...field} disabled />
                                 </FormControl>
                                 <FormMessage />
                             </FormItem>
@@ -491,29 +475,15 @@ export default function EditRideForm({
                         setValue={form.setValue}
                         addressFieldLabel="Destination Street Address"
                         addressFieldName="destinationAddress"
+                        address2FieldLabel="Destination Street Address 2"
+                        address2FieldName="destinationAddress2"
                         cityFieldLabel="Destination City"
                         cityFieldName="destinationCity"
                         stateFieldLabel="Destination State"
                         stateFieldName="destinationState"
                         zipFieldLabel="Destination ZIP Code"
                         zipFieldName="destinationZip"
-                    />
-                </div>
-
-                {/* Destination Unit/Apartment/Suite  */}
-                <div className="md:col-span-2">
-                    <FormField
-                        control={form.control}
-                        name="destinationAddress2"
-                        render={({ field }) => (
-                            <FormItem>
-                                <FormLabel>Destination Unit/Apartment/Suite</FormLabel>
-                                <FormControl>
-                                    <Input placeholder="Unit, apartment, suite, etc." {...field} />
-                                </FormControl>
-                                <FormMessage />
-                            </FormItem>
-                        )}
+                        showAddress2={true}
                     />
                 </div>
 
@@ -540,7 +510,7 @@ export default function EditRideForm({
                         <FormItem className="w-full">
                             <FormLabel>Appointment Time</FormLabel>
                             <FormControl className="w-full">
-                                <Input type="time" {...field} />
+                                <Input type="time" step="60" {...field} />
                             </FormControl>
                             <FormMessage />
                         </FormItem>
@@ -557,7 +527,7 @@ export default function EditRideForm({
                             <FormControl className="w-full">
                                 <Select value={field.value} onValueChange={field.onChange}>
                                     <SelectTrigger className="w-full">
-                                        <SelectValue placeholder="Select a value" />
+                                        <SelectValue />
                                     </SelectTrigger>
                                     <SelectContent>
                                         <SelectItem value="roundTrip">Round Trip</SelectItem>
@@ -665,7 +635,7 @@ export default function EditRideForm({
                             <FormItem className="w-full">
                                 <FormLabel>Additional Rider First Name</FormLabel>
                                 <FormControl className="w-full">
-                                    <Input placeholder="Value" {...field} className="w-full" />
+                                    <Input {...field} className="w-full" />
                                 </FormControl>
                                 <FormMessage />
                             </FormItem>
@@ -680,7 +650,7 @@ export default function EditRideForm({
                             <FormItem className="w-full">
                                 <FormLabel>Additional Rider Last Name</FormLabel>
                                 <FormControl className="w-full">
-                                    <Input placeholder="Value" {...field} className="w-full" />
+                                    <Input {...field} className="w-full" />
                                 </FormControl>
                                 <FormMessage />
                             </FormItem>
@@ -695,7 +665,7 @@ export default function EditRideForm({
                             <FormItem className="w-full">
                                 <FormLabel>Relationship to Client</FormLabel>
                                 <FormControl className="w-full">
-                                    <Input placeholder="Value" {...field} className="w-full" />
+                                    <Input {...field} className="w-full" />
                                 </FormControl>
                                 <FormMessage />
                             </FormItem>
@@ -742,7 +712,6 @@ export default function EditRideForm({
                                         type="number"
                                         step="0.25"
                                         min="0"
-                                        placeholder="1.00"
                                         value={field.value ?? ""}
                                         onChange={handleNumberChange(field)}
                                         className="w-full"
@@ -765,7 +734,6 @@ export default function EditRideForm({
                                         type="number"
                                         step="0.1"
                                         min="0"
-                                        placeholder="1.00"
                                         value={field.value ?? ""}
                                         onChange={handleNumberChange(field)}
                                         className="w-full"
@@ -812,7 +780,6 @@ export default function EditRideForm({
                                 <FormControl className="w-full">
                                     <Input
                                         type="number"
-                                        placeholder="1.00"
                                         step="1"
                                         min="1"
                                         value={field.value ?? ""}

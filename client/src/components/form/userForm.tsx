@@ -76,7 +76,7 @@ const userSchema = z
             .min(1, "Phone number is required")
             .regex(
                 /^(\+1\s?)?(\([0-9]{3}\)\s?|[0-9]{3}[-.\s]?)[0-9]{3}[-.\s]?[0-9]{4}$/,
-                "Please enter a valid US phone number."
+                "Please enter a 10 digit phone number."
             ),
         primaryPhoneIsCellPhone: z.boolean(),
         okToTextPrimaryPhone: z.boolean(),
@@ -85,7 +85,7 @@ const userSchema = z
             .string()
             .regex(
                 /^(\+1\s?)?(\([0-9]{3}\)\s?|[0-9]{3}[-.\s]?)[0-9]{3}[-.\s]?[0-9]{4}$/,
-                "Please enter a valid US phone number."
+                "Please enter a 10 digit phone number."
             )
             .or(z.literal(""))
             .optional(),
@@ -129,7 +129,7 @@ const userSchema = z
             .string()
             .regex(
                 /^(\+1\s?)?(\([0-9]{3}\)\s?|[0-9]{3}[-.\s]?)[0-9]{3}[-.\s]?[0-9]{4}$/,
-                "Please enter a valid US phone number."
+                "Please enter a 10 digit phone number."
             )
             .or(z.literal(""))
             .optional(),
@@ -376,7 +376,7 @@ export default function NewUserForm({
                         <FormItem className="w-full">
                             <FormLabel>First Name</FormLabel>
                             <FormControl className="w-full">
-                                <Input placeholder="Value" {...field} className="w-full" />
+                                <Input {...field} className="w-full" />
                             </FormControl>
                             <FormMessage />
                         </FormItem>
@@ -391,7 +391,7 @@ export default function NewUserForm({
                         <FormItem className="w-full">
                             <FormLabel>Last Name</FormLabel>
                             <FormControl className="w-full">
-                                <Input placeholder="Value" {...field} className="w-full" />
+                                <Input {...field} className="w-full" />
                             </FormControl>
                             <FormMessage />
                         </FormItem>
@@ -406,7 +406,7 @@ export default function NewUserForm({
                         <FormItem>
                             <FormLabel>Email</FormLabel>
                             <FormControl>
-                                <Input placeholder="Value" {...field} />
+                                <Input {...field} />
                             </FormControl>
                             <FormMessage />
                         </FormItem>
@@ -455,26 +455,11 @@ export default function NewUserForm({
                         control={form.control}
                         setValue={form.setValue}
                         addressFieldName="streetAddress"
+                        address2FieldName="streetAddress2"
                         cityFieldName="city"
                         stateFieldName="state"
                         zipFieldName="zipCode"
-                    />
-                </div>
-
-                {/* Unit/Apartment/Suite */}
-                <div className="md:col-span-2">
-                    <FormField
-                        control={form.control}
-                        name="streetAddress2"
-                        render={({ field }) => (
-                            <FormItem>
-                                <FormLabel>Unit/Apartment/Suite</FormLabel>
-                                <FormControl>
-                                    <Input placeholder="Unit, apartment, suite, etc." {...field} />
-                                </FormControl>
-                                <FormMessage />
-                            </FormItem>
-                        )}
+                        showAddress2={true}
                     />
                 </div>
 
@@ -614,7 +599,7 @@ export default function NewUserForm({
                             <FormItem>
                                 <FormLabel>Primary Phone Number</FormLabel>
                                 <FormControl>
-                                    <Input placeholder="Value" {...field} />
+                                    <Input {...field} />
                                 </FormControl>
                                 <FormMessage />
                             </FormItem>
@@ -674,7 +659,7 @@ export default function NewUserForm({
                             <FormItem>
                                 <FormLabel>Secondary Phone Number</FormLabel>
                                 <FormControl>
-                                    <Input placeholder="Value" {...field} />
+                                    <Input {...field} />
                                 </FormControl>
                                 <FormMessage />
                             </FormItem>
@@ -736,7 +721,7 @@ export default function NewUserForm({
                                 <FormControl className="w-full">
                                     <Select value={field.value} onValueChange={field.onChange}>
                                         <SelectTrigger className="w-full">
-                                            <SelectValue placeholder="Volunteer Status" />
+                                            <SelectValue />
                                         </SelectTrigger>
                                         <SelectContent>
                                             <SelectItem value="Active">Active</SelectItem>
@@ -840,7 +825,7 @@ export default function NewUserForm({
                             <FormControl className="w-full">
                                 <Select value={field.value} onValueChange={field.onChange}>
                                     <SelectTrigger className="w-full">
-                                        <SelectValue placeholder="Contact Preference" />
+                                        <SelectValue />
                                     </SelectTrigger>
                                     <SelectContent>
                                         <SelectItem value="Phone">Phone</SelectItem>
@@ -864,7 +849,7 @@ export default function NewUserForm({
                                 <FormItem className="w-full">
                                     <FormLabel>Vehicle Type</FormLabel>
                                     <FormControl className="w-full">
-                                        <Input placeholder="Value" {...field} className="w-full" />
+                                        <Input {...field} className="w-full" />
                                     </FormControl>
                                     <FormMessage />
                                 </FormItem>
@@ -879,7 +864,7 @@ export default function NewUserForm({
                                 <FormItem className="w-full">
                                     <FormLabel>Vehicle Color</FormLabel>
                                     <FormControl className="w-full">
-                                        <Input placeholder="Value" {...field} className="w-full" />
+                                        <Input {...field} className="w-full" />
                                     </FormControl>
                                     <FormMessage />
                                 </FormItem>
@@ -898,7 +883,6 @@ export default function NewUserForm({
                                             type="number"
                                             step="1"
                                             min="0"
-                                            placeholder="0"
                                             value={field.value ?? ""}
                                             onChange={handleNumberChange(field)}
                                             className="w-full"
@@ -917,7 +901,7 @@ export default function NewUserForm({
                                 <FormItem className="w-full">
                                     <FormLabel>Town Preferences</FormLabel>
                                     <FormControl className="w-full">
-                                        <Input placeholder="Value" {...field} className="w-full" />
+                                        <Input {...field} className="w-full" />
                                     </FormControl>
                                     <FormMessage />
                                 </FormItem>
@@ -932,7 +916,7 @@ export default function NewUserForm({
                                 <FormItem className="w-full">
                                     <FormLabel>Destination Limitations</FormLabel>
                                     <FormControl className="w-full">
-                                        <Input placeholder="Value" {...field} className="w-full" />
+                                        <Input {...field} className="w-full" />
                                     </FormControl>
                                     <FormMessage />
                                 </FormItem>
@@ -983,7 +967,6 @@ export default function NewUserForm({
                                             type="number"
                                             step="1"
                                             min="0.1"
-                                            placeholder="0.1"
                                             value={field.value ?? ""}
                                             onChange={handleNumberChange(field)}
                                             className="w-full"
@@ -1004,7 +987,7 @@ export default function NewUserForm({
                         <FormItem>
                             <FormLabel>Emergency Contact Name</FormLabel>
                             <FormControl>
-                                <Input placeholder="Value" {...field} />
+                                <Input {...field} />
                             </FormControl>
                             <FormMessage />
                         </FormItem>
@@ -1018,7 +1001,7 @@ export default function NewUserForm({
                         <FormItem>
                             <FormLabel>Emergency Contact Phone</FormLabel>
                             <FormControl>
-                                <Input placeholder="Value" {...field} />
+                                <Input {...field} />
                             </FormControl>
                             <FormMessage />
                         </FormItem>
@@ -1032,7 +1015,7 @@ export default function NewUserForm({
                         <FormItem>
                             <FormLabel>Emergency Contact Relationship</FormLabel>
                             <FormControl>
-                                <Input placeholder="Value" {...field} />
+                                <Input {...field} />
                             </FormControl>
                             <FormMessage />
                         </FormItem>
