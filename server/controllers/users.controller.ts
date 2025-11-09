@@ -1,6 +1,13 @@
-import { and, eq, inArray, sql } from "drizzle-orm";
+import { and, eq, inArray, or, sql } from "drizzle-orm";
 import { Request, Response } from "express";
-import { customFormResponses, customForms, locations, roles, users } from "../drizzle/org/schema.js";
+import {
+    customFormResponses,
+    customForms,
+    locations,
+    roles,
+    users,
+    userUnavailability,
+} from "../drizzle/org/schema.js";
 import { findOrCreateLocation } from "../utils/locations.js";
 import { hashPassword } from "../utils/password.js";
 import { applyQueryFilters } from "../utils/queryParams.js";
@@ -401,10 +408,189 @@ export const deleteUser = async (req: Request, res: Response): Promise<Response>
     }
 };
 
-//  Unavailability - Stubs; not in Drizzle Schema?
+//  Unavailability
+type UnavailabilityBlock = typeof userUnavailability.$inferSelect;
+
+/**
+ * Helper function to detect overlapping unavailability blocks
+ */
+async function checkOverlaps(
+    db: any,
+    userId: string,
+    newBlock: {
+        startDate: string;
+        endDate: string;
+        startTime: string | null;
+        endTime: string | null;
+        isAllDay: boolean;
+        isRecurring: boolean;
+        recurringDayOfWeek?: string | null;
+    },
+    excludeId?: string
+): Promise<UnavailabilityBlock[]> {
+    // Get all existing blocks for this user
+    let existingBlocks = await db
+        .select()
+        .from(userUnavailability)
+        .where(
+            excludeId
+                ? and(
+                      eq(userUnavailability.userId, userId),
+                      sql`${userUnavailability.id} != ${excludeId}`
+                  )
+                : eq(userUnavailability.userId, userId)
+        );
+
+    const conflicts: UnavailabilityBlock[] = [];
+
+    for (const existing of existingBlocks) {
+        let hasOverlap = false;
+
+        if (!newBlock.isRecurring && !existing.isRecurring) {
+            // Temporary vs Temporary: Check date range overlap
+            const newStart = new Date(newBlock.startDate);
+            const newEnd = new Date(newBlock.endDate);
+            const existingStart = new Date(existing.startDate);
+            const existingEnd = new Date(existing.endDate);
+
+            const dateOverlap = newStart <= existingEnd && newEnd >= existingStart;
+
+            if (dateOverlap) {
+                // Check time overlap if not all-day
+                if (newBlock.isAllDay || existing.isAllDay) {
+                    hasOverlap = true;
+                } else if (newBlock.startTime && newBlock.endTime && existing.startTime && existing.endTime) {
+                    const timeOverlap =
+                        newBlock.startTime < existing.endTime && newBlock.endTime > existing.startTime;
+                    hasOverlap = timeOverlap;
+                } else {
+                    hasOverlap = true;
+                }
+            }
+        } else if (newBlock.isRecurring && existing.isRecurring) {
+            // Recurring vs Recurring: Check if same day of week with overlapping time
+            if (newBlock.recurringDayOfWeek === existing.recurringDayOfWeek) {
+                if (newBlock.isAllDay || existing.isAllDay) {
+                    hasOverlap = true;
+                } else if (newBlock.startTime && newBlock.endTime && existing.startTime && existing.endTime) {
+                    const timeOverlap =
+                        newBlock.startTime < existing.endTime && newBlock.endTime > existing.startTime;
+                    hasOverlap = timeOverlap;
+                }
+            }
+        } else {
+            // Temporary vs Recurring or Recurring vs Temporary
+            const tempBlock = newBlock.isRecurring ? existing : newBlock;
+            const recurBlock = newBlock.isRecurring ? newBlock : existing;
+
+            // Check if temp block falls on the recurring day
+            const tempStart = new Date(tempBlock.startDate);
+            const tempEnd = new Date(tempBlock.endDate);
+
+            // Get day of week for temp block (0=Sunday, 1=Monday, etc.)
+            const daysOfWeek = [
+                "Sunday",
+                "Monday",
+                "Tuesday",
+                "Wednesday",
+                "Thursday",
+                "Friday",
+                "Saturday",
+            ];
+
+            // Check all dates in temp block range
+            for (let d = new Date(tempStart); d <= tempEnd; d.setDate(d.getDate() + 1)) {
+                const dayName = daysOfWeek[d.getDay()];
+                if (dayName === recurBlock.recurringDayOfWeek) {
+                    // Day matches, check time overlap
+                    if (tempBlock.isAllDay || recurBlock.isAllDay) {
+                        hasOverlap = true;
+                        break;
+                    } else if (
+                        tempBlock.startTime &&
+                        tempBlock.endTime &&
+                        recurBlock.startTime &&
+                        recurBlock.endTime
+                    ) {
+                        const timeOverlap =
+                            tempBlock.startTime < recurBlock.endTime &&
+                            tempBlock.endTime > recurBlock.startTime;
+                        if (timeOverlap) {
+                            hasOverlap = true;
+                            break;
+                        }
+                    }
+                }
+            }
+        }
+
+        if (hasOverlap) {
+            conflicts.push(existing);
+        }
+    }
+
+    return conflicts;
+}
+
 export const createUnavailability = async (req: Request, res: Response): Promise<Response> => {
     try {
-        return res.status(500).json({ message: "Not implemented" });
+        const db = req.org?.db;
+        if (!db) return res.status(500).json({ error: "Database not initialized" });
+
+        const { userId } = req.params;
+
+        // Validate userId matches authenticated user
+        if (userId !== req.user?.id) {
+            return res.status(403).json({ error: "You can only manage your own unavailability" });
+        }
+
+        const { startDate, endDate, startTime, endTime, isAllDay, reason, isRecurring, recurringDayOfWeek } =
+            req.body;
+
+        // Validate required fields
+        if (!startDate || !endDate) {
+            return res.status(400).json({ error: "Start date and end date are required" });
+        }
+
+        // Check for overlaps unless ignoreOverlap flag is set
+        const ignoreOverlap = req.query.ignoreOverlap === "true";
+        if (!ignoreOverlap) {
+            const conflicts = await checkOverlaps(db, userId, {
+                startDate,
+                endDate,
+                startTime: startTime || null,
+                endTime: endTime || null,
+                isAllDay: isAllDay || false,
+                isRecurring: isRecurring || false,
+                recurringDayOfWeek: recurringDayOfWeek || null,
+            });
+
+            if (conflicts.length > 0) {
+                return res.status(409).json({
+                    error: "overlap_detected",
+                    message: "This unavailability overlaps with existing blocks",
+                    conflicts,
+                });
+            }
+        }
+
+        // Insert the unavailability block
+        const [newBlock] = await db
+            .insert(userUnavailability)
+            .values({
+                userId,
+                startDate,
+                endDate,
+                startTime: startTime || null,
+                endTime: endTime || null,
+                isAllDay: isAllDay || false,
+                reason: reason || null,
+                isRecurring: isRecurring || false,
+                recurringDayOfWeek: recurringDayOfWeek || null,
+            })
+            .returning();
+
+        return res.status(201).json(newBlock);
     } catch (err) {
         console.error("Error creating unavailability:", err);
         return res.status(500).json({ error: "Internal server error" });
@@ -413,7 +599,23 @@ export const createUnavailability = async (req: Request, res: Response): Promise
 
 export const listUnavailability = async (req: Request, res: Response): Promise<Response> => {
     try {
-        return res.status(500).json({ message: "Not implemented" });
+        const db = req.org?.db;
+        if (!db) return res.status(500).json({ error: "Database not initialized" });
+
+        const { userId } = req.params;
+
+        // Validate userId matches authenticated user
+        if (userId !== req.user?.id) {
+            return res.status(403).json({ error: "You can only view your own unavailability" });
+        }
+
+        const blocks = await db
+            .select()
+            .from(userUnavailability)
+            .where(eq(userUnavailability.userId, userId))
+            .orderBy(userUnavailability.startDate);
+
+        return res.status(200).json(blocks);
     } catch (err) {
         console.error("Error listing unavailability:", err);
         return res.status(500).json({ error: "Internal server error" });
@@ -422,7 +624,80 @@ export const listUnavailability = async (req: Request, res: Response): Promise<R
 
 export const updateUnavailability = async (req: Request, res: Response): Promise<Response> => {
     try {
-        return res.status(500).json({ message: "Not implemented" });
+        const db = req.org?.db;
+        if (!db) return res.status(500).json({ error: "Database not initialized" });
+
+        const { userId, unavailabilityId } = req.params;
+
+        // Validate userId matches authenticated user
+        if (userId !== req.user?.id) {
+            return res.status(403).json({ error: "You can only manage your own unavailability" });
+        }
+
+        // Check if block exists and belongs to user
+        const [existing] = await db
+            .select()
+            .from(userUnavailability)
+            .where(
+                and(eq(userUnavailability.id, unavailabilityId), eq(userUnavailability.userId, userId))
+            );
+
+        if (!existing) {
+            return res.status(404).json({ error: "Unavailability block not found" });
+        }
+
+        const { startDate, endDate, startTime, endTime, isAllDay, reason, isRecurring, recurringDayOfWeek } =
+            req.body;
+
+        // Check for overlaps unless ignoreOverlap flag is set
+        const ignoreOverlap = req.query.ignoreOverlap === "true";
+        if (!ignoreOverlap) {
+            const conflicts = await checkOverlaps(
+                db,
+                userId,
+                {
+                    startDate: startDate || existing.startDate,
+                    endDate: endDate || existing.endDate,
+                    startTime: startTime !== undefined ? startTime : existing.startTime,
+                    endTime: endTime !== undefined ? endTime : existing.endTime,
+                    isAllDay: isAllDay !== undefined ? isAllDay : existing.isAllDay,
+                    isRecurring: isRecurring !== undefined ? isRecurring : existing.isRecurring,
+                    recurringDayOfWeek:
+                        recurringDayOfWeek !== undefined
+                            ? recurringDayOfWeek
+                            : existing.recurringDayOfWeek,
+                },
+                unavailabilityId
+            );
+
+            if (conflicts.length > 0) {
+                return res.status(409).json({
+                    error: "overlap_detected",
+                    message: "This unavailability overlaps with existing blocks",
+                    conflicts,
+                });
+            }
+        }
+
+        // Update the block
+        const [updated] = await db
+            .update(userUnavailability)
+            .set({
+                startDate: startDate || existing.startDate,
+                endDate: endDate || existing.endDate,
+                startTime: startTime !== undefined ? startTime : existing.startTime,
+                endTime: endTime !== undefined ? endTime : existing.endTime,
+                isAllDay: isAllDay !== undefined ? isAllDay : existing.isAllDay,
+                reason: reason !== undefined ? reason : existing.reason,
+                isRecurring: isRecurring !== undefined ? isRecurring : existing.isRecurring,
+                recurringDayOfWeek:
+                    recurringDayOfWeek !== undefined ? recurringDayOfWeek : existing.recurringDayOfWeek,
+                updatedAt: new Date().toISOString(),
+            })
+            .where(eq(userUnavailability.id, unavailabilityId))
+            .returning();
+
+        return res.status(200).json(updated);
     } catch (err) {
         console.error("Error updating unavailability:", err);
         return res.status(500).json({ error: "Internal server error" });
@@ -431,7 +706,28 @@ export const updateUnavailability = async (req: Request, res: Response): Promise
 
 export const deleteUnavailability = async (req: Request, res: Response): Promise<Response> => {
     try {
-        return res.status(500).json({ message: "Not implemented" });
+        const db = req.org?.db;
+        if (!db) return res.status(500).json({ error: "Database not initialized" });
+
+        const { userId, unavailabilityId } = req.params;
+
+        // Validate userId matches authenticated user
+        if (userId !== req.user?.id) {
+            return res.status(403).json({ error: "You can only manage your own unavailability" });
+        }
+
+        // Delete the block (will only delete if belongs to user)
+        const result = await db
+            .delete(userUnavailability)
+            .where(
+                and(eq(userUnavailability.id, unavailabilityId), eq(userUnavailability.userId, userId))
+            );
+
+        if (result.rowCount === 0) {
+            return res.status(404).json({ error: "Unavailability block not found" });
+        }
+
+        return res.status(204).send();
     } catch (err) {
         console.error("Error deleting unavailability:", err);
         return res.status(500).json({ error: "Internal server error" });

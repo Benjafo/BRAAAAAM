@@ -85,6 +85,36 @@ export const PERMISSIONS: PermissionDefinition[] = [
         description: "Modify existing appointments (may be limited to own appointments)",
     },
 
+    // Unavailability
+    {
+        permKey: "unavailability.read",
+        resource: "unavailability",
+        action: "read",
+        name: "View Unavailability",
+        description: "View own unavailability",
+    },
+    {
+        permKey: "unavailability.create",
+        resource: "unavailability",
+        action: "create",
+        name: "Create Unavailability",
+        description: "Schedule new unavailability",
+    },
+    {
+        permKey: "unavailability.update",
+        resource: "unavailability",
+        action: "update",
+        name: "Update Unavailability",
+        description: "Modify existing unavailability",
+    },
+    {
+        permKey: "unavailability.delete",
+        resource: "unavailability",
+        action: "delete",
+        name: "Delete Unavailability",
+        description: "Delete an unavailability block",
+    },
+
     // Reports
     {
         permKey: "reports.export",
