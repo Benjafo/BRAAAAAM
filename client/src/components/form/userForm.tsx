@@ -308,7 +308,7 @@ export default function NewUserForm({
             primaryPhoneNumber: defaultValues.primaryPhoneNumber ?? "",
             primaryPhoneIsCellPhone: defaultValues.primaryPhoneIsCellPhone ?? false,
             okToTextPrimaryPhone: defaultValues.okToTextPrimaryPhone ?? false,
-            contactPreference: defaultValues.contactPreference ?? "Phone",
+            contactPreference: defaultValues.contactPreference,
             secondaryPhoneNumber: defaultValues.secondaryPhoneNumber ?? "",
             secondaryPhoneIsCellPhone: defaultValues.secondaryPhoneIsCellPhone ?? false,
             okToTextSecondaryPhone: defaultValues.okToTextSecondaryPhone ?? false,
@@ -966,7 +966,7 @@ export default function NewUserForm({
                                         <Input
                                             type="number"
                                             step="1"
-                                            min="0.1"
+                                            min="0"
                                             value={field.value ?? ""}
                                             onChange={handleNumberChange(field)}
                                             className="w-full"

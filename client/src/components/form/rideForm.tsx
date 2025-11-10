@@ -129,7 +129,7 @@ const rideSchema = z
                 }
             ),
         donationType: z.enum(["Check", "Cash", "unopenedEnvelope"]).optional(),
-        donationAmount: z.number().min(1, "Donation amount must be at least $1.").optional(),
+        donationAmount: z.number().min(0.01, "Donation amount must be at least $0.01").optional(),
     })
     .superRefine((data, ctx) => {
         if (data.additionalRider === "Yes") {
@@ -780,8 +780,8 @@ export default function EditRideForm({
                                 <FormControl className="w-full">
                                     <Input
                                         type="number"
-                                        step="1"
-                                        min="1"
+                                        step="0.01"
+                                        min="0.01"
                                         value={field.value ?? ""}
                                         onChange={handleNumberChange(field)}
                                         className="w-full"
