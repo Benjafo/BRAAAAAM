@@ -43,7 +43,8 @@ export default function NewOrganizationModal({
             name: values.orgName,
             subdomain: subdomain, //TODO replace with form field?
             pocEmail: values.email,
-            pocPhone: `+1${values.phoneGeneral}`,
+            pocPhone: values.phoneGeneral ? `+1${values.phoneGeneral}` : null, // Optional
+            pocName: values.primaryContact
         };
 
         // Make API call - PUT for edit, POST for create
