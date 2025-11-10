@@ -584,6 +584,7 @@ export default function BaseCalendar({
       color: #000000;
     }
 
+    /* Hide all-day section completely - we'll render all-day events as regular timed events */
     .rbc-allday-cell {
       display: none;
     }

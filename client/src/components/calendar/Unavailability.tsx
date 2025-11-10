@@ -71,7 +71,7 @@ const expandRecurringBlock = (
 
             const startDate = new Date(current);
             startDate.setHours(
-                block.isAllDay ? 0 : startHours,
+                block.isAllDay ? 9 : startHours,
                 block.isAllDay ? 0 : startMinutes,
                 0,
                 0
@@ -79,8 +79,8 @@ const expandRecurringBlock = (
 
             const endDate = new Date(current);
             endDate.setHours(
-                block.isAllDay ? 23 : endHours,
-                block.isAllDay ? 59 : endMinutes,
+                block.isAllDay ? 17 : endHours,
+                block.isAllDay ? 0 : endMinutes,
                 0,
                 0
             );
@@ -96,6 +96,10 @@ const expandRecurringBlock = (
                     status: "unavailable",
                     reason: block.reason,
                     recurring: true,
+                    isAllDay: block.isAllDay,
+                    recurringDayOfWeek: block.recurringDayOfWeek,
+                    startTime: block.startTime,
+                    endTime: block.endTime,
                 },
             });
         }
@@ -105,42 +109,121 @@ const expandRecurringBlock = (
     return events;
 };
 
-// Transform temporary (non-recurring) block to calendar event
-const transformTemporaryBlock = (block: UnavailabilityBlock): CalendarEvent => {
+// Transform temporary (non-recurring) block to calendar event(s)
+// For multi-day blocks, split into individual day events
+const transformTemporaryBlock = (block: UnavailabilityBlock): CalendarEvent[] => {
     const { hours: startHours, minutes: startMinutes } = parseTime(block.startTime);
     const { hours: endHours, minutes: endMinutes } = parseTime(block.endTime);
 
     const [startYear, startMonth, startDay] = block.startDate.split("-").map(Number);
     const [endYear, endMonth, endDay] = block.endDate.split("-").map(Number);
 
-    const startDate = new Date(
-        startYear,
-        startMonth - 1,
-        startDay,
-        block.isAllDay ? 0 : startHours,
-        block.isAllDay ? 0 : startMinutes
-    );
-    const endDate = new Date(
-        endYear,
-        endMonth - 1,
-        endDay,
-        block.isAllDay ? 23 : endHours,
-        block.isAllDay ? 59 : endMinutes
-    );
+    const startDateObj = new Date(startYear, startMonth - 1, startDay);
+    const endDateObj = new Date(endYear, endMonth - 1, endDay);
 
-    return {
-        id: block.id,
-        title: block.reason || "Unavailable",
-        start: startDate,
-        end: endDate,
-        type: "unavailability",
-        resource: {
-            originalId: block.id,
-            status: "unavailable",
-            reason: block.reason,
-            recurring: false,
-        },
-    };
+    // Check if this is a multi-day block
+    const isMultiDay = block.startDate !== block.endDate;
+
+    if (!isMultiDay) {
+        // Single day event
+        const startDate = new Date(
+            startYear,
+            startMonth - 1,
+            startDay,
+            block.isAllDay ? 9 : startHours,
+            block.isAllDay ? 0 : startMinutes
+        );
+        const endDate = new Date(
+            startYear,
+            startMonth - 1,
+            startDay,
+            block.isAllDay ? 17 : endHours,
+            block.isAllDay ? 0 : endMinutes
+        );
+
+        return [{
+            id: block.id,
+            title: block.reason || "Unavailable",
+            start: startDate,
+            end: endDate,
+            type: "unavailability",
+            resource: {
+                originalId: block.id,
+                status: "unavailable",
+                reason: block.reason,
+                recurring: false,
+                isAllDay: block.isAllDay,
+                startDate: block.startDate,
+                endDate: block.endDate,
+                startTime: block.startTime,
+                endTime: block.endTime,
+            },
+        }];
+    }
+
+    // Multi-day event: split into individual day events
+    const events: CalendarEvent[] = [];
+    const current = new Date(startDateObj);
+
+    while (current <= endDateObj) {
+        const isFirstDay = current.getTime() === startDateObj.getTime();
+        const isLastDay = current.getTime() === endDateObj.getTime();
+
+        // Determine start and end times for this day
+        let dayStartHour = 9, dayStartMinute = 0;
+        let dayEndHour = 17, dayEndMinute = 0;
+
+        if (!block.isAllDay) {
+            // For timed events, use specified times on first/last day, full day otherwise
+            if (isFirstDay) {
+                dayStartHour = startHours;
+                dayStartMinute = startMinutes;
+                dayEndHour = 17;
+                dayEndMinute = 0;
+            } else if (isLastDay) {
+                dayStartHour = 9;
+                dayStartMinute = 0;
+                dayEndHour = endHours;
+                dayEndMinute = endMinutes;
+            } else {
+                // Middle days: full business hours
+                dayStartHour = 9;
+                dayStartMinute = 0;
+                dayEndHour = 17;
+                dayEndMinute = 0;
+            }
+        }
+
+        const startDate = new Date(current);
+        startDate.setHours(dayStartHour, dayStartMinute, 0, 0);
+
+        const endDate = new Date(current);
+        endDate.setHours(dayEndHour, dayEndMinute, 0, 0);
+
+        events.push({
+            id: `${block.id}-${current.toISOString().split("T")[0]}`,
+            title: block.reason || "Unavailable",
+            start: startDate,
+            end: endDate,
+            type: "unavailability",
+            resource: {
+                originalId: block.id,
+                status: "unavailable",
+                reason: block.reason,
+                recurring: false,
+                isAllDay: block.isAllDay,
+                startDate: block.startDate,
+                endDate: block.endDate,
+                startTime: block.startTime,
+                endTime: block.endTime,
+            },
+        });
+
+        current.setDate(current.getDate() + 1);
+    }
+
+    console.log(`Split multi-day block ${block.id} into ${events.length} events`);
+    return events;
 };
 
 // Standard 9-5 business hours configuration
@@ -163,7 +246,7 @@ const mapEventToFormValues = (event: CalendarEvent) => {
         return {
             recurring: {
                 id: resource?.originalId,
-                day: event.start.toLocaleDateString("en-US", { weekday: "long" }) as
+                day: resource?.recurringDayOfWeek as
                     | "Monday"
                     | "Tuesday"
                     | "Wednesday"
@@ -171,36 +254,30 @@ const mapEventToFormValues = (event: CalendarEvent) => {
                     | "Friday"
                     | "Saturday"
                     | "Sunday",
-                allDay: event.start.getHours() === 0 && event.end.getHours() === 23,
-                startTime:
-                    event.start.getHours() === 0 && event.end.getHours() === 23
-                        ? undefined
-                        : `${String(event.start.getHours()).padStart(2, "0")}:${String(event.start.getMinutes()).padStart(2, "0")}`,
-                endTime:
-                    event.start.getHours() === 0 && event.end.getHours() === 23
-                        ? undefined
-                        : `${String(event.end.getHours()).padStart(2, "0")}:${String(event.end.getMinutes()).padStart(2, "0")}`,
+                allDay: resource?.isAllDay || false,
+                startTime: resource?.isAllDay ? undefined : resource?.startTime || undefined,
+                endTime: resource?.isAllDay ? undefined : resource?.endTime || undefined,
                 reason: resource?.reason || "",
             },
             defaultTab: "recurring" as const,
         };
     } else {
-        const isMultiDay = event.start.toDateString() !== event.end.toDateString();
-        const isAllDay = event.start.getHours() === 0 && event.end.getHours() === 23;
+        // Parse the date strings from resource
+        const isMultiDay = resource?.startDate !== resource?.endDate;
+        const startDate = resource?.startDate
+            ? new Date(resource.startDate + "T00:00:00")
+            : event.start;
+        const endDate = resource?.endDate ? new Date(resource.endDate + "T00:00:00") : event.end;
 
         return {
             temp: {
                 id: resource?.originalId,
                 multiDay: isMultiDay,
-                allDay: isAllDay,
-                startDate: event.start,
-                endDate: isMultiDay ? event.end : undefined,
-                startTime: isAllDay
-                    ? undefined
-                    : `${String(event.start.getHours()).padStart(2, "0")}:${String(event.start.getMinutes()).padStart(2, "0")}`,
-                endTime: isAllDay
-                    ? undefined
-                    : `${String(event.end.getHours()).padStart(2, "0")}:${String(event.end.getMinutes()).padStart(2, "0")}`,
+                allDay: resource?.isAllDay || false,
+                startDate: startDate,
+                endDate: isMultiDay ? endDate : undefined,
+                startTime: resource?.isAllDay ? undefined : resource?.startTime || undefined,
+                endTime: resource?.isAllDay ? undefined : resource?.endTime || undefined,
                 reason: resource?.reason || "",
             },
             defaultTab: "temporary" as const,
@@ -263,8 +340,8 @@ export default function Unavailability() {
                         ...expandRecurringBlock(block, calendarRange.start, calendarRange.end)
                     );
                 } else {
-                    // Add temporary blocks as-is
-                    events.push(transformTemporaryBlock(block));
+                    // Add temporary blocks (split multi-day into individual day events)
+                    events.push(...transformTemporaryBlock(block));
                 }
             }
 

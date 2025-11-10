@@ -89,8 +89,8 @@ export default function TempUnavailabilityForm({ defaultValues, onSubmit }: Prop
         resolver: zodResolver(schema),
         mode: "onBlur",
         defaultValues: {
-            multiDay: false,
-            allDay: false,
+            multiDay: defaultValues?.multiDay ?? false,
+            allDay: defaultValues?.allDay ?? false,
             startDate: defaultValues?.startDate ?? new Date(),
             endDate: defaultValues?.endDate,
             startTime: defaultValues?.startTime ?? "08:00",

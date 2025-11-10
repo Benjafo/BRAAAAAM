@@ -80,7 +80,7 @@ export default function RecurringUnavailabilityForm({ defaultValues, onSubmit }:
         mode: "onBlur",
         defaultValues: {
             day: defaultValues?.day,
-            allDay: false,
+            allDay: defaultValues?.allDay ?? false,
             startTime: defaultValues?.startTime ?? "08:00",
             endTime: defaultValues?.endTime ?? "10:00",
             reason: defaultValues?.reason ?? "",

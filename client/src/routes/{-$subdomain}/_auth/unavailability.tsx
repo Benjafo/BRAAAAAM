@@ -1,4 +1,4 @@
-import Unavailability from "@/components/calendar/Unavailability";
+import { UnavailabilityTable } from "@/components/tables/UnavailabilityTable";
 import { MainNavigation } from "@/components/Navigation";
 import { createFileRoute } from "@tanstack/react-router";
 
@@ -10,7 +10,9 @@ function RouteComponent() {
     return (
         <>
             <MainNavigation />
-            <Unavailability />
+            <div className="container mx-auto py-6">
+                <UnavailabilityTable />
+            </div>
         </>
     );
 }
