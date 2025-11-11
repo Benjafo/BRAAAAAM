@@ -167,6 +167,11 @@ export const createUser = async (req: Request, res: Response): Promise<Response>
             isDriver,
             roleId,
             address,
+            canAccommodateMobilityEquipment,
+            vehicleType,
+            canAccommodateOxygen,
+            canAccommodateServiceAnimal,
+            canAccommodateAdditionalRider,
         } = req.body;
 
         if (!firstName || !lastName || !email || !phone) {
@@ -205,6 +210,11 @@ export const createUser = async (req: Request, res: Response): Promise<Response>
                 roleId: roleId ?? undefined,
                 isActive: isActive ?? true,
                 isDriver: isDriver ?? false,
+                canAccommodateMobilityEquipment: canAccommodateMobilityEquipment ?? [],
+                vehicleType: vehicleType ?? undefined,
+                canAccommodateOxygen: canAccommodateOxygen ?? false,
+                canAccommodateServiceAnimal: canAccommodateServiceAnimal ?? false,
+                canAccommodateAdditionalRider: canAccommodateAdditionalRider ?? false,
                 isDeleted: false,
             })
             .returning();
@@ -325,6 +335,11 @@ export const updateUser = async (req: Request, res: Response): Promise<Response>
                 emergencyContactRelationship: data.emergencyContactRelationship,
                 isActive: data.isActive,
                 isDriver: data.isDriver,
+                canAccommodateMobilityEquipment: data.canAccommodateMobilityEquipment,
+                vehicleType: data.vehicleType,
+                canAccommodateOxygen: data.canAccommodateOxygen,
+                canAccommodateServiceAnimal: data.canAccommodateServiceAnimal,
+                canAccommodateAdditionalRider: data.canAccommodateAdditionalRider,
                 ...(data.roleId !== undefined && { roleId: data.roleId }),
                 ...(addressId !== undefined && { addressLocation: addressId }),
                 updatedAt: new Date().toISOString(),

@@ -151,6 +151,14 @@ export const createClient = async (req: Request, res: Response): Promise<Respons
             emergencyContactRelationship,
             notes,
             pickupInstructions,
+            mobilityEquipment,
+            mobilityEquipmentOther,
+            vehicleTypes,
+            hasOxygen,
+            hasServiceAnimal,
+            serviceAnimalDescription,
+            otherLimitations,
+            otherLimitationsOther,
         } = req.body;
 
         // Validate all required fields are provided
@@ -224,6 +232,14 @@ export const createClient = async (req: Request, res: Response): Promise<Respons
                 emergencyContactRelationship,
                 notes,
                 pickupInstructions,
+                mobilityEquipment: mobilityEquipment ?? [],
+                mobilityEquipmentOther,
+                vehicleTypes: vehicleTypes ?? [],
+                hasOxygen: hasOxygen ?? false,
+                hasServiceAnimal: hasServiceAnimal ?? false,
+                serviceAnimalDescription,
+                otherLimitations: otherLimitations ?? [],
+                otherLimitationsOther,
             })
             .returning(); // Return full client row
 
@@ -355,6 +371,14 @@ export const updateClient = async (req: Request, res: Response): Promise<Respons
                 emergencyContactRelationship: data.emergencyContactRelationship,
                 notes: data.notes,
                 pickupInstructions: data.pickupInstructions,
+                mobilityEquipment: data.mobilityEquipment,
+                mobilityEquipmentOther: data.mobilityEquipmentOther,
+                vehicleTypes: data.vehicleTypes,
+                hasOxygen: data.hasOxygen,
+                hasServiceAnimal: data.hasServiceAnimal,
+                serviceAnimalDescription: data.serviceAnimalDescription,
+                otherLimitations: data.otherLimitations,
+                otherLimitationsOther: data.otherLimitationsOther,
                 ...(addressId !== undefined && { addressLocation: addressId }),
                 updatedAt: new Date().toISOString(), // Update timestamp manually
             })

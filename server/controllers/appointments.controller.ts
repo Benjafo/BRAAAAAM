@@ -9,6 +9,7 @@ import {
     locations,
     roles,
     users,
+    userUnavailability,
 } from "../drizzle/org/schema.js";
 import { findOrCreateLocation } from "../utils/locations.js";
 import { applyQueryFilters } from "../utils/queryParams.js";
@@ -351,7 +352,7 @@ export const getMatchingDrivers = async (req: Request, res: Response): Promise<R
         const db = req.org?.db;
         if (!db) return res.status(400).json({ message: "Organization context missing" });
 
-        // Verify appointment exists
+        // Verify appointment exists and get client details
         const [appointment] = await db
             .select()
             .from(appointments)
@@ -361,9 +362,18 @@ export const getMatchingDrivers = async (req: Request, res: Response): Promise<R
             return res.status(404).json({ message: "Appointment not found" });
         }
 
-        // TODO better matching logic
-        // Current placeholder just returns the first 10 active drivers
-        const matchingDrivers = await db
+        // Get client details for matching
+        const [client] = await db
+            .select()
+            .from(clients)
+            .where(eq(clients.id, appointment.clientId));
+
+        if (!client) {
+            return res.status(404).json({ message: "Client not found" });
+        }
+
+        // Get all active drivers with their accommodation capabilities
+        const allDrivers = await db
             .select({
                 id: users.id,
                 firstName: users.firstName,
@@ -374,6 +384,11 @@ export const getMatchingDrivers = async (req: Request, res: Response): Promise<R
                 isActive: users.isActive,
                 roleId: users.roleId,
                 roleName: roles.name,
+                canAccommodateMobilityEquipment: users.canAccommodateMobilityEquipment,
+                vehicleType: users.vehicleType,
+                canAccommodateOxygen: users.canAccommodateOxygen,
+                canAccommodateServiceAnimal: users.canAccommodateServiceAnimal,
+                canAccommodateAdditionalRider: users.canAccommodateAdditionalRider,
                 address: {
                     id: locations.id,
                     addressLine1: locations.addressLine1,
@@ -387,10 +402,120 @@ export const getMatchingDrivers = async (req: Request, res: Response): Promise<R
             .from(users)
             .leftJoin(locations, eq(users.addressLocation, locations.id))
             .leftJoin(roles, eq(users.roleId, roles.id))
-            .where(sql`${users.isDriver} = true AND ${users.isActive} = true`)
-            .limit(10);
+            .where(sql`${users.isDriver} = true AND ${users.isActive} = true`);
 
-        return res.status(200).json({ results: matchingDrivers });
+        // Get unavailability blocks for all drivers
+        const driverIds = allDrivers.map((d) => d.id);
+        const unavailabilityBlocks =
+            driverIds.length > 0
+                ? await db
+                      .select()
+                      .from(userUnavailability)
+                      .where(inArray(userUnavailability.userId, driverIds))
+                : [];
+
+        // Helper function to check if driver has unavailability during appointment time
+        const hasUnavailability = (driverId: string): boolean => {
+            const driverBlocks = unavailabilityBlocks.filter((block) => block.userId === driverId);
+
+            for (const block of driverBlocks) {
+                if (block.isRecurring) {
+                    // For recurring blocks, check if appointment day matches recurring day
+                    const appointmentDayOfWeek = new Date(appointment.startDate).toLocaleDateString(
+                        "en-US",
+                        { weekday: "long" }
+                    );
+                    if (block.recurringDayOfWeek === appointmentDayOfWeek) {
+                        // Check time overlap if not all-day
+                        if (block.isAllDay) return true;
+                        if (block.startTime && block.endTime && appointment.startTime) {
+                            if (
+                                appointment.startTime >= block.startTime &&
+                                appointment.startTime < block.endTime
+                            ) {
+                                return true;
+                            }
+                        }
+                    }
+                } else {
+                    // For non-recurring blocks, check date and time overlap
+                    if (
+                        appointment.startDate >= block.startDate &&
+                        appointment.startDate <= block.endDate
+                    ) {
+                        if (block.isAllDay) return true;
+                        if (block.startTime && block.endTime && appointment.startTime) {
+                            if (
+                                appointment.startTime >= block.startTime &&
+                                appointment.startTime < block.endTime
+                            ) {
+                                return true;
+                            }
+                        }
+                    }
+                }
+            }
+            return false;
+        };
+
+        // Calculate score for each driver
+        const driversWithScores = allDrivers.map((driver) => {
+            let score = 0;
+
+            // 1. Availability Check (1 point)
+            if (!hasUnavailability(driver.id)) {
+                score += 1;
+            }
+
+            // 2. Mobility Equipment Match (1 point)
+            const clientMobilityEquipment = client.mobilityEquipment || [];
+            const driverCanAccommodate = driver.canAccommodateMobilityEquipment || [];
+            const canAccommodateAllEquipment = clientMobilityEquipment.every(
+                (equipment: "cane" | "crutches" | "lightweight_walker" | "rollator") =>
+                    driverCanAccommodate.includes(equipment)
+            );
+            if (clientMobilityEquipment.length === 0 || canAccommodateAllEquipment) {
+                score += 1;
+            }
+
+            // 3. Vehicle Type Match (1 point)
+            const clientVehicleTypes = client.vehicleTypes || [];
+            if (
+                clientVehicleTypes.length === 0 ||
+                (driver.vehicleType && clientVehicleTypes.includes(driver.vehicleType))
+            ) {
+                score += 1;
+            }
+
+            // 4. Oxygen Match (1 point)
+            if (!client.hasOxygen || driver.canAccommodateOxygen) {
+                score += 1;
+            }
+
+            // 5. Service Animal Match (1 point)
+            if (!client.hasServiceAnimal || driver.canAccommodateServiceAnimal) {
+                score += 1;
+            }
+
+            // 6. Additional Rider Match (1 point)
+            // Note: Additional rider info may come from appointment in the future
+            // For now, if driver can accommodate, they get the point
+            if (driver.canAccommodateAdditionalRider) {
+                score += 1;
+            }
+
+            return {
+                ...driver,
+                matchScore: score,
+            };
+        });
+
+        // Sort by score (descending) and take top 10
+        const topDrivers = driversWithScores
+            .sort((a, b) => b.matchScore - a.matchScore)
+            .slice(0, 10);
+
+        return res.status(200).json({ results: topDrivers });
     } catch (err) {
         console.error("Error fetching matching drivers:", err);
         return res.status(500).send();

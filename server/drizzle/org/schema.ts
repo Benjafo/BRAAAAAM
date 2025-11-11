@@ -66,6 +66,21 @@ export const dayOfWeek = pgEnum("day_of_week", [
     "Saturday",
     "Sunday",
 ]);
+export const mobilityEquipment = pgEnum("mobility_equipment", [
+    "cane",
+    "crutches",
+    "lightweight_walker",
+    "rollator",
+]);
+export const vehicleType = pgEnum("vehicle_type", [
+    "sedan",
+    "small_suv",
+    "medium_suv",
+    "large_suv",
+    "small_truck",
+    "large_truck",
+]);
+export const otherLimitation = pgEnum("other_limitation", ["vision", "hearing", "cognitive"]);
 
 export const roles = pgTable(
     "roles",
@@ -133,6 +148,11 @@ export const users = pgTable(
         emergencyContactPhone: text("emergency_contact_phone"),
         emergencyContactRelationship: varchar("emergency_contact_relationship", { length: 100 }),
         isDriver: boolean("is_driver").default(false),
+        canAccommodateMobilityEquipment: mobilityEquipment("can_accommodate_mobility_equipment").array(),
+        vehicleType: vehicleType("vehicle_type"),
+        canAccommodateOxygen: boolean("can_accommodate_oxygen").default(false),
+        canAccommodateServiceAnimal: boolean("can_accommodate_service_animal").default(false),
+        canAccommodateAdditionalRider: boolean("can_accommodate_additional_rider").default(false),
         isActive: boolean("is_active").default(true),
         isDeleted: boolean("is_deleted").default(false),
         createdAt: timestamp("created_at", { withTimezone: true, mode: "string" })
@@ -279,6 +299,14 @@ export const clients = pgTable(
         emergencyContactRelationship: varchar("emergency_contact_relationship", { length: 100 }),
         notes: text(),
         pickupInstructions: text("pickup_instructions"),
+        mobilityEquipment: mobilityEquipment("mobility_equipment").array(),
+        mobilityEquipmentOther: text("mobility_equipment_other"),
+        vehicleTypes: vehicleType("vehicle_types").array(),
+        hasOxygen: boolean("has_oxygen").default(false),
+        hasServiceAnimal: boolean("has_service_animal").default(false),
+        serviceAnimalDescription: text("service_animal_description"),
+        otherLimitations: otherLimitation("other_limitations").array(),
+        otherLimitationsOther: text("other_limitations_other"),
         isActive: boolean("is_active").default(true),
         createdAt: timestamp("created_at", { withTimezone: true, mode: "string" })
             .defaultNow()
