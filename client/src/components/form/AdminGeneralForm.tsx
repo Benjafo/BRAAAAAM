@@ -1,6 +1,12 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-
+import {
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
+} from "@/components/ui/select";
 import {
     Form,
     FormControl,
@@ -13,8 +19,52 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { useCallback, useEffect, useRef, useState, forwardRef, useImperativeHandle } from "react";
 import { toast } from "sonner";
-
 import z from "zod";
+
+/**
+ * Available theme options (AI help)
+ */
+const THEMES = {
+    LIGHT: "light",
+    DARK: "dark",
+    DARK_AMBER: "dark-amber",
+} as const;
+
+type Theme = (typeof THEMES)[keyof typeof THEMES];
+
+const THEME_STORAGE_KEY = "app-theme";
+
+/**
+ * Apply theme to document root (AI help)
+ */
+const applyTheme = (theme: Theme) => {
+    const root = document.documentElement;
+
+    // Remove all theme classes
+    root.classList.remove("dark", "dark-amber");
+
+    // Apply selected theme
+    if (theme === THEMES.DARK) {
+        root.classList.add("dark");
+    } else if (theme === THEMES.DARK_AMBER) {
+        root.classList.add("dark-amber");
+    }
+    // Light theme is the default
+
+    // Save to localStorage
+    localStorage.setItem(THEME_STORAGE_KEY, theme);
+};
+
+/**
+ * Get theme from localStorage or default to light (AI help)
+ */
+const getStoredTheme = (): Theme => {
+    const stored = localStorage.getItem(THEME_STORAGE_KEY);
+    if (stored === THEMES.DARK || stored === THEMES.DARK_AMBER || stored === THEMES.LIGHT) {
+        return stored;
+    }
+    return THEMES.LIGHT;
+};
 
 /**
  * Zod schema for admin general settings validation
@@ -34,6 +84,7 @@ const adminGeneralSchema = z.object({
             /^(?:[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?\.)+[a-z0-9][a-z0-9-]{0,61}[a-z0-9]$/i,
             "Please enter a valid domain (e.g., example.com)"
         ),
+    theme: z.enum([THEMES.LIGHT, THEMES.DARK, THEMES.DARK_AMBER]),
     creationDate: z.date(),
 
     // Organization Contacts
@@ -83,6 +134,7 @@ const testData: AdminGeneralFormData = {
     name: "corporation name",
     logoUrl: "",
     organizationDomain: "corporation.com",
+    theme: THEMES.LIGHT,
     creationDate: new Date("2025-09-10"),
     phone: "(111) 111-1111",
     email: "contact@gmail.com",
@@ -111,23 +163,30 @@ export const AdminGeneralForm = forwardRef<AdminGeneralFormRef, AdminGeneralForm
         const [logoFile, setLogoFile] = useState<File | null>(null);
         const [uploadedFileName, setUploadedFileName] = useState<string | null>(null);
 
-        // Refs (Recomended by AI)
+        // Refs
         const serverDataRef = useRef(serverData);
         const fileInputRef = useRef<HTMLInputElement>(null);
 
         // React Hook Form setup with Zod validation
         const form = useForm<AdminGeneralFormData>({
             resolver: zodResolver(adminGeneralSchema),
-            defaultValues: serverData,
+            defaultValues: { ...serverData, theme: getStoredTheme() },
             mode: "onBlur",
         });
 
-        // Keep serverDataRef in sync with serverData (Recomended by AI)
+        // Apply stored theme on mount
+        useEffect(() => {
+            const storedTheme = getStoredTheme();
+            applyTheme(storedTheme);
+            form.setValue("theme", storedTheme);
+        }, [form]);
+
+        // Keep serverDataRef in sync with serverData
         useEffect(() => {
             serverDataRef.current = serverData;
         }, [serverData]);
 
-        // Cleanup URLs to prevent memory leaks (Recomended by AI)
+        // Cleanup URLs to prevent memory leaks
         useEffect(() => {
             return () => {
                 if (serverData.logoUrl && serverData.logoUrl.startsWith("blob:")) {
@@ -136,7 +195,12 @@ export const AdminGeneralForm = forwardRef<AdminGeneralFormRef, AdminGeneralForm
             };
         }, [serverData.logoUrl]);
 
-        // Handling logo file change, AI was in some part of handleLogoChange
+        // Handle theme change in edit mode
+        const handleThemeChange = useCallback((newTheme: Theme) => {
+            applyTheme(newTheme);
+        }, []);
+
+        // Handling logo file change
         const handleLogoChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
             const file = e.target.files?.[0];
             if (!file) return;
@@ -162,16 +226,22 @@ export const AdminGeneralForm = forwardRef<AdminGeneralFormRef, AdminGeneralForm
 
         // Handling cancel
         const handleCancel = useCallback(() => {
-            // Reset to server data using ref
-            form.reset(serverDataRef.current);
+            // Get the stored theme (current saved theme)
+            const storedTheme = getStoredTheme();
+
+            // Reset to server data with stored theme
+            form.reset({ ...serverDataRef.current, theme: storedTheme });
             setLogoFile(null);
+
+            // Revert theme if it was changed
+            applyTheme(storedTheme);
 
             if (fileInputRef.current) {
                 fileInputRef.current.value = "";
             }
         }, [form]);
 
-        // Handling save data
+        // Handling save data (AI help)
         const handleSave = useCallback(async (): Promise<boolean> => {
             try {
                 // Validate form
@@ -183,9 +253,9 @@ export const AdminGeneralForm = forwardRef<AdminGeneralFormRef, AdminGeneralForm
 
                 const formData = form.getValues();
 
-                // Handle logo file upload if a new file was selected
+                // Handle logo file upload if a new file was selected (AI help)
                 if (logoFile) {
-                    // Revoke previous blob URL if it exists (AI help)
+                    // Revoke previous blob URL if it exists
                     if (serverData.logoUrl && serverData.logoUrl.startsWith("blob:")) {
                         URL.revokeObjectURL(serverData.logoUrl);
                     }
@@ -229,7 +299,7 @@ export const AdminGeneralForm = forwardRef<AdminGeneralFormRef, AdminGeneralForm
             }
         }, [form, logoFile, serverData.logoUrl]);
 
-        // Code for edit button to work in admin settings route, might be a better way to do this? Don't know for now
+        // Code for edit button to work in admin settings route (AI help)
         useImperativeHandle(
             ref,
             () => ({
@@ -238,6 +308,19 @@ export const AdminGeneralForm = forwardRef<AdminGeneralFormRef, AdminGeneralForm
             }),
             [handleSave, handleCancel]
         );
+
+        const getThemeLabel = (theme: Theme): string => {
+            switch (theme) {
+                case THEMES.LIGHT:
+                    return "Light";
+                case THEMES.DARK:
+                    return "Dark";
+                case THEMES.DARK_AMBER:
+                    return "Dark Amber";
+                default:
+                    return theme;
+            }
+        };
 
         return (
             <div>
@@ -350,6 +433,50 @@ export const AdminGeneralForm = forwardRef<AdminGeneralFormRef, AdminGeneralForm
                                                 </FormControl>
                                             ) : (
                                                 <p className="text-sm">{field.value || "Empty"}</p>
+                                            )}
+                                            <FormMessage />
+                                        </FormItem>
+                                    )}
+                                />
+
+                                {/* Theme form field, help from AI */}
+                                <FormField
+                                    control={form.control}
+                                    name="theme"
+                                    render={({ field }) => (
+                                        <FormItem className="grid gap-3">
+                                            <FormLabel>Theme</FormLabel>
+                                            {isEditMode ? (
+                                                <>
+                                                    <Select
+                                                        onValueChange={(value) => {
+                                                            field.onChange(value);
+                                                            handleThemeChange(value as Theme);
+                                                        }}
+                                                        defaultValue={field.value}
+                                                    >
+                                                        <FormControl>
+                                                            <SelectTrigger className="w-80">
+                                                                <SelectValue placeholder="Select a theme" />
+                                                            </SelectTrigger>
+                                                        </FormControl>
+                                                        <SelectContent>
+                                                            <SelectItem value={THEMES.LIGHT}>
+                                                                Light
+                                                            </SelectItem>
+                                                            <SelectItem value={THEMES.DARK}>
+                                                                Dark
+                                                            </SelectItem>
+                                                            <SelectItem value={THEMES.DARK_AMBER}>
+                                                                Dark Amber
+                                                            </SelectItem>
+                                                        </SelectContent>
+                                                    </Select>
+                                                </>
+                                            ) : (
+                                                <p className="text-sm">
+                                                    {getThemeLabel(field.value)}
+                                                </p>
                                             )}
                                             <FormMessage />
                                         </FormItem>
