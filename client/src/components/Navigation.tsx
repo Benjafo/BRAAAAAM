@@ -83,7 +83,7 @@ interface MainNavProps {
     navItems?: {
         text: string;
         link: string;
-        permission?: string;
+        permission?: string | string[];
     }[];
 }
 
@@ -120,7 +120,7 @@ export const MainNavigation = ({
         {
             text: "Unavailability",
             link: "/unavailability",
-            permission: PERMISSIONS.UNAVAILABILITY_READ,
+            permission: [PERMISSIONS.OWN_UNAVAILABILITY_READ, PERMISSIONS.ALL_UNAVAILABILITY_READ],
         },
         // {
         //     text: "Notifications",
@@ -156,12 +156,17 @@ export const MainNavigation = ({
     const navigate = useNavigate();
     const user = useAuthStore((s) => s.user);
     const hasPermission = useAuthStore((s) => s.hasPermission);
+    const hasAnyPermission = useAuthStore((s) => s.hasAnyPermission);
     const logout = useLogout();
 
     const visibleNavItems = navItems.filter((item) => {
         // Show the item if no permission required
         if (!item.permission) return true;
-        // Otherwise check permission
+        // Check if user has any of the required permissions
+        if (Array.isArray(item.permission)) {
+            return hasAnyPermission(item.permission);
+        }
+        // Handle single permission
         return hasPermission(item.permission);
     });
 

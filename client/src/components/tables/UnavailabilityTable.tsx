@@ -1,5 +1,6 @@
 import { DataTable } from "@/components/dataTable";
 import { useAuthStore } from "@/components/stores/authStore";
+import { PERMISSIONS } from "@/lib/permissions";
 import { http } from "@/services/auth/serviceResolver";
 import { useState } from "react";
 import type { RecurringUnavailabilityFormValues } from "../form/recurringUnavailabilityForm";
@@ -19,6 +20,9 @@ type UnavailabilityBlock = {
     recurringDayOfWeek: string | null; // e.g., 'Monday'
     createdAt: string;
     updatedAt: string;
+    userFirstName?: string; // Only present when fetching all unavailability
+    userLastName?: string; // Only present when fetching all unavailability
+    userEmail?: string; // Only present when fetching all unavailability
 };
 
 const ORG_ID = "braaaaam"; // Hardcoded for now
@@ -101,6 +105,20 @@ export function UnavailabilityTable() {
     const [refreshKey, setRefreshKey] = useState(0);
     const userId = useAuthStore((s) => s.user)?.id;
 
+    // Permission checks
+    const hasViewAllPermission = useAuthStore((s) =>
+        s.hasPermission(PERMISSIONS.ALL_UNAVAILABILITY_READ)
+    );
+    const hasCreatePermission = useAuthStore((s) =>
+        s.hasPermission(PERMISSIONS.OWN_UNAVAILABILITY_CREATE)
+    );
+    const hasUpdatePermission = useAuthStore((s) =>
+        s.hasAnyPermission([
+            PERMISSIONS.OWN_UNAVAILABILITY_UPDATE,
+            PERMISSIONS.ALL_UNAVAILABILITY_UPDATE,
+        ])
+    );
+
     const handleRefresh = () => {
         setRefreshKey((prev) => prev + 1);
     };
@@ -108,12 +126,18 @@ export function UnavailabilityTable() {
     const fetchUnavailability = async (params: Record<string, unknown>) => {
         console.log("Using params:", params);
 
-        if (!userId) {
+        // If user has permission to view all unavailability, fetch from /users/unavailability
+        // Otherwise, fetch only their own from /users/:userId/unavailability
+        const endpoint = hasViewAllPermission
+            ? `o/${ORG_ID}/users/unavailability`
+            : `o/${ORG_ID}/users/${userId}/unavailability`;
+
+        if (!hasViewAllPermission && !userId) {
             return { data: [], total: 0 };
         }
 
         const blocks: UnavailabilityBlock[] = await http
-            .get(`o/${ORG_ID}/users/${userId}/unavailability`, {
+            .get(endpoint, {
                 headers: {
                     "x-org-subdomain": ORG_ID,
                 },
@@ -137,79 +161,101 @@ export function UnavailabilityTable() {
         setIsModalOpen(true);
     };
 
+    // Build columns array dynamically based on permissions
+    const columns = [
+        // Add User column only if viewing all unavailability
+        ...(hasViewAllPermission
+            ? [
+                  {
+                      header: "User",
+                      accessorFn: (row: UnavailabilityBlock) => {
+                          if (row.userFirstName && row.userLastName) {
+                              return `${row.userFirstName} ${row.userLastName}`;
+                          }
+                          return row.userEmail || "Unknown";
+                      },
+                      id: "user",
+                  },
+              ]
+            : []),
+        {
+            header: "Date",
+            accessorFn: (row: UnavailabilityBlock) => {
+                if (row.isRecurring) {
+                    return `Every ${row.recurringDayOfWeek}`;
+                }
+                const isMultiDay = row.startDate !== row.endDate;
+                if (isMultiDay) {
+                    return `${formatDate(row.startDate)} - ${formatDate(row.endDate)}`;
+                }
+                return formatDate(row.startDate);
+            },
+            id: "date",
+        },
+        {
+            header: "Time",
+            accessorFn: (row: UnavailabilityBlock) => {
+                if (row.isAllDay) {
+                    return "All Day";
+                }
+                if (row.startTime && row.endTime) {
+                    return `${formatTime(row.startTime)} - ${formatTime(row.endTime)}`;
+                }
+                return "N/A";
+            },
+            id: "time",
+        },
+        {
+            header: "Day of Week",
+            accessorFn: (row: UnavailabilityBlock) => {
+                if (row.isRecurring) {
+                    return row.recurringDayOfWeek || "N/A";
+                }
+                const isMultiDay = row.startDate !== row.endDate;
+                if (isMultiDay) {
+                    return "Multiple Days";
+                }
+                return getDayOfWeek(row.startDate);
+            },
+            id: "dayOfWeek",
+        },
+        {
+            header: "Recurring",
+            accessorFn: (row: UnavailabilityBlock) => (row.isRecurring ? "Yes" : "No"),
+            id: "recurring",
+        },
+        {
+            header: "Multi-Day",
+            accessorFn: (row: UnavailabilityBlock) => {
+                if (row.isRecurring) {
+                    return "No";
+                }
+                return row.startDate !== row.endDate ? "Yes" : "No";
+            },
+            id: "multiDay",
+        },
+        {
+            header: "Reason",
+            accessorFn: (row: UnavailabilityBlock) => row.reason || "N/A",
+            id: "reason",
+        },
+    ];
+
     return (
         <>
             <DataTable
                 key={refreshKey}
                 fetchData={fetchUnavailability}
-                columns={[
-                    {
-                        header: "Date",
-                        accessorFn: (row) => {
-                            if (row.isRecurring) {
-                                return `Every ${row.recurringDayOfWeek}`;
-                            }
-                            const isMultiDay = row.startDate !== row.endDate;
-                            if (isMultiDay) {
-                                return `${formatDate(row.startDate)} - ${formatDate(row.endDate)}`;
-                            }
-                            return formatDate(row.startDate);
-                        },
-                        id: "date",
-                    },
-                    {
-                        header: "Time",
-                        accessorFn: (row) => {
-                            if (row.isAllDay) {
-                                return "All Day";
-                            }
-                            if (row.startTime && row.endTime) {
-                                return `${formatTime(row.startTime)} - ${formatTime(row.endTime)}`;
-                            }
-                            return "N/A";
-                        },
-                        id: "time",
-                    },
-                    {
-                        header: "Day of Week",
-                        accessorFn: (row) => {
-                            if (row.isRecurring) {
-                                return row.recurringDayOfWeek || "N/A";
-                            }
-                            const isMultiDay = row.startDate !== row.endDate;
-                            if (isMultiDay) {
-                                return "N/A";
-                            }
-                            return getDayOfWeek(row.startDate);
-                        },
-                        id: "dayOfWeek",
-                    },
-                    {
-                        header: "Recurring",
-                        accessorFn: (row) => (row.isRecurring ? "Yes" : "No"),
-                        id: "recurring",
-                    },
-                    {
-                        header: "Multi-Day",
-                        accessorFn: (row) => {
-                            if (row.isRecurring) {
-                                return "No";
-                            }
-                            return row.startDate !== row.endDate ? "Yes" : "No";
-                        },
-                        id: "multiDay",
-                    },
-                    {
-                        header: "Reason",
-                        accessorKey: "reason",
-                        cell: ({ getValue }) => getValue() || "N/A",
-                    },
-                ]}
-                onRowClick={handleEditUnavailability}
-                actionButton={{
-                    label: "Add Unavailability",
-                    onClick: handleCreateUnavailability,
-                }}
+                columns={columns}
+                onRowClick={hasUpdatePermission ? handleEditUnavailability : undefined}
+                actionButton={
+                    hasCreatePermission
+                        ? {
+                              label: "Add Unavailability",
+                              onClick: handleCreateUnavailability,
+                          }
+                        : undefined
+                }
                 usePagination={true}
             />
             <UnavailabilityModal

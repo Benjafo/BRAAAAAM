@@ -4,34 +4,61 @@ import { withPermission } from "../middleware/with-permission.js";
 
 const router: Router = express.Router({ mergeParams: true });
 
-// /o/:orgId/users
 router.get("/", withPermission({ permissions: "users.read" }), users.listUsers);
 router.post("/", withPermission({ permissions: "users.create" }), users.createUser);
 
-// /o/:orgId/users/:userId
+router.get(
+    "/unavailability",
+    withPermission({ permissions: "allunavailability.read" }),
+    users.listAllUnavailability
+);
+
 router.get("/:userId", withPermission({ permissions: "users.read" }), users.getUser);
 router.put("/:userId", withPermission({ permissions: "users.update" }), users.updateUser);
 router.delete("/:userId", withPermission({ permissions: "users.delete" }), users.deleteUser);
 
-// Unavailability
 router.post(
     "/:userId/unavailability",
-    withPermission({ permissions: "unavailability.create" }),
+    withPermission({
+        scoped: {
+            resource: "unavailability",
+            action: "create",
+            getTargetUserId: (req) => req.params.userId,
+        },
+    }),
     users.createUnavailability
 );
 router.get(
     "/:userId/unavailability",
-    withPermission({ permissions: "unavailability.read" }),
+    withPermission({
+        scoped: {
+            resource: "unavailability",
+            action: "read",
+            getTargetUserId: (req) => req.params.userId,
+        },
+    }),
     users.listUnavailability
 );
 router.put(
     "/:userId/unavailability/:unavailabilityId",
-    withPermission({ permissions: "unavailability.update" }),
+    withPermission({
+        scoped: {
+            resource: "unavailability",
+            action: "update",
+            getTargetUserId: (req) => req.params.userId,
+        },
+    }),
     users.updateUnavailability
 );
 router.delete(
     "/:userId/unavailability/:unavailabilityId",
-    withPermission({ permissions: "unavailability.delete" }),
+    withPermission({
+        scoped: {
+            resource: "unavailability",
+            action: "delete",
+            getTargetUserId: (req) => req.params.userId,
+        },
+    }),
     users.deleteUnavailability
 );
 

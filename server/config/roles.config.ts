@@ -38,6 +38,11 @@ export const DEFAULT_ROLES: RoleDefinition[] = [
             "appointments.read",
             "appointments.update",
 
+            // Unavailability
+            "allunavailability.read",
+            "allunavailability.update",
+            "allunavailability.delete",
+
             // Reports
             "reports.export",
             "reports.read",
@@ -88,10 +93,10 @@ export const DEFAULT_ROLES: RoleDefinition[] = [
         permissions: [
             "appointments.read",
             "clients.read",
-            "unavailability.read",
-            "unavailability.create",
-            "unavailability.update",
-            "unavailability.delete",
+            "ownunavailability.read",
+            "ownunavailability.create",
+            "ownunavailability.update",
+            "ownunavailability.delete",
         ],
     },
 ];

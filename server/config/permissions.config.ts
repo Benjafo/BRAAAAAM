@@ -85,34 +85,57 @@ export const PERMISSIONS: PermissionDefinition[] = [
         description: "Modify existing appointments (may be limited to own appointments)",
     },
 
-    // Unavailability
+    // Unavailability - All Users (Admin)
     {
-        permKey: "unavailability.read",
-        resource: "unavailability",
+        permKey: "allunavailability.read",
+        resource: "allunavailability",
         action: "read",
-        name: "View Unavailability",
-        description: "View own unavailability",
+        name: "View All Unavailability",
+        description: "View unavailability periods for all users",
     },
     {
-        permKey: "unavailability.create",
-        resource: "unavailability",
-        action: "create",
-        name: "Create Unavailability",
-        description: "Schedule new unavailability",
-    },
-    {
-        permKey: "unavailability.update",
-        resource: "unavailability",
+        permKey: "allunavailability.update",
+        resource: "allunavailability",
         action: "update",
-        name: "Update Unavailability",
-        description: "Modify existing unavailability",
+        name: "Update All Unavailability",
+        description: "Modify unavailability periods for all users",
     },
     {
-        permKey: "unavailability.delete",
-        resource: "unavailability",
+        permKey: "allunavailability.delete",
+        resource: "allunavailability",
         action: "delete",
-        name: "Delete Unavailability",
-        description: "Delete an unavailability block",
+        name: "Delete All Unavailability",
+        description: "Delete unavailability periods for all users",
+    },
+
+    // Unavailability - Own (Driver)
+    {
+        permKey: "ownunavailability.read",
+        resource: "ownunavailability",
+        action: "read",
+        name: "View Own Unavailability",
+        description: "View your own unavailability periods",
+    },
+    {
+        permKey: "ownunavailability.create",
+        resource: "ownunavailability",
+        action: "create",
+        name: "Create Own Unavailability",
+        description: "Create your own unavailability periods",
+    },
+    {
+        permKey: "ownunavailability.update",
+        resource: "ownunavailability",
+        action: "update",
+        name: "Update Own Unavailability",
+        description: "Modify your own unavailability periods",
+    },
+    {
+        permKey: "ownunavailability.delete",
+        resource: "ownunavailability",
+        action: "delete",
+        name: "Delete Own Unavailability",
+        description: "Delete your own unavailability periods",
     },
 
     // Reports

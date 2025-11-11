@@ -539,11 +539,6 @@ export const createUnavailability = async (req: Request, res: Response): Promise
 
         const { userId } = req.params;
 
-        // Validate userId matches authenticated user
-        if (userId !== req.user?.id) {
-            return res.status(403).json({ error: "You can only manage your own unavailability" });
-        }
-
         const { startDate, endDate, startTime, endTime, isAllDay, reason, isRecurring, recurringDayOfWeek } =
             req.body;
 
@@ -604,11 +599,6 @@ export const listUnavailability = async (req: Request, res: Response): Promise<R
 
         const { userId } = req.params;
 
-        // Validate userId matches authenticated user
-        if (userId !== req.user?.id) {
-            return res.status(403).json({ error: "You can only view your own unavailability" });
-        }
-
         const blocks = await db
             .select()
             .from(userUnavailability)
@@ -622,17 +612,47 @@ export const listUnavailability = async (req: Request, res: Response): Promise<R
     }
 };
 
+export const listAllUnavailability = async (req: Request, res: Response): Promise<Response> => {
+    try {
+        const db = req.org?.db;
+        if (!db) return res.status(500).json({ error: "Database not initialized" });
+
+        // Fetch all unavailability with user info joined
+        const blocks = await db
+            .select({
+                id: userUnavailability.id,
+                userId: userUnavailability.userId,
+                startDate: userUnavailability.startDate,
+                startTime: userUnavailability.startTime,
+                endDate: userUnavailability.endDate,
+                endTime: userUnavailability.endTime,
+                isAllDay: userUnavailability.isAllDay,
+                reason: userUnavailability.reason,
+                isRecurring: userUnavailability.isRecurring,
+                recurringDayOfWeek: userUnavailability.recurringDayOfWeek,
+                createdAt: userUnavailability.createdAt,
+                updatedAt: userUnavailability.updatedAt,
+                userFirstName: users.firstName,
+                userLastName: users.lastName,
+                userEmail: users.email,
+            })
+            .from(userUnavailability)
+            .leftJoin(users, eq(userUnavailability.userId, users.id))
+            .orderBy(userUnavailability.startDate);
+
+        return res.status(200).json(blocks);
+    } catch (err) {
+        console.error("Error listing all unavailability:", err);
+        return res.status(500).json({ error: "Internal server error" });
+    }
+};
+
 export const updateUnavailability = async (req: Request, res: Response): Promise<Response> => {
     try {
         const db = req.org?.db;
         if (!db) return res.status(500).json({ error: "Database not initialized" });
 
         const { userId, unavailabilityId } = req.params;
-
-        // Validate userId matches authenticated user
-        if (userId !== req.user?.id) {
-            return res.status(403).json({ error: "You can only manage your own unavailability" });
-        }
 
         // Check if block exists and belongs to user
         const [existing] = await db
@@ -710,11 +730,6 @@ export const deleteUnavailability = async (req: Request, res: Response): Promise
         if (!db) return res.status(500).json({ error: "Database not initialized" });
 
         const { userId, unavailabilityId } = req.params;
-
-        // Validate userId matches authenticated user
-        if (userId !== req.user?.id) {
-            return res.status(403).json({ error: "You can only manage your own unavailability" });
-        }
 
         // Delete the block (will only delete if belongs to user)
         const result = await db

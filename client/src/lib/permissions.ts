@@ -17,11 +17,16 @@ export const PERMISSIONS = {
     APPOINTMENTS_CREATE: "appointments.create",
     APPOINTMENTS_UPDATE: "appointments.update",
 
-    // Unavailability
-    UNAVAILABILITY_READ: "unavailability.read",
-    UNAVAILABILITY_CREATE: "unavailability.create",
-    UNAVAILABILITY_UPDATE: "unavailability.update",
-    UNAVAILABILITY_DELETE: "unavailability.delete",
+    // Unavailability - All Users
+    ALL_UNAVAILABILITY_READ: "allunavailability.read",
+    ALL_UNAVAILABILITY_UPDATE: "allunavailability.update",
+    ALL_UNAVAILABILITY_DELETE: "allunavailability.delete",
+
+    // Unavailability - Own
+    OWN_UNAVAILABILITY_READ: "ownunavailability.read",
+    OWN_UNAVAILABILITY_CREATE: "ownunavailability.create",
+    OWN_UNAVAILABILITY_UPDATE: "ownunavailability.update",
+    OWN_UNAVAILABILITY_DELETE: "ownunavailability.delete",
 
     // Reports
     REPORTS_READ: "reports.read",
@@ -60,6 +65,15 @@ export const PERMISSION_GROUPS = {
         PERMISSIONS.APPOINTMENTS_READ,
         PERMISSIONS.APPOINTMENTS_CREATE,
         PERMISSIONS.APPOINTMENTS_UPDATE,
+    ],
+    Unavailability: [
+        PERMISSIONS.ALL_UNAVAILABILITY_READ,
+        PERMISSIONS.ALL_UNAVAILABILITY_UPDATE,
+        PERMISSIONS.ALL_UNAVAILABILITY_DELETE,
+        PERMISSIONS.OWN_UNAVAILABILITY_READ,
+        PERMISSIONS.OWN_UNAVAILABILITY_CREATE,
+        PERMISSIONS.OWN_UNAVAILABILITY_UPDATE,
+        PERMISSIONS.OWN_UNAVAILABILITY_DELETE,
     ],
     Reports: [PERMISSIONS.REPORTS_READ, PERMISSIONS.REPORTS_EXPORT],
     Administration: [

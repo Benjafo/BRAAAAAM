@@ -2,9 +2,14 @@ import { NextFunction, Request, Response } from "express";
 import { hasAllPermissions, hasAnyPermission, hasPermission } from "../utils/permissions.js";
 
 interface PermissionOptions {
-    permissions: string | string[];
+    permissions?: string | string[];
     requireAll?: boolean; // If true, requires ALL permissions; if false, requires ANY (default: false)
     customError?: string; // Custom error message
+    scoped?: {
+        resource: string; // e.g., 'unavailability'
+        action: string; // e.g., 'read', 'create', 'update', 'delete'
+        getTargetUserId: (req: Request) => string; // Function to extract target user ID from request
+    };
 }
 
 /**
@@ -41,37 +46,67 @@ export function withPermission(options: PermissionOptions) {
                 });
             }
 
-            const permissions = Array.isArray(options.permissions)
-                ? options.permissions
-                : [options.permissions];
-
             let hasAccess = false;
 
-            // Check permissions based on requirements
-            if (permissions.length === 1) {
-                // Single permission check
-                hasAccess = await hasPermission(userId, permissions[0], orgDb);
-            } else if (options.requireAll) {
-                // Require ALL permissions
-                hasAccess = await hasAllPermissions(userId, permissions, orgDb);
-            } else {
-                // Require ANY permission (default)
-                hasAccess = await hasAnyPermission(userId, permissions, orgDb);
-            }
+            // Handle scoped permissions (e.g., "own" vs "all" resources)
+            if (options.scoped) {
+                const { resource, action, getTargetUserId } = options.scoped;
+                const targetUserId = getTargetUserId(req);
+                const isOwn = targetUserId === userId;
 
-            if (!hasAccess) {
-                return res.status(403).json({
-                    error: options.customError || "Insufficient permissions",
-                    message: options.requireAll
-                        ? `All of these permissions are required: ${permissions.join(", ")}`
-                        : `At least one of these permissions is required: ${permissions.join(", ")}`,
-                    required: permissions,
-                    requireAll: options.requireAll || false,
+                const allPermission = `all${resource}.${action}`;
+                const ownPermission = `own${resource}.${action}`;
+
+                const canAccessAll = await hasPermission(userId, allPermission, orgDb);
+                const canAccessOwn = await hasPermission(userId, ownPermission, orgDb);
+
+                hasAccess = canAccessAll || (canAccessOwn && isOwn);
+
+                if (!hasAccess) {
+                    return res.status(403).json({
+                        error: options.customError || "Insufficient permissions",
+                        message: isOwn
+                            ? `Permission required: ${ownPermission} or ${allPermission}`
+                            : `Permission required: ${allPermission}`,
+                        required: isOwn ? [ownPermission, allPermission] : [allPermission],
+                    });
+                }
+            } else if (options.permissions) {
+                // Handle standard permission checks
+                const permissions = Array.isArray(options.permissions)
+                    ? options.permissions
+                    : [options.permissions];
+
+                // Check permissions based on requirements
+                if (permissions.length === 1) {
+                    // Single permission check
+                    hasAccess = await hasPermission(userId, permissions[0], orgDb);
+                } else if (options.requireAll) {
+                    // Require ALL permissions
+                    hasAccess = await hasAllPermissions(userId, permissions, orgDb);
+                } else {
+                    // Require ANY permission (default)
+                    hasAccess = await hasAnyPermission(userId, permissions, orgDb);
+                }
+
+                if (!hasAccess) {
+                    return res.status(403).json({
+                        error: options.customError || "Insufficient permissions",
+                        message: options.requireAll
+                            ? `All of these permissions are required: ${permissions.join(", ")}`
+                            : `At least one of these permissions is required: ${permissions.join(", ")}`,
+                        required: permissions,
+                        requireAll: options.requireAll || false,
+                    });
+                }
+            } else {
+                // Neither scoped nor permissions provided
+                return res.status(500).json({
+                    error: "Configuration error",
+                    message: "Either 'permissions' or 'scoped' must be provided to withPermission",
                 });
             }
 
-            // is this right? Made this as a quick fix to solve this error on the
-            // return async (req: Request... line - "Not all code paths return a value."
             return next();
         } catch (error) {
             console.error("[withPermission] Error checking permissions:", error);
