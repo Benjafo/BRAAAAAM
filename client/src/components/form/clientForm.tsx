@@ -126,6 +126,14 @@ const clientSchema = z
             .or(z.literal("")),
         notes: z.string().optional().or(z.literal("")),
         pickupInstructions: z.string().optional().or(z.literal("")),
+        mobilityEquipment: z.array(z.enum(["cane", "crutches", "lightweight_walker", "rollator"])).optional(),
+        mobilityEquipmentOther: z.string().max(255, "Max characters allowed is 255.").optional().or(z.literal("")),
+        vehicleTypes: z.array(z.enum(["sedan", "small_suv", "medium_suv", "large_suv", "small_truck", "large_truck"])).optional(),
+        hasOxygen: z.boolean().optional(),
+        hasServiceAnimal: z.boolean().optional(),
+        serviceAnimalDescription: z.string().max(255, "Max characters allowed is 255.").optional().or(z.literal("")),
+        otherLimitations: z.array(z.enum(["vision", "hearing", "cognitive"])).optional(),
+        otherLimitationsOther: z.string().max(255, "Max characters allowed is 255.").optional().or(z.literal("")),
         customFields: z.record(z.string(), z.any()).optional(),
     })
     .superRefine((data, ctx) => {
@@ -245,6 +253,14 @@ export default function ClientForm({ defaultValues, onSubmit }: Props) {
             emergencyContactRelationship: defaultValues.emergencyContactRelationship ?? "",
             notes: defaultValues.notes ?? "",
             pickupInstructions: defaultValues.pickupInstructions ?? "",
+            mobilityEquipment: defaultValues.mobilityEquipment ?? [],
+            mobilityEquipmentOther: defaultValues.mobilityEquipmentOther ?? "",
+            vehicleTypes: defaultValues.vehicleTypes ?? [],
+            hasOxygen: defaultValues.hasOxygen ?? false,
+            hasServiceAnimal: defaultValues.hasServiceAnimal ?? false,
+            serviceAnimalDescription: defaultValues.serviceAnimalDescription ?? "",
+            otherLimitations: defaultValues.otherLimitations ?? [],
+            otherLimitationsOther: defaultValues.otherLimitationsOther ?? "",
             customFields: defaultValues.customFields ?? {},
         },
     });
@@ -252,6 +268,9 @@ export default function ClientForm({ defaultValues, onSubmit }: Props) {
     const clientStatus = form.watch("clientStatus");
     const volunteeringStatus = form.watch("volunteeringStatus");
     const primaryPhoneIsCellPhone = form.watch("primaryPhoneIsCellPhone");
+    const hasServiceAnimal = form.watch("hasServiceAnimal");
+    const mobilityEquipment = form.watch("mobilityEquipment");
+    const otherLimitations = form.watch("otherLimitations");
     const secondaryPhoneIsCellPhone = form.watch("secondaryPhoneIsCellPhone");
 
     const [monthOpen, setMonthOpen] = useState(false);
@@ -924,6 +943,225 @@ export default function ClientForm({ defaultValues, onSubmit }: Props) {
                                 <FormLabel>Pickup Instructions</FormLabel>
                                 <FormControl>
                                     <Textarea {...field} />
+                                </FormControl>
+                                <FormMessage />
+                            </FormItem>
+                        )}
+                    />
+                </div>
+
+                {/* Mobility Equipment */}
+                <div className="md:col-span-2">
+                    <FormField
+                        control={form.control}
+                        name="mobilityEquipment"
+                        render={() => (
+                            <FormItem>
+                                <FormLabel>Mobility Equipment</FormLabel>
+                                <div className="space-y-2">
+                                    {[
+                                        { id: "cane", label: "Cane" },
+                                        { id: "crutches", label: "Crutches" },
+                                        { id: "lightweight_walker", label: "Lightweight Walker" },
+                                        { id: "rollator", label: "Rollator" },
+                                    ].map((item) => (
+                                        <FormField
+                                            key={item.id}
+                                            control={form.control}
+                                            name="mobilityEquipment"
+                                            render={({ field }) => (
+                                                <FormItem className="flex flex-row items-center space-x-3 space-y-0">
+                                                    <FormControl>
+                                                        <Checkbox
+                                                            checked={field.value?.includes(item.id as any)}
+                                                            onCheckedChange={(checked) => {
+                                                                const current = field.value || [];
+                                                                const updated = checked
+                                                                    ? [...current, item.id]
+                                                                    : current.filter((val: string) => val !== item.id);
+                                                                field.onChange(updated);
+                                                            }}
+                                                        />
+                                                    </FormControl>
+                                                    <FormLabel className="font-normal">{item.label}</FormLabel>
+                                                </FormItem>
+                                            )}
+                                        />
+                                    ))}
+                                </div>
+                                <FormMessage />
+                            </FormItem>
+                        )}
+                    />
+                </div>
+
+                {/* Mobility Equipment Other */}
+                <div className="md:col-span-2">
+                    <FormField
+                        control={form.control}
+                        name="mobilityEquipmentOther"
+                        render={({ field }) => (
+                            <FormItem>
+                                <FormLabel>Other Mobility Equipment</FormLabel>
+                                <FormControl>
+                                    <Input {...field} placeholder="Specify other equipment..." />
+                                </FormControl>
+                                <FormMessage />
+                            </FormItem>
+                        )}
+                    />
+                </div>
+
+                {/* Vehicle Types */}
+                <div className="md:col-span-2">
+                    <FormField
+                        control={form.control}
+                        name="vehicleTypes"
+                        render={() => (
+                            <FormItem>
+                                <FormLabel>Acceptable Vehicle Types</FormLabel>
+                                <div className="grid grid-cols-2 gap-2">
+                                    {[
+                                        { id: "sedan", label: "Sedan" },
+                                        { id: "small_suv", label: "Small SUV" },
+                                        { id: "medium_suv", label: "Medium SUV" },
+                                        { id: "large_suv", label: "Large SUV" },
+                                        { id: "small_truck", label: "Small Truck" },
+                                        { id: "large_truck", label: "Large Truck" },
+                                    ].map((item) => (
+                                        <FormField
+                                            key={item.id}
+                                            control={form.control}
+                                            name="vehicleTypes"
+                                            render={({ field }) => (
+                                                <FormItem className="flex flex-row items-center space-x-3 space-y-0">
+                                                    <FormControl>
+                                                        <Checkbox
+                                                            checked={field.value?.includes(item.id as any)}
+                                                            onCheckedChange={(checked) => {
+                                                                const current = field.value || [];
+                                                                const updated = checked
+                                                                    ? [...current, item.id]
+                                                                    : current.filter((val: string) => val !== item.id);
+                                                                field.onChange(updated);
+                                                            }}
+                                                        />
+                                                    </FormControl>
+                                                    <FormLabel className="font-normal">{item.label}</FormLabel>
+                                                </FormItem>
+                                            )}
+                                        />
+                                    ))}
+                                </div>
+                                <FormMessage />
+                            </FormItem>
+                        )}
+                    />
+                </div>
+
+                {/* Has Oxygen */}
+                <FormField
+                    control={form.control}
+                    name="hasOxygen"
+                    render={({ field }) => (
+                        <FormItem className="flex flex-row items-center space-x-3 space-y-0 rounded-md border p-4">
+                            <FormControl>
+                                <Checkbox checked={field.value} onCheckedChange={field.onChange} />
+                            </FormControl>
+                            <FormLabel className="font-normal">Has Oxygen</FormLabel>
+                            <FormMessage />
+                        </FormItem>
+                    )}
+                />
+
+                {/* Has Service Animal */}
+                <FormField
+                    control={form.control}
+                    name="hasServiceAnimal"
+                    render={({ field }) => (
+                        <FormItem className="flex flex-row items-center space-x-3 space-y-0 rounded-md border p-4">
+                            <FormControl>
+                                <Checkbox checked={field.value} onCheckedChange={field.onChange} />
+                            </FormControl>
+                            <FormLabel className="font-normal">Has Service Animal</FormLabel>
+                            <FormMessage />
+                        </FormItem>
+                    )}
+                />
+
+                {/* Service Animal Description - Only shown if hasServiceAnimal is true */}
+                {hasServiceAnimal && (
+                    <div className="md:col-span-2">
+                        <FormField
+                            control={form.control}
+                            name="serviceAnimalDescription"
+                            render={({ field }) => (
+                                <FormItem>
+                                    <FormLabel>Service Animal Description</FormLabel>
+                                    <FormControl>
+                                        <Input {...field} placeholder="Describe the service animal..." />
+                                    </FormControl>
+                                    <FormMessage />
+                                </FormItem>
+                            )}
+                        />
+                    </div>
+                )}
+
+                {/* Other Limitations */}
+                <div className="md:col-span-2">
+                    <FormField
+                        control={form.control}
+                        name="otherLimitations"
+                        render={() => (
+                            <FormItem>
+                                <FormLabel>Other Limitations</FormLabel>
+                                <div className="space-y-2">
+                                    {[
+                                        { id: "vision", label: "Vision" },
+                                        { id: "hearing", label: "Hearing" },
+                                        { id: "cognitive", label: "Cognitive" },
+                                    ].map((item) => (
+                                        <FormField
+                                            key={item.id}
+                                            control={form.control}
+                                            name="otherLimitations"
+                                            render={({ field }) => (
+                                                <FormItem className="flex flex-row items-center space-x-3 space-y-0">
+                                                    <FormControl>
+                                                        <Checkbox
+                                                            checked={field.value?.includes(item.id as any)}
+                                                            onCheckedChange={(checked) => {
+                                                                const current = field.value || [];
+                                                                const updated = checked
+                                                                    ? [...current, item.id]
+                                                                    : current.filter((val: string) => val !== item.id);
+                                                                field.onChange(updated);
+                                                            }}
+                                                        />
+                                                    </FormControl>
+                                                    <FormLabel className="font-normal">{item.label}</FormLabel>
+                                                </FormItem>
+                                            )}
+                                        />
+                                    ))}
+                                </div>
+                                <FormMessage />
+                            </FormItem>
+                        )}
+                    />
+                </div>
+
+                {/* Other Limitations Other */}
+                <div className="md:col-span-2">
+                    <FormField
+                        control={form.control}
+                        name="otherLimitationsOther"
+                        render={({ field }) => (
+                            <FormItem>
+                                <FormLabel>Other Limitations (Specify)</FormLabel>
+                                <FormControl>
+                                    <Input {...field} placeholder="Specify other limitations..." />
                                 </FormControl>
                                 <FormMessage />
                             </FormItem>

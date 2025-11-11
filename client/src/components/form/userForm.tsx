@@ -92,16 +92,16 @@ const userSchema = z
             .optional(),
         secondaryPhoneIsCellPhone: z.boolean(),
         okToTextSecondaryPhone: z.boolean(),
-        vehicleType: z
-            .string()
-            .max(255, "Max characters allowed is 255.")
-            .optional()
-            .or(z.literal("")),
+        vehicleType: z.enum(["sedan", "small_suv", "medium_suv", "large_suv", "small_truck", "large_truck", ""]).optional(),
         vehicleColor: z
             .string()
             .max(255, "Max characters allowed is 255.")
             .optional()
             .or(z.literal("")),
+        canAccommodateMobilityEquipment: z.array(z.enum(["cane", "crutches", "lightweight_walker", "rollator"])).optional(),
+        canAccommodateOxygen: z.boolean().optional(),
+        canAccommodateServiceAnimal: z.boolean().optional(),
+        canAccommodateAdditionalRider: z.boolean().optional(),
         maxRides: z
             .number("Must enter the number of rides, a 0 means no limit.")
             .min(0, "Rides cannot be less than 0.")
@@ -306,6 +306,10 @@ export default function NewUserForm({
             okToTextSecondaryPhone: defaultValues.okToTextSecondaryPhone ?? false,
             vehicleType: defaultValues.vehicleType ?? "",
             vehicleColor: defaultValues.vehicleColor ?? "",
+            canAccommodateMobilityEquipment: defaultValues.canAccommodateMobilityEquipment ?? [],
+            canAccommodateOxygen: defaultValues.canAccommodateOxygen ?? false,
+            canAccommodateServiceAnimal: defaultValues.canAccommodateServiceAnimal ?? false,
+            canAccommodateAdditionalRider: defaultValues.canAccommodateAdditionalRider ?? false,
             maxRides: defaultValues.maxRides,
             townPreferences: defaultValues.townPreferences ?? "",
             destinationLimitations: defaultValues.destinationLimitations ?? "",
@@ -848,9 +852,21 @@ export default function NewUserForm({
                             render={({ field }) => (
                                 <FormItem className="w-full">
                                     <FormLabel>Vehicle Type</FormLabel>
-                                    <FormControl className="w-full">
-                                        <Input {...field} className="w-full" />
-                                    </FormControl>
+                                    <Select value={field.value} onValueChange={field.onChange}>
+                                        <FormControl className="w-full">
+                                            <SelectTrigger className="w-full">
+                                                <SelectValue placeholder="Select vehicle type" />
+                                            </SelectTrigger>
+                                        </FormControl>
+                                        <SelectContent>
+                                            <SelectItem value="sedan">Sedan</SelectItem>
+                                            <SelectItem value="small_suv">Small SUV</SelectItem>
+                                            <SelectItem value="medium_suv">Medium SUV</SelectItem>
+                                            <SelectItem value="large_suv">Large SUV</SelectItem>
+                                            <SelectItem value="small_truck">Small Truck</SelectItem>
+                                            <SelectItem value="large_truck">Large Truck</SelectItem>
+                                        </SelectContent>
+                                    </Select>
                                     <FormMessage />
                                 </FormItem>
                             )}
@@ -866,6 +882,96 @@ export default function NewUserForm({
                                     <FormControl className="w-full">
                                         <Input {...field} className="w-full" />
                                     </FormControl>
+                                    <FormMessage />
+                                </FormItem>
+                            )}
+                        />
+
+                        {/* Can Accommodate Mobility Equipment */}
+                        <div className="md:col-span-2">
+                            <FormField
+                                control={form.control}
+                                name="canAccommodateMobilityEquipment"
+                                render={() => (
+                                    <FormItem>
+                                        <FormLabel>Can Accommodate Mobility Equipment</FormLabel>
+                                        <div className="space-y-2">
+                                            {[
+                                                { id: "cane", label: "Cane" },
+                                                { id: "crutches", label: "Crutches" },
+                                                { id: "lightweight_walker", label: "Lightweight Walker" },
+                                                { id: "rollator", label: "Rollator" },
+                                            ].map((item) => (
+                                                <FormField
+                                                    key={item.id}
+                                                    control={form.control}
+                                                    name="canAccommodateMobilityEquipment"
+                                                    render={({ field }) => (
+                                                        <FormItem className="flex flex-row items-center space-x-3 space-y-0">
+                                                            <FormControl>
+                                                                <Checkbox
+                                                                    checked={field.value?.includes(item.id as any)}
+                                                                    onCheckedChange={(checked) => {
+                                                                        const current = field.value || [];
+                                                                        const updated = checked
+                                                                            ? [...current, item.id]
+                                                                            : current.filter((val: string) => val !== item.id);
+                                                                        field.onChange(updated);
+                                                                    }}
+                                                                />
+                                                            </FormControl>
+                                                            <FormLabel className="font-normal">{item.label}</FormLabel>
+                                                        </FormItem>
+                                                    )}
+                                                />
+                                            ))}
+                                        </div>
+                                        <FormMessage />
+                                    </FormItem>
+                                )}
+                            />
+                        </div>
+
+                        {/* Can Accommodate Oxygen */}
+                        <FormField
+                            control={form.control}
+                            name="canAccommodateOxygen"
+                            render={({ field }) => (
+                                <FormItem className="flex flex-row items-center space-x-3 space-y-0 rounded-md border p-4">
+                                    <FormControl>
+                                        <Checkbox checked={field.value} onCheckedChange={field.onChange} />
+                                    </FormControl>
+                                    <FormLabel className="font-normal">Can Accommodate Oxygen</FormLabel>
+                                    <FormMessage />
+                                </FormItem>
+                            )}
+                        />
+
+                        {/* Can Accommodate Service Animal */}
+                        <FormField
+                            control={form.control}
+                            name="canAccommodateServiceAnimal"
+                            render={({ field }) => (
+                                <FormItem className="flex flex-row items-center space-x-3 space-y-0 rounded-md border p-4">
+                                    <FormControl>
+                                        <Checkbox checked={field.value} onCheckedChange={field.onChange} />
+                                    </FormControl>
+                                    <FormLabel className="font-normal">Can Accommodate Service Animal</FormLabel>
+                                    <FormMessage />
+                                </FormItem>
+                            )}
+                        />
+
+                        {/* Can Accommodate Additional Rider */}
+                        <FormField
+                            control={form.control}
+                            name="canAccommodateAdditionalRider"
+                            render={({ field }) => (
+                                <FormItem className="flex flex-row items-center space-x-3 space-y-0 rounded-md border p-4">
+                                    <FormControl>
+                                        <Checkbox checked={field.value} onCheckedChange={field.onChange} />
+                                    </FormControl>
+                                    <FormLabel className="font-normal">Can Accommodate Additional Rider</FormLabel>
                                     <FormMessage />
                                 </FormItem>
                             )}
