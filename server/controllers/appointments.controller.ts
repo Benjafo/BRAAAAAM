@@ -471,7 +471,7 @@ export const getMatchingDrivers = async (req: Request, res: Response): Promise<R
             const clientMobilityEquipment = client.mobilityEquipment || [];
             const driverCanAccommodate = driver.canAccommodateMobilityEquipment || [];
             const canAccommodateAllEquipment = clientMobilityEquipment.every(
-                (equipment: "cane" | "crutches" | "lightweight_walker" | "rollator") =>
+                (equipment: "cane" | "crutches" | "lightweight_walker" | "rollator" | "other") =>
                     driverCanAccommodate.includes(equipment)
             );
             if (clientMobilityEquipment.length === 0 || canAccommodateAllEquipment) {

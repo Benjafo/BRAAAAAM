@@ -126,14 +126,39 @@ const clientSchema = z
             .or(z.literal("")),
         notes: z.string().optional().or(z.literal("")),
         pickupInstructions: z.string().optional().or(z.literal("")),
-        mobilityEquipment: z.array(z.enum(["cane", "crutches", "lightweight_walker", "rollator"])).optional(),
-        mobilityEquipmentOther: z.string().max(255, "Max characters allowed is 255.").optional().or(z.literal("")),
-        vehicleTypes: z.array(z.enum(["sedan", "small_suv", "medium_suv", "large_suv", "small_truck", "large_truck"])).optional(),
+        mobilityEquipment: z
+            .array(z.enum(["cane", "crutches", "lightweight_walker", "rollator", "other"]))
+            .optional(),
+        mobilityEquipmentOther: z
+            .string()
+            .max(255, "Max characters allowed is 255.")
+            .optional()
+            .or(z.literal("")),
+        vehicleTypes: z
+            .array(
+                z.enum([
+                    "sedan",
+                    "small_suv",
+                    "medium_suv",
+                    "large_suv",
+                    "small_truck",
+                    "large_truck",
+                ])
+            )
+            .optional(),
         hasOxygen: z.boolean().optional(),
         hasServiceAnimal: z.boolean().optional(),
-        serviceAnimalDescription: z.string().max(255, "Max characters allowed is 255.").optional().or(z.literal("")),
-        otherLimitations: z.array(z.enum(["vision", "hearing", "cognitive"])).optional(),
-        otherLimitationsOther: z.string().max(255, "Max characters allowed is 255.").optional().or(z.literal("")),
+        serviceAnimalDescription: z
+            .string()
+            .max(255, "Max characters allowed is 255.")
+            .optional()
+            .or(z.literal("")),
+        otherLimitations: z.array(z.enum(["vision", "hearing", "cognitive", "other"])).optional(),
+        otherLimitationsOther: z
+            .string()
+            .max(255, "Max characters allowed is 255.")
+            .optional()
+            .or(z.literal("")),
         customFields: z.record(z.string(), z.any()).optional(),
     })
     .superRefine((data, ctx) => {
@@ -269,6 +294,8 @@ export default function ClientForm({ defaultValues, onSubmit }: Props) {
     const volunteeringStatus = form.watch("volunteeringStatus");
     const primaryPhoneIsCellPhone = form.watch("primaryPhoneIsCellPhone");
     const hasServiceAnimal = form.watch("hasServiceAnimal");
+    const mobilityEquipment = form.watch("mobilityEquipment");
+    const otherLimitations = form.watch("otherLimitations");
     const secondaryPhoneIsCellPhone = form.watch("secondaryPhoneIsCellPhone");
 
     const [monthOpen, setMonthOpen] = useState(false);
@@ -355,7 +382,7 @@ export default function ClientForm({ defaultValues, onSubmit }: Props) {
                             <FormMessage />
                         </FormItem>
                     )}
-                />a
+                />
 
                 {/* Primary contact preference */}
                 <FormField
@@ -962,6 +989,7 @@ export default function ClientForm({ defaultValues, onSubmit }: Props) {
                                         { id: "crutches", label: "Crutches" },
                                         { id: "lightweight_walker", label: "Lightweight Walker" },
                                         { id: "rollator", label: "Rollator" },
+                                        { id: "other", label: "Other" },
                                     ].map((item) => (
                                         <FormField
                                             key={item.id}
@@ -971,17 +999,24 @@ export default function ClientForm({ defaultValues, onSubmit }: Props) {
                                                 <FormItem className="flex flex-row items-center space-x-3 space-y-0">
                                                     <FormControl>
                                                         <Checkbox
-                                                            checked={field.value?.includes(item.id as any)}
+                                                            checked={field.value?.includes(
+                                                                item.id as any
+                                                            )}
                                                             onCheckedChange={(checked) => {
                                                                 const current = field.value || [];
                                                                 const updated = checked
                                                                     ? [...current, item.id]
-                                                                    : current.filter((val: string) => val !== item.id);
+                                                                    : current.filter(
+                                                                          (val: string) =>
+                                                                              val !== item.id
+                                                                      );
                                                                 field.onChange(updated);
                                                             }}
                                                         />
                                                     </FormControl>
-                                                    <FormLabel className="font-normal">{item.label}</FormLabel>
+                                                    <FormLabel className="font-normal">
+                                                        {item.label}
+                                                    </FormLabel>
                                                 </FormItem>
                                             )}
                                         />
@@ -991,23 +1026,21 @@ export default function ClientForm({ defaultValues, onSubmit }: Props) {
                             </FormItem>
                         )}
                     />
-                </div>
-
-                {/* Mobility Equipment Other */}
-                <div className="md:col-span-2">
-                    <FormField
-                        control={form.control}
-                        name="mobilityEquipmentOther"
-                        render={({ field }) => (
-                            <FormItem>
-                                <FormLabel>Other Mobility Equipment</FormLabel>
-                                <FormControl>
-                                    <Input {...field} placeholder="Specify other equipment..." />
-                                </FormControl>
-                                <FormMessage />
-                            </FormItem>
-                        )}
-                    />
+                    {/* Conditionally render Other textbox */}
+                    {mobilityEquipment?.includes("other") && (
+                        <FormField
+                            control={form.control}
+                            name="mobilityEquipmentOther"
+                            render={({ field }) => (
+                                <FormItem className="mt-2">
+                                    <FormControl>
+                                        <Input {...field} placeholder="Specify other equipment..." />
+                                    </FormControl>
+                                    <FormMessage />
+                                </FormItem>
+                            )}
+                        />
+                    )}
                 </div>
 
                 {/* Vehicle Types */}
@@ -1035,17 +1068,24 @@ export default function ClientForm({ defaultValues, onSubmit }: Props) {
                                                 <FormItem className="flex flex-row items-center space-x-3 space-y-0">
                                                     <FormControl>
                                                         <Checkbox
-                                                            checked={field.value?.includes(item.id as any)}
+                                                            checked={field.value?.includes(
+                                                                item.id as any
+                                                            )}
                                                             onCheckedChange={(checked) => {
                                                                 const current = field.value || [];
                                                                 const updated = checked
                                                                     ? [...current, item.id]
-                                                                    : current.filter((val: string) => val !== item.id);
+                                                                    : current.filter(
+                                                                          (val: string) =>
+                                                                              val !== item.id
+                                                                      );
                                                                 field.onChange(updated);
                                                             }}
                                                         />
                                                     </FormControl>
-                                                    <FormLabel className="font-normal">{item.label}</FormLabel>
+                                                    <FormLabel className="font-normal">
+                                                        {item.label}
+                                                    </FormLabel>
                                                 </FormItem>
                                             )}
                                         />
@@ -1058,53 +1098,66 @@ export default function ClientForm({ defaultValues, onSubmit }: Props) {
                 </div>
 
                 {/* Has Oxygen */}
-                <FormField
-                    control={form.control}
-                    name="hasOxygen"
-                    render={({ field }) => (
-                        <FormItem className="flex flex-row items-center space-x-3 space-y-0 rounded-md border p-4">
-                            <FormControl>
-                                <Checkbox checked={field.value} onCheckedChange={field.onChange} />
-                            </FormControl>
-                            <FormLabel className="font-normal">Has Oxygen</FormLabel>
-                            <FormMessage />
-                        </FormItem>
-                    )}
-                />
+                <div className="md:col-span-2">
+                    <FormField
+                        control={form.control}
+                        name="hasOxygen"
+                        render={({ field }) => (
+                            <FormItem>
+                                <FormLabel>Oxygen</FormLabel>
+                                <div className="space-y-2">
+                                    <FormItem className="flex flex-row items-center space-x-3 space-y-0">
+                                        <FormControl>
+                                            <Checkbox checked={field.value} onCheckedChange={field.onChange} />
+                                        </FormControl>
+                                        <FormLabel className="font-normal">Has Oxygen</FormLabel>
+                                    </FormItem>
+                                </div>
+                                <FormMessage />
+                            </FormItem>
+                        )}
+                    />
+                </div>
 
                 {/* Has Service Animal */}
-                <FormField
-                    control={form.control}
-                    name="hasServiceAnimal"
-                    render={({ field }) => (
-                        <FormItem className="flex flex-row items-center space-x-3 space-y-0 rounded-md border p-4">
-                            <FormControl>
-                                <Checkbox checked={field.value} onCheckedChange={field.onChange} />
-                            </FormControl>
-                            <FormLabel className="font-normal">Has Service Animal</FormLabel>
-                            <FormMessage />
-                        </FormItem>
-                    )}
-                />
-
-                {/* Service Animal Description - Only shown if hasServiceAnimal is true */}
-                {hasServiceAnimal && (
-                    <div className="md:col-span-2">
+                <div className="md:col-span-2">
+                    <FormField
+                        control={form.control}
+                        name="hasServiceAnimal"
+                        render={({ field }) => (
+                            <FormItem>
+                                <FormLabel>Service Animal</FormLabel>
+                                <div className="space-y-2">
+                                    <FormItem className="flex flex-row items-center space-x-3 space-y-0">
+                                        <FormControl>
+                                            <Checkbox checked={field.value} onCheckedChange={field.onChange} />
+                                        </FormControl>
+                                        <FormLabel className="font-normal">Has Service Animal</FormLabel>
+                                    </FormItem>
+                                </div>
+                                <FormMessage />
+                            </FormItem>
+                        )}
+                    />
+                    {/* Conditionally render Service Animal Description textbox */}
+                    {hasServiceAnimal && (
                         <FormField
                             control={form.control}
                             name="serviceAnimalDescription"
                             render={({ field }) => (
-                                <FormItem>
-                                    <FormLabel>Service Animal Description</FormLabel>
+                                <FormItem className="mt-2">
                                     <FormControl>
-                                        <Input {...field} placeholder="Describe the service animal..." />
+                                        <Input
+                                            {...field}
+                                            placeholder="Describe the service animal..."
+                                        />
                                     </FormControl>
                                     <FormMessage />
                                 </FormItem>
                             )}
                         />
-                    </div>
-                )}
+                    )}
+                </div>
 
                 {/* Other Limitations */}
                 <div className="md:col-span-2">
@@ -1119,6 +1172,7 @@ export default function ClientForm({ defaultValues, onSubmit }: Props) {
                                         { id: "vision", label: "Vision" },
                                         { id: "hearing", label: "Hearing" },
                                         { id: "cognitive", label: "Cognitive" },
+                                        { id: "other", label: "Other" },
                                     ].map((item) => (
                                         <FormField
                                             key={item.id}
@@ -1128,17 +1182,24 @@ export default function ClientForm({ defaultValues, onSubmit }: Props) {
                                                 <FormItem className="flex flex-row items-center space-x-3 space-y-0">
                                                     <FormControl>
                                                         <Checkbox
-                                                            checked={field.value?.includes(item.id as any)}
+                                                            checked={field.value?.includes(
+                                                                item.id as any
+                                                            )}
                                                             onCheckedChange={(checked) => {
                                                                 const current = field.value || [];
                                                                 const updated = checked
                                                                     ? [...current, item.id]
-                                                                    : current.filter((val: string) => val !== item.id);
+                                                                    : current.filter(
+                                                                          (val: string) =>
+                                                                              val !== item.id
+                                                                      );
                                                                 field.onChange(updated);
                                                             }}
                                                         />
                                                     </FormControl>
-                                                    <FormLabel className="font-normal">{item.label}</FormLabel>
+                                                    <FormLabel className="font-normal">
+                                                        {item.label}
+                                                    </FormLabel>
                                                 </FormItem>
                                             )}
                                         />
@@ -1148,23 +1209,21 @@ export default function ClientForm({ defaultValues, onSubmit }: Props) {
                             </FormItem>
                         )}
                     />
-                </div>
-
-                {/* Other Limitations Other */}
-                <div className="md:col-span-2">
-                    <FormField
-                        control={form.control}
-                        name="otherLimitationsOther"
-                        render={({ field }) => (
-                            <FormItem>
-                                <FormLabel>Other Limitations (Specify)</FormLabel>
-                                <FormControl>
-                                    <Input {...field} placeholder="Specify other limitations..." />
-                                </FormControl>
-                                <FormMessage />
-                            </FormItem>
-                        )}
-                    />
+                    {/* Conditionally render Other textbox */}
+                    {otherLimitations?.includes("other") && (
+                        <FormField
+                            control={form.control}
+                            name="otherLimitationsOther"
+                            render={({ field }) => (
+                                <FormItem className="mt-2">
+                                    <FormControl>
+                                        <Input {...field} placeholder="Specify other limitations..." />
+                                    </FormControl>
+                                    <FormMessage />
+                                </FormItem>
+                            )}
+                        />
+                    )}
                 </div>
 
                 {/* Custom Fields */}

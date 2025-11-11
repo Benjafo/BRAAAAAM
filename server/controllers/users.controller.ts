@@ -87,6 +87,11 @@ export const listUsers = async (req: Request, res: Response): Promise<Response> 
                 emergencyContactRelationship: users.emergencyContactRelationship,
                 isActive: users.isActive,
                 isDriver: users.isDriver,
+                canAccommodateMobilityEquipment: users.canAccommodateMobilityEquipment,
+                vehicleType: users.vehicleType,
+                canAccommodateOxygen: users.canAccommodateOxygen,
+                canAccommodateServiceAnimal: users.canAccommodateServiceAnimal,
+                canAccommodateAdditionalRider: users.canAccommodateAdditionalRider,
                 roleId: users.roleId,
                 roleName: roles.name,
                 address: {
@@ -267,6 +272,11 @@ export const getUser = async (req: Request, res: Response): Promise<Response> =>
                 emergencyContactRelationship: users.emergencyContactRelationship,
                 isActive: users.isActive,
                 isDriver: users.isDriver,
+                canAccommodateMobilityEquipment: users.canAccommodateMobilityEquipment,
+                vehicleType: users.vehicleType,
+                canAccommodateOxygen: users.canAccommodateOxygen,
+                canAccommodateServiceAnimal: users.canAccommodateServiceAnimal,
+                canAccommodateAdditionalRider: users.canAccommodateAdditionalRider,
                 roleId: users.roleId,
                 roleName: roles.name,
                 address: {

@@ -71,6 +71,7 @@ export const mobilityEquipment = pgEnum("mobility_equipment", [
     "crutches",
     "lightweight_walker",
     "rollator",
+    "other",
 ]);
 export const vehicleType = pgEnum("vehicle_type", [
     "sedan",
@@ -80,7 +81,7 @@ export const vehicleType = pgEnum("vehicle_type", [
     "small_truck",
     "large_truck",
 ]);
-export const otherLimitation = pgEnum("other_limitation", ["vision", "hearing", "cognitive"]);
+export const otherLimitation = pgEnum("other_limitation", ["vision", "hearing", "cognitive", "other"]);
 
 export const roles = pgTable(
     "roles",
