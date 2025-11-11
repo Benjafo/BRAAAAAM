@@ -50,9 +50,6 @@ const applyTheme = (theme: Theme) => {
         root.classList.add("dark-amber");
     }
     // Light theme is the default
-
-    // Save to localStorage
-    localStorage.setItem(THEME_STORAGE_KEY, theme);
 };
 
 /**
@@ -64,6 +61,13 @@ const getStoredTheme = (): Theme => {
         return stored;
     }
     return THEMES.LIGHT;
+};
+
+/**
+ * Save theme to localStorage (AI help)
+ */
+const saveTheme = (theme: Theme) => {
+    localStorage.setItem(THEME_STORAGE_KEY, theme);
 };
 
 /**
@@ -166,6 +170,7 @@ export const AdminGeneralForm = forwardRef<AdminGeneralFormRef, AdminGeneralForm
         // Refs
         const serverDataRef = useRef(serverData);
         const fileInputRef = useRef<HTMLInputElement>(null);
+        const savedThemeRef = useRef<Theme>(getStoredTheme());
 
         // React Hook Form setup with Zod validation
         const form = useForm<AdminGeneralFormData>({
@@ -174,12 +179,12 @@ export const AdminGeneralForm = forwardRef<AdminGeneralFormRef, AdminGeneralForm
             mode: "onBlur",
         });
 
-        // Apply stored theme on mount
+        // Apply stored theme on mount (AI help)
         useEffect(() => {
             const storedTheme = getStoredTheme();
             applyTheme(storedTheme);
-            form.setValue("theme", storedTheme);
-        }, [form]);
+            savedThemeRef.current = storedTheme;
+        }, []);
 
         // Keep serverDataRef in sync with serverData
         useEffect(() => {
@@ -195,7 +200,7 @@ export const AdminGeneralForm = forwardRef<AdminGeneralFormRef, AdminGeneralForm
             };
         }, [serverData.logoUrl]);
 
-        // Handle theme change in edit mode
+        // Handle theme change in edit mode (preview only, don't save) (AI help)
         const handleThemeChange = useCallback((newTheme: Theme) => {
             applyTheme(newTheme);
         }, []);
@@ -224,17 +229,16 @@ export const AdminGeneralForm = forwardRef<AdminGeneralFormRef, AdminGeneralForm
             setLogoFile(file);
         }, []);
 
-        // Handling cancel
+        // Handling cancel (AI help)
         const handleCancel = useCallback(() => {
-            // Get the stored theme (current saved theme)
-            const storedTheme = getStoredTheme();
-
-            // Reset to server data with stored theme
-            form.reset({ ...serverDataRef.current, theme: storedTheme });
+            // Reset to server data using ref
+            form.reset(serverDataRef.current);
             setLogoFile(null);
 
-            // Revert theme if it was changed
-            applyTheme(storedTheme);
+            // Revert theme to the last saved theme
+            const savedTheme = savedThemeRef.current;
+            applyTheme(savedTheme);
+            form.setValue("theme", savedTheme);
 
             if (fileInputRef.current) {
                 fileInputRef.current.value = "";
@@ -283,6 +287,12 @@ export const AdminGeneralForm = forwardRef<AdminGeneralFormRef, AdminGeneralForm
 
                 // Update server data state with saved values
                 setServerData(formData);
+
+                // Save theme to localStorage and update saved ref (AI help)
+                saveTheme(formData.theme);
+                savedThemeRef.current = formData.theme;
+                applyTheme(formData.theme);
+
                 setLogoFile(null);
 
                 // Clear file input after successful save
@@ -453,7 +463,7 @@ export const AdminGeneralForm = forwardRef<AdminGeneralFormRef, AdminGeneralForm
                                                             field.onChange(value);
                                                             handleThemeChange(value as Theme);
                                                         }}
-                                                        defaultValue={field.value}
+                                                        value={field.value}
                                                     >
                                                         <FormControl>
                                                             <SelectTrigger className="w-80">
