@@ -32,7 +32,6 @@ export default function ClientModal({
 
     async function handleSubmit(values: ClientFormValues) {
         try {
-            const orgID = "braaaaam";
 
             // Map form values to API structure
             const requestBody = {
@@ -67,20 +66,14 @@ export default function ClientModal({
             // Make API call based on editing status
             if (isEditing) {
                 await http
-                    .put(`o/${orgID}/clients/${defaultValues.id}`, {
+                    .put(`o/clients/${defaultValues.id}`, {
                         json: requestBody,
-                        headers: {
-                            "x-org-subdomain": orgID,
-                        },
                     })
                     .json();
             } else {
                 await http
-                    .post(`o/${orgID}/clients`, {
+                    .post(`o/clients`, {
                         json: requestBody,
-                        headers: {
-                            "x-org-subdomain": orgID,
-                        },
                     })
                     .json();
             }

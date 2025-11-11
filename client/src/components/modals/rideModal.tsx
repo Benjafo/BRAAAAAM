@@ -12,8 +12,8 @@ import {
 import { http } from "@/services/auth/serviceResolver";
 import * as React from "react";
 import { toast } from "sonner";
-import AssignRideModal from "./assignRideModal";
 import { useAuthStore } from "../stores/authStore";
+import AssignRideModal from "./assignRideModal";
 
 // Type matching the API response from listClients
 type Client = {
@@ -90,14 +90,8 @@ export default function RideModal({
         const fetchClients = async () => {
             setIsLoadingClients(true);
             try {
-                const orgID = "braaaaam";
-                const response = (await http
-                    .get(`o/${orgID}/clients`, {
-                        headers: {
-                            "x-org-subdomain": orgID,
-                        },
-                    })
-                    .json()) as { results: Client[] };
+                const response = await http.get(`o/clients`).json<{ results: Client[] }>();
+
                 setClients(response.results);
             } catch (error) {
                 console.error("Failed to fetch clients:", error);
@@ -110,16 +104,10 @@ export default function RideModal({
         const fetchDrivers = async () => {
             setIsLoadingDrivers(true);
             try {
-                const orgID = "braaaaam";
                 // TODO: Add URL param to filter drivers on backend: `/o/${orgID}/users?isDriver=true`
-                const response = (await http
-                    .get(`o/${orgID}/users`, {
-                        headers: {
-                            "x-org-subdomain": orgID,
-                        },
-                    })
-                    .json()) as { results: User[] };
-                const driverUsers = response.results.filter((user) => user.isDriver === true && user.isActive === true // Added isActive filter for returned drivers
+                const response = await http.get(`o/users`).json<{ results: User[] }>();
+                const driverUsers = response.results.filter(
+                    (user) => user.isDriver === true && user.isActive === true
                 );
                 setDrivers(driverUsers);
             } catch (error) {
@@ -188,12 +176,10 @@ export default function RideModal({
         try {
             console.log("Form values:", values);
 
-            const orgID = "braaaaam";
-
             const appointmentDate = values.tripDate;
             const dayOfWeek = appointmentDate.getDay(); // 0 = Sunday, 6 = Saturday
             const [hour] = values.appointmentTime.split(":").map(Number); // HH:MM
-            
+
             // Is appointment Mon-Fri 9-5?
             if (dayOfWeek === 0 || dayOfWeek === 6 || hour < 9 || hour >= 17) {
                 toast.error("Appointment must be within operating hours (Mon–Fri, 9 AM–5 PM)");
@@ -246,20 +232,14 @@ export default function RideModal({
             // Make API call based on editing status
             if (isEditing) {
                 await http
-                    .put(`o/${orgID}/appointments/${defaultValuesProp.id}`, {
+                    .put(`o/appointments/${defaultValuesProp.id}`, {
                         json: requestBody,
-                        headers: {
-                            "x-org-subdomain": orgID,
-                        },
                     })
                     .json();
             } else {
                 await http
-                    .post(`o/${orgID}/appointments/`, {
+                    .post(`o/appointments/`, {
                         json: requestBody,
-                        headers: {
-                            "x-org-subdomain": orgID,
-                        },
                     })
                     .json();
             }
@@ -275,43 +255,43 @@ export default function RideModal({
 
     return (
         <>
-        <Dialog open={open} onOpenChange={onOpenChange}>
-            <DialogContent className="!max-w-[692px] w-[95vw] max-h-[90vh] overflow-y-auto scroll-smooth p-6">
-                <DialogHeader className="mb-4">
-                    <DialogTitle>{modalTitle}</DialogTitle>
-                </DialogHeader>
+            <Dialog open={open} onOpenChange={onOpenChange}>
+                <DialogContent className="!max-w-[692px] w-[95vw] max-h-[90vh] overflow-y-auto scroll-smooth p-6">
+                    <DialogHeader className="mb-4">
+                        <DialogTitle>{modalTitle}</DialogTitle>
+                    </DialogHeader>
 
-                <RideForm
-                    defaultValues={defaultValues}
-                    onSubmit={handleSubmit}
-                    clients={clientList}
-                    drivers={driverList}
-                    onClientChange={handleClientChange}
-                    onFindMatchingDrivers={handleFindMatchingDrivers}
-                    isLoading={isLoadingClients || isLoadingDrivers}
+                    <RideForm
+                        defaultValues={defaultValues}
+                        onSubmit={handleSubmit}
+                        clients={clientList}
+                        drivers={driverList}
+                        onClientChange={handleClientChange}
+                        onFindMatchingDrivers={handleFindMatchingDrivers}
+                        isLoading={isLoadingClients || isLoadingDrivers}
+                    />
+
+                    <DialogFooter className="flex flex-row justify-end gap-3 mt-3">
+                        <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
+                            Cancel
+                        </Button>
+                        <Button type="submit" form="create-ride-form">
+                            Save
+                        </Button>
+                    </DialogFooter>
+                </DialogContent>
+            </Dialog>
+            {isEditing && defaultValuesProp.id && (
+                <AssignRideModal
+                    appointmentId={defaultValuesProp.id}
+                    open={isAssignDriverModalOpen}
+                    onOpenChange={setIsAssignDriverModalOpen}
+                    onDriverAssigned={() => {
+                        // Refresh or notify that driver was assigned
+                        toast.success("Driver assigned! Please refresh to see updates.");
+                    }}
                 />
-
-                <DialogFooter className="flex flex-row justify-end gap-3 mt-3">
-                    <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
-                        Cancel
-                    </Button>
-                    <Button type="submit" form="create-ride-form">
-                        Save
-                    </Button>
-                </DialogFooter>
-            </DialogContent>
-        </Dialog>
-        {isEditing && defaultValuesProp.id && (
-            <AssignRideModal
-                appointmentId={defaultValuesProp.id}
-                open={isAssignDriverModalOpen}
-                onOpenChange={setIsAssignDriverModalOpen}
-                onDriverAssigned={() => {
-                    // Refresh or notify that driver was assigned
-                    toast.success("Driver assigned! Please refresh to see updates.");
-                }}
-            />
-        )}
-    </>
+            )}
+        </>
     );
 }

@@ -113,8 +113,7 @@ export function UsersTable() {
             total: number;
         };
 
-        const SUBDOMAIN = "braaaaam";
-        const response = await http.get(`o/${SUBDOMAIN}/users`).json<TableUserResponse>();
+        const response = await http.get(`o/users`).json<TableUserResponse>();
         console.log("Fetched users:", response);
 
         return {

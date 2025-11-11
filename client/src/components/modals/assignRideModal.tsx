@@ -52,14 +52,10 @@ export default function AssignRideModal({
 
     const fetchDrivers = React.useCallback(async () => {
         try {
-            const orgId = "braaaaam";
-            const response = (await http
-                .get(`o/${orgId}/appointments/${appointmentId}/matching-drivers`, {
-                    headers: {
-                        "x-org-subdomain": orgId,
-                    },
-                })
-                .json()) as { results: Driver[] };
+
+            const response = await http
+                .get(`o/appointments/${appointmentId}/matching-drivers`)
+                .json<{ results: Driver[] }>();
 
             console.log("Fetched matching drivers:", response.results);
 
@@ -84,15 +80,11 @@ export default function AssignRideModal({
         setIsAssigning(true);
 
         try {
-            const orgId = "braaaaam";
             await http
-                .put(`o/${orgId}/appointments/${appointmentId}`, {
+                .put(`o/appointments/${appointmentId}`, {
                     json: {
                         driverId: driver.id,
                         status: "Scheduled",
-                    },
-                    headers: {
-                        "x-org-subdomain": orgId,
                     },
                 })
                 .json();

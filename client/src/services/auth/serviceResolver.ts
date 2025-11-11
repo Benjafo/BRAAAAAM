@@ -63,7 +63,7 @@ export function useAuthService(): AuthService {
 
 /**@TODO use http/api.ts instead */
 export const http = createHttpClient({
-  baseUrl: import.meta.env.BASE_URL,
+  baseUrl: import.meta.env.NODE_ENV === 'production' ? import.meta.env.BASE_URL : 'http://localhost:3000/',
   getSubdomain: () => authStore.getState().subdomain ?? undefined,
   getAccessToken: () => authStore.getState().accessToken,
   onUnauthorized: () => authStore.getState().clearAuth(),

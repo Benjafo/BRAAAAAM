@@ -88,8 +88,8 @@ export type Credentials = { email: string; password: string };
 export type LoginResponse = {
     subdomain?: string;
     user: User;
-    role: string;
-    permissions: {
+    role?: string;
+    permissions?: {
         permKey: string;
         roleGrant: boolean | null;
         userGrant: boolean | null;
@@ -102,7 +102,8 @@ export type LoginResponse = {
 
 export type RefreshResponse = {
     accessToken: string;
-    refreshToken?: string;
+    // refreshToken?: string;
+    message: string;
 };
 
 export type ForgotPasswordResponse = {

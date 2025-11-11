@@ -34,13 +34,12 @@ function DynamicFormFieldsInner<T extends FieldValues>(
 ) {
     const [customForm, setCustomForm] = useState<CustomForm | null>(null);
     const [loading, setLoading] = useState(true);
-    const orgID = "braaaaam"; // TODO: Get from context
 
     useEffect(() => {
         const fetchCustomForm = async () => {
             try {
                 const forms = await http
-                    .get(`o/${orgID}/custom-forms?entity=${entityType}`)
+                    .get(`o/custom-forms?entity=${entityType}`)
                     .json<CustomForm[]>();
 
                 if (forms.length > 0) {
@@ -54,7 +53,7 @@ function DynamicFormFieldsInner<T extends FieldValues>(
         };
 
         fetchCustomForm();
-    }, [entityType, orgID]);
+    }, [entityType]);
 
     // Expose validation function to parent
     // again, ai helped with this

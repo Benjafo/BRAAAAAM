@@ -31,11 +31,8 @@ export function TemplateList({ onTemplateSelect }: TemplateListProps) {
     const fetchTemplates = async () => {
         setIsLoading(true);
         try {
-            const orgId = "braaaaam";
             const data = await http
-                .get(`o/${orgId}/reports/templates`, {
-                    headers: { "x-org-subdomain": orgId },
-                })
+                .get(`o/reports/templates`)
                 .json<{ templates: ReportTemplate[] }>();
 
             setTemplates(data.templates);

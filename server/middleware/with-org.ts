@@ -9,8 +9,18 @@ export const withOrg: RequestHandler = async (
     res: Response,
     next: NextFunction
 ): Promise<void> => {
-    const header = req.header("x-org-subdomain");
-    let subdomain = header;
+    const orgHeader = req.header("x-org-subdomain");
+    let subdomain = orgHeader;
+
+    const sysHeader = req.header("x-is-sys");
+
+    // If system header is passed, skip org routing
+    if(sysHeader) {
+        req.sys = {
+            db: getSysDb()
+        }
+        next();
+    }
 
     console.log(subdomain)
 

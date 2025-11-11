@@ -150,13 +150,8 @@ export default function UnassignedRides() {
             try {
                 setLoading(true);
 
-                const orgId = "braaaaam";
                 const data = await http
-                    .get(`o/${orgId}/appointments?pageSize=1000`, {
-                        headers: {
-                            "x-org-subdomain": orgId,
-                        },
-                    })
+                    .get(`o/appointments?pageSize=1000`)
                     .json<{ results: Ride[] }>();
 
                 // Filter for unassigned rides only

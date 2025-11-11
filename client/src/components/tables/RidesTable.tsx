@@ -94,14 +94,10 @@ export function RidesTable({
         //     }
         // });
 
-        const orgID = "braaaaam";
-        const response = (await http
-            .get(`o/${orgID}/appointments`, {
-                headers: {
-                    "x-org-subdomain": orgID,
-                },
-            })
-            .json()) as { results: Ride[]; total: number };
+        const response = await http
+            .get(`o/appointments`)
+            .json<{ results: Ride[]; total: number }>();
+
         console.log("Fetched rides:", response);
 
         // TODO this should be server side

@@ -18,7 +18,7 @@ import rolesRouter from "./routes/api.org.roles.js";
 import orgSettingsRouter from "./routes/api.org.settings.js";
 import usersRouter from "./routes/api.org.users.js";
 
-import orgAuthRouter from "./routes/api.org.auth.js";
+// import orgAuthRouter from "./routes/api.org.auth.js";
 
 // system-scoped
 import organizationsRouter from "./routes/api.sys.organizations.js";
@@ -38,6 +38,7 @@ import { getSysDb } from "./drizzle/sys-client.js";
 import { withAuth } from "./middleware/with-auth.js";
 import { withOrg } from "./middleware/with-org.js";
 import { hashPassword } from "./utils/password.js";
+import { withAuthRouting } from "./middleware/with-auth-routing.js";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -241,18 +242,18 @@ app.get("/test/o/:orgId/create-user", withOrg, async (req: Request, res: Respons
 app.use("/api", apiRouter);
 
 // Authentication routes
-app.use("/auth", withOrg, orgAuthRouter);
+app.use("/auth", withAuthRouting);
 
 // Protected org-scoped routes with authentication
-app.use("/o/:orgId/users", withAuth, withOrg, usersRouter);
-app.use("/o/:orgId/clients", withAuth, withOrg, clientsRouter);
-app.use("/o/:orgId/settings", withAuth, withOrg, orgSettingsRouter);
-app.use("/o/:orgId/appointments", withAuth, withOrg, appointmentsRouter);
-app.use("/o/:orgId/notifications", withAuth, withOrg, notificationsRouter);
-app.use("/o/:orgId/reports", withAuth, withOrg, reportsRouter);
-app.use("/o/:orgId/settings/roles", withAuth, withOrg, rolesRouter);
-app.use("/o/:orgId/settings/locations", withAuth, withOrg, locationsRouter);
-app.use("/o/:orgId/custom-forms", withAuth, withOrg, customFormsRouter);
+app.use("/o/users", withAuth, withOrg, usersRouter);
+app.use("/o/clients", withAuth, withOrg, clientsRouter);
+app.use("/o/settings", withAuth, withOrg, orgSettingsRouter);
+app.use("/o/appointments", withAuth, withOrg, appointmentsRouter);
+app.use("/o/notifications", withAuth, withOrg, notificationsRouter);
+app.use("/o/reports", withAuth, withOrg, reportsRouter);
+app.use("/o/settings/roles", withAuth, withOrg, rolesRouter);
+app.use("/o/settings/locations", withAuth, withOrg, locationsRouter);
+app.use("/o/custom-forms", withAuth, withOrg, customFormsRouter);
 
 // Protected system-scoped routes with authentication
 app.use("/s/settings", withAuth, sysSettingsRouter);
