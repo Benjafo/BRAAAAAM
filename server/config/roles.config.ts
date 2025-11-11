@@ -40,8 +40,8 @@ export const DEFAULT_ROLES: RoleDefinition[] = [
 
             // Unavailability
             "allunavailability.read",
-            "allunavailability.update",
-            "allunavailability.delete",
+            // "allunavailability.update",
+            // "allunavailability.delete",
 
             // Reports
             "reports.export",

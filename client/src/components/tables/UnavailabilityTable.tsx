@@ -25,8 +25,6 @@ type UnavailabilityBlock = {
     userEmail?: string; // Only present when fetching all unavailability
 };
 
-const ORG_ID = "braaaaam"; // Hardcoded for now
-
 // Helper function to format date
 const formatDate = (dateStr: string): string => {
     const date = new Date(dateStr + "T00:00:00");
@@ -129,25 +127,21 @@ export function UnavailabilityTable() {
         // If user has permission to view all unavailability, fetch from /users/unavailability
         // Otherwise, fetch only their own from /users/:userId/unavailability
         const endpoint = hasViewAllPermission
-            ? `o/${ORG_ID}/users/unavailability`
-            : `o/${ORG_ID}/users/${userId}/unavailability`;
+            ? `o/users/unavailability`
+            : `o/users/${userId}/unavailability`;
 
         if (!hasViewAllPermission && !userId) {
             return { data: [], total: 0 };
         }
 
-        const blocks: UnavailabilityBlock[] = await http
-            .get(endpoint, {
-                headers: {
-                    "x-org-subdomain": ORG_ID,
-                },
-            })
-            .json();
+        const blocks: UnavailabilityBlock[] = await http.get(endpoint).json();
 
-        return {
+        const results = {
             data: blocks,
             total: blocks.length,
         };
+        console.log("Fetched unavailability:", results);
+        return results;
     };
 
     const handleCreateUnavailability = () => {

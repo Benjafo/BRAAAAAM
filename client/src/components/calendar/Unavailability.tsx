@@ -28,8 +28,6 @@ type UnavailabilityBlock = {
     updatedAt: string;
 };
 
-const ORG_ID = "braaaaam"; // Hardcoded for now
-
 // Helper: Parse HH:MM:SS time to hours and minutes
 const parseTime = (timeStr: string | null): { hours: number; minutes: number } => {
     if (!timeStr) return { hours: 0, minutes: 0 };
@@ -78,12 +76,7 @@ const expandRecurringBlock = (
             );
 
             const endDate = new Date(current);
-            endDate.setHours(
-                block.isAllDay ? 17 : endHours,
-                block.isAllDay ? 0 : endMinutes,
-                0,
-                0
-            );
+            endDate.setHours(block.isAllDay ? 17 : endHours, block.isAllDay ? 0 : endMinutes, 0, 0);
 
             events.push({
                 id: `${block.id}-${current.toISOString().split("T")[0]}`,
@@ -141,24 +134,26 @@ const transformTemporaryBlock = (block: UnavailabilityBlock): CalendarEvent[] =>
             block.isAllDay ? 0 : endMinutes
         );
 
-        return [{
-            id: block.id,
-            title: block.reason || "Unavailable",
-            start: startDate,
-            end: endDate,
-            type: "unavailability",
-            resource: {
-                originalId: block.id,
-                status: "unavailable",
-                reason: block.reason,
-                recurring: false,
-                isAllDay: block.isAllDay,
-                startDate: block.startDate,
-                endDate: block.endDate,
-                startTime: block.startTime,
-                endTime: block.endTime,
+        return [
+            {
+                id: block.id,
+                title: block.reason || "Unavailable",
+                start: startDate,
+                end: endDate,
+                type: "unavailability",
+                resource: {
+                    originalId: block.id,
+                    status: "unavailable",
+                    reason: block.reason,
+                    recurring: false,
+                    isAllDay: block.isAllDay,
+                    startDate: block.startDate,
+                    endDate: block.endDate,
+                    startTime: block.startTime,
+                    endTime: block.endTime,
+                },
             },
-        }];
+        ];
     }
 
     // Multi-day event: split into individual day events
@@ -170,8 +165,10 @@ const transformTemporaryBlock = (block: UnavailabilityBlock): CalendarEvent[] =>
         const isLastDay = current.getTime() === endDateObj.getTime();
 
         // Determine start and end times for this day
-        let dayStartHour = 9, dayStartMinute = 0;
-        let dayEndHour = 17, dayEndMinute = 0;
+        let dayStartHour = 9,
+            dayStartMinute = 0;
+        let dayEndHour = 17,
+            dayEndMinute = 0;
 
         if (!block.isAllDay) {
             // For timed events, use specified times on first/last day, full day otherwise
@@ -321,11 +318,7 @@ export default function Unavailability() {
             setError(null);
 
             const blocks: UnavailabilityBlock[] = await http
-                .get(`o/${ORG_ID}/users/${userId}/unavailability`, {
-                    headers: {
-                        "x-org-subdomain": ORG_ID,
-                    },
-                })
+                .get(`o/users/${userId}/unavailability`)
                 .json();
 
             console.log("Fetched unavailability blocks:", blocks);
@@ -395,11 +388,10 @@ export default function Unavailability() {
         if (!userId) return;
 
         try {
-            await http.delete(`o/${ORG_ID}/users/${userId}/unavailability/${eventId}`, {
-                headers: {
-                    "x-org-subdomain": ORG_ID,
-                },
-            });
+            const res = await http.delete(`o/users/${userId}/unavailability/${eventId}`);
+
+            // TODO need to check if response is ok
+            console.log("Delete response:", res);
 
             toast.success("Unavailability block deleted");
             fetchUnavailabilityBlocks(); // Refresh

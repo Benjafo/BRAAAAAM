@@ -43,7 +43,6 @@ export default function UnavailabilityModal({
     const [isSubmitting, setIsSubmitting] = React.useState(false);
 
     const userId = useAuthStore((s) => s.user)?.id;
-    const orgId = "braaaaam"; // TODO hardcoded
 
     const isEditingTemp = Boolean(tempInitial?.id);
     const isEditingRecurring = Boolean(recurringInitial?.id);
@@ -78,27 +77,16 @@ export default function UnavailabilityModal({
             if (isEditingTemp && tempInitial?.id) {
                 // Update existing unavailability
                 const url = ignoreOverlap
-                    ? `o/${orgId}/users/${userId}/unavailability/${tempInitial.id}?ignoreOverlap=true`
-                    : `o/${orgId}/users/${userId}/unavailability/${tempInitial.id}`;
+                    ? `o/users/${userId}/unavailability/${tempInitial.id}?ignoreOverlap=true`
+                    : `o/users/${userId}/unavailability/${tempInitial.id}`;
 
-                response = await http.put(url, {
-                    json: requestBody,
-                    headers: {
-                        "x-org-subdomain": orgId,
-                    },
-                });
+                response = await http.put(url, { json: requestBody });
             } else {
                 // Create new unavailability
                 const url = ignoreOverlap
-                    ? `o/${orgId}/users/${userId}/unavailability?ignoreOverlap=true`
-                    : `o/${orgId}/users/${userId}/unavailability`;
-
-                response = await http.post(url, {
-                    json: requestBody,
-                    headers: {
-                        "x-org-subdomain": orgId,
-                    },
-                });
+                    ? `o/users/${userId}/unavailability?ignoreOverlap=true`
+                    : `o/users/${userId}/unavailability`;
+                response = await http.post(url, { json: requestBody });
             }
 
             // Handle overlap conflict
@@ -111,11 +99,15 @@ export default function UnavailabilityModal({
 
             if (!response.ok) {
                 throw new Error(
-                    isEditingTemp ? "Failed to update unavailability" : "Failed to create unavailability"
+                    isEditingTemp
+                        ? "Failed to update unavailability"
+                        : "Failed to create unavailability"
                 );
             }
 
-            toast.success(isEditingTemp ? "Unavailability updated" : "Temporary unavailability created");
+            toast.success(
+                isEditingTemp ? "Unavailability updated" : "Temporary unavailability created"
+            );
             onOpenChange(false);
             onSuccess?.();
         } catch (err) {
@@ -155,27 +147,17 @@ export default function UnavailabilityModal({
             if (isEditingRecurring && recurringInitial?.id) {
                 // Update existing recurring unavailability
                 const url = ignoreOverlap
-                    ? `o/${orgId}/users/${userId}/unavailability/${recurringInitial.id}?ignoreOverlap=true`
-                    : `o/${orgId}/users/${userId}/unavailability/${recurringInitial.id}`;
+                    ? `o/users/${userId}/unavailability/${recurringInitial.id}?ignoreOverlap=true`
+                    : `o/users/${userId}/unavailability/${recurringInitial.id}`;
 
-                response = await http.put(url, {
-                    json: requestBody,
-                    headers: {
-                        "x-org-subdomain": orgId,
-                    },
-                });
+                response = await http.put(url, { json: requestBody });
             } else {
                 // Create new recurring unavailability
                 const url = ignoreOverlap
-                    ? `o/${orgId}/users/${userId}/unavailability?ignoreOverlap=true`
-                    : `o/${orgId}/users/${userId}/unavailability`;
+                    ? `o/users/${userId}/unavailability?ignoreOverlap=true`
+                    : `o/users/${userId}/unavailability`;
 
-                response = await http.post(url, {
-                    json: requestBody,
-                    headers: {
-                        "x-org-subdomain": orgId,
-                    },
-                });
+                response = await http.post(url, { json: requestBody });
             }
 
             // Handle overlap conflict

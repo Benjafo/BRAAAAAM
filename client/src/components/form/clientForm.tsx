@@ -338,7 +338,7 @@ export default function ClientForm({ defaultValues, onSubmit }: Props) {
                             <FormMessage />
                         </FormItem>
                     )}
-                />
+                />a
 
                 {/* Primary contact preference */}
                 <FormField

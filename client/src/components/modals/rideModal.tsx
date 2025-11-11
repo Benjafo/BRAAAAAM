@@ -104,7 +104,7 @@ export default function RideModal({
         const fetchDrivers = async () => {
             setIsLoadingDrivers(true);
             try {
-                // TODO: Add URL param to filter drivers on backend: `/o/${orgID}/users?isDriver=true`
+                // TODO: Add URL param to filter drivers on backend: `/o/users?isDriver=true`
                 const response = await http.get(`o/users`).json<{ results: User[] }>();
                 const driverUsers = response.results.filter(
                     (user) => user.isDriver === true && user.isActive === true

@@ -36,11 +36,8 @@ export function ManageTemplatesModal({ open, onOpenChange }: ManageTemplatesModa
     const fetchTemplates = async () => {
         setIsLoading(true);
         try {
-            const orgId = "braaaaam";
             const data = await http
-                .get(`o/${orgId}/reports/templates`, {
-                    headers: { "x-org-subdomain": orgId },
-                })
+                .get(`o/reports/templates`)
                 .json<{ templates: ReportTemplate[] }>();
 
             setTemplates(data.templates);
@@ -54,12 +51,12 @@ export function ManageTemplatesModal({ open, onOpenChange }: ManageTemplatesModa
 
     const handleDelete = async (templateId: string) => {
         setIsDeleting(true);
-        const orgId = "braaaaam";
 
         try {
-            await http.delete(`o/${orgId}/reports/templates/${templateId}`, {
-                headers: { "x-org-subdomain": orgId },
-            });
+            const res = await http.delete(`o/reports/templates/${templateId}`);
+
+            // TODO need to check if response is ok
+            console.log("Delete response:", res);
 
             setTemplates(templates.filter((t) => t.id !== templateId));
             setDeleteConfirmId(null);
