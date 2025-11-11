@@ -49,13 +49,8 @@ export default function NewUserModal({
             const fetchRoles = async () => {
                 setIsLoadingRoles(true);
                 try {
-                    const orgID = "braaaaam";
                     const response = await http
-                        .get(`o/${orgID}/settings/roles`, {
-                            headers: {
-                                "x-org-subdomain": orgID,
-                            },
-                        })
+                        .get(`o/settings/roles`)
                         .json<{ results: Role[] }>();
                     setRoles(response.results);
                 } catch (error) {
@@ -72,7 +67,6 @@ export default function NewUserModal({
 
     async function handleSubmit(values: UserFormValues) {
         try {
-            const orgID = "braaaaam";
 
             // Determine if user is a driver based on selected role
             const selectedRole = roles.find((role) => role.id === values.userRole);
@@ -115,20 +109,14 @@ export default function NewUserModal({
             // Make API call - PUT for edit, POST for create
             if (isEditing) {
                 await http
-                    .put(`o/${orgID}/users/${defaultValues.id}`, {
+                    .put(`o/users/${defaultValues.id}`, {
                         json: requestBody,
-                        headers: {
-                            "x-org-subdomain": orgID,
-                        },
                     })
                     .json();
             } else {
                 await http
-                    .post(`o/${orgID}/users`, {
+                    .post(`o/users`, {
                         json: requestBody,
-                        headers: {
-                            "x-org-subdomain": orgID,
-                        },
                     })
                     .json();
             }

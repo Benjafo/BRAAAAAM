@@ -51,12 +51,8 @@ export function SaveTemplateModal({
         });
 
         try {
-            const orgId = "braaaaam";
-            await http.post(`o/${orgId}/reports/templates`, {
+            await http.post(`o/reports/templates`, {
                 body: json,
-                headers: {
-                    "x-org-subdomain": orgId,
-                },
             });
 
             toast.success("Template saved successfully");

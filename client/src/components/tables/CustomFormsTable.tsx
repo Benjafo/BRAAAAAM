@@ -44,8 +44,7 @@ export default function CustomFormsTable() {
 
     const fetchForms = async () => {
         try {
-            const orgID = "braaaaam"; // TODO: Get from context
-            const response = await http.get(`o/${orgID}/custom-forms`).json<CustomForm[]>();
+            const response = await http.get(`o/custom-forms`).json<CustomForm[]>();
             setForms(response);
         } catch (error) {
             console.error("Failed to fetch forms:", error);

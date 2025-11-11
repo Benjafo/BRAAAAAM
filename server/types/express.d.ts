@@ -3,6 +3,7 @@ import type { NodePgDatabase } from "drizzle-orm/node-postgres";
 // import * as orgSchema from "../../drizzle/org/schema";
 
 type OrgSchema = typeof import("../drizzle/org/schema.js");
+type SysSchema = typeof import("../drizzle/sys/schema.js");
 
 declare global {
     namespace Express {
@@ -11,6 +12,9 @@ declare global {
                 subdomain: string;
                 db: NodePgDatabase<OrgSchema>;
             };
+            sys?: {
+                db: NodePgDatabase<SysSchema>;
+            }
             user?: {
                 id: string;
                 email: string;

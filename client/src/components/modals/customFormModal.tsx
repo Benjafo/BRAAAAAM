@@ -40,7 +40,6 @@ export default function CustomFormModal({
     async function handleSubmit(values: CustomFormBuilderValues) {
         setIsSubmitting(true);
         try {
-            const orgID = "braaaaam"; // TODO fix hardcoded
 
             const requestBody = {
                 ...values,
@@ -50,12 +49,12 @@ export default function CustomFormModal({
             };
 
             if (isEditing) {
-                await http.put(`o/${orgID}/custom-forms/${(defaultValues as any).id}`, {
+                await http.put(`o/custom-forms/${(defaultValues as any).id}`, {
                     json: requestBody,
                 });
                 toast.success("Custom form updated successfully");
             } else {
-                await http.post(`o/${orgID}/custom-forms`, {
+                await http.post(`o/custom-forms`, {
                     json: requestBody,
                 });
                 toast.success("Custom form created successfully");

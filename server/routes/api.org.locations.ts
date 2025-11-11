@@ -3,7 +3,7 @@ import * as locations from "../controllers/locations.controller.js";
 
 const router: Router = express.Router({ mergeParams: true });
 
-// /o/:orgId/settings/locations
+// /o/settings/locations
 router.post("/", locations.createLocation);
 router.get("/:locationId", locations.getLocation);
 router.put("/:locationId", locations.updateLocation);

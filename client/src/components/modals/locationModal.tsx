@@ -10,7 +10,7 @@ import {
 import { toast } from "sonner";
 import type { LocationFormValues } from "../form/locationForm";
 import NewLocationForm from "../form/locationForm";
-import ky from "ky";
+import { http } from "@/services/auth/serviceResolver";
 
 type NewLocationModalProps = {
     defaultValues?: Partial<LocationFormValues>;
@@ -32,8 +32,6 @@ export default function NewLocationModal({
         try {
             console.log("Form values:", values);
 
-            const orgID = window.location.href.split("//")[1].split(/[..]/)[0];
-
             // Map form values to API structure
             const requestBody = {
                 aliasName: values.locationName,
@@ -44,8 +42,8 @@ export default function NewLocationModal({
             console.log("Sending to API:", requestBody);
 
             // Make API call with form data
-            const response = await ky
-                .post(`/o/${orgID}/settings/locations`, {
+            const response = await http
+                .post(`/o/settings/locations`, {
                     json: requestBody,
                 })
                 .json();

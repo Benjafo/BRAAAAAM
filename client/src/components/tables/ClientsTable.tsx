@@ -91,9 +91,8 @@ export function ClientsTable() {
             }
         });
 
-        const SUBDOMAIN = "braaaaam";
         const response = await http
-            .get(`o/${SUBDOMAIN}/clients`)
+            .get(`o/clients`)
             .json<{ results: Client[]; total: number }>();
         console.log("Fetched clients:", response);
 

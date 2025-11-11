@@ -14,7 +14,7 @@ export const withAuth = (req: AuthRequest, res: Response, next: NextFunction): R
         const decoded = verifyAccessToken(token);
         req.user = decoded;
         next();
-    } catch (_error) {
-        return res.status(403).json({ error: "Invalid or expired token" });
+    } catch {
+        return res.status(401).json({ error: "Invalid or expired token" });
     }
 };

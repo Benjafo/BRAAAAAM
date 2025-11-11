@@ -100,7 +100,6 @@ export function ReportBuilder() {
      * Uses pagination to fetch all records in batches of 100
      */
     const fetchData = async (): Promise<Record<string, unknown>[]> => {
-        const orgId = "braaaaam"; // TODO: Get from context
         const entityType = getEntityType();
         const startDate = dateRange.start.toISOString();
         const endDate = dateRange.end.toISOString();
@@ -110,13 +109,29 @@ export function ReportBuilder() {
         let hasMore = true;
 
         while (hasMore) {
+            // const response = await http
+            //     .get(
+            //         `o/reports/${entityType}/export?startDate=${startDate}&endDate=${endDate}&page=${page}&pageSize=100`
+            //     )
+            //     .json<{
+            //         results: Record<string, unknown>[];
+            //         pagination: {
+            //             page: number;
+            //             pageSize: number;
+            //             totalRecords: number;
+            //             totalPages: number;
+            //         };
+            //     }>();
+
             const response = await http
-                .get(
-                    `o/${orgId}/reports/${entityType}/export?startDate=${startDate}&endDate=${endDate}&page=${page}&pageSize=100`,
-                    {
-                        headers: { "x-org-subdomain": orgId },
-                    }
-                )
+                .get(`o/reports/${entityType}/export`, {
+                    searchParams: {
+                        startDate,
+                        endDate,
+                        page: String(page),
+                        pageSize: "100",
+                    },
+                })
                 .json<{
                     results: Record<string, unknown>[];
                     pagination: {

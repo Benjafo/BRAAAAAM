@@ -88,8 +88,8 @@ export type Credentials = { email: string; password: string };
 export type LoginResponse = {
     subdomain?: string;
     user: User;
-    role: string;
-    permissions: {
+    role?: string;
+    permissions?: {
         permKey: string;
         roleGrant: boolean | null;
         userGrant: boolean | null;

@@ -44,12 +44,9 @@ export function RolesTable() {
     const fetchRoles = async (params: Record<string, unknown>) => {
         console.log("Params: ", params);
 
-        const orgID = "braaaaam";
-        const response = (await http.get(`o/${orgID}/settings/roles`).json()) as {
-            results: Role[];
-            total: number;
-            availablePermissions: Permission[];
-        };
+        const response = await http
+            .get(`o/settings/roles`)
+            .json<{ results: Role[]; total: number; availablePermissions: Permission[] }>();
 
         // Store available permissions for the modal (only if not already set)
         if (response.availablePermissions && availablePermissions.length === 0) {
@@ -88,8 +85,7 @@ export function RolesTable() {
         if (!roleToDelete) return;
 
         try {
-            const orgID = "braaaaam";
-            await http.delete(`o/${orgID}/settings/roles/${roleToDelete.id}`);
+            await http.delete(`o/settings/roles/${roleToDelete.id}`);
             toast.success("Role deleted successfully");
             setDeleteDialogOpen(false);
             setRoleToDelete(null);

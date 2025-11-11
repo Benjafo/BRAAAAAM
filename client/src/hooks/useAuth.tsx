@@ -13,7 +13,7 @@ export function useLogin() {
         onSuccess: (res: LoginResponse) => {
             // Backend sends objects with { permKey, roleGrant, userGrant, effective }
             // We only want the permKey strings where effective = true
-            const effectivePermissions = res.permissions
+            const effectivePermissions = (res.permissions ?? [])
                 .filter(p => p.effective === true)
                 .map(p => p.permKey);
 

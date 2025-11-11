@@ -90,14 +90,10 @@ export default function RideModal({
         const fetchClients = async () => {
             setIsLoadingClients(true);
             try {
-                const orgID = "braaaaam";
-                const response = (await http
-                    .get(`o/${orgID}/clients`, {
-                        headers: {
-                            "x-org-subdomain": orgID,
-                        },
-                    })
-                    .json()) as { results: Client[] };
+                const response = await http
+                    .get(`o/clients`)
+                    .json<{ results: Client[] }>();
+
                 setClients(response.results);
             } catch (error) {
                 console.error("Failed to fetch clients:", error);
@@ -110,15 +106,11 @@ export default function RideModal({
         const fetchDrivers = async () => {
             setIsLoadingDrivers(true);
             try {
-                const orgID = "braaaaam";
                 // TODO: Add URL param to filter drivers on backend: `/o/${orgID}/users?isDriver=true`
-                const response = (await http
-                    .get(`o/${orgID}/users`, {
-                        headers: {
-                            "x-org-subdomain": orgID,
-                        },
-                    })
-                    .json()) as { results: User[] };
+                const response = await http
+                    .get(`o/users`)
+                    .json<{ results: User[] }>();
+
                 const driverUsers = response.results.filter((user) => user.isDriver === true);
                 setDrivers(driverUsers);
             } catch (error) {
@@ -187,7 +179,6 @@ export default function RideModal({
         try {
             console.log("Form values:", values);
 
-            const orgID = "braaaaam";
 
             // Find the selected client to get their address
             const selectedClient = clients.find((c) => c.id === values.clientId);
@@ -235,20 +226,14 @@ export default function RideModal({
             // Make API call based on editing status
             if (isEditing) {
                 await http
-                    .put(`o/${orgID}/appointments/${defaultValuesProp.id}`, {
+                    .put(`o/appointments/${defaultValuesProp.id}`, {
                         json: requestBody,
-                        headers: {
-                            "x-org-subdomain": orgID,
-                        },
                     })
                     .json();
             } else {
                 await http
-                    .post(`o/${orgID}/appointments/`, {
+                    .post(`o/appointments/`, {
                         json: requestBody,
-                        headers: {
-                            "x-org-subdomain": orgID,
-                        },
                     })
                     .json();
             }

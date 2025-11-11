@@ -12,7 +12,7 @@ export const Route = createFileRoute("/{-$subdomain}/_login")({
 function RouteComponent() {
 
     const location = useLocation();
-    const showCancelButton = location.pathname !== '/sign-in';
+    const showCancelButton = !location.pathname.endsWith('/sign-in');
 
     return (
         <div className="h-dvh p-[10px] overflow-hidden box-border flex flex-col gap-[10px]">

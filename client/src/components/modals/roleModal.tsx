@@ -42,10 +42,9 @@ export default function RoleModal({
 
             setIsLoading(true);
             try {
-                const orgID = "braaaaam"; // TODO: get from context or props
-                const response = (await http
-                    .get(`o/${orgID}/settings/roles/${defaultValues.id}`)
-                    .json()) as RoleDetail;
+                const response = await http
+                    .get(`o/settings/roles/${defaultValues.id}`)
+                    .json<RoleDetail>();
 
                 setRoleDetails(response);
             } catch (error) {
@@ -81,7 +80,6 @@ export default function RoleModal({
     async function handleSubmit(values: RoleFormValues) {
         setIsSubmitting(true);
         try {
-            const orgID = "braaaaam"; // TODO: get from context or props
 
             const requestBody = {
                 roleName: values.roleName,
@@ -92,7 +90,7 @@ export default function RoleModal({
             if (isEditing && defaultValues?.id) {
                 // Update existing role
                 await http
-                    .put(`o/${orgID}/settings/roles/${defaultValues.id}`, {
+                    .put(`o/settings/roles/${defaultValues.id}`, {
                         json: requestBody,
                     })
                     .json();
@@ -100,7 +98,7 @@ export default function RoleModal({
             } else {
                 // Create new role
                 await http
-                    .post(`o/${orgID}/settings/roles`, {
+                    .post(`o/settings/roles`, {
                         json: requestBody,
                     })
                     .json();

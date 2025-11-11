@@ -4,11 +4,11 @@ import { withPermission } from "../middleware/with-permission.js";
 
 const router: Router = express.Router({ mergeParams: true });
 
-// /o/:orgId/appointments
+// /o/appointments
 router.get("/", withPermission({ permissions: "appointments.read" }), appt.listAppointments);
 router.post("/", withPermission({ permissions: "appointments.create" }), appt.createAppointment);
 
-// /o/:orgId/appointments/:appointmentId
+// /o/appointments/:appointmentId
 router.get(
     "/:appointmentId",
     withPermission({ permissions: "appointments.read" }),
@@ -26,7 +26,7 @@ router.get(
     appt.getMatchingDrivers
 );
 
-// /o/:orgId/appointments/tags
+// /o/appointments/tags
 // router.get("/tags", appt.listTags);
 // router.post("/tags", appt.createTag);
 // router.put("/tags/:tagId", appt.updateTag);

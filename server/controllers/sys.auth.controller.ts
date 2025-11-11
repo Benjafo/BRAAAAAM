@@ -220,7 +220,10 @@ const resetPassword = async (req: Request, res: Response) => {
 
         const db = getSysDb();
 
-        await db.update(users).set({ passwordHash: newHashPassword }).where(eq(users.id, userId));
+        await db
+            .update(users)
+            .set({ passwordHash: newHashPassword })
+            .where(eq(users.id, userId));
 
         /**
          * @TODO Send email to user that password reset has

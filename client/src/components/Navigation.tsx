@@ -1,6 +1,6 @@
 import { useLogout } from "@/hooks/useAuth";
 import { PERMISSIONS } from "@/lib/permissions";
-import { Link, useNavigate } from "@tanstack/react-router";
+import { Link, useNavigate, type ToOptions } from "@tanstack/react-router";
 import { LogOut } from "lucide-react";
 import WebsterLogo from "../../public/WebsterBeeLogo.png";
 import { useAuthStore } from "./stores/authStore";
@@ -82,7 +82,7 @@ interface MainNavProps {
     logo?: LogoProps;
     navItems?: {
         text: string;
-        link: string;
+        link: ToOptions["to"];
         permission?: string;
     }[];
 }
@@ -99,27 +99,27 @@ export const MainNavigation = ({
     navItems = [
         {
             text: "Organizations",
-            link: "/organizations",
+            link: "/{-$subdomain}/organizations",
             permission: PERMISSIONS.ORGANIZATIONS_READ,
         },
         {
             text: "Dashboard",
-            link: "/dashboard",
+            link: "/{-$subdomain}/dashboard",
             permission: PERMISSIONS.DASHBOARD_READ,
         },
         {
             text: "Schedule",
-            link: "/schedule",
+            link: "/{-$subdomain}/schedule",
             permission: PERMISSIONS.APPOINTMENTS_READ,
         },
         {
             text: "Unassigned Rides",
-            link: "/unassigned-rides",
+            link: "/{-$subdomain}/unassigned-rides",
             permission: PERMISSIONS.APPOINTMENTS_READ,
         },
         {
             text: "Unavailability",
-            link: "/unavailability",
+            link: "/{-$subdomain}/unavailability",
             permission: PERMISSIONS.APPOINTMENTS_READ,
         },
         // {
@@ -129,22 +129,22 @@ export const MainNavigation = ({
         // },
         {
             text: "Client Management",
-            link: "/clients",
+            link: "/{-$subdomain}/clients",
             permission: PERMISSIONS.CLIENTS_READ,
         },
         {
             text: "User Management",
-            link: "/users",
+            link: "/{-$subdomain}/users",
             permission: PERMISSIONS.USERS_READ,
         },
         {
             text: "Reports",
-            link: "/reports",
+            link: "/{-$subdomain}/reports",
             permission: PERMISSIONS.REPORTS_EXPORT,
         },
         {
             text: "Settings",
-            link: "/admin-settings",
+            link: "/{-$subdomain}/admin-settings",
             permission: PERMISSIONS.SETTINGS_READ,
         },
         // {

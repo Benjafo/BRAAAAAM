@@ -33,16 +33,15 @@ export const createHttpClient = (opts: CreateHttpClientOpts = {}): KyInstance =>
                 },
             ],
             beforeRetry: [
-                //have to rest, this may not be needed.
+                //Sets most up-to-date access token on retry
                 async ({ request }) => {
                     const token = getAccessToken?.();
                     if (token) request.headers.set("Authorization", `Bearer ${token}`);
-                    // request.headers.set("x-org-subdomain", "braaaaam"); // TODO fix hardcoded
                 },
             ],
             afterResponse: [
                 async (_request, _options, response, state) => {
-                    if (response.status === 401 && state.retryCount === 0) {
+                    if (response.status === 401 && state.retryCount === 0 && Boolean(authStore.getState().user && authStore.getState().accessToken)) {
 
                         try {
                             const { accessToken } = await ky.post('auth/refresh', {prefixUrl: baseUrl}).json<RefreshResponse>();
