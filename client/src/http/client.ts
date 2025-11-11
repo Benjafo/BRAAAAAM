@@ -29,7 +29,7 @@ export const createHttpClient = (opts: CreateHttpClientOpts = {}): KyInstance =>
                     request.headers.set("Accept", "application/json");
 
                     const subdomain = getSubdomain?.();
-                    if(subdomain) request.headers.set("x-org-subdomain", subdomain);
+                    if (subdomain) request.headers.set("x-org-subdomain", subdomain);
                 },
             ],
             beforeRetry: [
@@ -41,15 +41,20 @@ export const createHttpClient = (opts: CreateHttpClientOpts = {}): KyInstance =>
             ],
             afterResponse: [
                 async (_request, _options, response, state) => {
-                    if (response.status === 401 && state.retryCount === 0 && Boolean(authStore.getState().user && authStore.getState().accessToken)) {
-
+                    if (
+                        response.status === 401 &&
+                        state.retryCount === 0 &&
+                        Boolean(authStore.getState().user && authStore.getState().accessToken)
+                    ) {
                         try {
-                            const { accessToken } = await ky.post('auth/refresh', {prefixUrl: baseUrl}).json<RefreshResponse>();
-                            authStore.getState().setAuth({accessToken: accessToken});
+                            const { accessToken } = await ky
+                                .post("auth/token-refresh", { prefixUrl: baseUrl })
+                                .json<RefreshResponse>();
+                            authStore.getState().setAuth({ accessToken: accessToken });
                         } catch {
-                            console.log('Failed to refresh token');
-                            toast.error('You have been logged out', {
-                                description: 'Please sign-in again.',
+                            console.log("Failed to refresh token");
+                            toast.error("You have been logged out", {
+                                description: "Please sign-in again.",
                                 duration: Infinity,
                                 // cancel: {
                                 //     label: 'Sign-in',
