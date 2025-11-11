@@ -95,6 +95,11 @@ export default function NewUserModal({
                 isActive: values.volunteeringStatus === "Active",
                 roleId: values.userRole, // Now sending roleId instead of role name
                 isDriver, // Determined from role selection
+                canAccommodateMobilityEquipment: values.canAccommodateMobilityEquipment || [],
+                vehicleType: values.vehicleType || null,
+                canAccommodateOxygen: values.canAccommodateOxygen || false,
+                canAccommodateServiceAnimal: values.canAccommodateServiceAnimal || false,
+                canAccommodateAdditionalRider: values.canAccommodateAdditionalRider || false,
                 customFields: values.customFields,
                 address: {
                     addressLine1: values.streetAddress,

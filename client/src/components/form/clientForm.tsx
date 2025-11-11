@@ -269,8 +269,6 @@ export default function ClientForm({ defaultValues, onSubmit }: Props) {
     const volunteeringStatus = form.watch("volunteeringStatus");
     const primaryPhoneIsCellPhone = form.watch("primaryPhoneIsCellPhone");
     const hasServiceAnimal = form.watch("hasServiceAnimal");
-    const mobilityEquipment = form.watch("mobilityEquipment");
-    const otherLimitations = form.watch("otherLimitations");
     const secondaryPhoneIsCellPhone = form.watch("secondaryPhoneIsCellPhone");
 
     const [monthOpen, setMonthOpen] = useState(false);

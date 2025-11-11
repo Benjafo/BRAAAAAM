@@ -25,6 +25,14 @@ type Client = {
     emergencyContactRelationship: string | null;
     notes: string | null;
     pickupInstructions: string | null;
+    mobilityEquipment?: string[] | null;
+    mobilityEquipmentOther?: string | null;
+    vehicleTypes?: string[] | null;
+    hasOxygen?: boolean | null;
+    hasServiceAnimal?: boolean | null;
+    serviceAnimalDescription?: string | null;
+    otherLimitations?: string[] | null;
+    otherLimitationsOther?: string | null;
     customFields?: Record<string, any>;
     address: {
         id: string;
@@ -57,6 +65,14 @@ function mapClientToFormValues(client: Client): Partial<ClientFormValues> & { id
         emergencyContactRelationship: client.emergencyContactRelationship || "",
         notes: client.notes || "",
         pickupInstructions: client.pickupInstructions || "",
+        mobilityEquipment: client.mobilityEquipment as any || [],
+        mobilityEquipmentOther: client.mobilityEquipmentOther || "",
+        vehicleTypes: client.vehicleTypes as any || [],
+        hasOxygen: client.hasOxygen || false,
+        hasServiceAnimal: client.hasServiceAnimal || false,
+        serviceAnimalDescription: client.serviceAnimalDescription || "",
+        otherLimitations: client.otherLimitations as any || [],
+        otherLimitationsOther: client.otherLimitationsOther || "",
         homeAddress: client.address.addressLine1,
         homeAddress2: client.address.addressLine2 || "",
         city: client.address.city,

@@ -33,5 +33,10 @@ export type User = {
 export type TableUser = Omit<User, 'role'> & {
     roleId: string | null,
     roleName: string | null,
+    canAccommodateMobilityEquipment?: string[] | null,
+    vehicleType?: string | null,
+    canAccommodateOxygen?: boolean | null,
+    canAccommodateServiceAnimal?: boolean | null,
+    canAccommodateAdditionalRider?: boolean | null,
     customFields?: Record<string, any>
 }
