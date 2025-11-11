@@ -6,7 +6,6 @@ import { Input } from "./ui/input";
 
 const GoogleLocator: React.FC<LocationSelectorProps> = ({
     onLocationSelect,
-    placeholder = "Search for a location...",
     // (ai was used for the controlled value prop)
     // we need this so that we can use input field in this component as the street
     // address field, and have autocomplete fill out the other address component
@@ -82,8 +81,10 @@ const GoogleLocator: React.FC<LocationSelectorProps> = ({
         if (place && place.place_id && place.geometry?.location) {
             // Parse address components from Google Places API
             const components = place.address_components || [];
-            const getComponent = (type: string) =>
-                components.find((c) => c.types.includes(type))?.long_name || "";
+            const getComponent = (type: string, useShortName = false) =>
+                components.find((c) => c.types.includes(type))?.[
+                    useShortName ? "short_name" : "long_name"
+                ] || "";
 
             const streetNumber = getComponent("street_number");
             const route = getComponent("route");
@@ -99,7 +100,7 @@ const GoogleLocator: React.FC<LocationSelectorProps> = ({
                 addressComponents: {
                     street: street,
                     city: getComponent("locality"),
-                    state: getComponent("administrative_area_level_1"),
+                    state: getComponent("administrative_area_level_1", true),
                     zip: getComponent("postal_code"),
                 },
             };
@@ -171,7 +172,6 @@ const GoogleLocator: React.FC<LocationSelectorProps> = ({
                     ref={inputRef}
                     value={inputValue}
                     onChange={handleInputChange}
-                    placeholder={placeholder}
                     autoComplete="off"
                     disabled={!isLoaded || isLoading}
                     className="w-full pr-12 truncate"

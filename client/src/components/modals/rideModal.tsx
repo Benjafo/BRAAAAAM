@@ -119,7 +119,8 @@ export default function RideModal({
                         },
                     })
                     .json()) as { results: User[] };
-                const driverUsers = response.results.filter((user) => user.isDriver === true);
+                const driverUsers = response.results.filter((user) => user.isDriver === true && user.isActive === true // Added isActive filter for returned drivers
+                );
                 setDrivers(driverUsers);
             } catch (error) {
                 console.error("Failed to fetch drivers:", error);
@@ -188,6 +189,16 @@ export default function RideModal({
             console.log("Form values:", values);
 
             const orgID = "braaaaam";
+
+            const appointmentDate = values.tripDate;
+            const dayOfWeek = appointmentDate.getDay(); // 0 = Sunday, 6 = Saturday
+            const [hour] = values.appointmentTime.split(":").map(Number); // HH:MM
+            
+            // Is appointment Mon-Fri 9-5?
+            if (dayOfWeek === 0 || dayOfWeek === 6 || hour < 9 || hour >= 17) {
+                toast.error("Appointment must be within operating hours (Mon–Fri, 9 AM–5 PM)");
+                return;
+            }
 
             // Find the selected client to get their address
             const selectedClient = clients.find((c) => c.id === values.clientId);

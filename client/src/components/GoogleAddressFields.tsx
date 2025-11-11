@@ -10,6 +10,8 @@ interface GoogleAddressFieldsProps {
     setValue: UseFormSetValue<any>; //eslint-disable-line
     addressFieldLabel?: string;
     addressFieldName?: string;
+    address2FieldLabel?: string;
+    address2FieldName?: string;
     cityFieldLabel?: string;
     cityFieldName?: string;
     stateFieldLabel?: string;
@@ -18,6 +20,7 @@ interface GoogleAddressFieldsProps {
     zipFieldName?: string;
     showLabels?: boolean;
     disabled?: boolean;
+    showAddress2?: boolean;
 }
 
 /**
@@ -36,6 +39,8 @@ export function GoogleAddressFields({
     setValue,
     addressFieldLabel = "Address",
     addressFieldName = "address",
+    address2FieldLabel = "Address 2",
+    address2FieldName = "address2",
     cityFieldLabel = "City",
     cityFieldName = "city",
     stateFieldLabel = "State",
@@ -44,6 +49,7 @@ export function GoogleAddressFields({
     zipFieldName = "zip",
     showLabels = true,
     disabled = false,
+    showAddress2 = false,
 }: GoogleAddressFieldsProps) {
     const handleLocationSelect = (location: Location | null) => {
         if (location?.addressComponents) {
@@ -73,13 +79,29 @@ export function GoogleAddressFields({
                                 value={field.value}
                                 onChange={field.onChange}
                                 onLocationSelect={handleLocationSelect}
-                                placeholder="Start typing an address..."
                             />
                         </FormControl>
                         <FormMessage />
                     </FormItem>
                 )}
             />
+
+            {/* Address Line 2 - Only shown if showAddress2 is true */}
+            {showAddress2 && (
+                <FormField
+                    control={control}
+                    name={address2FieldName}
+                    render={({ field }) => (
+                        <FormItem>
+                            {showLabels && <FormLabel>{address2FieldLabel}</FormLabel>}
+                            <FormControl>
+                                <Input {...field} />
+                            </FormControl>
+                            <FormMessage />
+                        </FormItem>
+                    )}
+                />
+            )}
             {/* City, State, Zip in a grid */}
             <div className="grid grid-cols-2 gap-4">
                 {/* City Field */}
@@ -90,7 +112,7 @@ export function GoogleAddressFields({
                         <FormItem>
                             {showLabels && <FormLabel>{cityFieldLabel}</FormLabel>}
                             <FormControl>
-                                <Input placeholder="City" {...field} disabled={disabled} />
+                                <Input {...field} disabled={disabled} />
                             </FormControl>
                             <FormMessage />
                         </FormItem>
@@ -105,7 +127,7 @@ export function GoogleAddressFields({
                         <FormItem>
                             {showLabels && <FormLabel>{stateFieldLabel}</FormLabel>}
                             <FormControl>
-                                <Input placeholder="ST" {...field} disabled={disabled} />
+                                <Input {...field} disabled={disabled} />
                             </FormControl>
                             <FormMessage />
                         </FormItem>
@@ -122,7 +144,7 @@ export function GoogleAddressFields({
                         <FormItem>
                             {showLabels && <FormLabel>{zipFieldLabel}</FormLabel>}
                             <FormControl>
-                                <Input placeholder="12345" {...field} disabled={disabled} />
+                                <Input {...field} disabled={disabled} />
                             </FormControl>
                             <FormMessage />
                         </FormItem>

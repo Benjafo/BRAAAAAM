@@ -241,14 +241,19 @@ export default function EditRideForm({
             destinationAddress2: defaultValues.destinationAddress2 ?? "",
             purposeOfTrip: defaultValues.purposeOfTrip ?? "Medical",
             tripDate: defaultValues.tripDate ?? new Date(),
+
+            // TODO fix this
+            // tripType: defaultValues.tripType,
             tripType: defaultValues.tripType ?? "roundTrip",
-            appointmentTime: defaultValues.appointmentTime ?? "12:00:00",
+            // appointmentTime: defaultValues.appointmentTime ?? "12:00:00",
+            appointmentTime: defaultValues.appointmentTime ?? "12:00",
+
             additionalRider: defaultValues.additionalRider ?? "No",
             additionalRiderFirstName: defaultValues.additionalRiderFirstName ?? "",
             assignedDriver: defaultValues.assignedDriver ?? "",
             additionalRiderLastName: defaultValues.additionalRiderLastName ?? "",
             relationshipToClient: defaultValues.relationshipToClient ?? "",
-            rideStatus: defaultValues.rideStatus,
+            rideStatus: defaultValues.rideStatus ?? "Unassigned",
             tripDuration: defaultValues.tripDuration,
             tripDistance: defaultValues.tripDistance,
             donationType: defaultValues.donationType,
@@ -332,7 +337,8 @@ export default function EditRideForm({
                                                     <span className="truncate">
                                                         {field.value
                                                             ? clients.find(
-                                                                  (client) => client.value === field.value
+                                                                  (client) =>
+                                                                      client.value === field.value
                                                               )?.label
                                                             : "Select Client"}
                                                     </span>
@@ -343,24 +349,33 @@ export default function EditRideForm({
                                                 <Command>
                                                     <CommandInput placeholder="Search client..." />
                                                     <CommandList>
-                                                        <CommandEmpty>No client found.</CommandEmpty>
+                                                        <CommandEmpty>
+                                                            No client found.
+                                                        </CommandEmpty>
                                                         <CommandGroup>
                                                             {clients.map((client) => (
                                                                 <CommandItem
                                                                     key={client.value}
                                                                     value={client.label}
                                                                     onSelect={() => {
-                                                                        field.onChange(client.value);
-                                                                        onClientChange?.(client.value);
+                                                                        field.onChange(
+                                                                            client.value
+                                                                        );
+                                                                        onClientChange?.(
+                                                                            client.value
+                                                                        );
                                                                         form.setValue(
                                                                             "clientId",
                                                                             client.id
                                                                         );
                                                                         // Set the client's street address from their profile
-                                                                        if (client.profile?.address) {
+                                                                        if (
+                                                                            client.profile?.address
+                                                                        ) {
                                                                             form.setValue(
                                                                                 "clientStreetAddress",
-                                                                                client.profile.address
+                                                                                client.profile
+                                                                                    .address
                                                                             );
                                                                         }
                                                                         if (client.profile?.city) {
@@ -387,7 +402,8 @@ export default function EditRideForm({
                                                                     <Check
                                                                         className={cn(
                                                                             "mr-2 h-4 w-4",
-                                                                            field.value === client.value
+                                                                            field.value ===
+                                                                                client.value
                                                                                 ? "opacity-100"
                                                                                 : "opacity-0"
                                                                         )}
@@ -434,7 +450,7 @@ export default function EditRideForm({
                         <FormItem className="w-full">
                             <FormLabel>Round Trip/One Way</FormLabel>
                             <FormControl className="w-full">
-                                <Input placeholder="Value" {...field} className="w-full" />
+                                <Input {...field} className="w-full" />
                             </FormControl>
                             <FormMessage />
                         </FormItem>
@@ -450,11 +466,7 @@ export default function EditRideForm({
                             <FormItem>
                                 <FormLabel>Client Street Address</FormLabel>
                                 <FormControl>
-                                    <Input
-                                        placeholder="Select a client to populate"
-                                        {...field}
-                                        disabled
-                                    />
+                                    <Input {...field} disabled />
                                 </FormControl>
                                 <FormMessage />
                             </FormItem>
@@ -470,11 +482,7 @@ export default function EditRideForm({
                         <FormItem>
                             <FormLabel>Client City</FormLabel>
                             <FormControl>
-                                <Input
-                                    placeholder="Select a client to populate"
-                                    {...field}
-                                    disabled
-                                />
+                                <Input {...field} disabled />
                             </FormControl>
                             <FormMessage />
                         </FormItem>
@@ -489,11 +497,7 @@ export default function EditRideForm({
                         <FormItem>
                             <FormLabel>Client State</FormLabel>
                             <FormControl>
-                                <Input
-                                    placeholder="Select a client to populate"
-                                    {...field}
-                                    disabled
-                                />
+                                <Input {...field} disabled />
                             </FormControl>
                             <FormMessage />
                         </FormItem>
@@ -509,11 +513,7 @@ export default function EditRideForm({
                             <FormItem>
                                 <FormLabel>Client ZIP Code</FormLabel>
                                 <FormControl>
-                                    <Input
-                                        placeholder="Select a client to populate"
-                                        {...field}
-                                        disabled
-                                    />
+                                    <Input {...field} disabled />
                                 </FormControl>
                                 <FormMessage />
                             </FormItem>
@@ -528,29 +528,15 @@ export default function EditRideForm({
                         setValue={form.setValue}
                         addressFieldLabel="Destination Street Address"
                         addressFieldName="destinationAddress"
+                        address2FieldLabel="Destination Street Address 2"
+                        address2FieldName="destinationAddress2"
                         cityFieldLabel="Destination City"
                         cityFieldName="destinationCity"
                         stateFieldLabel="Destination State"
                         stateFieldName="destinationState"
                         zipFieldLabel="Destination ZIP Code"
                         zipFieldName="destinationZip"
-                    />
-                </div>
-
-                {/* Destination Unit/Apartment/Suite  */}
-                <div className="md:col-span-2">
-                    <FormField
-                        control={form.control}
-                        name="destinationAddress2"
-                        render={({ field }) => (
-                            <FormItem>
-                                <FormLabel>Destination Unit/Apartment/Suite</FormLabel>
-                                <FormControl>
-                                    <Input placeholder="Unit, apartment, suite, etc." {...field} />
-                                </FormControl>
-                                <FormMessage />
-                            </FormItem>
-                        )}
+                        showAddress2={true}
                     />
                 </div>
 
@@ -577,7 +563,7 @@ export default function EditRideForm({
                         <FormItem className="w-full">
                             <FormLabel>Appointment Time</FormLabel>
                             <FormControl className="w-full">
-                                <Input type="time" {...field} />
+                                <Input type="time" step="60" {...field} />
                             </FormControl>
                             <FormMessage />
                         </FormItem>
@@ -594,7 +580,7 @@ export default function EditRideForm({
                             <FormControl className="w-full">
                                 <Select value={field.value} onValueChange={field.onChange}>
                                     <SelectTrigger className="w-full">
-                                        <SelectValue placeholder="Select a value" />
+                                        <SelectValue />
                                     </SelectTrigger>
                                     <SelectContent>
                                         <SelectItem value="roundTrip">Round Trip</SelectItem>
@@ -640,7 +626,8 @@ export default function EditRideForm({
                                                     <span className="truncate">
                                                         {field.value
                                                             ? drivers.find(
-                                                                  (driver) => driver.value === field.value
+                                                                  (driver) =>
+                                                                      driver.value === field.value
                                                               )?.label
                                                             : "Select Driver"}
                                                     </span>
@@ -651,21 +638,26 @@ export default function EditRideForm({
                                                 <Command>
                                                     <CommandInput placeholder="Search driver..." />
                                                     <CommandList>
-                                                        <CommandEmpty>No driver found.</CommandEmpty>
+                                                        <CommandEmpty>
+                                                            No driver found.
+                                                        </CommandEmpty>
                                                         <CommandGroup>
                                                             {drivers.map((driver) => (
                                                                 <CommandItem
                                                                     key={driver.value}
                                                                     value={driver.label}
                                                                     onSelect={() => {
-                                                                        field.onChange(driver.value);
+                                                                        field.onChange(
+                                                                            driver.value
+                                                                        );
                                                                         setDriverOpen(false);
                                                                     }}
                                                                 >
                                                                     <Check
                                                                         className={cn(
                                                                             "mr-2 h-4 w-4",
-                                                                            field.value === driver.value
+                                                                            field.value ===
+                                                                                driver.value
                                                                                 ? "opacity-100"
                                                                                 : "opacity-0"
                                                                         )}
@@ -731,7 +723,7 @@ export default function EditRideForm({
                             <FormItem className="w-full">
                                 <FormLabel>Additional Rider First Name</FormLabel>
                                 <FormControl className="w-full">
-                                    <Input placeholder="Value" {...field} className="w-full" />
+                                    <Input {...field} className="w-full" />
                                 </FormControl>
                                 <FormMessage />
                             </FormItem>
@@ -746,7 +738,7 @@ export default function EditRideForm({
                             <FormItem className="w-full">
                                 <FormLabel>Additional Rider Last Name</FormLabel>
                                 <FormControl className="w-full">
-                                    <Input placeholder="Value" {...field} className="w-full" />
+                                    <Input {...field} className="w-full" />
                                 </FormControl>
                                 <FormMessage />
                             </FormItem>
@@ -761,7 +753,7 @@ export default function EditRideForm({
                             <FormItem className="w-full">
                                 <FormLabel>Relationship to Client</FormLabel>
                                 <FormControl className="w-full">
-                                    <Input placeholder="Value" {...field} className="w-full" />
+                                    <Input {...field} className="w-full" />
                                 </FormControl>
                                 <FormMessage />
                             </FormItem>
@@ -808,7 +800,6 @@ export default function EditRideForm({
                                         type="number"
                                         step="0.25"
                                         min="0"
-                                        placeholder="1.00"
                                         value={field.value ?? ""}
                                         onChange={handleNumberChange(field)}
                                         className="w-full"
@@ -831,7 +822,6 @@ export default function EditRideForm({
                                         type="number"
                                         step="0.1"
                                         min="0"
-                                        placeholder="1.00"
                                         value={field.value ?? ""}
                                         onChange={handleNumberChange(field)}
                                         className="w-full"
@@ -878,9 +868,8 @@ export default function EditRideForm({
                                 <FormControl className="w-full">
                                     <Input
                                         type="number"
-                                        placeholder="1.00"
-                                        step="1"
-                                        min="1"
+                                        step="0.01"
+                                        min="0.01"
                                         value={field.value ?? ""}
                                         onChange={handleNumberChange(field)}
                                         className="w-full"

@@ -27,7 +27,7 @@ const registerSchema = z
             .min(1, "Phone number is required")
             .regex(
                 /^(\+1\s?)?(\([0-9]{3}\)\s?|[0-9]{3}[-.\s]?)[0-9]{3}[-.\s]?[0-9]{4}$/,
-                "Please enter a valid US phone number."
+                "Please enter a 10 digit phone number."
             ), // Regex validation for US phone number formats
         password: z.string().min(8, "Password must be at least 8 characters long."),
         confirmPassword: z.string().min(8, "Please confirm your password."),

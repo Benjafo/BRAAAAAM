@@ -36,14 +36,14 @@ const organizationSchema = z.object({
         .min(1, "Phone number is required")
         .regex(
             /^(\+1\s?)?(\([0-9]{3}\)\s?|[0-9]{3}[-.\s]?)[0-9]{3}[-.\s]?[0-9]{4}$/,
-            "Please enter a valid US phone number."
+            "Please enter a 10 digit phone number."
         ),
     phoneRides: z
         .string()
         // .min(1, "Phone number is required")
         // .regex(
         //     /^(\+1\s?)?(\([0-9]{3}\)\s?|[0-9]{3}[-.\s]?)[0-9]{3}[-.\s]?[0-9]{4}$/,
-        //     "Please enter a valid US phone number."
+        //     "Please enter a 10 digit phone number."
         // )
         .optional(),
     email: z.email(),
@@ -152,7 +152,7 @@ export default function OrganizationForm({ defaultValues, onSubmit }: Props) {
             website: defaultValues.website ?? "",
 
             mailingAddress: defaultValues.mailingAddress ?? "",
-            streetAddress: defaultValues.streetAddress ?? "",
+            // streetAddress: defaultValues.streetAddress ?? "",
             address2: defaultValues.address2 ?? "",
 
             status: defaultValues.status ?? "Active",
@@ -352,27 +352,30 @@ export default function OrganizationForm({ defaultValues, onSubmit }: Props) {
                         </FormItem>
                     )}
                 />
-
-                {/* Street Address */}
-                <FormField
-                    control={form.control}
-                    name="streetAddress"
-                    render={({ field }) => (
-                        <FormItem>
-                            <FormLabel>Organization Street Address</FormLabel>
-                            <FormControl>
-                                <div className="relative">
-                                    <Input
-                                        placeholder="(Replace with Google autocomplete when it's ready)"
-                                        {...field}
-                                    />
-                                    <MapPin className="absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-                                </div>
-                            </FormControl>
-                            <FormMessage />
-                        </FormItem>
-                    )}
-                />
+                
+                {/* Street Address -- Commented Out
+                    
+                    <FormField
+                        control={form.control}
+                        name="streetAddress"
+                        render={({ field }) => (
+                            <FormItem>
+                                <FormLabel>Organization Street Address</FormLabel>
+                                <FormControl>
+                                    <div className="relative">
+                                        <Input
+                                            placeholder="(Replace with Google autocomplete when it's ready)"
+                                            {...field}
+                                        />
+                                        <MapPin className="absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+                                    </div>
+                                </FormControl>
+                                <FormMessage />
+                            </FormItem>
+                        )}
+                
+                    />
+                */}
 
                 {/* Address Line 2 */}
                 <FormField

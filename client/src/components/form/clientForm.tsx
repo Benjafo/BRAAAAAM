@@ -90,7 +90,7 @@ const clientSchema = z
             .min(1, "Phone number is required")
             .regex(
                 /^(\+1\s?)?(\([0-9]{3}\)\s?|[0-9]{3}[-.\s]?)[0-9]{3}[-.\s]?[0-9]{4}$/,
-                "Please enter a valid US phone number."
+                "Please enter a 10 digit phone number."
             ),
 
         primaryPhoneIsCellPhone: z.boolean(),
@@ -100,7 +100,7 @@ const clientSchema = z
             .string()
             .regex(
                 /^(\+1\s?)?(\([0-9]{3}\)\s?|[0-9]{3}[-.\s]?)[0-9]{3}[-.\s]?[0-9]{4}$/,
-                "Please enter a valid US phone number."
+                "Please enter a 10 digit phone number."
             )
             .or(z.literal(""))
             .optional(),
@@ -115,7 +115,7 @@ const clientSchema = z
             .string()
             .regex(
                 /^(\+1\s?)?(\([0-9]{3}\)\s?|[0-9]{3}[-.\s]?)[0-9]{3}[-.\s]?[0-9]{4}$/,
-                "Please enter a valid US phone number."
+                "Please enter a 10 digit phone number."
             )
             .or(z.literal(""))
             .optional(),
@@ -280,7 +280,7 @@ export default function ClientForm({ defaultValues, onSubmit }: Props) {
                         <FormItem className="w-full">
                             <FormLabel>First Name</FormLabel>
                             <FormControl className="w-full">
-                                <Input placeholder="Value" {...field} className="w-full" />
+                                <Input {...field} className="w-full" />
                             </FormControl>
                             <FormMessage />
                         </FormItem>
@@ -295,7 +295,7 @@ export default function ClientForm({ defaultValues, onSubmit }: Props) {
                         <FormItem className="w-full">
                             <FormLabel>Last Name</FormLabel>
                             <FormControl className="w-full">
-                                <Input placeholder="Value" {...field} className="w-full" />
+                                <Input {...field} className="w-full" />
                             </FormControl>
                             <FormMessage />
                         </FormItem>
@@ -350,7 +350,7 @@ export default function ClientForm({ defaultValues, onSubmit }: Props) {
                             <FormControl className="w-full">
                                 <Select value={field.value} onValueChange={field.onChange}>
                                     <SelectTrigger className="w-full">
-                                        <SelectValue placeholder="Contact Preference" />
+                                        <SelectValue />
                                     </SelectTrigger>
                                     <SelectContent>
                                         <SelectItem value="Phone">Phone</SelectItem>
@@ -497,27 +497,12 @@ export default function ClientForm({ defaultValues, onSubmit }: Props) {
                         control={form.control}
                         setValue={form.setValue}
                         addressFieldName="homeAddress"
+                        address2FieldName="homeAddress2"
                         cityFieldName="city"
                         stateFieldName="state"
                         zipFieldName="zipCode"
+                        showAddress2={true}
                     />
-                </div>
-
-                {/* Home Unit/Apartment/Suite */}
-                <div className="md:col-span-2">
-                    <FormField
-                        control={form.control}
-                        name="homeAddress2"
-                        render={({ field }) => (
-                            <FormItem>
-                                <FormLabel>Unit/Apartment/Suite</FormLabel>
-                                <FormControl>
-                                    <Input placeholder="Unit, apartment, suite, etc." {...field} />
-                                </FormControl>
-                                <FormMessage />
-                            </FormItem>
-                        )}
-                    />{" "}
                 </div>
 
                 {/* Client Gender */}
@@ -640,7 +625,7 @@ export default function ClientForm({ defaultValues, onSubmit }: Props) {
                                 <FormControl className="w-full">
                                     <Select value={field.value} onValueChange={field.onChange}>
                                         <SelectTrigger className="w-full">
-                                            <SelectValue placeholder="Volunteer Status" />
+                                            <SelectValue />
                                         </SelectTrigger>
                                         <SelectContent>
                                             <SelectItem value="Active">Active</SelectItem>
@@ -742,7 +727,7 @@ export default function ClientForm({ defaultValues, onSubmit }: Props) {
                         <FormItem>
                             <FormLabel>Email</FormLabel>
                             <FormControl>
-                                <Input placeholder="Value" {...field} />
+                                <Input {...field} />
                             </FormControl>
                             <FormMessage />
                         </FormItem>
@@ -758,7 +743,7 @@ export default function ClientForm({ defaultValues, onSubmit }: Props) {
                             <FormItem>
                                 <FormLabel>Primary Phone Number</FormLabel>
                                 <FormControl>
-                                    <Input placeholder="Value" {...field} />
+                                    <Input {...field} />
                                 </FormControl>
                                 <FormMessage />
                             </FormItem>
@@ -818,7 +803,7 @@ export default function ClientForm({ defaultValues, onSubmit }: Props) {
                             <FormItem>
                                 <FormLabel>Secondary Phone Number</FormLabel>
                                 <FormControl>
-                                    <Input placeholder="Value" {...field} />
+                                    <Input {...field} />
                                 </FormControl>
                                 <FormMessage />
                             </FormItem>
@@ -877,7 +862,7 @@ export default function ClientForm({ defaultValues, onSubmit }: Props) {
                         <FormItem>
                             <FormLabel>Emergency Contact Name</FormLabel>
                             <FormControl>
-                                <Input placeholder="Value" {...field} />
+                                <Input {...field} />
                             </FormControl>
                             <FormMessage />
                         </FormItem>
@@ -891,7 +876,7 @@ export default function ClientForm({ defaultValues, onSubmit }: Props) {
                         <FormItem>
                             <FormLabel>Emergency Contact Phone</FormLabel>
                             <FormControl>
-                                <Input placeholder="Value" {...field} />
+                                <Input {...field} />
                             </FormControl>
                             <FormMessage />
                         </FormItem>
@@ -905,7 +890,7 @@ export default function ClientForm({ defaultValues, onSubmit }: Props) {
                         <FormItem>
                             <FormLabel>Emergency Contact Relationship</FormLabel>
                             <FormControl>
-                                <Input placeholder="Value" {...field} />
+                                <Input {...field} />
                             </FormControl>
                             <FormMessage />
                         </FormItem>
@@ -921,10 +906,7 @@ export default function ClientForm({ defaultValues, onSubmit }: Props) {
                             <FormItem>
                                 <FormLabel>Comments/Notes</FormLabel>
                                 <FormControl>
-                                    <Textarea
-                                        placeholder="Enter any comments or notes..."
-                                        {...field}
-                                    />
+                                    <Textarea {...field} />
                                 </FormControl>
                                 <FormMessage />
                             </FormItem>
@@ -941,10 +923,7 @@ export default function ClientForm({ defaultValues, onSubmit }: Props) {
                             <FormItem>
                                 <FormLabel>Pickup Instructions</FormLabel>
                                 <FormControl>
-                                    <Textarea
-                                        placeholder="Enter pickup instructions..."
-                                        {...field}
-                                    />
+                                    <Textarea {...field} />
                                 </FormControl>
                                 <FormMessage />
                             </FormItem>
