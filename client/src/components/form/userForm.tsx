@@ -386,7 +386,7 @@ export default function UserForm({
             >
                 {/* Basic Information Section */}
                 <div className="md:col-span-2">
-                    <h3 className="text-lg font-semibold mb-4">Basic Information</h3>
+                    <h3 className="text-lg font-semibold mt-4">Basic Information</h3>
                 </div>
 
                 {/* First name */}
@@ -421,7 +421,7 @@ export default function UserForm({
 
                 {/* Contact Information Section */}
                 <div className="md:col-span-2">
-                    <h3 className="text-lg font-semibold mb-4">Contact Information</h3>
+                    <h3 className="text-lg font-semibold mt-4">Contact Information</h3>
                 </div>
 
                 {/* Email */}
@@ -866,7 +866,7 @@ export default function UserForm({
 
                 {/* Emergency Contact Section */}
                 <div className="md:col-span-2">
-                    <h3 className="text-lg font-semibold mb-4">Emergency Contact</h3>
+                    <h3 className="text-lg font-semibold mt-4">Emergency Contact</h3>
                 </div>
 
                 <FormField
@@ -916,7 +916,7 @@ export default function UserForm({
                     <>
                         {/* Driver Information Section */}
                         <div className="md:col-span-2">
-                            <h3 className="text-lg font-semibold mb-4">Driver Information</h3>
+                            <h3 className="text-lg font-semibold mt-4">Driver Information</h3>
                         </div>
 
                         {/* Vehicle Type */}

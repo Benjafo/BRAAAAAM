@@ -318,7 +318,7 @@ export default function EditRideForm({
             >
                 {/* Basic Information Section */}
                 <div className="md:col-span-2">
-                    <h3 className="text-lg font-semibold mb-4">Basic Information</h3>
+                    <h3 className="text-lg font-semibold mt-4">Basic Information</h3>
                 </div>
 
                 {/* Client Name, on all the dropdowns, replace with information from API later. Using ShadCN Combo box. */}
@@ -464,7 +464,7 @@ export default function EditRideForm({
 
                 {/* Pickup & Appointment Details Section */}
                 <div className="md:col-span-2">
-                    <h3 className="text-lg font-semibold mb-4">Pickup & Appointment Details</h3>
+                    <h3 className="text-lg font-semibold mt-4">Pickup & Appointment Details</h3>
                 </div>
 
                 {/* Client Street Address - populated from selected client's profile */}
@@ -606,7 +606,7 @@ export default function EditRideForm({
 
                 {/* Assignment Section */}
                 <div className="md:col-span-2">
-                    <h3 className="text-lg font-semibold mb-4">Assignment</h3>
+                    <h3 className="text-lg font-semibold mt-4">Assignment</h3>
                 </div>
 
                 {/* Assigned Driver, select or type from the dropdowns, replace with information from API later. Using ShadCN Combo box.  */}
@@ -708,7 +708,7 @@ export default function EditRideForm({
 
                 {/* Additional Riders Section */}
                 <div className="md:col-span-2">
-                    <h3 className="text-lg font-semibold mb-4">Additional Riders</h3>
+                    <h3 className="text-lg font-semibold mt-4">Additional Riders</h3>
                 </div>
 
                 {/* Additional Rider */}
@@ -783,7 +783,7 @@ export default function EditRideForm({
 
                 {/* Ride Status & Completion Details Section */}
                 <div className="md:col-span-2">
-                    <h3 className="text-lg font-semibold mb-4">Ride Status & Completion Details</h3>
+                    <h3 className="text-lg font-semibold mt-4">Ride Status & Completion Details</h3>
                 </div>
 
                 {/* Ride Status: Completed Round Trip, Completed One Way To, Completed One Way From, Cancelled by Client, Cancelled by Driver */}
@@ -908,7 +908,7 @@ export default function EditRideForm({
 
                 {/* Custom Fields Section */}
                 <div className="md:col-span-2">
-                    <h3 className="text-lg font-semibold mb-4">Custom Fields</h3>
+                    <h3 className="text-lg font-semibold mt-4">Custom Fields</h3>
                 </div>
 
                 {/* Custom Fields */}

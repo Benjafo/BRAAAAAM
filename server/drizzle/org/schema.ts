@@ -191,7 +191,7 @@ export const users = pgTable(
         ),
         check(
             "users_phone_e164_check",
-            sql`(phone IS NULL) OR (phone ~ '^\\+[1-9][1-9]{1,14}$'::text)`
+            sql`(phone IS NULL) OR (phone ~ '^\\+[1-9][0-9]{1,14}$'::text)`
         ),
         check(
             "users_emergency_contact_phone_e164_check",
