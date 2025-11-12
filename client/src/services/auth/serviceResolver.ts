@@ -47,7 +47,7 @@ export function useAuthService(): AuthService {
   const http = useMemo(
     () =>
       createHttpClient({
-        baseUrl: import.meta.env.VITE_API_BASE_URL, // note: BASE_URL is the public path, usually not your API
+        baseUrl: import.meta.env.NODE_ENV === 'production' ? import.meta.env.BASE_URL : 'http://localhost:3000/', // note: BASE_URL is the public path, usually not your API
         getSubdomain,
         getAccessToken: () => authStore.getState().accessToken,
         onUnauthorized: () => authStore.getState().clearAuth(),
