@@ -64,6 +64,7 @@ const rideSchema = z
             .min(5, "ZIP code is required")
             .max(10, "Max characters allowed is 10.")
             .regex(/^\d{5}(-\d{4})?$/, "Please enter a valid US zip code."),
+        destinationAlias: z.string().max(255, "Max characters allowed is 255.").optional(),
         destinationAddress: z
             .string()
             .min(1, "Destination address is required")
@@ -234,6 +235,7 @@ export default function EditRideForm({
             clientCity: defaultValues.clientCity ?? "",
             clientState: defaultValues.clientState ?? "",
             clientZip: defaultValues.clientZip ?? "",
+            destinationAlias: defaultValues.destinationAlias ?? "",
             destinationAddress: defaultValues.destinationAddress ?? "",
             destinationCity: defaultValues.destinationCity ?? "",
             destinationState: defaultValues.destinationState ?? "",
@@ -537,6 +539,9 @@ export default function EditRideForm({
                         zipFieldLabel="Destination ZIP Code"
                         zipFieldName="destinationZip"
                         showAddress2={true}
+                        showAliasField={true}
+                        aliasFieldLabel="Search Saved Destinations"
+                        aliasFieldName="destinationAlias"
                     />
                 </div>
 
