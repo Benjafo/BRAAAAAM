@@ -119,15 +119,18 @@ export default function AcceptRideModal() {
                     {currentRide.warnings.length > 0 && (
                         <div className="space-y-2 mt-4">
                             {currentRide.warnings.map((warning, index) => (
-                                <p key={index} className="text-left text-base text-gray-600">
-                                    <span className="text-gray-600">WARNING:</span>{" "}
+                                <p
+                                    key={index}
+                                    className="text-left text-base text-muted-foreground"
+                                >
+                                    <span className="text-muted-foreground">WARNING:</span>{" "}
                                     {warning.message}
                                 </p>
                             ))}
                         </div>
                     )}
 
-                    <p className="text-left text-base text-gray-600 mt-4">
+                    <p className="text-left text-base text-muted-foreground mt-4">
                         {currentRide.passengerName}, {currentRide.date}, {currentRide.startTime} -{" "}
                         {currentRide.endTime}
                     </p>

@@ -772,7 +772,7 @@ export default function BaseCalendar({
             <style>{customStyles}</style>
 
             {/* Top Navigation Bar  */}
-            <div className="border-b border-gray-600 px-4 py-2">
+            <div className="border-b border-muted-foreground px-4 py-2">
                 <div className="flex justify-between items-center">
                     <div className="flex items-center space-x-4">
                         <div className="flex items-center space-x-2">

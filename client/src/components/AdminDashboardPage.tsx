@@ -1,5 +1,5 @@
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 
 const AdminDashboard = () => {
     const stats = [
@@ -46,18 +46,18 @@ const AdminDashboard = () => {
     ];
 
     return (
-        <div className="min-h-screen bg-gray-50 text-gray-900">
-            <main className="p-8 max-w-7xl mx-auto">
+        <div className="min-h-screen bg-background text-foreground">
+            <main className="p-[10px] mx-auto">
                 <div className="mb-8">
-                    <h2 className="text-lg font-medium mb-4 text-gray-900">
+                    {/* <h2 className="text-lg font-medium mb-4">
                         Ride Stats this Month
-                    </h2>
+                    </h2> */}
                     <div className="grid grid-cols-4 gap-4">
                         {stats.map((stat, index) => (
-                            <Card key={index} className="bg-white border-gray-200 shadow-sm">
+                            <Card key={index} className="bg-card text-card-foreground">
                                 <CardContent className="p-6 h-16 flex flex-col justify-center">
-                                    <div className="text-gray-600 text-sm mb-3">{stat.label}</div>
-                                    <div className="text-4xl font-bold text-gray-900">
+                                    <div className="text-sm mb-3">{stat.label}</div>
+                                    <div className="text-4xl font-bold">
                                         {stat.value}
                                     </div>
                                 </CardContent>
@@ -66,56 +66,54 @@ const AdminDashboard = () => {
                     </div>
                 </div>
 
-                <Card className="bg-white border-gray-200 shadow-sm mb-8">
-                    <CardHeader className="border-b border-gray-200">
-                        <CardTitle className="text-gray-900 text-lg font-medium">
+                <Card className="bg-card text-card-foreground mb-8">
+                    <CardHeader className="">
+                        <CardTitle className="text-lg font-medium">
                             Recent Activity
                         </CardTitle>
                     </CardHeader>
-                    <CardContent className="p-0">
-                        <div className="divide-y divide-gray-200">
+                    <CardContent className="p-0 border-y">
+                        <div className="divide-y">
                             {recentActivities.map((activity, index) => (
-                                <div key={index} className="p-4 hover:bg-gray-50 transition-colors">
+                                <div key={index} className="p-4 hover:bg-muted/50 transition-colors">
                                     <div className="flex items-start justify-between">
                                         <div className="flex-1">
-                                            <p className="text-gray-900 text-sm">
+                                            <p className="text-sm">
                                                 {activity.title}
                                             </p>
-                                            <p className="text-gray-500 text-xs mt-1">
+                                            <p className="text-xs mt-1">
                                                 {activity.time}
                                             </p>
                                         </div>
-                                        <span className="text-gray-600 text-xs">
+                                        <span className="text-xs">
                                             {activity.user}
                                         </span>
                                     </div>
                                 </div>
                             ))}
                         </div>
-                        <div className="p-4 border-t border-gray-200">
-                            <button className="text-blue-600 text-sm hover:text-blue-700 transition-colors">
-                                View All
-                            </button>
-                        </div>
                     </CardContent>
+                    <CardFooter className='justify-center'>
+                            <Button variant={'link'}>View All</Button>
+                    </CardFooter>
                 </Card>
 
-                <Card className="bg-white border-gray-200 shadow-sm">
-                    <CardHeader className="border-b border-gray-200">
-                        <CardTitle className="text-gray-900 text-lg font-medium">
+                <Card className="">
+                    <CardHeader className="">
+                        <CardTitle className="text-lg font-medium">
                             Upcoming Rides
                         </CardTitle>
                     </CardHeader>
-                    <CardContent className="p-0">
-                        <div className="divide-y divide-gray-200">
+                    <CardContent className="p-0 border-y">
+                        <div className="divide-y">
                             {upcomingRides.map((ride, index) => (
                                 <div key={index} className="p-4 grid grid-cols-3 items-center">
                                     <div className="flex items-center space-x-3">
                                         <div className={`w-3 h-3 rounded-full ${ride.color}`}></div>
-                                        <span className="text-gray-900 text-sm">{ride.time}</span>
+                                        <span className="text-sm">{ride.time}</span>
                                     </div>
                                     <div className="text-center">
-                                        <span className="text-gray-600 text-sm">
+                                        <span className="text-sm">
                                             {ride.driver || ride.status}
                                         </span>
                                     </div>
@@ -123,23 +121,27 @@ const AdminDashboard = () => {
                                         {ride.status === "Unassigned" ? (
                                             <Button
                                                 variant="link"
-                                                className="text-blue-600 hover:text-blue-700 p-0 h-auto text-sm font-normal"
+                                                className="p-0 h-auto text-sm font-normal"
                                             >
                                                 Assign Driver
                                             </Button>
                                         ) : (
-                                            <span className="text-gray-600 text-sm">Assigned</span>
+                                            <Button
+                                                variant="link"
+                                                className="p-0 h-auto text-sm font-normal"
+                                                disabled
+                                            >
+                                                Assigned
+                                            </Button>
                                         )}
                                     </div>
                                 </div>
                             ))}
                         </div>
-                        <div className="p-4 border-t border-gray-200">
-                            <button className="text-blue-600 text-sm hover:text-blue-700 transition-colors">
-                                View All
-                            </button>
-                        </div>
                     </CardContent>
+                    <CardFooter className='justify-center'>
+                        <Button variant={'link'}>View All</Button>
+                    </CardFooter>
                 </Card>
             </main>
         </div>
