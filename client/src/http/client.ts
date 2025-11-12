@@ -40,15 +40,29 @@ export const createHttpClient = (opts: CreateHttpClientOpts = {}): KyInstance =>
                 },
             ],
             afterResponse: [
-                async (_request, options, response, state) => {
+                async (_request, _options, response, state) => {
+
                     if (
                         response.status === 401 &&
                         state.retryCount === 0 &&
                         Boolean(authStore.getState().user && authStore.getState().accessToken)
                     ) {
                         try {
+
+                            const headers = new Headers()
+                            headers.set("Content-Type", "application/json");
+                            headers.set("Accept", "application/json");
+                            const currentToken = getAccessToken?.();
+                            if (currentToken) headers.set("Authorization", `Bearer ${currentToken}`);
+
+                            const orgSubdomain = getSubdomain?.();
+                            if (orgSubdomain) headers.set("x-org-subdomain", orgSubdomain);
+
                             const { accessToken } = await ky
-                                .post("auth/token-refresh", options)
+                                .post("auth/token-refresh", {
+                                    prefixUrl: baseUrl,
+                                    headers: headers,
+                                })
                                 .json<RefreshResponse>();
                             authStore.getState().setAuth({ accessToken: accessToken });
                         } catch {
