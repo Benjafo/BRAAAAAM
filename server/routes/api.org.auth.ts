@@ -10,7 +10,7 @@ router.use(withOrg);
 router.post("/sign-in", controller.signIn);
 router.post("/sign-out", withAuth, controller.signOut);
 router.post("/reset-password", controller.resetPassword);
-router.post("/token-refresh", withAuth, controller.refreshToken);
+router.post("/token-refresh", controller.refreshToken);
 router.post("/request-password-reset", controller.requestPasswordReset);
 
 export default router;

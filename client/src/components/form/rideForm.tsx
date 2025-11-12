@@ -453,7 +453,7 @@ export default function EditRideForm({
                     name="purposeOfTrip"
                     render={({ field }) => (
                         <FormItem className="w-full">
-                            <FormLabel>Round Trip/One Way</FormLabel>
+                            <FormLabel>Purpose of Trip</FormLabel>
                             <FormControl className="w-full">
                                 <Input {...field} className="w-full" />
                             </FormControl>
