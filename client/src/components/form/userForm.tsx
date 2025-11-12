@@ -92,13 +92,25 @@ const userSchema = z
             .optional(),
         secondaryPhoneIsCellPhone: z.boolean(),
         okToTextSecondaryPhone: z.boolean(),
-        vehicleType: z.enum(["sedan", "small_suv", "medium_suv", "large_suv", "small_truck", "large_truck", ""]).optional(),
+        vehicleType: z
+            .enum([
+                "sedan",
+                "small_suv",
+                "medium_suv",
+                "large_suv",
+                "small_truck",
+                "large_truck",
+                "",
+            ])
+            .optional(),
         vehicleColor: z
             .string()
             .max(255, "Max characters allowed is 255.")
             .optional()
             .or(z.literal("")),
-        canAccommodateMobilityEquipment: z.array(z.enum(["cane", "crutches", "lightweight_walker", "rollator"])).optional(),
+        canAccommodateMobilityEquipment: z
+            .array(z.enum(["cane", "crutches", "lightweight_walker", "rollator"]))
+            .optional(),
         canAccommodateOxygen: z.boolean().optional(),
         canAccommodateServiceAnimal: z.boolean().optional(),
         canAccommodateAdditionalRider: z.boolean().optional(),
@@ -261,7 +273,7 @@ const YEARS = Array.from({ length: 100 }, (_, i) => {
 });
 
 /* --------------------------------- Form ----------------------------------- */
-export default function NewUserForm({
+export default function UserForm({
     defaultValues,
     onSubmit,
     availableRoles = [],
@@ -372,6 +384,11 @@ export default function NewUserForm({
                 className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-6 w-full items-start"
                 onSubmit={form.handleSubmit(handleFormSubmit)}
             >
+                {/* Basic Information Section */}
+                <div className="md:col-span-2">
+                    <h3 className="text-lg font-semibold mb-4">Basic Information</h3>
+                </div>
+
                 {/* First name */}
                 <FormField
                     control={form.control}
@@ -401,6 +418,11 @@ export default function NewUserForm({
                         </FormItem>
                     )}
                 />
+
+                {/* Contact Information Section */}
+                <div className="md:col-span-2">
+                    <h3 className="text-lg font-semibold mb-4">Contact Information</h3>
+                </div>
 
                 {/* Email */}
                 <FormField
@@ -842,7 +864,11 @@ export default function NewUserForm({
                     )}
                 />
 
-                {/* Emergency Contact Information */}
+                {/* Emergency Contact Section */}
+                <div className="md:col-span-2">
+                    <h3 className="text-lg font-semibold mb-4">Emergency Contact</h3>
+                </div>
+
                 <FormField
                     control={form.control}
                     name="emergencyContactName"
@@ -888,6 +914,11 @@ export default function NewUserForm({
                 {/* Driver-specific fields - only shown when role is driver */}
                 {isDriverRole && (
                     <>
+                        {/* Driver Information Section */}
+                        <div className="md:col-span-2">
+                            <h3 className="text-lg font-semibold mb-4">Driver Information</h3>
+                        </div>
+
                         {/* Vehicle Type */}
                         <FormField
                             control={form.control}
@@ -1048,7 +1079,10 @@ export default function NewUserForm({
                                             {[
                                                 { id: "cane", label: "Cane" },
                                                 { id: "crutches", label: "Crutches" },
-                                                { id: "lightweight_walker", label: "Lightweight Walker" },
+                                                {
+                                                    id: "lightweight_walker",
+                                                    label: "Lightweight Walker",
+                                                },
                                                 { id: "rollator", label: "Rollator" },
                                             ].map((item) => (
                                                 <FormField
@@ -1059,17 +1093,26 @@ export default function NewUserForm({
                                                         <FormItem className="flex flex-row items-center space-x-3 space-y-0">
                                                             <FormControl>
                                                                 <Checkbox
-                                                                    checked={field.value?.includes(item.id as any)}
+                                                                    checked={field.value?.includes(
+                                                                        item.id as any
+                                                                    )}
                                                                     onCheckedChange={(checked) => {
-                                                                        const current = field.value || [];
+                                                                        const current =
+                                                                            field.value || [];
                                                                         const updated = checked
                                                                             ? [...current, item.id]
-                                                                            : current.filter((val: string) => val !== item.id);
+                                                                            : current.filter(
+                                                                                  (val: string) =>
+                                                                                      val !==
+                                                                                      item.id
+                                                                              );
                                                                         field.onChange(updated);
                                                                     }}
                                                                 />
                                                             </FormControl>
-                                                            <FormLabel className="font-normal">{item.label}</FormLabel>
+                                                            <FormLabel className="font-normal">
+                                                                {item.label}
+                                                            </FormLabel>
                                                         </FormItem>
                                                     )}
                                                 />
@@ -1081,10 +1124,10 @@ export default function NewUserForm({
                             />
                         </div>
 
-                        {/* Can Accommodate Other */}
+                        {/* Other Accomodations */}
                         <div className="md:col-span-2">
                             <FormItem>
-                                <FormLabel>Can Accommodate Other</FormLabel>
+                                <FormLabel>Other Accommodations</FormLabel>
                                 <div className="space-y-2">
                                     {/* Can Accommodate Oxygen */}
                                     <FormField
@@ -1093,9 +1136,14 @@ export default function NewUserForm({
                                         render={({ field }) => (
                                             <FormItem className="flex flex-row items-center space-x-3 space-y-0">
                                                 <FormControl>
-                                                    <Checkbox checked={field.value} onCheckedChange={field.onChange} />
+                                                    <Checkbox
+                                                        checked={field.value}
+                                                        onCheckedChange={field.onChange}
+                                                    />
                                                 </FormControl>
-                                                <FormLabel className="font-normal">Can Accommodate Oxygen</FormLabel>
+                                                <FormLabel className="font-normal">
+                                                    Can Accommodate Oxygen
+                                                </FormLabel>
                                             </FormItem>
                                         )}
                                     />
@@ -1107,9 +1155,14 @@ export default function NewUserForm({
                                         render={({ field }) => (
                                             <FormItem className="flex flex-row items-center space-x-3 space-y-0">
                                                 <FormControl>
-                                                    <Checkbox checked={field.value} onCheckedChange={field.onChange} />
+                                                    <Checkbox
+                                                        checked={field.value}
+                                                        onCheckedChange={field.onChange}
+                                                    />
                                                 </FormControl>
-                                                <FormLabel className="font-normal">Can Accommodate Service Animal</FormLabel>
+                                                <FormLabel className="font-normal">
+                                                    Can Accommodate Service Animal
+                                                </FormLabel>
                                             </FormItem>
                                         )}
                                     />
@@ -1121,9 +1174,14 @@ export default function NewUserForm({
                                         render={({ field }) => (
                                             <FormItem className="flex flex-row items-center space-x-3 space-y-0">
                                                 <FormControl>
-                                                    <Checkbox checked={field.value} onCheckedChange={field.onChange} />
+                                                    <Checkbox
+                                                        checked={field.value}
+                                                        onCheckedChange={field.onChange}
+                                                    />
                                                 </FormControl>
-                                                <FormLabel className="font-normal">Can Accommodate Additional Rider</FormLabel>
+                                                <FormLabel className="font-normal">
+                                                    Can Accommodate Additional Rider
+                                                </FormLabel>
                                             </FormItem>
                                         )}
                                     />

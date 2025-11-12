@@ -316,6 +316,11 @@ export default function ClientForm({ defaultValues, onSubmit }: Props) {
                 className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-6 w-full items-start pt-"
                 onSubmit={form.handleSubmit(handleFormSubmit)}
             >
+                {/* Basic Information Section */}
+                <div className="md:col-span-2">
+                    <h3 className="text-lg font-semibold">Basic Information</h3>
+                </div>
+
                 {/* First name */}
                 <FormField
                     control={form.control}
@@ -533,6 +538,11 @@ export default function ClientForm({ defaultValues, onSubmit }: Props) {
                         </FormItem>
                     )}
                 />
+
+                {/* Contact Information Section */}
+                <div className="md:col-span-2">
+                    <h3 className="text-lg font-semibold mt-4">Contact Information</h3>
+                </div>
 
                 {/* Home Address */}
                 <div className="md:col-span-2">
@@ -898,7 +908,11 @@ export default function ClientForm({ defaultValues, onSubmit }: Props) {
                     )}
                 </div>
 
-                {/* Emergency Contact Information */}
+                {/* Emergency Contact Section */}
+                <div className="md:col-span-2">
+                    <h3 className="text-lg font-semibold mt-4">Emergency Contact</h3>
+                </div>
+
                 <FormField
                     control={form.control}
                     name="emergencyContactName"
@@ -941,6 +955,11 @@ export default function ClientForm({ defaultValues, onSubmit }: Props) {
                     )}
                 />
 
+                {/* Additional Information Section */}
+                <div className="md:col-span-2">
+                    <h3 className="text-lg font-semibold mt-4">Additional Information</h3>
+                </div>
+
                 {/* Comments/Notes */}
                 <div className="md:col-span-2">
                     <FormField
@@ -973,6 +992,11 @@ export default function ClientForm({ defaultValues, onSubmit }: Props) {
                             </FormItem>
                         )}
                     />
+                </div>
+
+                {/* Accessibility & Transportation Needs Section */}
+                <div className="md:col-span-2">
+                    <h3 className="text-lg font-semibold mt-4">Accessibility & Transportation Needs</h3>
                 </div>
 
                 {/* Mobility Equipment */}

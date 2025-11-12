@@ -316,6 +316,11 @@ export default function EditRideForm({
                 className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-6 w-full items-start pt-5"
                 onSubmit={form.handleSubmit(handleFormSubmit)}
             >
+                {/* Basic Information Section */}
+                <div className="md:col-span-2">
+                    <h3 className="text-lg font-semibold mb-4">Basic Information</h3>
+                </div>
+
                 {/* Client Name, on all the dropdowns, replace with information from API later. Using ShadCN Combo box. */}
                 <FormField
                     control={form.control}
@@ -457,6 +462,11 @@ export default function EditRideForm({
                     )}
                 />
 
+                {/* Pickup & Appointment Details Section */}
+                <div className="md:col-span-2">
+                    <h3 className="text-lg font-semibold mb-4">Pickup & Appointment Details</h3>
+                </div>
+
                 {/* Client Street Address - populated from selected client's profile */}
                 <FormField
                     control={form.control}
@@ -594,6 +604,11 @@ export default function EditRideForm({
                     )}
                 />
 
+                {/* Assignment Section */}
+                <div className="md:col-span-2">
+                    <h3 className="text-lg font-semibold mb-4">Assignment</h3>
+                </div>
+
                 {/* Assigned Driver, select or type from the dropdowns, replace with information from API later. Using ShadCN Combo box.  */}
                 <FormField
                     control={form.control}
@@ -691,6 +706,11 @@ export default function EditRideForm({
                     }}
                 />
 
+                {/* Additional Riders Section */}
+                <div className="md:col-span-2">
+                    <h3 className="text-lg font-semibold mb-4">Additional Riders</h3>
+                </div>
+
                 {/* Additional Rider */}
                 <FormField
                     control={form.control}
@@ -760,6 +780,11 @@ export default function EditRideForm({
                         )}
                     />
                 )}
+
+                {/* Ride Status & Completion Details Section */}
+                <div className="md:col-span-2">
+                    <h3 className="text-lg font-semibold mb-4">Ride Status & Completion Details</h3>
+                </div>
 
                 {/* Ride Status: Completed Round Trip, Completed One Way To, Completed One Way From, Cancelled by Client, Cancelled by Driver */}
                 <FormField
@@ -880,6 +905,11 @@ export default function EditRideForm({
                         )}
                     />
                 )}
+
+                {/* Custom Fields Section */}
+                <div className="md:col-span-2">
+                    <h3 className="text-lg font-semibold mb-4">Custom Fields</h3>
+                </div>
 
                 {/* Custom Fields */}
                 <div className="md:col-span-2">

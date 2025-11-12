@@ -11,7 +11,7 @@ import { http } from "@/services/auth/serviceResolver";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import type { UserFormValues } from "../form/userForm";
-import NewUserForm from "../form/userForm";
+import UserForm from "../form/userForm";
 
 type Role = {
     id: string;
@@ -49,9 +49,7 @@ export default function NewUserModal({
             const fetchRoles = async () => {
                 setIsLoadingRoles(true);
                 try {
-                    const response = await http
-                        .get(`o/settings/roles`)
-                        .json<{ results: Role[] }>();
+                    const response = await http.get(`o/settings/roles`).json<{ results: Role[] }>();
                     setRoles(response.results);
                 } catch (error) {
                     console.error("Failed to fetch roles:", error);
@@ -67,7 +65,6 @@ export default function NewUserModal({
 
     async function handleSubmit(values: UserFormValues) {
         try {
-
             // Determine if user is a driver based on selected role
             const selectedRole = roles.find((role) => role.id === values.userRole);
             const isDriver = selectedRole?.roleKey === "driver";
@@ -141,7 +138,7 @@ export default function NewUserModal({
                 <DialogHeader className="mb-4">
                     <DialogTitle>{modalTitle}</DialogTitle>
                 </DialogHeader>
-                <NewUserForm
+                <UserForm
                     onSubmit={handleSubmit}
                     defaultValues={defaultValues}
                     availableRoles={roles}
