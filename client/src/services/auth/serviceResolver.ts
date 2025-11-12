@@ -47,7 +47,7 @@ export function useAuthService(): AuthService {
   const http = useMemo(
     () =>
       createHttpClient({
-        baseUrl: import.meta.env.DEV ? import.meta.env.BASE_URL : 'http://localhost:3000/', // note: BASE_URL is the public path, usually not your API
+        baseUrl: import.meta.env.DEV ? 'http://localhost:3000/' : import.meta.env.BASE_URL, // note: BASE_URL is the public path, usually not your API
         getSubdomain,
         getAccessToken: () => authStore.getState().accessToken,
         onUnauthorized: () => authStore.getState().clearAuth(),
@@ -63,7 +63,7 @@ export function useAuthService(): AuthService {
 
 /**@TODO use http/api.ts instead */
 export const http = createHttpClient({
-  baseUrl: import.meta.env.DEV ? import.meta.env.BASE_URL : 'http://localhost:3000/',
+  baseUrl: import.meta.env.DEV ? 'http://localhost:3000/' : import.meta.env.BASE_URL,
   getSubdomain: () => authStore.getState().subdomain ?? undefined,
   getAccessToken: () => authStore.getState().accessToken,
   onUnauthorized: () => authStore.getState().clearAuth(),
