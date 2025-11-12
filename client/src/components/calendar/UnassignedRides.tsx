@@ -190,11 +190,11 @@ export default function UnassignedRides() {
     };
 
     // Handle create ride button
-    const handleCreateUnassignedRide = () => {
-        console.log("Creating new unassigned ride...");
-        setSelectedRideData({});
-        setIsRideModalOpen(true);
-    };
+    // const handleCreateUnassignedRide = () => {
+    //     console.log("Creating new unassigned ride...");
+    //     setSelectedRideData({});
+    //     setIsRideModalOpen(true);
+    // };
 
     if (loading) {
         return (
@@ -208,24 +208,24 @@ export default function UnassignedRides() {
     }
 
     // Show empty state if no unassigned rides
-    if (rides.length === 0) {
-        return (
-            <div className="h-full flex flex-col">
-                <div className="flex-1 flex items-center justify-center">
-                    <div className="text-center">
-                        <h3 className="text-lg font-medium  mb-2">No Unassigned Rides</h3>
-                        <p className="mb-4">All rides have been assigned to drivers</p>
-                        <button
-                            className="px-4 py-2 bg-primary text-white rounded hover:bg-primary/90"
-                            onClick={handleCreateUnassignedRide}
-                        >
-                            Create New Ride
-                        </button>
-                    </div>
-                </div>
-            </div>
-        );
-    }
+    // if (rides.length === 0) {
+    //     return (
+    //         <div className="h-full flex flex-col">
+    //             <div className="flex-1 flex items-center justify-center">
+    //                 <div className="text-center">
+    //                     <h3 className="text-lg font-medium  mb-2">No Unassigned Rides</h3>
+    //                     <p className="mb-4">All rides have been assigned to drivers</p>
+    //                     <button
+    //                         className="px-4 py-2 bg-primary text-white rounded hover:bg-primary/90"
+    //                         onClick={handleCreateUnassignedRide}
+    //                     >
+    //                         Create New Ride
+    //                     </button>
+    //                 </div>
+    //             </div>
+    //         </div>
+    //     );
+    // }
 
     return (
         <div className="h-full">
