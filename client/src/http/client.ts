@@ -40,7 +40,7 @@ export const createHttpClient = (opts: CreateHttpClientOpts = {}): KyInstance =>
                 },
             ],
             afterResponse: [
-                async (_request, _options, response, state) => {
+                async (_request, options, response, state) => {
                     if (
                         response.status === 401 &&
                         state.retryCount === 0 &&
@@ -48,7 +48,7 @@ export const createHttpClient = (opts: CreateHttpClientOpts = {}): KyInstance =>
                     ) {
                         try {
                             const { accessToken } = await ky
-                                .post("auth/token-refresh", { prefixUrl: baseUrl })
+                                .post("auth/token-refresh", options)
                                 .json<RefreshResponse>();
                             authStore.getState().setAuth({ accessToken: accessToken });
                         } catch {
@@ -56,10 +56,10 @@ export const createHttpClient = (opts: CreateHttpClientOpts = {}): KyInstance =>
                             toast.error("You have been logged out", {
                                 description: "Please sign-in again.",
                                 duration: Infinity,
-                                // cancel: {
-                                //     label: 'Sign-in',
-                                //     onClick: () => window.location.href = '/',
-                                // },
+                                cancel: {
+                                    label: 'Dismiss',
+                                    onClick: () => {},
+                                },
                             });
 
                             await onUnauthorized?.(); //sign-out script
