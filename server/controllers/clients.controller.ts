@@ -34,17 +34,58 @@ export const listClients = async (req: Request, res: Response): Promise<Response
         // Does org DB Connection exist?
         if (!db) return res.status(500).json({ error: "Database not initialized" });
 
-        // Pagination + Search + Sort
-        const { where, orderBy, limit, offset, page, pageSize } = applyQueryFilters(req, [
+        // Define columns for searching, sorting, and filtering
+        const activeStatus = sql<string>`CASE WHEN ${clients.isActive} = true THEN 'Active' ELSE 'Inactive' END`;
+        const searchableColumns = [
             clients.firstName,
             clients.lastName,
             clients.email,
             clients.phone,
-        ]);
+            locations.addressLine1,
+            locations.city,
+            locations.zip,
+            activeStatus,
+        ];
+        const sortableColumns: Record<string, any> = {
+            name: clients.firstName, // Sort by first name for "name" column
+            firstName: clients.firstName,
+            lastName: clients.lastName,
+            phone: clients.phone,
+            address: locations.addressLine1,
+            city: locations.city,
+            zip: locations.zip,
+            status: clients.isActive,
+        };
+        const filterableColumns: Record<string, any> = {
+            ...sortableColumns,
+            name: [clients.firstName, clients.lastName], // Filter by both firstName and lastName
+            status: (value: string) => {
+                // Custom filter for boolean status field
+                const lowerValue = value.toLowerCase();
+                if (lowerValue.includes("active") && !lowerValue.includes("inactive")) {
+                    return eq(clients.isActive, true);
+                } else if (lowerValue.includes("inactive")) {
+                    return eq(clients.isActive, false);
+                }
+                // No match
+                return sql`FALSE`;
+            },
+        };
+
+        // Create a computed column for status that converts boolean to text for searching
+        const statusAsText = sql<string>`CASE WHEN ${clients.isActive} = true THEN 'Active' ELSE 'Inactive' END`;
+
+        const { where, orderBy, limit, offset, page, pageSize } = applyQueryFilters(
+            req,
+            searchableColumns,
+            sortableColumns,
+            filterableColumns
+        );
 
         const [{ total }] = await db
             .select({ total: sql<number>`count(*)` })
             .from(clients)
+            .leftJoin(locations, eq(clients.addressLocation, locations.id))
             .where(where);
 
         // Join clients with their associated location records
@@ -342,7 +383,10 @@ export const getClient = async (req: Request, res: Response): Promise<Response> 
             .select()
             .from(customFormResponses)
             .where(
-                and(eq(customFormResponses.entityId, clientId), eq(customFormResponses.entityType, "client"))
+                and(
+                    eq(customFormResponses.entityId, clientId),
+                    eq(customFormResponses.entityType, "client")
+                )
             );
 
         const clientWithCustomFields = {

@@ -65,13 +65,13 @@ function mapClientToFormValues(client: Client): Partial<ClientFormValues> & { id
         emergencyContactRelationship: client.emergencyContactRelationship || "",
         notes: client.notes || "",
         pickupInstructions: client.pickupInstructions || "",
-        mobilityEquipment: client.mobilityEquipment as any || [],
+        mobilityEquipment: (client.mobilityEquipment as any) || [],
         mobilityEquipmentOther: client.mobilityEquipmentOther || "",
-        vehicleTypes: client.vehicleTypes as any || [],
+        vehicleTypes: (client.vehicleTypes as any) || [],
         hasOxygen: client.hasOxygen || false,
         hasServiceAnimal: client.hasServiceAnimal || false,
         serviceAnimalDescription: client.serviceAnimalDescription || "",
-        otherLimitations: client.otherLimitations as any || [],
+        otherLimitations: (client.otherLimitations as any) || [],
         otherLimitationsOther: client.otherLimitationsOther || "",
         homeAddress: client.address.addressLine1,
         homeAddress2: client.address.addressLine2 || "",
@@ -108,7 +108,7 @@ export function ClientsTable() {
         });
 
         const response = await http
-            .get(`o/clients`)
+            .get(`o/clients?${searchParams}`)
             .json<{ results: Client[]; total: number }>();
         console.log("Fetched clients:", response);
 
