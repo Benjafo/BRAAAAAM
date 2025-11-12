@@ -31,7 +31,7 @@ function RouteComponent() {
     return (
         <>
             <MainNavigation />
-            <div className="container mx-auto py-6">
+            <div className="w-full px-2.5 py-6">
                 <UnavailabilityTable />
             </div>
         </>

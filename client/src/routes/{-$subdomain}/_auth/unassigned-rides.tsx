@@ -36,7 +36,9 @@ function RouteComponent() {
                     <UnassignedRides />
                 </TabsContent>
                 <TabsContent value="list">
-                    <RidesTable isUnassignedRidesOnly={true} hideActionButton={true} />
+                    <div className="w-full px-2.5 py-6">
+                        <RidesTable isUnassignedRidesOnly={true} hideActionButton={true} />
+                    </div>
                 </TabsContent>
             </Tabs>
         </>

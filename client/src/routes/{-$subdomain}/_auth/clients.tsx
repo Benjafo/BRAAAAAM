@@ -31,7 +31,9 @@ function RouteComponent() {
     return (
         <>
             <MainNavigation />
-            <ClientsTable />
+            <div className="w-full px-2.5 py-6">
+                <ClientsTable />
+            </div>
         </>
     );
 }

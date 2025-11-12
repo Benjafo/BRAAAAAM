@@ -1,10 +1,10 @@
 import Schedule from "@/components/calendar/Schedule";
 import { MainNavigation } from "@/components/Navigation";
+import { authStore } from "@/components/stores/authStore";
 import { RidesTable } from "@/components/tables/RidesTable";
 import { Button } from "@/components/ui/button";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@radix-ui/react-tabs";
-import { authStore } from "@/components/stores/authStore";
 import { PERMISSIONS } from "@/lib/permissions";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@radix-ui/react-tabs";
 import { createFileRoute, redirect } from "@tanstack/react-router";
 import { useCallback, useState } from "react";
 
@@ -57,7 +57,9 @@ function RouteComponent() {
                     <Schedule />
                 </TabsContent>
                 <TabsContent value="list">
-                    <RidesTable />
+                    <div className="w-full px-2.5 py-6">
+                        <RidesTable />
+                    </div>
                 </TabsContent>
             </Tabs>
         </>

@@ -1,13 +1,13 @@
 import type { AdminGeneralFormRef } from "@/components/form/AdminGeneralForm";
 import AdminGeneralForm from "@/components/form/AdminGeneralForm";
 import { MainNavigation } from "@/components/Navigation";
+import { authStore } from "@/components/stores/authStore";
 import { AuditLogTable } from "@/components/tables/AuditLogTable";
-import CustomFormsTable from "@/components/tables/CustomFormsTable";
+import CustomForms from "@/components/CustomForms";
 import { LocationsTable } from "@/components/tables/LocationsTable";
 import { RolesTable } from "@/components/tables/RolesTable";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { authStore } from "@/components/stores/authStore";
 import { PERMISSIONS } from "@/lib/permissions";
 import { createFileRoute, redirect } from "@tanstack/react-router";
 import { useCallback, useRef, useState } from "react";
@@ -130,7 +130,7 @@ function RouteComponent() {
                     </TabsContent>
 
                     <TabsContent value="forms">
-                        <CustomFormsTable />
+                        <CustomForms />
                     </TabsContent>
 
                     <TabsContent value="roles">
