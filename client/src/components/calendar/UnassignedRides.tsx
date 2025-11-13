@@ -199,7 +199,15 @@ export default function UnassignedRides() {
                 date: originalRide.date,
                 time: originalRide.time,
                 pickupAddress: originalRide.pickupAddressLine1 || "Unknown",
+                pickupAddress2: originalRide.pickupAddressLine2 || undefined,
+                pickupCity: originalRide.pickupCity || undefined,
+                pickupState: originalRide.pickupState || undefined,
+                pickupZip: originalRide.pickupZip || undefined,
                 destinationAddress: originalRide.destinationAddressLine1 || "Unknown",
+                destinationAddress2: originalRide.destinationAddressLine2 || undefined,
+                destinationCity: originalRide.destinationCity || undefined,
+                destinationState: originalRide.destinationState || undefined,
+                destinationZip: originalRide.destinationZip || undefined,
                 tripPurpose: originalRide.tripPurpose || undefined,
             });
             setIsAcceptRideModalOpen(true);

@@ -15,7 +15,15 @@ type RideData = {
     date: string;
     time: string;
     pickupAddress: string;
+    pickupAddress2?: string;
+    pickupCity?: string;
+    pickupState?: string;
+    pickupZip?: string;
     destinationAddress: string;
+    destinationAddress2?: string;
+    destinationCity?: string;
+    destinationState?: string;
+    destinationZip?: string;
     tripPurpose?: string;
 };
 
@@ -46,7 +54,7 @@ export default function AcceptRideModal({
         <Dialog open={open} onOpenChange={onOpenChange}>
             <DialogContent className="!max-w-[600px] w-[95vw] max-h-[90vh] overflow-y-auto scroll-smooth p-6">
                 <DialogHeader className="mb-4">
-                    <DialogTitle>Accept Ride</DialogTitle>
+                    <DialogTitle>Would You Like to Accept this Ride?</DialogTitle>
                 </DialogHeader>
 
                 <div className="space-y-4">
@@ -70,14 +78,38 @@ export default function AcceptRideModal({
                         <h3 className="font-semibold text-sm text-muted-foreground">
                             Pickup Address
                         </h3>
-                        <p className="text-base">{rideData.pickupAddress}</p>
+                        <div className="text-base">
+                            <p>{rideData.pickupAddress}</p>
+                            {rideData.pickupAddress2 && <p>{rideData.pickupAddress2}</p>}
+                            {(rideData.pickupCity || rideData.pickupState || rideData.pickupZip) && (
+                                <p>
+                                    {rideData.pickupCity}
+                                    {rideData.pickupCity && (rideData.pickupState || rideData.pickupZip) && ", "}
+                                    {rideData.pickupState}
+                                    {rideData.pickupState && rideData.pickupZip && " "}
+                                    {rideData.pickupZip}
+                                </p>
+                            )}
+                        </div>
                     </div>
 
                     <div>
                         <h3 className="font-semibold text-sm text-muted-foreground">
                             Destination Address
                         </h3>
-                        <p className="text-base">{rideData.destinationAddress}</p>
+                        <div className="text-base">
+                            <p>{rideData.destinationAddress}</p>
+                            {rideData.destinationAddress2 && <p>{rideData.destinationAddress2}</p>}
+                            {(rideData.destinationCity || rideData.destinationState || rideData.destinationZip) && (
+                                <p>
+                                    {rideData.destinationCity}
+                                    {rideData.destinationCity && (rideData.destinationState || rideData.destinationZip) && ", "}
+                                    {rideData.destinationState}
+                                    {rideData.destinationState && rideData.destinationZip && " "}
+                                    {rideData.destinationZip}
+                                </p>
+                            )}
+                        </div>
                     </div>
 
                     {rideData.tripPurpose && (
