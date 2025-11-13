@@ -72,9 +72,6 @@ export const listClients = async (req: Request, res: Response): Promise<Response
             },
         };
 
-        // Create a computed column for status that converts boolean to text for searching
-        const statusAsText = sql<string>`CASE WHEN ${clients.isActive} = true THEN 'Active' ELSE 'Inactive' END`;
-
         const { where, orderBy, limit, offset, page, pageSize } = applyQueryFilters(
             req,
             searchableColumns,

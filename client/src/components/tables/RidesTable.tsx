@@ -87,27 +87,23 @@ export function RidesTable({
     const fetchRides = async (params: Record<string, unknown>) => {
         console.log("Params: ", params);
 
-        // const searchParams = new URLSearchParams();
-        // Object.entries(params).forEach(([key, value]) => {
-        //     if (value !== undefined && value !== null) {
-        //         searchParams.set(key, String(value));
-        //     }
-        // });
+        const searchParams = new URLSearchParams();
+        Object.entries(params).forEach(([key, value]) => {
+            if (value !== undefined && value !== null) {
+                searchParams.set(key, String(value));
+            }
+        });
+
+        // Add status filter for unassigned rides
+        if (isUnassignedRidesOnly) {
+            searchParams.set("status", "Unassigned");
+        }
 
         const response = await http
-            .get(`o/appointments`)
+            .get(`o/appointments?${searchParams}`)
             .json<{ results: Ride[]; total: number }>();
 
         console.log("Fetched rides:", response);
-
-        // TODO this should be server side
-        if (isUnassignedRidesOnly) {
-            const unassignedRides = response.results.filter((ride) => ride.status === "Unassigned");
-            return {
-                data: unassignedRides,
-                total: unassignedRides.length,
-            };
-        }
 
         return {
             data: response.results,
@@ -134,25 +130,32 @@ export function RidesTable({
                 key={refreshKey}
                 fetchData={fetchRides}
                 columns={[
-                    { header: "Date", accessorKey: "date" },
-                    { header: "Time", accessorKey: "time" },
+                    { header: "Date", accessorKey: "date", id: "date" },
+                    { header: "Time", accessorKey: "time", id: "time" },
                     {
                         header: "Client",
                         accessorFn: (row) => `${row.clientFirstName} ${row.clientLastName}`,
+                        id: "client",
                     },
-                    { header: "Destination", accessorFn: (row) => row.destinationAddressLine1 },
+                    {
+                        header: "Destination",
+                        accessorFn: (row) => row.destinationAddressLine1,
+                        id: "destination",
+                    },
                     {
                         header: "Driver",
                         accessorFn: (row) =>
                             row.driverFirstName && row.driverLastName
                                 ? `${row.driverFirstName} ${row.driverLastName}`
                                 : "Unassigned",
+                        id: "driver",
                     },
                     {
                         header: "Dispatcher",
                         accessorFn: (row) => `${row.dispatcherFirstName} ${row.dispatcherLastName}`,
+                        id: "dispatcher",
                     },
-                    { header: "Status", accessorKey: "status" },
+                    { header: "Status", accessorKey: "status", id: "status" },
                 ]}
                 onRowClick={hasEditPermission ? handleEditRide : undefined}
                 actionButton={

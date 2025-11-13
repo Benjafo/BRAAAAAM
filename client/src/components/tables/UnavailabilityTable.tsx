@@ -134,14 +134,22 @@ export function UnavailabilityTable() {
             return { data: [], total: 0 };
         }
 
-        const blocks: UnavailabilityBlock[] = await http.get(endpoint).json();
+        // Build search params
+        const searchParams = new URLSearchParams();
+        Object.entries(params).forEach(([key, value]) => {
+            if (value !== undefined && value !== null) {
+                searchParams.set(key, String(value));
+            }
+        });
 
-        const results = {
-            data: blocks,
-            total: blocks.length,
+        // Both endpoints now support pagination
+        const response = await http
+            .get(`${endpoint}?${searchParams}`)
+            .json<{ results: UnavailabilityBlock[]; total: number }>();
+        return {
+            data: response.results,
+            total: response.total,
         };
-        console.log("Fetched unavailability:", results);
-        return results;
     };
 
     const handleCreateUnavailability = () => {

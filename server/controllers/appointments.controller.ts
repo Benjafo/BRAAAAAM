@@ -41,15 +41,57 @@ export const listAppointments = async (req: Request, res: Response): Promise<Res
         const destinationLocations = alias(locations, "destination_locations");
         const driverUsers = alias(users, "driver_users");
 
-        // Search + Sort + Pagination
-        const { where, orderBy, limit, offset, page, pageSize } = applyQueryFilters(req, [
-            appointments.startDate,
-            appointments.startTime,
-        ]);
+        // Define columns for searching, sorting, and filtering
+        const statusText = sql<string>`${appointments.status}::text`;
+        const searchableColumns = [
+            clients.firstName,
+            clients.lastName,
+            driverUsers.firstName,
+            driverUsers.lastName,
+            destinationLocations.addressLine1,
+            destinationLocations.city,
+            pickupLocations.addressLine1,
+            pickupLocations.city,
+            appointments.tripPurpose,
+            statusText,
+        ];
+
+        const sortableColumns: Record<string, any> = {
+            date: appointments.startDate,
+            time: appointments.startTime,
+            client: clients.firstName,
+            destination: destinationLocations.addressLine1,
+            driver: driverUsers.firstName,
+            status: appointments.status,
+        };
+
+        const filterableColumns: Record<string, any> = {
+            date: appointments.startDate,
+            time: appointments.startTime,
+            client: [clients.firstName, clients.lastName],
+            destination: destinationLocations.addressLine1,
+            driver: [driverUsers.firstName, driverUsers.lastName],
+            status: statusText,
+        };
+
+        const { where, orderBy, limit, offset, page, pageSize } = applyQueryFilters(
+            req,
+            searchableColumns,
+            sortableColumns,
+            filterableColumns
+        );
 
         const [{ total }] = await db
             .select({ total: sql<number>`count(*)` })
             .from(appointments)
+            .leftJoin(clients, eq(appointments.clientId, clients.id))
+            .leftJoin(users, eq(appointments.dispatcherId, users.id))
+            .leftJoin(driverUsers, eq(appointments.driverId, driverUsers.id))
+            .leftJoin(pickupLocations, eq(appointments.pickupLocation, pickupLocations.id))
+            .leftJoin(
+                destinationLocations,
+                eq(appointments.destinationLocation, destinationLocations.id)
+            )
             .where(where);
 
         const allAppointments = await db

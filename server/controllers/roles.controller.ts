@@ -19,12 +19,27 @@ export const listRoles = async (req: Request, res: Response): Promise<Response> 
         const db = req.org?.db;
         if (!db) return res.status(500).json({ error: "Database not initialized" });
 
-        // Search + Sort + Pagination
-        const { where, orderBy, limit, offset, page, pageSize } = applyQueryFilters(req, [
-            roles.name,
-            roles.description,
-            roles.roleKey,
-        ]);
+        // Define columns for searching, sorting, and filtering
+        const searchableColumns = [roles.name, roles.description, roles.roleKey];
+
+        const sortableColumns: Record<string, any> = {
+            name: roles.name,
+            description: roles.description,
+            permissionCount: roles.name, // Can't sort by computed count, fallback to name
+            createdAt: roles.createdAt,
+        };
+
+        const filterableColumns: Record<string, any> = {
+            name: roles.name,
+            description: roles.description,
+        };
+
+        const { where, orderBy, limit, offset, page, pageSize } = applyQueryFilters(
+            req,
+            searchableColumns,
+            sortableColumns,
+            filterableColumns
+        );
 
         // Exclude system roles from the list
         const whereClause = where

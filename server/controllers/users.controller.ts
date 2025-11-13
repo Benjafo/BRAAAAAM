@@ -59,17 +59,47 @@ export const listUsers = async (req: Request, res: Response): Promise<Response> 
         const db = req.org?.db;
         if (!db) return res.status(500).json({ error: "Database not initialized" });
 
-        // Search + Sort + Pagination
-        const { where, orderBy, limit, offset, page, pageSize } = applyQueryFilters(req, [
+        // Define columns for searching, sorting, and filtering
+        const searchableColumns = [
             users.firstName,
             users.lastName,
             users.email,
             users.phone,
-        ]);
+            locations.addressLine1,
+            locations.city,
+            locations.zip,
+            roles.name,
+        ];
+
+        const sortableColumns: Record<string, any> = {
+            name: users.firstName,
+            firstName: users.firstName,
+            lastName: users.lastName,
+            phone: users.phone,
+            email: users.email,
+            address: locations.addressLine1,
+            city: locations.city,
+            zip: locations.zip,
+            role: roles.name,
+        };
+
+        const filterableColumns: Record<string, any> = {
+            ...sortableColumns,
+            name: [users.firstName, users.lastName], // Filter by both firstName and lastName
+        };
+
+        const { where, orderBy, limit, offset, page, pageSize } = applyQueryFilters(
+            req,
+            searchableColumns,
+            sortableColumns,
+            filterableColumns
+        );
 
         const [{ total }] = await db
             .select({ total: sql<number>`count(*)` })
             .from(users)
+            .leftJoin(locations, eq(users.addressLocation, locations.id))
+            .leftJoin(roles, eq(users.roleId, roles.id))
             .where(where);
 
         const data = await db
@@ -624,13 +654,81 @@ export const listUnavailability = async (req: Request, res: Response): Promise<R
 
         const { userId } = req.params;
 
+        // Define columns for searching, sorting, and filtering
+        const recurringText = sql<string>`CASE WHEN ${userUnavailability.isRecurring} = true THEN 'Yes' ELSE 'No' END`;
+        const dayOfWeekText = sql<string>`${userUnavailability.recurringDayOfWeek}::text`;
+        const multiDayText = sql<string>`CASE WHEN ${userUnavailability.startDate} != ${userUnavailability.endDate} THEN 'Yes' ELSE 'No' END`;
+
+        const searchableColumns = [
+            userUnavailability.reason,
+            dayOfWeekText, // Cast enum to text for search
+            recurringText,
+            multiDayText,
+        ];
+
+        const sortableColumns: Record<string, any> = {
+            date: userUnavailability.startDate,
+            time: userUnavailability.startTime,
+            dayOfWeek: userUnavailability.recurringDayOfWeek,
+            recurring: userUnavailability.isRecurring,
+            multiDay: userUnavailability.startDate,
+            reason: userUnavailability.reason,
+        };
+
+        const filterableColumns: Record<string, any> = {
+            reason: userUnavailability.reason,
+            date: userUnavailability.startDate,
+            time: userUnavailability.startTime,
+            dayOfWeek: dayOfWeekText, // Cast enum to text for filter
+            recurring: (value: string) => {
+                const lowerValue = value.toLowerCase();
+                if (lowerValue.includes("yes") && !lowerValue.includes("no")) {
+                    return eq(userUnavailability.isRecurring, true);
+                } else if (lowerValue.includes("no") && !lowerValue.includes("yes")) {
+                    return eq(userUnavailability.isRecurring, false);
+                }
+                return sql`FALSE`;
+            },
+            multiDay: (value: string) => {
+                const lowerValue = value.toLowerCase();
+                if (lowerValue.includes("yes") && !lowerValue.includes("no")) {
+                    return sql`${userUnavailability.startDate} != ${userUnavailability.endDate}`;
+                } else if (lowerValue.includes("no") && !lowerValue.includes("yes")) {
+                    return sql`${userUnavailability.startDate} = ${userUnavailability.endDate}`;
+                }
+                return sql`FALSE`;
+            },
+        };
+
+        const { where: filterWhere, orderBy, limit, offset, page, pageSize } = applyQueryFilters(
+            req,
+            searchableColumns,
+            sortableColumns,
+            filterableColumns
+        );
+
+        // Combine userId filter with other filters
+        const where = and(eq(userUnavailability.userId, userId), filterWhere);
+
+        const [{ total }] = await db
+            .select({ total: sql<number>`count(*)` })
+            .from(userUnavailability)
+            .where(where);
+
         const blocks = await db
             .select()
             .from(userUnavailability)
-            .where(eq(userUnavailability.userId, userId))
-            .orderBy(userUnavailability.startDate);
+            .where(where)
+            .orderBy(...(orderBy.length > 0 ? orderBy : [userUnavailability.startDate]))
+            .limit(limit)
+            .offset(offset);
 
-        return res.status(200).json(blocks);
+        return res.status(200).json({
+            page,
+            pageSize,
+            total: Number(total),
+            results: blocks,
+        });
     } catch (err) {
         console.error("Error listing unavailability:", err);
         return res.status(500).json({ error: "Internal server error" });
@@ -641,6 +739,70 @@ export const listAllUnavailability = async (req: Request, res: Response): Promis
     try {
         const db = req.org?.db;
         if (!db) return res.status(500).json({ error: "Database not initialized" });
+
+        // Define columns for searching, sorting, and filtering
+        const recurringText = sql<string>`CASE WHEN ${userUnavailability.isRecurring} = true THEN 'Yes' ELSE 'No' END`;
+        const dayOfWeekText = sql<string>`${userUnavailability.recurringDayOfWeek}::text`;
+        const multiDayText = sql<string>`CASE WHEN ${userUnavailability.startDate} != ${userUnavailability.endDate} THEN 'Yes' ELSE 'No' END`;
+
+        const searchableColumns = [
+            users.firstName,
+            users.lastName,
+            users.email,
+            userUnavailability.reason,
+            dayOfWeekText, // Cast enum to text for search
+            recurringText,
+            multiDayText,
+        ];
+
+        const sortableColumns: Record<string, any> = {
+            user: users.firstName,
+            date: userUnavailability.startDate,
+            time: userUnavailability.startTime,
+            dayOfWeek: userUnavailability.recurringDayOfWeek,
+            recurring: userUnavailability.isRecurring,
+            multiDay: userUnavailability.startDate, // Can't directly sort by computed multi-day
+            reason: userUnavailability.reason,
+        };
+
+        const filterableColumns: Record<string, any> = {
+            user: [users.firstName, users.lastName, users.email],
+            reason: userUnavailability.reason,
+            date: userUnavailability.startDate,
+            time: userUnavailability.startTime,
+            dayOfWeek: dayOfWeekText, // Cast enum to text for filter
+            recurring: (value: string) => {
+                const lowerValue = value.toLowerCase();
+                if (lowerValue.includes("yes") && !lowerValue.includes("no")) {
+                    return eq(userUnavailability.isRecurring, true);
+                } else if (lowerValue.includes("no") && !lowerValue.includes("yes")) {
+                    return eq(userUnavailability.isRecurring, false);
+                }
+                return sql`FALSE`;
+            },
+            multiDay: (value: string) => {
+                const lowerValue = value.toLowerCase();
+                if (lowerValue.includes("yes") && !lowerValue.includes("no")) {
+                    return sql`${userUnavailability.startDate} != ${userUnavailability.endDate}`;
+                } else if (lowerValue.includes("no") && !lowerValue.includes("yes")) {
+                    return sql`${userUnavailability.startDate} = ${userUnavailability.endDate}`;
+                }
+                return sql`FALSE`;
+            },
+        };
+
+        const { where, orderBy, limit, offset, page, pageSize } = applyQueryFilters(
+            req,
+            searchableColumns,
+            sortableColumns,
+            filterableColumns
+        );
+
+        const [{ total }] = await db
+            .select({ total: sql<number>`count(*)` })
+            .from(userUnavailability)
+            .leftJoin(users, eq(userUnavailability.userId, users.id))
+            .where(where);
 
         // Fetch all unavailability with user info joined
         const blocks = await db
@@ -663,9 +825,17 @@ export const listAllUnavailability = async (req: Request, res: Response): Promis
             })
             .from(userUnavailability)
             .leftJoin(users, eq(userUnavailability.userId, users.id))
-            .orderBy(userUnavailability.startDate);
+            .where(where)
+            .orderBy(...(orderBy.length > 0 ? orderBy : [userUnavailability.startDate]))
+            .limit(limit)
+            .offset(offset);
 
-        return res.status(200).json(blocks);
+        return res.status(200).json({
+            page,
+            pageSize,
+            total: Number(total),
+            results: blocks,
+        });
     } catch (err) {
         console.error("Error listing all unavailability:", err);
         return res.status(500).json({ error: "Internal server error" });

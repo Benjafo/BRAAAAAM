@@ -44,8 +44,15 @@ export function RolesTable() {
     const fetchRoles = async (params: Record<string, unknown>) => {
         console.log("Params: ", params);
 
+        const searchParams = new URLSearchParams();
+        Object.entries(params).forEach(([key, value]) => {
+            if (value !== undefined && value !== null) {
+                searchParams.set(key, String(value));
+            }
+        });
+
         const response = await http
-            .get(`o/settings/roles`)
+            .get(`o/settings/roles?${searchParams}`)
             .json<{ results: Role[]; total: number; availablePermissions: Permission[] }>();
 
         // Store available permissions for the modal (only if not already set)
@@ -117,10 +124,12 @@ export function RolesTable() {
                     {
                         header: "Name",
                         accessorKey: "name",
+                        id: "name",
                     },
                     {
                         header: "Description",
                         accessorKey: "description",
+                        id: "description",
                         cell: ({ getValue }) => {
                             const description = getValue() as string;
                             return description.length > 80
@@ -131,6 +140,7 @@ export function RolesTable() {
                     {
                         header: "Permissions",
                         accessorKey: "permissionCount",
+                        id: "permissionCount",
                         cell: ({ getValue }) => {
                             const count = getValue() as number;
                             return `${count} permission${count !== 1 ? "s" : ""}`;
@@ -139,6 +149,7 @@ export function RolesTable() {
                     {
                         header: "Created",
                         accessorKey: "createdAt",
+                        id: "createdAt",
                         cell: ({ getValue }) => {
                             const date = getValue() as string;
                             return new Date(date).toLocaleDateString();

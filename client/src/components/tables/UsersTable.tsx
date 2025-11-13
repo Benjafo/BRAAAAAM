@@ -118,7 +118,7 @@ export function UsersTable() {
             total: number;
         };
 
-        const response = await http.get(`o/users`).json<TableUserResponse>();
+        const response = await http.get(`o/users?${searchParams}`).json<TableUserResponse>();
         console.log("Fetched users:", response);
 
         return {
