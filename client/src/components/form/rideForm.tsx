@@ -211,6 +211,7 @@ type Props = {
     onClientChange?: (clientValue: string) => void;
     onFindMatchingDrivers?: () => void;
     isLoading: boolean;
+    viewMode?: boolean; // If true, all fields are disabled/read-only
 };
 
 /* --------------------------------- Form ----------------------------------- */
@@ -222,6 +223,7 @@ export default function EditRideForm({
     onClientChange,
     onFindMatchingDrivers,
     isLoading,
+    viewMode = false,
 }: Props) {
     const dynamicFieldsRef = useRef<DynamicFormFieldsRef>(null);
 
@@ -315,7 +317,10 @@ export default function EditRideForm({
         <Form {...form}>
             <form
                 id="create-ride-form"
-                className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-6 w-full items-start pt-5"
+                className={cn(
+                    "grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-6 w-full items-start pt-5",
+                    viewMode && "pointer-events-none opacity-70"
+                )}
                 onSubmit={form.handleSubmit(handleFormSubmit)}
             >
                 {/* Basic Information Section */}

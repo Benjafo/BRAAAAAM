@@ -3,11 +3,14 @@
  * This component is used by dispatchers to view and assign unassigned rides
  */
 
+import { useAuthStore } from "@/components/stores/authStore";
+import { PERMISSIONS } from "@/lib/permissions";
 import { http } from "@/services/auth/serviceResolver";
 import { useEffect, useState } from "react";
 import type { SlotInfo } from "react-big-calendar";
 import type { BusinessHoursConfig, CalendarEvent } from "../../types/rides";
 import type { RideFormValues } from "../form/rideForm";
+import AcceptRideModal from "../modals/acceptRideModal";
 import RideModal from "../modals/rideModal";
 import BaseCalendar from "./BaseCalendar";
 
@@ -140,9 +143,18 @@ export default function UnassignedRides() {
     const [rides, setRides] = useState<CalendarEvent[]>([]);
     const [loading, setLoading] = useState(true);
     const [isRideModalOpen, setIsRideModalOpen] = useState(false);
+    const [isAcceptRideModalOpen, setIsAcceptRideModalOpen] = useState(false);
     const [selectedRideData, setSelectedRideData] = useState<
         Partial<RideFormValues> & { id?: string }
     >({});
+    const [acceptRideData, setAcceptRideData] = useState<any>(null);
+
+    const hasAllPermission = useAuthStore((s) =>
+        s.hasPermission(PERMISSIONS.ALL_APPOINTMENTS_READ)
+    );
+    const hasOwnPermission = useAuthStore((s) =>
+        s.hasPermission(PERMISSIONS.OWN_APPOINTMENTS_READ)
+    );
 
     // Fetch unassigned rides from API
     useEffect(() => {
@@ -175,7 +187,24 @@ export default function UnassignedRides() {
     const handleRideSelect = (event: CalendarEvent) => {
         console.log("Selected unassigned ride:", event);
         const originalRide = event.resource?.originalRide as Ride;
-        if (originalRide) {
+        if (!originalRide) return;
+
+        const handlesOwnRides = hasOwnPermission && !hasAllPermission;
+
+        if (handlesOwnRides) {
+            // Driver - show accept modal (all rides here are unassigned)
+            setAcceptRideData({
+                id: originalRide.id,
+                clientName: `${originalRide.clientFirstName || ""} ${originalRide.clientLastName || ""}`.trim(),
+                date: originalRide.date,
+                time: originalRide.time,
+                pickupAddress: originalRide.pickupAddressLine1 || "Unknown",
+                destinationAddress: originalRide.destinationAddressLine1 || "Unknown",
+                tripPurpose: originalRide.tripPurpose || undefined,
+            });
+            setIsAcceptRideModalOpen(true);
+        } else {
+            // Dispatcher/Admin - show editable modal
             setSelectedRideData(mapRideToFormValues(originalRide));
             setIsRideModalOpen(true);
         }
@@ -189,13 +218,6 @@ export default function UnassignedRides() {
         alert(`Create new unassigned ride for:\nStart: ${startTime}\nEnd: ${endTime}`);
     };
 
-    // Handle create ride button
-    // const handleCreateUnassignedRide = () => {
-    //     console.log("Creating new unassigned ride...");
-    //     setSelectedRideData({});
-    //     setIsRideModalOpen(true);
-    // };
-
     if (loading) {
         return (
             <div className="h-full flex items-center justify-center">
@@ -206,26 +228,6 @@ export default function UnassignedRides() {
             </div>
         );
     }
-
-    // Show empty state if no unassigned rides
-    // if (rides.length === 0) {
-    //     return (
-    //         <div className="h-full flex flex-col">
-    //             <div className="flex-1 flex items-center justify-center">
-    //                 <div className="text-center">
-    //                     <h3 className="text-lg font-medium  mb-2">No Unassigned Rides</h3>
-    //                     <p className="mb-4">All rides have been assigned to drivers</p>
-    //                     <button
-    //                         className="px-4 py-2 bg-primary text-white rounded hover:bg-primary/90"
-    //                         onClick={handleCreateUnassignedRide}
-    //                     >
-    //                         Create New Ride
-    //                     </button>
-    //                 </div>
-    //             </div>
-    //         </div>
-    //     );
-    // }
 
     return (
         <div className="h-full">
@@ -239,6 +241,15 @@ export default function UnassignedRides() {
                 open={isRideModalOpen}
                 onOpenChange={setIsRideModalOpen}
                 defaultValues={selectedRideData}
+            />
+            <AcceptRideModal
+                open={isAcceptRideModalOpen}
+                onOpenChange={setIsAcceptRideModalOpen}
+                rideData={acceptRideData}
+                onAccept={() => {
+                    // Refresh rides after accepting
+                    window.location.reload();
+                }}
             />
         </div>
     );

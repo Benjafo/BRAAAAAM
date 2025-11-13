@@ -52,6 +52,7 @@ type RideModalProps = {
     onOpenChange: (open: boolean) => void;
     defaultValues?: Partial<RideFormValues> & { id?: string };
     onSuccess?: () => void;
+    viewMode?: boolean; // If true, form is read-only
 };
 
 // Type matching the API response from listUsers
@@ -71,9 +72,10 @@ export default function RideModal({
     onOpenChange,
     defaultValues: defaultValuesProp = {},
     onSuccess,
+    viewMode = false,
 }: RideModalProps) {
     const isEditing = Boolean(defaultValuesProp.id);
-    const modalTitle = isEditing ? "Edit Ride" : "Create Ride";
+    const modalTitle = viewMode ? "View Ride" : isEditing ? "Edit Ride" : "Create Ride";
     const successMessage = isEditing ? "Ride Updated" : "Ride Created";
 
     const [clients, setClients] = React.useState<Client[]>([]);
@@ -269,15 +271,18 @@ export default function RideModal({
                         onClientChange={handleClientChange}
                         onFindMatchingDrivers={handleFindMatchingDrivers}
                         isLoading={isLoadingClients || isLoadingDrivers}
+                        viewMode={viewMode}
                     />
 
                     <DialogFooter className="flex flex-row justify-end gap-3 mt-3">
                         <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
-                            Cancel
+                            {viewMode ? "Close" : "Cancel"}
                         </Button>
-                        <Button type="submit" form="create-ride-form">
-                            Save
-                        </Button>
+                        {!viewMode && (
+                            <Button type="submit" form="create-ride-form">
+                                Save
+                            </Button>
+                        )}
                     </DialogFooter>
                 </DialogContent>
             </Dialog>

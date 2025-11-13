@@ -5,6 +5,7 @@ import { useEffect, useState } from "react";
 import type { SlotInfo } from "react-big-calendar";
 import type { BusinessHoursConfig, CalendarEvent } from "../../types/rides";
 import type { RideFormValues } from "../form/rideForm";
+import AcceptRideModal from "../modals/acceptRideModal";
 import RideModal from "../modals/rideModal";
 import BaseCalendar from "./BaseCalendar";
 
@@ -142,11 +143,22 @@ export default function Schedule() {
     const [rides, setRides] = useState<CalendarEvent[]>([]);
     const [loading, setLoading] = useState(true);
     const [isRideModalOpen, setIsRideModalOpen] = useState(false);
+    const [isAcceptRideModalOpen, setIsAcceptRideModalOpen] = useState(false);
+    const [isViewMode, setIsViewMode] = useState(false);
     const [selectedRideData, setSelectedRideData] = useState<
         Partial<RideFormValues> & { id?: string }
     >({});
+    const [acceptRideData, setAcceptRideData] = useState<any>(null);
+
+    const user = useAuthStore((s) => s.user);
     const hasCreatePermission = useAuthStore((s) =>
         s.hasPermission(PERMISSIONS.ALL_APPOINTMENTS_CREATE)
+    );
+    const hasAllPermission = useAuthStore((s) =>
+        s.hasPermission(PERMISSIONS.ALL_APPOINTMENTS_READ)
+    );
+    const hasOwnPermission = useAuthStore((s) =>
+        s.hasPermission(PERMISSIONS.OWN_APPOINTMENTS_READ)
     );
 
     // Fetch rides from API
@@ -175,8 +187,33 @@ export default function Schedule() {
     // Handle ride selection
     const handleRideSelect = (event: CalendarEvent) => {
         const originalRide = event.resource?.originalRide as Ride;
-        if (originalRide) {
+        if (!originalRide) return;
+
+        const handlesOwnRides = hasOwnPermission && !hasAllPermission;
+
+        if (handlesOwnRides) {
+            if (originalRide.driverId === null) {
+                // Unassigned ride - show accept modal
+                setAcceptRideData({
+                    id: originalRide.id,
+                    clientName: `${originalRide.clientFirstName || ""} ${originalRide.clientLastName || ""}`.trim(),
+                    date: originalRide.date,
+                    time: originalRide.time,
+                    pickupAddress: originalRide.pickupAddressLine1 || "Unknown",
+                    destinationAddress: originalRide.destinationAddressLine1 || "Unknown",
+                    tripPurpose: originalRide.tripPurpose || undefined,
+                });
+                setIsAcceptRideModalOpen(true);
+            } else if (originalRide.driverId === String(user?.id)) {
+                // Show view-only modal
+                setSelectedRideData(mapRideToFormValues(originalRide));
+                setIsViewMode(true);
+                setIsRideModalOpen(true);
+            }
+        } else {
+            // Show editable modal
             setSelectedRideData(mapRideToFormValues(originalRide));
+            setIsViewMode(false);
             setIsRideModalOpen(true);
         }
     };
@@ -227,6 +264,16 @@ export default function Schedule() {
                 open={isRideModalOpen}
                 onOpenChange={setIsRideModalOpen}
                 defaultValues={selectedRideData}
+                viewMode={isViewMode}
+            />
+            <AcceptRideModal
+                open={isAcceptRideModalOpen}
+                onOpenChange={setIsAcceptRideModalOpen}
+                rideData={acceptRideData}
+                onAccept={() => {
+                    // Refresh rides after accepting
+                    window.location.reload();
+                }}
             />
         </div>
     );
