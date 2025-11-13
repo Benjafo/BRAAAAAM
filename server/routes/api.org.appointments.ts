@@ -5,24 +5,24 @@ import { withPermission } from "../middleware/with-permission.js";
 const router: Router = express.Router({ mergeParams: true });
 
 // /o/appointments
-router.get("/", withPermission({ permissions: "appointments.read" }), appt.listAppointments);
-router.post("/", withPermission({ permissions: "appointments.create" }), appt.createAppointment);
+router.get("/", withPermission({ permissions: ["ownappointments.read", "allappointments.read"] }), appt.listAppointments);
+router.post("/", withPermission({ permissions: "allappointments.create" }), appt.createAppointment);
 
 // /o/appointments/:appointmentId
 router.get(
     "/:appointmentId",
-    withPermission({ permissions: "appointments.read" }),
+    withPermission({ permissions: ["ownappointments.read", "allappointments.read"] }),
     appt.getAppointment
 );
 router.put(
     "/:appointmentId",
-    withPermission({ permissions: "appointments.update" }),
+    withPermission({ permissions: ["ownappointments.update", "allappointments.update"] }),
     appt.updateAppointment
 );
 
 router.get(
     "/:appointmentId/matching-drivers",
-    withPermission({ permissions: "appointments.read" }),
+    withPermission({ permissions: "allappointments.read" }),
     appt.getMatchingDrivers
 );
 

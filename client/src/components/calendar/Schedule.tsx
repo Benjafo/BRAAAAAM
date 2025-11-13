@@ -146,7 +146,7 @@ export default function Schedule() {
         Partial<RideFormValues> & { id?: string }
     >({});
     const hasCreatePermission = useAuthStore((s) =>
-        s.hasPermission(PERMISSIONS.APPOINTMENTS_CREATE)
+        s.hasPermission(PERMISSIONS.ALL_APPOINTMENTS_CREATE)
     );
 
     // Fetch rides from API

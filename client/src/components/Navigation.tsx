@@ -110,12 +110,12 @@ export const MainNavigation = ({
         {
             text: "Schedule",
             link: "/{-$subdomain}/schedule",
-            permission: PERMISSIONS.APPOINTMENTS_READ,
+            permission: [PERMISSIONS.OWN_APPOINTMENTS_READ, PERMISSIONS.ALL_APPOINTMENTS_READ],
         },
         {
             text: "Unassigned Rides",
             link: "/{-$subdomain}/unassigned-rides",
-            permission: PERMISSIONS.APPOINTMENTS_READ,
+            permission: [PERMISSIONS.OWN_APPOINTMENTS_READ, PERMISSIONS.ALL_APPOINTMENTS_READ],
         },
         {
             text: "Unavailability",

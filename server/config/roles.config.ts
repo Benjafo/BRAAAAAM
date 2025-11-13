@@ -34,9 +34,9 @@ export const DEFAULT_ROLES: RoleDefinition[] = [
             "clients.update",
 
             // Appointments
-            "appointments.create",
-            "appointments.read",
-            "appointments.update",
+            "allappointments.create",
+            "allappointments.read",
+            "allappointments.update",
 
             // Unavailability
             "allunavailability.read",
@@ -84,9 +84,9 @@ export const DEFAULT_ROLES: RoleDefinition[] = [
             "clients.delete",
 
             // Appointments
-            "appointments.create",
-            "appointments.read",
-            "appointments.update",
+            "allappointments.create",
+            "allappointments.read",
+            "allappointments.update",
 
             // Volunteer Records (own)
             "ownvolunteer-records.read",
@@ -101,7 +101,7 @@ export const DEFAULT_ROLES: RoleDefinition[] = [
         description: "View own appointments, view client information",
         isSystem: false,
         permissions: [
-            "appointments.read",
+            "ownappointments.read",
             "clients.read",
             "ownunavailability.read",
             "ownunavailability.create",

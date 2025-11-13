@@ -62,27 +62,43 @@ export const PERMISSIONS: PermissionDefinition[] = [
         description: "Modify client information",
     },
 
-    // Appointments
+    // Appointments - All (Dispatcher/Admin access)
     {
-        permKey: "appointments.read",
-        resource: "appointments",
+        permKey: "allappointments.read",
+        resource: "allappointments",
         action: "read",
-        name: "View Appointments",
-        description: "View appointment schedule (may be limited to own appointments)",
+        name: "View All Appointments",
+        description: "View all appointments for all drivers",
     },
     {
-        permKey: "appointments.create",
-        resource: "appointments",
+        permKey: "allappointments.create",
+        resource: "allappointments",
         action: "create",
-        name: "Create Appointments",
-        description: "Schedule new appointments",
+        name: "Create All Appointments",
+        description: "Create appointments for any driver",
     },
     {
-        permKey: "appointments.update",
-        resource: "appointments",
+        permKey: "allappointments.update",
+        resource: "allappointments",
         action: "update",
-        name: "Update Appointments",
-        description: "Modify existing appointments (may be limited to own appointments)",
+        name: "Update All Appointments",
+        description: "Modify any appointment",
+    },
+
+    // Appointments - Own (Driver access)
+    {
+        permKey: "ownappointments.read",
+        resource: "ownappointments",
+        action: "read",
+        name: "View Own Appointments",
+        description: "View unassigned appointments and appointments assigned to you",
+    },
+    {
+        permKey: "ownappointments.update",
+        resource: "ownappointments",
+        action: "update",
+        name: "Update Own Appointments",
+        description: "Modify appointments assigned to you",
     },
 
     // Unavailability - All Users (Admin)

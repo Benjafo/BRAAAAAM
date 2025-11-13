@@ -12,10 +12,14 @@ export const PERMISSIONS = {
     CLIENTS_CREATE: "clients.create",
     CLIENTS_UPDATE: "clients.update",
 
-    // Appointments
-    APPOINTMENTS_READ: "appointments.read",
-    APPOINTMENTS_CREATE: "appointments.create",
-    APPOINTMENTS_UPDATE: "appointments.update",
+    // Appointments - Own
+    OWN_APPOINTMENTS_READ: "ownappointments.read",
+    OWN_APPOINTMENTS_UPDATE: "ownappointments.update",
+
+    // Appointments - All
+    ALL_APPOINTMENTS_READ: "allappointments.read",
+    ALL_APPOINTMENTS_CREATE: "allappointments.create",
+    ALL_APPOINTMENTS_UPDATE: "allappointments.update",
 
     // Unavailability - All Users
     ALL_UNAVAILABILITY_READ: "allunavailability.read",
@@ -73,9 +77,11 @@ export const PERMISSION_GROUPS = {
         PERMISSIONS.CLIENTS_UPDATE,
     ],
     Appointments: [
-        PERMISSIONS.APPOINTMENTS_READ,
-        PERMISSIONS.APPOINTMENTS_CREATE,
-        PERMISSIONS.APPOINTMENTS_UPDATE,
+        PERMISSIONS.OWN_APPOINTMENTS_READ,
+        PERMISSIONS.OWN_APPOINTMENTS_UPDATE,
+        PERMISSIONS.ALL_APPOINTMENTS_READ,
+        PERMISSIONS.ALL_APPOINTMENTS_CREATE,
+        PERMISSIONS.ALL_APPOINTMENTS_UPDATE,
     ],
     Unavailability: [
         PERMISSIONS.ALL_UNAVAILABILITY_READ,

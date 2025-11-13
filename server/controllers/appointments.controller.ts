@@ -12,6 +12,7 @@ import {
     userUnavailability,
 } from "../drizzle/org/schema.js";
 import { findOrCreateLocation } from "../utils/locations.js";
+import { hasPermission } from "../utils/permissions.js";
 import { applyQueryFilters } from "../utils/queryParams.js";
 
 /*
@@ -35,6 +36,12 @@ export const listAppointments = async (req: Request, res: Response): Promise<Res
         // Use based on org DB
         const db = req.org?.db;
         if (!db) return res.status(400).json({ message: "Organization context missing" });
+
+        const userId = req.user?.id;
+        if (!userId) return res.status(401).json({ error: "Unauthorized" });
+
+        // Check if user has ALL or OWN permissions
+        const hasAllPermission = await hasPermission(userId, "allappointments.read", db);
 
         // Create aliases for pickup and destination locations to join both
         const pickupLocations = alias(locations, "pickup_locations");
@@ -81,6 +88,19 @@ export const listAppointments = async (req: Request, res: Response): Promise<Res
             filterableColumns
         );
 
+        // Apply own/all permission filtering
+        const filters: any[] = [where];
+
+        // If user only has OWN permission, restrict to unassigned OR assigned to them
+        if (!hasAllPermission) {
+            // Filter: driverId IS NULL OR driverId = userId
+            filters.push(
+                sql`${appointments.driverId} IS NULL OR ${appointments.driverId} = ${userId}`
+            );
+        }
+
+        const filteredWhere = filters.length > 1 ? and(...filters) : filters[0];
+
         const [{ total }] = await db
             .select({ total: sql<number>`count(*)` })
             .from(appointments)
@@ -92,7 +112,7 @@ export const listAppointments = async (req: Request, res: Response): Promise<Res
                 destinationLocations,
                 eq(appointments.destinationLocation, destinationLocations.id)
             )
-            .where(where);
+            .where(filteredWhere);
 
         const allAppointments = await db
             .select({
@@ -139,7 +159,7 @@ export const listAppointments = async (req: Request, res: Response): Promise<Res
                 destinationLocations,
                 eq(appointments.destinationLocation, destinationLocations.id)
             )
-            .where(where)
+            .where(filteredWhere)
             .orderBy(...(orderBy.length > 0 ? orderBy : []))
             .limit(limit)
             .offset(offset);
@@ -268,6 +288,25 @@ export const getAppointment = async (req: Request, res: Response): Promise<Respo
             return res.status(404).json({ message: "Appointment not found" });
         }
 
+        const userId = req.user?.id;
+        if (!userId) return res.status(401).json({ error: "Unauthorized" });
+
+        // Check permissions
+        const hasAllPermission = await hasPermission(userId, "allappointments.read", db);
+
+        // If user only has OWN permission, verify they can access this appointment
+        if (!hasAllPermission) {
+            // User can only see unassigned appointments or their own
+            if (appointment.driverId !== null && appointment.driverId !== userId) {
+                return res
+                    .status(403)
+                    .json({
+                        message:
+                            "You can only view unassigned appointments or appointments assigned to you",
+                    });
+            }
+        }
+
         // Fetch custom field responses
         const [response] = await db
             .select()
@@ -298,6 +337,31 @@ export const updateAppointment = async (req: Request, res: Response): Promise<Re
     try {
         const db = req.org?.db;
         if (!db) return res.status(400).json({ message: "Organization context missing" });
+
+        const userId = req.user?.id;
+        if (!userId) return res.status(401).json({ error: "Unauthorized" });
+
+        // Check permissions
+        const hasAllPermission = await hasPermission(userId, "allappointments.update", db);
+
+        // If user only has OWN permission, verify they can update this appointment
+        if (!hasAllPermission) {
+            // Fetch the current appointment to check ownership
+            const [currentAppointment] = await db
+                .select({ driverId: appointments.driverId })
+                .from(appointments)
+                .where(eq(appointments.id, appointmentId));
+
+            if (!currentAppointment) {
+                return res.status(404).json({ message: "Appointment not found" });
+            }
+
+            if (currentAppointment.driverId !== null && currentAppointment.driverId !== userId) {
+                return res
+                    .status(403)
+                    .json({ message: "You can only update appointments assigned to you" });
+            }
+        }
 
         const updateData: Record<string, unknown> = {};
         if (data.pickupAddress) {

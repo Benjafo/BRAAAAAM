@@ -75,9 +75,11 @@ export function RidesTable({
     >({});
     const [refreshKey, setRefreshKey] = useState(0);
     const hasCreatePermission = useAuthStore((s) =>
-        s.hasPermission(PERMISSIONS.APPOINTMENTS_CREATE)
+        s.hasPermission(PERMISSIONS.ALL_APPOINTMENTS_CREATE)
     );
-    const hasEditPermission = useAuthStore((s) => s.hasPermission(PERMISSIONS.APPOINTMENTS_UPDATE));
+    const hasEditPermission = useAuthStore((s) =>
+        s.hasPermission(PERMISSIONS.OWN_APPOINTMENTS_UPDATE) || s.hasPermission(PERMISSIONS.ALL_APPOINTMENTS_UPDATE)
+    );
 
     // hacky fix to force refresh for the custom fields
     const handleRefresh = () => {

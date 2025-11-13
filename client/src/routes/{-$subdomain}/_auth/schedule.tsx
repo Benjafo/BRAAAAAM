@@ -20,7 +20,7 @@ export const Route = createFileRoute("/{-$subdomain}/_auth/schedule")({
             });
         }
 
-        if (!s.hasPermission(PERMISSIONS.APPOINTMENTS_READ)) {
+        if (!s.hasPermission(PERMISSIONS.OWN_APPOINTMENTS_READ) && !s.hasPermission(PERMISSIONS.ALL_APPOINTMENTS_READ)) {
             throw redirect({
                 to: "/{-$subdomain}/dashboard",
             });

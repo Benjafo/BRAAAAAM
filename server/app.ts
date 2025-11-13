@@ -29,11 +29,11 @@ import apiRouter from "./routes/api.js";
 
 import { NextFunction, Request, Response } from "express";
 
-import { eq } from "drizzle-orm";
+import { eq, sql } from "drizzle-orm";
 import { createProxyMiddleware } from "http-proxy-middleware";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
-import { roles, users } from "./drizzle/org/schema.js";
+import { clients, locations, roles, users } from "./drizzle/org/schema.js";
 import { createOrgDbFromTemplate, preloadOrgPools } from "./drizzle/pool-manager.js";
 import { getSysDb } from "./drizzle/sys-client.js";
 import { withAuth } from "./middleware/with-auth.js";
@@ -164,6 +164,14 @@ app.get("/test/o/:orgId/create-user", withOrg, async (req: Request, res: Respons
         password,
         phone,
         roleKey, // Use roleKey instead of roleId for the test route
+        birthYear,
+        birthMonth,
+        addressLine1,
+        addressLine2,
+        city,
+        state,
+        zip,
+        country,
     } = req.query;
 
     if (
@@ -171,12 +179,18 @@ app.get("/test/o/:orgId/create-user", withOrg, async (req: Request, res: Respons
         typeof lastName !== "string" ||
         typeof email !== "string" ||
         typeof password !== "string" ||
-        typeof phone !== "string"
+        typeof phone !== "string" ||
+        typeof birthYear !== "string" ||
+        typeof addressLine1 !== "string" ||
+        typeof city !== "string" ||
+        typeof state !== "string" ||
+        typeof zip !== "string" ||
+        typeof country !== "string"
     ) {
         return res.status(400).json({
             error: "Missing or invalid required query parameters",
-            required: "firstName, lastName, email, password, phone",
-            optional: "roleKey (defaults to no role)",
+            required: "firstName, lastName, email, password, phone, birthYear, addressLine1, city, state, zip, country",
+            optional: "roleKey, birthMonth, addressLine2",
         });
     }
 
@@ -201,6 +215,44 @@ app.get("/test/o/:orgId/create-user", withOrg, async (req: Request, res: Respons
             roleId = role.id;
         }
 
+        // Create or find location
+        const [location] = await db
+            .insert(locations)
+            .values({
+                addressLine1,
+                addressLine2: typeof addressLine2 === "string" ? addressLine2 : undefined,
+                city,
+                state,
+                zip,
+                country,
+            })
+            .onConflictDoNothing()
+            .returning();
+
+        let locationId: string;
+        if (location) {
+            locationId = location.id;
+        } else {
+            // Location already exists, fetch it
+            const [existingLocation] = await db
+                .select()
+                .from(locations)
+                .where(
+                    sql`lower(${locations.addressLine1}) = lower(${addressLine1})
+                    AND COALESCE(lower(${locations.addressLine2}), '') = COALESCE(lower(${addressLine2 || ""}), '')
+                    AND lower(${locations.city}) = lower(${city})
+                    AND lower(${locations.state}) = lower(${state})
+                    AND lower(${locations.zip}) = lower(${zip})
+                    AND lower(${locations.country}) = lower(${country})`
+                )
+                .limit(1);
+            locationId = existingLocation.id;
+        }
+
+        // Parse birth year and month
+        const birthYearInt = parseInt(birthYear, 10);
+        const birthMonthInt = typeof birthMonth === "string" ? parseInt(birthMonth, 10) : undefined;
+
         // Create the user
         const [newUser] = await db
             .insert(users)
@@ -211,6 +263,9 @@ app.get("/test/o/:orgId/create-user", withOrg, async (req: Request, res: Respons
                 phone,
                 passwordHash,
                 roleId,
+                birthYear: birthYearInt,
+                birthMonth: birthMonthInt,
+                addressLocation: locationId,
                 isActive: true,
                 isDriver: false,
                 isDeleted: false,
@@ -225,6 +280,9 @@ app.get("/test/o/:orgId/create-user", withOrg, async (req: Request, res: Respons
                 firstName: newUser.firstName,
                 lastName: newUser.lastName,
                 roleId: newUser.roleId,
+                birthYear: newUser.birthYear,
+                birthMonth: newUser.birthMonth,
+                addressLocation: newUser.addressLocation,
             },
         });
     } catch (error: unknown) {
@@ -233,6 +291,163 @@ app.get("/test/o/:orgId/create-user", withOrg, async (req: Request, res: Respons
         // Check for unique constraint violation
         if (error && typeof error === "object" && "code" in error && error.code === "23505") {
             return res.status(400).json({ error: "User with this email already exists" });
+        }
+
+        return res.status(500).json({ error: "Internal server error" });
+    }
+});
+
+// Test route to create a client
+app.get("/test/o/:orgId/create-client", withOrg, async (req: Request, res: Response) => {
+    const {
+        firstName,
+        lastName,
+        phone,
+        gender,
+        livesAlone,
+        birthYear,
+        birthMonth,
+        addressLine1,
+        addressLine2,
+        city,
+        state,
+        zip,
+        country,
+        email,
+        phoneIsCell,
+        secondaryPhone,
+        secondaryPhoneIsCell,
+        contactPreference,
+        allowMessages,
+        emergencyContactName,
+        emergencyContactPhone,
+        emergencyContactRelationship,
+        notes,
+        pickupInstructions,
+    } = req.query;
+
+    if (
+        typeof firstName !== "string" ||
+        typeof lastName !== "string" ||
+        typeof phone !== "string" ||
+        typeof gender !== "string" ||
+        typeof livesAlone !== "string" ||
+        typeof birthYear !== "string" ||
+        typeof addressLine1 !== "string" ||
+        typeof city !== "string" ||
+        typeof state !== "string" ||
+        typeof zip !== "string" ||
+        typeof country !== "string"
+    ) {
+        return res.status(400).json({
+            error: "Missing or invalid required query parameters",
+            required: "firstName, lastName, phone, gender (Male/Female/Other), livesAlone (true/false), birthYear, addressLine1, city, state, zip, country",
+            optional: "birthMonth, addressLine2, email, phoneIsCell, secondaryPhone, secondaryPhoneIsCell, contactPreference, allowMessages, emergencyContactName, emergencyContactPhone, emergencyContactRelationship, notes, pickupInstructions",
+        });
+    }
+
+    // Validate gender
+    if (!["Male", "Female", "Other"].includes(gender)) {
+        return res.status(400).json({
+            error: "Invalid gender value",
+            validValues: "Male, Female, Other",
+        });
+    }
+
+    try {
+        const db = req.org?.db;
+        if (!db) return res.status(500).json({ error: "Database not initialized" });
+
+        // Create or find location
+        const [location] = await db
+            .insert(locations)
+            .values({
+                addressLine1,
+                addressLine2: typeof addressLine2 === "string" ? addressLine2 : undefined,
+                city,
+                state,
+                zip,
+                country,
+            })
+            .onConflictDoNothing()
+            .returning();
+
+        let locationId: string;
+        if (location) {
+            locationId = location.id;
+        } else {
+            // Location already exists, fetch it
+            const [existingLocation] = await db
+                .select()
+                .from(locations)
+                .where(
+                    sql`lower(${locations.addressLine1}) = lower(${addressLine1})
+                    AND COALESCE(lower(${locations.addressLine2}), '') = COALESCE(lower(${addressLine2 || ""}), '')
+                    AND lower(${locations.city}) = lower(${city})
+                    AND lower(${locations.state}) = lower(${state})
+                    AND lower(${locations.zip}) = lower(${zip})
+                    AND lower(${locations.country}) = lower(${country})`
+                )
+                .limit(1);
+            locationId = existingLocation.id;
+        }
+
+        // Parse birth year and month
+        const birthYearInt = parseInt(birthYear, 10);
+        const birthMonthInt = typeof birthMonth === "string" ? parseInt(birthMonth, 10) : undefined;
+
+        // Parse boolean values
+        const livesAloneBool = livesAlone === "true";
+        const phoneIsCellBool = phoneIsCell === "true";
+        const secondaryPhoneIsCellBool = secondaryPhoneIsCell === "true";
+        const allowMessagesBool = allowMessages === "true";
+
+        // Create the client
+        const [newClient] = await db
+            .insert(clients)
+            .values({
+                firstName,
+                lastName,
+                phone,
+                gender: gender as "Male" | "Female" | "Other",
+                livesAlone: livesAloneBool,
+                birthYear: birthYearInt,
+                birthMonth: birthMonthInt,
+                addressLocation: locationId,
+                email: typeof email === "string" ? email : undefined,
+                phoneIsCell: phoneIsCellBool,
+                secondaryPhone: typeof secondaryPhone === "string" ? secondaryPhone : undefined,
+                secondaryPhoneIsCell: secondaryPhoneIsCellBool,
+                contactPreference: typeof contactPreference === "string" ? (contactPreference as "email" | "phone") : "phone",
+                allowMessages: allowMessagesBool,
+                emergencyContactName: typeof emergencyContactName === "string" ? emergencyContactName : undefined,
+                emergencyContactPhone: typeof emergencyContactPhone === "string" ? emergencyContactPhone : undefined,
+                emergencyContactRelationship: typeof emergencyContactRelationship === "string" ? emergencyContactRelationship : undefined,
+                notes: typeof notes === "string" ? notes : undefined,
+                pickupInstructions: typeof pickupInstructions === "string" ? pickupInstructions : undefined,
+                isActive: true,
+            })
+            .returning();
+
+        return res.json({
+            message: `Client '${firstName} ${lastName}' created successfully`,
+            client: {
+                id: newClient.id,
+                firstName: newClient.firstName,
+                lastName: newClient.lastName,
+                email: newClient.email,
+                phone: newClient.phone,
+                birthYear: newClient.birthYear,
+                birthMonth: newClient.birthMonth,
+                addressLocation: newClient.addressLocation,
+            },
+        });
+    } catch (error: unknown) {
+        console.error("Error creating test client:", error);
+
+        // Check for unique constraint violation
+        if (error && typeof error === "object" && "code" in error && error.code === "23505") {
+            return res.status(400).json({ error: "Client with this phone or email already exists" });
         }
 
         return res.status(500).json({ error: "Internal server error" });
