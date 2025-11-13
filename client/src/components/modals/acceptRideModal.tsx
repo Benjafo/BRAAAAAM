@@ -7,6 +7,8 @@ import {
     DialogHeader,
     DialogTitle,
 } from "@/components/ui/dialog";
+import { http } from "@/services/auth/serviceResolver";
+import { useState } from "react";
 import { toast } from "sonner";
 
 type RideData = {
@@ -40,12 +42,24 @@ export default function AcceptRideModal({
     rideData,
     onAccept,
 }: AcceptRideModalProps) {
+    const [isLoading, setIsLoading] = useState(false);
+
     async function handleSubmit(): Promise<void> {
-        // TODO: API logic for accepting ride
-        console.log("Accept ride clicked for:", rideData?.id);
-        toast.success("Ride has been accepted.");
-        onAccept?.();
-        onOpenChange(false);
+        if (!rideData?.id) return;
+
+        setIsLoading(true);
+        try {
+            await http.post(`o/appointments/${rideData.id}/accept`).json();
+            toast.success("Ride has been accepted!");
+            onAccept?.();
+            onOpenChange(false);
+        } catch (error: any) {
+            console.error("Error accepting ride:", error);
+            const errorMessage = error?.response?.data?.message || "Failed to accept ride. Please try again.";
+            toast.error(errorMessage);
+        } finally {
+            setIsLoading(false);
+        }
     }
 
     if (!rideData) return null;
@@ -130,11 +144,11 @@ export default function AcceptRideModal({
                 </div>
 
                 <DialogFooter className="flex flex-row justify-end gap-3 mt-6">
-                    <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
+                    <Button type="button" variant="outline" onClick={() => onOpenChange(false)} disabled={isLoading}>
                         Cancel
                     </Button>
-                    <Button type="submit" onClick={handleSubmit}>
-                        Accept Ride
+                    <Button type="submit" onClick={handleSubmit} disabled={isLoading}>
+                        {isLoading ? "Accepting..." : "Accept Ride"}
                     </Button>
                 </DialogFooter>
             </DialogContent>

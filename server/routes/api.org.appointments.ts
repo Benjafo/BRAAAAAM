@@ -26,6 +26,13 @@ router.get(
     appt.getMatchingDrivers
 );
 
+// /o/appointments/:appointmentId/accept
+router.post(
+    "/:appointmentId/accept",
+    withPermission({ permissions: ["ownappointments.read", "allappointments.read"] }),
+    appt.acceptAppointment
+);
+
 // /o/appointments/tags
 // router.get("/tags", appt.listTags);
 // router.post("/tags", appt.createTag);

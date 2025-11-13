@@ -627,3 +627,45 @@ export const getMatchingDrivers = async (req: Request, res: Response): Promise<R
         return res.status(500).send();
     }
 };
+
+export const acceptAppointment = async (req: Request, res: Response): Promise<Response> => {
+    const { appointmentId } = req.params;
+
+    try {
+        const db = req.org?.db;
+        if (!db) return res.status(400).json({ message: "Organization context missing" });
+
+        const userId = req.user?.id;
+        if (!userId) return res.status(401).json({ error: "Unauthorized" });
+
+        // Fetch the appointment
+        const [appointment] = await db
+            .select()
+            .from(appointments)
+            .where(eq(appointments.id, appointmentId));
+
+        if (!appointment) {
+            return res.status(404).json({ message: "Appointment not found" });
+        }
+
+        // Verify the appointment is unassigned
+        if (appointment.driverId !== null) {
+            return res.status(400).json({ message: "This ride has already been assigned to a driver" });
+        }
+
+        // Update appointment with driver and status
+        const [updated] = await db
+            .update(appointments)
+            .set({
+                driverId: userId,
+                status: "Scheduled",
+            })
+            .where(eq(appointments.id, appointmentId))
+            .returning();
+
+        return res.status(200).json(updated);
+    } catch (err) {
+        console.error("Error accepting appointment:", err);
+        return res.status(500).send();
+    }
+};
