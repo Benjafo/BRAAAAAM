@@ -282,7 +282,16 @@ export default function CustomFormBuilder({ defaultValues, onSubmit }: Props) {
                                                         <FormItem>
                                                             <FormLabel>Field Type</FormLabel>
                                                             <Select
-                                                                onValueChange={field.onChange}
+                                                                onValueChange={(value) => {
+                                                                    field.onChange(value);
+                                                                    // Reset isRequired to false when changing to checkbox
+                                                                    if (value === "checkbox") {
+                                                                        form.setValue(
+                                                                            `fields.${index}.isRequired`,
+                                                                            false
+                                                                        );
+                                                                    }
+                                                                }}
                                                                 defaultValue={field.value}
                                                             >
                                                                 <FormControl>
@@ -462,7 +471,7 @@ export default function CustomFormBuilder({ defaultValues, onSubmit }: Props) {
                                                                 {/* AI help here */}
                                                                 <p className="text-xs text-muted-foreground">
                                                                     {isDate
-                                                                        ? "Pre-fill with a date (YYYY-MM-DD format)"
+                                                                        ? "Pre-fill with a date (MM-DD-YYYY format)"
                                                                         : isNumber
                                                                           ? "Pre-fill with a numeric value"
                                                                           : "Pre-fill this field with a default value"}
@@ -473,22 +482,28 @@ export default function CustomFormBuilder({ defaultValues, onSubmit }: Props) {
                                                     }}
                                                 />
 
-                                                {/* Is Required */}
-                                                <FormField
-                                                    control={form.control}
-                                                    name={`fields.${index}.isRequired`}
-                                                    render={({ field }) => (
-                                                        <FormItem className="flex flex-row items-start space-x-3 space-y-0">
-                                                            <FormControl>
-                                                                <Checkbox
-                                                                    checked={field.value}
-                                                                    onCheckedChange={field.onChange}
-                                                                />
-                                                            </FormControl>
-                                                            <FormLabel>Required Field</FormLabel>
-                                                        </FormItem>
-                                                    )}
-                                                />
+                                                {/* Is Required, single checkbox is not required */}
+                                                {fields[index].fieldType !== "checkbox" && (
+                                                    <FormField
+                                                        control={form.control}
+                                                        name={`fields.${index}.isRequired`}
+                                                        render={({ field }) => (
+                                                            <FormItem className="flex flex-row items-start space-x-3 space-y-0">
+                                                                <FormControl>
+                                                                    <Checkbox
+                                                                        checked={field.value}
+                                                                        onCheckedChange={
+                                                                            field.onChange
+                                                                        }
+                                                                    />
+                                                                </FormControl>
+                                                                <FormLabel>
+                                                                    Required Field
+                                                                </FormLabel>
+                                                            </FormItem>
+                                                        )}
+                                                    />
+                                                )}
 
                                                 {/* Options (for select, radio, checkboxGroup) */}
                                                 {fieldTypeRequiresOptions(
