@@ -230,6 +230,52 @@ export const PERMISSIONS: PermissionDefinition[] = [
         description: "Modify organizations",
     },
 
+    // Volunteer Records - Own
+    {
+        permKey: "ownvolunteer-records.read",
+        resource: "ownvolunteer-records",
+        action: "read",
+        name: "View Own Volunteer Records",
+        description: "View your own volunteer hours and miles records",
+    },
+    {
+        permKey: "ownvolunteer-records.create",
+        resource: "ownvolunteer-records",
+        action: "create",
+        name: "Create Own Volunteer Records",
+        description: "Create your own volunteer hours and miles records",
+    },
+    {
+        permKey: "ownvolunteer-records.update",
+        resource: "ownvolunteer-records",
+        action: "update",
+        name: "Update Own Volunteer Records",
+        description: "Modify your own volunteer hours and miles records",
+    },
+    {
+        permKey: "ownvolunteer-records.delete",
+        resource: "ownvolunteer-records",
+        action: "delete",
+        name: "Delete Own Volunteer Records",
+        description: "Delete your own volunteer hours and miles records",
+    },
+
+    // Volunteer Records - All
+    {
+        permKey: "allvolunteer-records.read",
+        resource: "allvolunteer-records",
+        action: "read",
+        name: "View All Volunteer Records",
+        description: "View volunteer hours and miles records for all users",
+    },
+    {
+        permKey: "allvolunteer-records.update",
+        resource: "allvolunteer-records",
+        action: "update",
+        name: "Update All Volunteer Records",
+        description: "Modify volunteer hours and miles records for all users",
+    }
+
     // Special Permissions
     // {
     //     permKey: "system.admin",

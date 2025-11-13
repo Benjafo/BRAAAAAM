@@ -743,3 +743,47 @@ export const userUnavailability = pgTable(
         ),
     ]
 );
+
+export const volunteerRecords = pgTable(
+    "volunteer_records",
+    {
+        id: uuid().defaultRandom().primaryKey().notNull(),
+        userId: uuid("user_id").notNull(),
+        date: date().notNull(),
+        hours: numeric({ precision: 10, scale: 2 }).notNull(),
+        miles: integer(),
+        description: text(),
+        createdAt: timestamp("created_at", { withTimezone: true, mode: "string" })
+            .defaultNow()
+            .notNull(),
+        updatedAt: timestamp("updated_at", { withTimezone: true, mode: "string" })
+            .defaultNow()
+            .notNull(),
+        createdByUserId: uuid("created_by_user_id").notNull(),
+    },
+    (table) => [
+        foreignKey({
+            columns: [table.userId],
+            foreignColumns: [users.id],
+            name: "volunteer_records_user_id_fkey",
+        }).onDelete("cascade"),
+        foreignKey({
+            columns: [table.createdByUserId],
+            foreignColumns: [users.id],
+            name: "volunteer_records_created_by_user_id_fkey",
+        }).onDelete("cascade"),
+        index("idx_volunteer_records_user_id").using(
+            "btree",
+            table.userId.asc().nullsLast().op("uuid_ops")
+        ),
+        index("idx_volunteer_records_date").using(
+            "btree",
+            table.date.asc().nullsLast()
+        ),
+        index("idx_volunteer_records_user_date").using(
+            "btree",
+            table.userId.asc().nullsLast().op("uuid_ops"),
+            table.date.asc().nullsLast()
+        ),
+    ]
+);

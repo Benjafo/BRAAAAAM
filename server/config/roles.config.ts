@@ -59,6 +59,10 @@ export const DEFAULT_ROLES: RoleDefinition[] = [
             // Settings
             "settings.read",
             "settings.update",
+
+            // Volunteer Records
+            "allvolunteer-records.read",
+            "allvolunteer-records.update",
         ],
     },
     {
@@ -83,6 +87,12 @@ export const DEFAULT_ROLES: RoleDefinition[] = [
             "appointments.create",
             "appointments.read",
             "appointments.update",
+
+            // Volunteer Records (own)
+            "ownvolunteer-records.read",
+            "ownvolunteer-records.create",
+            "ownvolunteer-records.update",
+            "ownvolunteer-records.delete",
         ],
     },
     {
