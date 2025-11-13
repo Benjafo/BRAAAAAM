@@ -1,6 +1,6 @@
 import { Request, Response } from "express";
 import { locations } from "../drizzle/org/schema.js";
-import { eq, sql } from "drizzle-orm";
+import { and, eq, isNotNull, sql } from "drizzle-orm";
 import { applyQueryFilters } from "../utils/queryParams.js";
 
 /*
@@ -22,7 +22,10 @@ export const listLocations = async (req: Request, res: Response): Promise<Respon
         // Does org DB Connection exist?
         if (!db) return res.status(500).json({ error: "Database not initialized" });
 
-        // Search + Sort + Pagaination
+        // Check if we should filter to only aliases
+        const aliasOnly = req.query.aliasOnly === 'true';
+
+        // Search + Sort + Pagination
         const { where, orderBy, limit, offset, page, pageSize } = applyQueryFilters(req, [
             locations.aliasName,
             locations.addressLine1,
@@ -33,10 +36,15 @@ export const listLocations = async (req: Request, res: Response): Promise<Respon
             locations.country,
         ]);
 
+        // Combine filters: search filter AND aliasName IS NOT NULL (if requested)
+        const finalWhere = aliasOnly
+            ? and(where, isNotNull(locations.aliasName))
+            : where;
+
         const [{ total }] = await db
             .select({ total: sql<number>`count(*)` })
             .from(locations)
-            .where(where);
+            .where(finalWhere);
 
         // Select all location records
         let query = db
@@ -54,7 +62,7 @@ export const listLocations = async (req: Request, res: Response): Promise<Respon
                 updatedAt: locations.updatedAt,
             })
             .from(locations)
-            .where(where)
+            .where(finalWhere)
             .orderBy(...(orderBy.length > 0 ? orderBy : []))
             .limit(limit)
             .offset(offset);

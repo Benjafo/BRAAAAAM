@@ -72,7 +72,6 @@ function RouteComponent() {
     const tabButtonText: Record<string, string> = {
         roles: "New Role",
         "audit-log": "Export",
-        locations: "New Alias",
     };
 
     return (

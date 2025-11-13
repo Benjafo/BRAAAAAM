@@ -1,7 +1,11 @@
 import type { Location } from "@/lib/types";
+import { cn } from "@/lib/utils";
+import { http } from "@/services/auth/serviceResolver";
+import { Check, ChevronsUpDown, X } from "lucide-react";
+import { useState } from "react";
 import { type Control, type UseFormSetValue } from "react-hook-form";
 import GoogleLocator from "./googleLocator";
-import ky from "ky";
+import { Button } from "./ui/button";
 import {
     Command,
     CommandEmpty,
@@ -10,13 +14,9 @@ import {
     CommandItem,
     CommandList,
 } from "./ui/command";
-import { Popover, PopoverContent, PopoverTrigger } from "./ui/popover";
-import { Check, ChevronsUpDown, X } from "lucide-react";
-import { cn } from "@/lib/utils";
 import { FormControl, FormField, FormItem, FormLabel, FormMessage } from "./ui/form";
 import { Input } from "./ui/input";
-import { Button } from "./ui/button";
-import { useState } from "react";
+import { Popover, PopoverContent, PopoverTrigger } from "./ui/popover";
 
 /**@TODO Fix eslint disable that is caused by the "any". */
 interface GoogleAddressFieldsProps {
@@ -44,6 +44,7 @@ type LocationAlias = {
     id: string;
     alias: string;
     address: string;
+    address2?: string;
     city: string;
     state: string;
     zip: string;
@@ -99,26 +100,48 @@ export function GoogleAddressFields({
         }
     };
 
-    // AI help on example API call
+    // Search for location aliases using the real API
     const handleSearchAliases = async (query: string): Promise<void> => {
-        if (!query.trim()) {
-            setAliasResults([]);
-            return;
-        }
-
         setIsSearching(true);
 
         try {
-            const orgId = "braaaaam";
-            const data = await ky
-                .get(`o/${orgId}/locations/aliases`, {
-                    headers: {
-                        "x-org-subdomain": orgId,
-                    },
-                })
-                .json<{ results: LocationAlias[] }>();
+            const searchParams = new URLSearchParams();
+            // Only add search param if query is not empty
+            if (query.trim()) {
+                searchParams.set("search", query);
+            }
+            searchParams.set("aliasOnly", "true");
+            searchParams.set("pageSize", "10"); // Limit results
 
-            setAliasResults(data.results);
+            const data = await http.get(`o/settings/locations?${searchParams}`).json<{
+                page: number;
+                pageSize: number;
+                total: number;
+                results: Array<{
+                    id: string;
+                    aliasName: string;
+                    addressLine1: string;
+                    addressLine2?: string;
+                    city: string;
+                    state: string;
+                    zip: string;
+                    country: string;
+                }>;
+            }>();
+
+            // Map API response to LocationAlias format
+            const mappedResults: LocationAlias[] = data.results.map((loc) => ({
+                id: loc.id,
+                alias: loc.aliasName || "Unnamed Location",
+                address: loc.addressLine1,
+                address2: loc.addressLine2,
+                city: loc.city,
+                state: loc.state,
+                zip: loc.zip,
+            }));
+
+            
+            setAliasResults(mappedResults);
             setIsSearching(false);
         } catch (err) {
             console.error("Failed to search aliases:", err);
@@ -127,10 +150,11 @@ export function GoogleAddressFields({
         }
     };
 
-    // AI help
+    // Handle alias select
     const handleAliasSelect = (alias: LocationAlias | null) => {
         if (alias) {
             setValue(addressFieldName, alias.address);
+            setValue(address2FieldName, alias.address2 || "");
             setValue(cityFieldName, alias.city);
             setValue(stateFieldName, alias.state);
             setValue(zipFieldName, alias.zip);
@@ -138,12 +162,21 @@ export function GoogleAddressFields({
         } else {
             // Clear all fields when no alias is selected
             setValue(addressFieldName, "");
+            setValue(address2FieldName, "");
             setValue(cityFieldName, "");
             setValue(stateFieldName, "");
             setValue(zipFieldName, "");
             setSelectedAliasDisplay("");
         }
         setIsAliasOpen(false);
+    };
+
+    const handlePopoverOpenChange = (open: boolean) => {
+        setIsAliasOpen(open);
+        // Load all aliases when opening the dropdown
+        if (open && aliasResults.length === 0) {
+            handleSearchAliases("");
+        }
     };
 
     return (
@@ -158,9 +191,26 @@ export function GoogleAddressFields({
                             {showLabels && <FormLabel>{aliasFieldLabel}</FormLabel>}
                             <FormControl>
                                 <div className="flex gap-2">
-                                    <Popover open={isAliasOpen} onOpenChange={setIsAliasOpen}>
+                                    <Popover
+                                        open={isAliasOpen}
+                                        onOpenChange={handlePopoverOpenChange}
+                                    >
                                         <PopoverTrigger asChild>
                                             <Button
+                                                variant="outline"
+                                                role="combobox"
+                                                aria-expanded={isAliasOpen}
+                                                className={cn(
+                                                    "w-full flex-1 justify-between",
+                                                    !selectedAliasDisplay && "text-muted-foreground"
+                                                )}
+                                            >
+                                                {selectedAliasDisplay
+                                                    ? selectedAliasDisplay
+                                                    : "Search saved locations"}
+                                                <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                                            </Button>
+                                            {/* <Button
                                                 variant="outline"
                                                 role="combobox"
                                                 aria-expanded={isAliasOpen}
@@ -172,7 +222,7 @@ export function GoogleAddressFields({
                                                         "Search saved locations"}
                                                 </span>
                                                 <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
-                                            </Button>
+                                            </Button> */}
                                         </PopoverTrigger>
                                         <PopoverContent className="w-[var(--radix-popover-trigger-width)] p-0">
                                             <Command shouldFilter={false}>

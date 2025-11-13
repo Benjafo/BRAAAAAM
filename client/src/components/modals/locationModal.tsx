@@ -7,24 +7,24 @@ import {
     DialogHeader,
     DialogTitle,
 } from "@/components/ui/dialog";
+import { http } from "@/services/auth/serviceResolver";
 import { toast } from "sonner";
 import type { LocationFormValues } from "../form/locationForm";
 import NewLocationForm from "../form/locationForm";
-import { http } from "@/services/auth/serviceResolver";
 
 type NewLocationModalProps = {
-    defaultValues?: Partial<LocationFormValues>;
+    defaultValues?: Partial<LocationFormValues> & { id?: string };
     open: boolean;
     onOpenChange: (open: boolean) => void;
 };
 
-export default function NewLocationModal({
+export default function LocationModal({
     defaultValues = {},
     open,
     onOpenChange,
 }: NewLocationModalProps) {
-    // Determine if we're editing based on whether address is populated (AI worked on this)
-    const isEditing = defaultValues.locationName !== undefined;
+    // Determine if we're editing based on whether id is present
+    const isEditing = defaultValues.id !== undefined;
     const modalTitle = isEditing ? "Edit Location" : "New Location";
     const successMessage = isEditing ? "Location Updated" : "New Location Created";
 
@@ -35,24 +35,39 @@ export default function NewLocationModal({
             // Map form values to API structure
             const requestBody = {
                 aliasName: values.locationName,
-                addressLine1: values.newAddress,
-                addressLine2: values.newAddress2,
+                addressLine1: values.address,
+                addressLine2: values.address2,
+                city: values.city,
+                state: values.state,
+                zip: values.zip,
+                country: values.country || "USA",
             };
 
             console.log("Sending to API:", requestBody);
 
-            // Make API call with form data
-            const response = await http
-                .post(`/o/settings/locations`, {
-                    json: requestBody,
-                })
-                .json();
+            // Determine if editing or creating
+            let response;
+            if (defaultValues.id) {
+                // Edit mode - PUT request
+                response = await http
+                    .put(`o/settings/locations/${defaultValues.id}`, {
+                        json: requestBody,
+                    })
+                    .json();
+            } else {
+                // Create mode - POST request
+                response = await http
+                    .post(`o/settings/locations`, {
+                        json: requestBody,
+                    })
+                    .json();
+            }
 
             console.log("API response:", response);
             toast.success(successMessage);
             onOpenChange(false);
         } catch (error) {
-            console.error("Failed to create location:", error);
+            console.error("Failed to save location:", error);
             toast.error("Failed to save location. Please try again.");
         }
     }
