@@ -9,6 +9,7 @@ import {
     reportTemplates,
     roles,
     users,
+    volunteerRecords,
 } from "../drizzle/org/schema.js";
 
 // interface Report {
@@ -464,6 +465,87 @@ export const exportAppointments = async (req: Request, res: Response): Promise<R
     }
 };
 
+export const exportVolunteerRecords = async (req: Request, res: Response): Promise<Response> => {
+    try {
+        const db = req.org?.db;
+        if (!db) return res.status(400).json({ message: "Organization context missing" });
+
+        // Parse query parameters
+        const startDate = req.query.startDate as string | undefined;
+        const endDate = req.query.endDate as string | undefined;
+        const userId = req.query.userId as string | undefined;
+        const page = parseInt(req.query.page as string) || 1;
+        const pageSize = Math.min(parseInt(req.query.pageSize as string) || 100, 1000);
+        const offset = (page - 1) * pageSize;
+
+        // Build date filter
+        let dateFilter = undefined;
+        if (startDate && endDate) {
+            dateFilter = and(
+                gte(volunteerRecords.date, startDate),
+                lte(volunteerRecords.date, endDate)
+            );
+        } else if (startDate) {
+            dateFilter = gte(volunteerRecords.date, startDate);
+        } else if (endDate) {
+            dateFilter = lte(volunteerRecords.date, endDate);
+        }
+
+        // Build user filter
+        let userFilter = undefined;
+        if (userId) {
+            userFilter = eq(volunteerRecords.userId, userId);
+        }
+
+        // Combine filters
+        const filters = [dateFilter, userFilter].filter(Boolean);
+        const finalFilter = filters.length > 0 ? and(...filters) : undefined;
+
+        // Get total count
+        const [{ total }] = await db
+            .select({ total: sql<number>`count(*)` })
+            .from(volunteerRecords)
+            .where(finalFilter);
+
+        // Fetch volunteer records data with user join
+        const data = await db
+            .select({
+                id: volunteerRecords.id,
+                date: volunteerRecords.date,
+                hours: volunteerRecords.hours,
+                miles: volunteerRecords.miles,
+                description: volunteerRecords.description,
+                createdAt: volunteerRecords.createdAt,
+                updatedAt: volunteerRecords.updatedAt,
+                volunteer: {
+                    id: users.id,
+                    firstName: users.firstName,
+                    lastName: users.lastName,
+                    email: users.email,
+                },
+            })
+            .from(volunteerRecords)
+            .leftJoin(users, eq(volunteerRecords.userId, users.id))
+            .where(finalFilter)
+            .orderBy(volunteerRecords.date)
+            .limit(pageSize)
+            .offset(offset);
+
+        return res.status(200).json({
+            results: data,
+            pagination: {
+                page,
+                pageSize,
+                totalRecords: Number(total),
+                totalPages: Math.ceil(Number(total) / pageSize),
+            },
+        });
+    } catch (err) {
+        console.error("Error exporting volunteer records:", err);
+        return res.status(500).json({ error: "Internal server error" });
+    }
+};
+
 export const listReportTemplates = async (req: Request, res: Response): Promise<Response> => {
     try {
         const db = req.org?.db;
@@ -529,7 +611,7 @@ export const createReportTemplate = async (req: Request, res: Response): Promise
         }
 
         // Validate entity type
-        if (!["clients", "users", "appointments"].includes(entityType)) {
+        if (!["clients", "users", "appointments", "volunteerRecords"].includes(entityType)) {
             return res.status(400).json({ message: "Invalid entity type" });
         }
 

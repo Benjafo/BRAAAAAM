@@ -17,7 +17,7 @@ import { DateRangeSelector } from "./DateRangeSelector";
 import { EntitySelector } from "./EntitySelector";
 import { TemplateList } from "./TemplateList";
 
-type SelectionMode = "clients" | "users" | "appointments" | "templates";
+type SelectionMode = "clients" | "users" | "appointments" | "volunteerRecords" | "templates";
 
 export function ReportBuilder() {
     const [selectionMode, setSelectionMode] = useState<SelectionMode>("clients");
@@ -38,11 +38,11 @@ export function ReportBuilder() {
     const hasExportPermission = useAuthStore((s) => s.hasPermission(PERMISSIONS.REPORTS_EXPORT));
 
     // Get the actual entity type for data fetching (from mode or template)
-    const getEntityType = (): "clients" | "users" | "appointments" => {
+    const getEntityType = (): "clients" | "users" | "appointments" | "volunteerRecords" => {
         if (selectionMode === "templates" && selectedTemplate) {
             return selectedTemplate.entityType;
         }
-        return selectionMode as "clients" | "users" | "appointments";
+        return selectionMode as "clients" | "users" | "appointments" | "volunteerRecords";
     };
 
     // Get available columns for column selector (when not in templates mode)
@@ -81,26 +81,26 @@ export function ReportBuilder() {
         toast.success(`Loaded template: ${template.name}`);
     };
 
-    /**
-     * Handle column selection change
-     */
+    // Handle column selection change
     const handleColumnSelectionChange = (columns: ColumnDefinition[]) => {
         setSelectedColumns(columns);
     };
 
-    /**
-     * Handle date range change
-     */
+    // Handle date range change
     const handleDateRangeChange = (start: Date, end: Date) => {
         setDateRange({ start, end });
     };
 
-    /**
-     * Fetch data based on entity type and date range
-     * Uses pagination to fetch all records in batches of 100
-     */
+    // Convert camelCase to kebab-case for API routes
+    const toKebabCase = (str: string): string => {
+        return str.replace(/([a-z0-9])([A-Z])/g, "$1-$2").toLowerCase();
+    };
+
+    // Fetch data based on entity type and date range
+    // Uses pagination to fetch all records in batches of 100
     const fetchData = async (): Promise<Record<string, unknown>[]> => {
         const entityType = getEntityType();
+        const apiEntityType = toKebabCase(entityType);
         const startDate = dateRange.start.toISOString();
         const endDate = dateRange.end.toISOString();
         const allData: Record<string, unknown>[] = [];
@@ -109,22 +109,8 @@ export function ReportBuilder() {
         let hasMore = true;
 
         while (hasMore) {
-            // const response = await http
-            //     .get(
-            //         `o/reports/${entityType}/export?startDate=${startDate}&endDate=${endDate}&page=${page}&pageSize=100`
-            //     )
-            //     .json<{
-            //         results: Record<string, unknown>[];
-            //         pagination: {
-            //             page: number;
-            //             pageSize: number;
-            //             totalRecords: number;
-            //             totalPages: number;
-            //         };
-            //     }>();
-
             const response = await http
-                .get(`o/reports/${entityType}/export`, {
+                .get(`o/reports/${apiEntityType}/export`, {
                     searchParams: {
                         startDate,
                         endDate,
@@ -151,9 +137,7 @@ export function ReportBuilder() {
         return allData;
     };
 
-    /**
-     * Generate preview of data (first 10 rows)
-     */
+    // Generate preview of data (first 10 rows)
     const handleGeneratePreview = async () => {
         if (selectedColumns.length === 0) {
             setError("Please select at least one column");
@@ -176,9 +160,7 @@ export function ReportBuilder() {
         }
     };
 
-    /**
-     * Export full report to CSV
-     */
+    //Export full report to CSV
     const handleExportCSV = async () => {
         if (!hasExportPermission) {
             setError("You do not have permission to export reports");
@@ -205,16 +187,12 @@ export function ReportBuilder() {
         }
     };
 
-    /**
-     * Get nested value from object using dot notation
-     */
+    // Get nested value from object using dot notation
     const getNestedValue = (obj: any, path: string): any => {
         return path.split(".").reduce((current, key) => current?.[key], obj);
     };
 
-    /**
-     * Check if we can save as template (must be in non-template mode with columns selected)
-     */
+    // Check if we can save as template (must be in non-template mode with columns selected)
     const canSaveTemplate = selectionMode !== "templates" && selectedColumns.length > 0;
 
     return (
@@ -399,7 +377,7 @@ export function ReportBuilder() {
             <SaveTemplateModal
                 open={saveTemplateDialogOpen}
                 onOpenChange={setSaveTemplateDialogOpen}
-                entityType={selectionMode as "clients" | "users" | "appointments"}
+                entityType={selectionMode as "clients" | "users" | "appointments" | "volunteerRecords"}
                 selectedColumns={selectedColumns}
                 onTemplateSaved={() => toast.success("Template saved!")}
             />

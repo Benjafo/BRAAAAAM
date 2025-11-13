@@ -93,6 +93,22 @@ export const USER_COLUMNS: ColumnDefinition[] = [
     { key: "updatedAt", label: "Updated Date", group: "Metadata" },
 ];
 
+export const VOLUNTEER_RECORDS_COLUMNS: ColumnDefinition[] = [
+    // Basic Information
+    { key: "id", label: "Record ID", group: "Basic Information" },
+    { key: "date", label: "Date", group: "Basic Information" },
+    { key: "hours", label: "Hours", group: "Basic Information" },
+    { key: "miles", label: "Miles", group: "Basic Information" },
+    { key: "description", label: "Description", group: "Basic Information" },
+    // Volunteer Information
+    { key: "volunteer.firstName", label: "Volunteer First Name", group: "Volunteer" },
+    { key: "volunteer.lastName", label: "Volunteer Last Name", group: "Volunteer" },
+    { key: "volunteer.email", label: "Volunteer Email", group: "Volunteer" },
+    // Metadata
+    { key: "createdAt", label: "Submitted At", group: "Metadata" },
+    { key: "updatedAt", label: "Updated At", group: "Metadata" },
+];
+
 export const APPOINTMENT_COLUMNS: ColumnDefinition[] = [
     // Basic Information
     { key: "id", label: "Appointment ID", group: "Basic Information" },
@@ -149,7 +165,7 @@ export const APPOINTMENT_COLUMNS: ColumnDefinition[] = [
 
 // Helper function to get columns for entity type
 export function getColumnsForEntity(
-    entityType: "clients" | "users" | "appointments"
+    entityType: "clients" | "users" | "appointments" | "volunteerRecords"
 ): ColumnDefinition[] {
     switch (entityType) {
         case "clients":
@@ -158,6 +174,8 @@ export function getColumnsForEntity(
             return USER_COLUMNS;
         case "appointments":
             return APPOINTMENT_COLUMNS;
+        case "volunteerRecords":
+            return VOLUNTEER_RECORDS_COLUMNS;
         default:
             return [];
     }

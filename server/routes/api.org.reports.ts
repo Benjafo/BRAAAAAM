@@ -15,6 +15,7 @@ const router: Router = express.Router({ mergeParams: true });
 router.get("/clients/export", withPermission({ permissions: "reports.export" }), reports.exportClients);
 router.get("/users/export", withPermission({ permissions: "reports.export" }), reports.exportUsers);
 router.get("/appointments/export", withPermission({ permissions: "reports.export" }), reports.exportAppointments);
+router.get("/volunteer-records/export", withPermission({ permissions: "reports.export" }), reports.exportVolunteerRecords);
 
 // Report template routes
 router.get("/templates", withPermission({ permissions: "reports.export" }), reports.listReportTemplates);

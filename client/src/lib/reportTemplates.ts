@@ -2,7 +2,7 @@ export interface ReportTemplate {
     id: string;
     name: string;
     description: string | null;
-    entityType: "clients" | "users" | "appointments";
+    entityType: "clients" | "users" | "appointments" | "volunteerRecords";
     selectedColumns: string[]; // Array of column keys
     isShared: boolean;
     createdBy: {
@@ -17,7 +17,7 @@ export interface ReportTemplate {
 export interface CreateReportTemplateInput {
     name: string;
     description?: string;
-    entityType: "clients" | "users" | "appointments";
+    entityType: "clients" | "users" | "appointments" | "volunteerRecords";
     selectedColumns: string[];
     isShared?: boolean;
 }
