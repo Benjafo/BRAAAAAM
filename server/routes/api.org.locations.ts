@@ -5,6 +5,7 @@ const router: Router = express.Router({ mergeParams: true });
 
 // /o/settings/locations
 router.post("/", locations.createLocation);
+router.get("/", locations.listLocations);
 router.get("/:locationId", locations.getLocation);
 router.put("/:locationId", locations.updateLocation);
 router.delete("/:locationId", locations.deleteLocation);

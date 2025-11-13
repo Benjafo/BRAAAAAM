@@ -55,6 +55,11 @@ const clientSchema = z
             .max(255, "Max characters allowed is 255."),
         birthMonth: z.string().optional(),
         birthYear: z.string().min(1, "Please select a year."),
+        homeAlias: z
+            .string()
+            .max(255, "Max characters allowed is 255.")
+            .optional()
+            .or(z.literal("")),
         homeAddress: z
             .string()
             .min(1, "Home address is required")
@@ -253,6 +258,7 @@ export default function ClientForm({ defaultValues, onSubmit }: Props) {
             contactPref: defaultValues.contactPref ?? "",
             birthMonth: defaultValues.birthMonth ?? "",
             birthYear: defaultValues.birthYear ?? "",
+            homeAlias: defaultValues.homeAlias ?? "",
             homeAddress: defaultValues.homeAddress ?? "",
             city: defaultValues.city ?? "",
             state: defaultValues.state ?? "",
@@ -335,7 +341,6 @@ export default function ClientForm({ defaultValues, onSubmit }: Props) {
                         </FormItem>
                     )}
                 />
-
                 {/* Last name */}
                 <FormField
                     control={form.control}
@@ -350,7 +355,6 @@ export default function ClientForm({ defaultValues, onSubmit }: Props) {
                         </FormItem>
                     )}
                 />
-
                 {/* Living alone / not */}
                 <FormField
                     control={form.control}
@@ -388,7 +392,6 @@ export default function ClientForm({ defaultValues, onSubmit }: Props) {
                         </FormItem>
                     )}
                 />
-
                 {/* Primary contact preference */}
                 <FormField
                     control={form.control}
@@ -411,7 +414,6 @@ export default function ClientForm({ defaultValues, onSubmit }: Props) {
                         </FormItem>
                     )}
                 />
-
                 {/* Birth Month, AI helped create this  */}
                 <FormField
                     control={form.control}
@@ -475,7 +477,6 @@ export default function ClientForm({ defaultValues, onSubmit }: Props) {
                         </FormItem>
                     )}
                 />
-
                 {/* Birth Year, AI helped create this  */}
                 <FormField
                     control={form.control}
@@ -556,9 +557,11 @@ export default function ClientForm({ defaultValues, onSubmit }: Props) {
                         stateFieldName="state"
                         zipFieldName="zipCode"
                         showAddress2={true}
+                        showAliasField={true}
+                        aliasFieldLabel="Search Saved Destinations"
+                        aliasFieldName="homeAlias"
                     />
                 </div>
-
                 {/* Client Gender */}
                 <div className="space-y-4">
                     <FormField
@@ -599,7 +602,6 @@ export default function ClientForm({ defaultValues, onSubmit }: Props) {
                         )}
                     />
                 </div>
-
                 {/* Client Permanency Status */}
                 <div className="space-y-4">
                     <FormField
@@ -667,7 +669,6 @@ export default function ClientForm({ defaultValues, onSubmit }: Props) {
                         )}
                     </div>
                 </div>
-
                 {/* Client Status */}
                 <div className="space-y-4">
                     <FormField
@@ -772,7 +773,6 @@ export default function ClientForm({ defaultValues, onSubmit }: Props) {
                         </>
                     )}
                 </div>
-
                 {/* Email */}
                 <FormField
                     control={form.control}
@@ -787,7 +787,6 @@ export default function ClientForm({ defaultValues, onSubmit }: Props) {
                         </FormItem>
                     )}
                 />
-
                 {/* Primary Phone, adding div to make checkboxes align underneath primary phone number. */}
                 <div className="space-y-4">
                     <FormField
@@ -847,7 +846,6 @@ export default function ClientForm({ defaultValues, onSubmit }: Props) {
                         />
                     )}
                 </div>
-
                 {/* Secondary Phone, adding div to make checkboxes align underneath secondary phone number. */}
                 <div className="space-y-4">
                     <FormField
@@ -913,6 +911,7 @@ export default function ClientForm({ defaultValues, onSubmit }: Props) {
                     <h3 className="text-lg font-semibold mt-4">Emergency Contact</h3>
                 </div>
 
+                {/* Emergency Contact Information */}
                 <FormField
                     control={form.control}
                     name="emergencyContactName"
@@ -926,7 +925,6 @@ export default function ClientForm({ defaultValues, onSubmit }: Props) {
                         </FormItem>
                     )}
                 />
-
                 <FormField
                     control={form.control}
                     name="emergencyContactPhone"
@@ -940,7 +938,6 @@ export default function ClientForm({ defaultValues, onSubmit }: Props) {
                         </FormItem>
                     )}
                 />
-
                 <FormField
                     control={form.control}
                     name="emergencyContactRelationship"
@@ -976,7 +973,6 @@ export default function ClientForm({ defaultValues, onSubmit }: Props) {
                         )}
                     />
                 </div>
-
                 {/* Pickup Instructions */}
                 <div className="md:col-span-2">
                     <FormField

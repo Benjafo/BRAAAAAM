@@ -13,7 +13,7 @@ import {
     FormLabel,
     FormMessage,
 } from "@/components/ui/form";
-import { MapPin } from "lucide-react";
+import { GoogleAddressFields } from "@/components/GoogleAddressFields";
 
 /* --------------------------------- Schema --------------------------------- */
 /* using z.enum for select values that we know are included */
@@ -22,11 +22,30 @@ const locationSchema = z.object({
         .string()
         .min(1, "Please enter the location name.")
         .max(255, "Max characters allowed is 255."),
-    newAddress: z
+    address: z
         .string()
-        .min(1, "New address is required")
+        .min(1, "Address is required")
         .max(255, "Max characters allowed is 255."),
-    newAddress2: z.string().max(255, "Max characters allowed is 255.").optional(),
+    address2: z
+        .string()
+        .max(255, "Max characters allowed is 255.")
+        .optional(),
+    city: z
+        .string()
+        .min(1, "City is required")
+        .max(100, "Max characters allowed is 100."),
+    state: z
+        .string()
+        .min(1, "State is required")
+        .max(50, "Max characters allowed is 50."),
+    zip: z
+        .string()
+        .min(1, "ZIP code is required")
+        .max(20, "Max characters allowed is 20."),
+    country: z
+        .string()
+        .min(1, "Country is required")
+        .max(100, "Max characters allowed is 100."),
 });
 
 export type LocationFormValues = z.infer<typeof locationSchema>;
@@ -46,8 +65,12 @@ export default function LocationForm({ defaultValues, onSubmit }: Props) {
 
         defaultValues: {
             locationName: defaultValues.locationName ?? "",
-            newAddress: defaultValues.newAddress ?? "",
-            newAddress2: defaultValues.newAddress2 ?? "",
+            address: defaultValues.address ?? "",
+            address2: defaultValues.address2 ?? "",
+            city: defaultValues.city ?? "",
+            state: defaultValues.state ?? "",
+            zip: defaultValues.zip ?? "",
+            country: defaultValues.country ?? "USA",
         },
     });
 
@@ -58,7 +81,7 @@ export default function LocationForm({ defaultValues, onSubmit }: Props) {
                 className="grid grid-cols-1 gap-x-8 gap-y-6"
                 onSubmit={form.handleSubmit(onSubmit)}
             >
-                {/* First Name */}
+                {/* Location Name */}
                 <FormField
                     control={form.control}
                     name="locationName"
@@ -73,45 +96,17 @@ export default function LocationForm({ defaultValues, onSubmit }: Props) {
                     )}
                 />
 
-                {/* Address */}
-                <FormField
+                {/* Address Fields with Google Autocomplete */}
+                <GoogleAddressFields
                     control={form.control}
-                    name="newAddress"
-                    render={({ field }) => (
-                        <FormItem>
-                            <FormLabel>Address</FormLabel>
-                            <FormControl>
-                                <div className="relative">
-                                    <Input
-                                        placeholder="(Replace with Google autocomplete)"
-                                        {...field}
-                                    />
-                                    <MapPin className="absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-                                </div>
-                            </FormControl>
-                            <FormMessage />
-                        </FormItem>
-                    )}
-                />
-                {/* Unit/Apartment/Suite*/}
-                <FormField
-                    control={form.control}
-                    name="newAddress2"
-                    render={({ field }) => (
-                        <FormItem>
-                            <FormLabel>Unit/Apartment/Suite</FormLabel>
-                            <FormControl>
-                                <div className="relative">
-                                    <Input
-                                        placeholder="(Replace with Google autocomplete)"
-                                        {...field}
-                                    />
-                                    <MapPin className="absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-                                </div>
-                            </FormControl>
-                            <FormMessage />
-                        </FormItem>
-                    )}
+                    setValue={form.setValue}
+                    addressFieldName="address"
+                    address2FieldName="address2"
+                    cityFieldName="city"
+                    stateFieldName="state"
+                    zipFieldName="zip"
+                    showAddress2={true}
+                    showLabels={true}
                 />
             </form>
         </Form>

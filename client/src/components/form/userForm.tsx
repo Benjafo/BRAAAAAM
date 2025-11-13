@@ -49,6 +49,11 @@ const userSchema = z
         clientEmail: z.email("Please enter a valid email address."),
         birthMonth: z.string().optional(),
         birthYear: z.string().min(1, "Please select a year."),
+        streetAlias: z
+            .string()
+            .max(255, "Max characters allowed is 255.")
+            .optional()
+            .or(z.literal("")),
         streetAddress: z
             .string()
             .min(1, "Street address is required")
@@ -298,6 +303,7 @@ export default function UserForm({
             lastName: defaultValues.lastName ?? "",
             birthMonth: defaultValues.birthMonth ?? "",
             birthYear: defaultValues.birthYear ?? "",
+            streetAlias: defaultValues.streetAlias ?? "",
             streetAddress: defaultValues.streetAddress ?? "",
             city: defaultValues.city ?? "",
             state: defaultValues.state ?? "",
@@ -486,6 +492,9 @@ export default function UserForm({
                         stateFieldName="state"
                         zipFieldName="zipCode"
                         showAddress2={true}
+                        showAliasField={true}
+                        aliasFieldLabel="Search Saved Destinations"
+                        aliasFieldName="streetAlias"
                     />
                 </div>
 
