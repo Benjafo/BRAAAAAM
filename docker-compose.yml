@@ -55,6 +55,13 @@ services:
       # - MIGRATE_ON_START=${MIGRATE_ON_START:-false} # <-- set to false to skip applying migrations on start
       - MIGRATE_ON_START=true
       - ENABLE_PGADMIN=${ENABLE_PGADMIN:-true}
+      # Email configuration (smtp2go)
+      - SMTP_HOST=${SMTP_HOST}
+      - SMTP_PORT=${SMTP_PORT}
+      - SMTP_USER=${SMTP_USER}
+      - SMTP_PASS=${SMTP_PASS}
+      - SMTP_FROM_EMAIL=${SMTP_FROM_EMAIL}
+      - SMTP_FROM_NAME=${SMTP_FROM_NAME}
     depends_on:
       postgres:
         condition: service_healthy

@@ -26,6 +26,13 @@ router.get(
     appt.getMatchingDrivers
 );
 
+// /o/appointments/:appointmentId/notify-drivers
+router.post(
+    "/:appointmentId/notify-drivers",
+    withPermission({ permissions: "allappointments.update" }),
+    appt.notifyDrivers
+);
+
 // /o/appointments/:appointmentId/accept
 router.post(
     "/:appointmentId/accept",

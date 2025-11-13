@@ -100,9 +100,35 @@ export default function AssignRideModal({
         }
     };
 
-    const handleNotifyDrivers = () => {
-        // TODO: Implement notification functionality
-        toast.info("Notification feature coming soon");
+    const handleNotifyDrivers = async () => {
+        if (selectedDrivers.length === 0) return;
+
+        setIsAssigning(true);
+
+        try {
+            const driverIds = selectedDrivers.map((driver) => driver.id);
+
+            const response = await http
+                .post(`o/appointments/${appointmentId}/notify-drivers`, {
+                    json: {
+                        driverIds,
+                    },
+                })
+                .json<{ message: string; successCount: number; failureCount: number }>();
+
+            if (response.failureCount > 0) {
+                toast.warning(
+                    `${response.successCount} driver(s) notified. ${response.failureCount} failed.`
+                );
+            } else {
+                toast.success(response.message);
+            }
+        } catch (error) {
+            console.error("Failed to notify drivers:", error);
+            toast.error("Failed to send notifications. Please try again.");
+        } finally {
+            setIsAssigning(false);
+        }
     };
 
     return (
@@ -121,7 +147,7 @@ export default function AssignRideModal({
                     <Button
                         variant="outline"
                         className="mr-2"
-                        disabled={selectedDrivers.length === 0}
+                        disabled={selectedDrivers.length === 0 || isAssigning}
                         onClick={handleNotifyDrivers}
                     >
                         Notify Drivers
@@ -131,7 +157,7 @@ export default function AssignRideModal({
                         disabled={selectedDrivers.length !== 1 || isAssigning}
                         onClick={handleAssignDriver}
                     >
-                        {isAssigning ? "Assigning..." : "Assign Driver"}
+                        {isAssigning ? "Processing..." : "Assign Driver"}
                     </Button>
                 </div>
                 <DataTable

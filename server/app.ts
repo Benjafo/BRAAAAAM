@@ -40,6 +40,7 @@ import { withAuth } from "./middleware/with-auth.js";
 import { withOrg } from "./middleware/with-org.js";
 import { hashPassword } from "./utils/password.js";
 import { withAuthRouting } from "./middleware/with-auth-routing.js";
+import { initializeEmailTransporter } from "./utils/email.js";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -89,6 +90,7 @@ app.use(cookieParser());
 (async () => {
     getSysDb();
     await preloadOrgPools();
+    initializeEmailTransporter();
 })().catch((e) => {
     console.error("Startup error:", e);
     process.exit(1);

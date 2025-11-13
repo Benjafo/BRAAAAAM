@@ -14,6 +14,7 @@ import {
 import { findOrCreateLocation } from "../utils/locations.js";
 import { hasPermission } from "../utils/permissions.js";
 import { applyQueryFilters } from "../utils/queryParams.js";
+import { sendDriverNotificationEmail } from "../utils/email.js";
 
 /*
  * Example Output
@@ -625,6 +626,102 @@ export const getMatchingDrivers = async (req: Request, res: Response): Promise<R
     } catch (err) {
         console.error("Error fetching matching drivers:", err);
         return res.status(500).send();
+    }
+};
+
+export const notifyDrivers = async (req: Request, res: Response): Promise<Response> => {
+    const { appointmentId } = req.params;
+    const { driverIds } = req.body;
+
+    try {
+        const db = req.org?.db;
+        if (!db) return res.status(400).json({ message: "Organization context missing" });
+
+        const userId = req.user?.id;
+        if (!userId) return res.status(401).json({ error: "Unauthorized" });
+
+        // Validate input
+        if (!driverIds || !Array.isArray(driverIds) || driverIds.length === 0) {
+            return res.status(400).json({ message: "Driver IDs are required" });
+        }
+
+        // Fetch the appointment with pickup and dropoff location details
+        const pickupLocations = alias(locations, "pickup_locations");
+        const dropoffLocations = alias(locations, "dropoff_locations");
+
+        const [appointment] = await db
+            .select({
+                id: appointments.id,
+                startDate: appointments.startDate,
+                startTime: appointments.startTime,
+                pickupAddress: sql<string>`CONCAT(
+                    ${pickupLocations.addressLine1}, ', ',
+                    ${pickupLocations.city}, ', ',
+                    ${pickupLocations.state}, ' ',
+                    ${pickupLocations.zip}
+                )`,
+                dropoffAddress: sql<string>`CONCAT(
+                    ${dropoffLocations.addressLine1}, ', ',
+                    ${dropoffLocations.city}, ', ',
+                    ${dropoffLocations.state}, ' ',
+                    ${dropoffLocations.zip}
+                )`,
+            })
+            .from(appointments)
+            .leftJoin(pickupLocations, eq(appointments.pickupLocation, pickupLocations.id))
+            .leftJoin(dropoffLocations, eq(appointments.destinationLocation, dropoffLocations.id))
+            .where(eq(appointments.id, appointmentId));
+
+        if (!appointment) {
+            return res.status(404).json({ message: "Appointment not found" });
+        }
+
+        // Fetch driver details
+        const drivers = await db
+            .select({
+                id: users.id,
+                firstName: users.firstName,
+                lastName: users.lastName,
+                email: users.email,
+            })
+            .from(users)
+            .where(inArray(users.id, driverIds));
+
+        if (drivers.length === 0) {
+            return res.status(404).json({ message: "No drivers found" });
+        }
+
+        // Prepare ride details
+        const rideDetails = {
+            pickupAddress: appointment.pickupAddress || "Not specified",
+            dropoffAddress: appointment.dropoffAddress || "Not specified",
+            pickupTime: `${appointment.startDate} ${appointment.startTime}`,
+        };
+
+        // Send emails to all drivers
+        const emailPromises = drivers.map((driver) =>
+            sendDriverNotificationEmail(
+                driver.email,
+                `${driver.firstName} ${driver.lastName}`,
+                rideDetails
+            )
+        );
+
+        const results = await Promise.allSettled(emailPromises);
+
+        // Count successes and failures
+        const successCount = results.filter((r) => r.status === "fulfilled" && r.value === true).length;
+        const failureCount = results.length - successCount;
+
+        return res.status(200).json({
+            message: `Notifications sent to ${successCount} driver(s)`,
+            successCount,
+            failureCount,
+            totalDrivers: drivers.length,
+        });
+    } catch (err) {
+        console.error("Error notifying drivers:", err);
+        return res.status(500).json({ message: "Failed to send notifications" });
     }
 };
 
