@@ -302,19 +302,34 @@ export default function ClientForm({ defaultValues, onSubmit }: Props) {
     const [yearOpen, setYearOpen] = useState(false);
 
     // Call custom fields validation before submitting
-    const handleFormSubmit = (values: ClientFormValues) => {
-        const isValid = dynamicFieldsRef.current?.validateCustomFields(values.customFields || {});
-        if (!isValid) return;
-
-        onSubmit(values);
-    };
 
     return (
         <Form {...form}>
             <form
                 id="new-client-form"
                 className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-6 w-full items-start pt-"
-                onSubmit={form.handleSubmit(handleFormSubmit)}
+                onSubmit={form.handleSubmit(
+                    async (values) => {
+                        // Success handler - all regular fields are valid (AI help)
+                        // Now validate custom fields
+                        const customFieldsValid = dynamicFieldsRef.current?.validateCustomFields(
+                            values.customFields || {}
+                        );
+
+                        if (!customFieldsValid) {
+                            return; // Custom fields invalid, stop here
+                        }
+
+                        // Everything is valid, proceed
+                        onSubmit(values);
+                    },
+                    async () => {
+                        // ALSO validate custom fields to show those errors too
+                        dynamicFieldsRef.current?.validateCustomFields(
+                            form.getValues("customFields") || {}
+                        );
+                    }
+                )}
             >
                 {/* Basic Information Section */}
                 <div className="md:col-span-2">
@@ -996,7 +1011,9 @@ export default function ClientForm({ defaultValues, onSubmit }: Props) {
 
                 {/* Accessibility & Transportation Needs Section */}
                 <div className="md:col-span-2">
-                    <h3 className="text-lg font-semibold mt-4">Accessibility & Transportation Needs</h3>
+                    <h3 className="text-lg font-semibold mt-4">
+                        Accessibility & Transportation Needs
+                    </h3>
                 </div>
 
                 {/* Mobility Equipment */}
@@ -1058,7 +1075,10 @@ export default function ClientForm({ defaultValues, onSubmit }: Props) {
                             render={({ field }) => (
                                 <FormItem className="mt-2">
                                     <FormControl>
-                                        <Input {...field} placeholder="Specify other equipment..." />
+                                        <Input
+                                            {...field}
+                                            placeholder="Specify other equipment..."
+                                        />
                                     </FormControl>
                                     <FormMessage />
                                 </FormItem>
@@ -1132,7 +1152,10 @@ export default function ClientForm({ defaultValues, onSubmit }: Props) {
                                 <div className="space-y-2">
                                     <FormItem className="flex flex-row items-center space-x-3 space-y-0">
                                         <FormControl>
-                                            <Checkbox checked={field.value} onCheckedChange={field.onChange} />
+                                            <Checkbox
+                                                checked={field.value}
+                                                onCheckedChange={field.onChange}
+                                            />
                                         </FormControl>
                                         <FormLabel className="font-normal">Has Oxygen</FormLabel>
                                     </FormItem>
@@ -1154,9 +1177,14 @@ export default function ClientForm({ defaultValues, onSubmit }: Props) {
                                 <div className="space-y-2">
                                     <FormItem className="flex flex-row items-center space-x-3 space-y-0">
                                         <FormControl>
-                                            <Checkbox checked={field.value} onCheckedChange={field.onChange} />
+                                            <Checkbox
+                                                checked={field.value}
+                                                onCheckedChange={field.onChange}
+                                            />
                                         </FormControl>
-                                        <FormLabel className="font-normal">Has Service Animal</FormLabel>
+                                        <FormLabel className="font-normal">
+                                            Has Service Animal
+                                        </FormLabel>
                                     </FormItem>
                                 </div>
                                 <FormMessage />
@@ -1241,7 +1269,10 @@ export default function ClientForm({ defaultValues, onSubmit }: Props) {
                             render={({ field }) => (
                                 <FormItem className="mt-2">
                                     <FormControl>
-                                        <Input {...field} placeholder="Specify other limitations..." />
+                                        <Input
+                                            {...field}
+                                            placeholder="Specify other limitations..."
+                                        />
                                     </FormControl>
                                     <FormMessage />
                                 </FormItem>

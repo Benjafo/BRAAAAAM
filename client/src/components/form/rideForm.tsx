@@ -290,14 +290,6 @@ export default function EditRideForm({
     const [clientOpen, setClientOpen] = useState(false);
     const [driverOpen, setDriverOpen] = useState(false);
 
-    const handleFormSubmit = (values: RideFormValues) => {
-        // Validate custom fields before submitting
-        const isValid = dynamicFieldsRef.current?.validateCustomFields(values.customFields || {});
-        if (!isValid) return;
-
-        onSubmit(values);
-    };
-
     if (isLoading) {
         return (
             <div className="h-full flex items-center justify-center">
@@ -314,7 +306,28 @@ export default function EditRideForm({
             <form
                 id="create-ride-form"
                 className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-6 w-full items-start pt-5"
-                onSubmit={form.handleSubmit(handleFormSubmit)}
+                onSubmit={form.handleSubmit(
+                    async (values) => {
+                        // Success handler - all regular fields are valid (AI help)
+                        // Now validate custom fields
+                        const customFieldsValid = dynamicFieldsRef.current?.validateCustomFields(
+                            values.customFields || {}
+                        );
+
+                        if (!customFieldsValid) {
+                            return; // Custom fields invalid, stop here
+                        }
+
+                        // Everything is valid, proceed
+                        onSubmit(values);
+                    },
+                    async () => {
+                        // ALSO validate custom fields to show those errors too
+                        dynamicFieldsRef.current?.validateCustomFields(
+                            form.getValues("customFields") || {}
+                        );
+                    }
+                )}
             >
                 {/* Basic Information Section */}
                 <div className="md:col-span-2">
