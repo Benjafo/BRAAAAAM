@@ -49,6 +49,17 @@ export const PERMISSIONS = {
     ORGANIZATIONS_READ: "organizations.read",
     ORGANIZATIONS_CREATE: "organizations.create",
     ORGANIZATIONS_UPDATE: "organizations.update",
+
+    // Volunteer Records - Own
+    OWN_VOLUNTEER_RECORDS_READ: "ownvolunteer-records.read",
+    OWN_VOLUNTEER_RECORDS_CREATE: "ownvolunteer-records.create",
+    OWN_VOLUNTEER_RECORDS_UPDATE: "ownvolunteer-records.update",
+    OWN_VOLUNTEER_RECORDS_DELETE: "ownvolunteer-records.delete",
+
+    // Volunteer Records - All
+    ALL_VOLUNTEER_RECORDS_READ: "allvolunteer-records.read",
+    ALL_VOLUNTEER_RECORDS_UPDATE: "allvolunteer-records.update",
+    ALL_VOLUNTEER_RECORDS_DELETE: "allvolunteer-records.delete",
 } as const;
 
 export type Permission = (typeof PERMISSIONS)[keyof typeof PERMISSIONS];
@@ -76,6 +87,15 @@ export const PERMISSION_GROUPS = {
         PERMISSIONS.OWN_UNAVAILABILITY_DELETE,
     ],
     Reports: [PERMISSIONS.REPORTS_READ, PERMISSIONS.REPORTS_EXPORT],
+    "Volunteer Records": [
+        PERMISSIONS.OWN_VOLUNTEER_RECORDS_READ,
+        PERMISSIONS.OWN_VOLUNTEER_RECORDS_CREATE,
+        PERMISSIONS.OWN_VOLUNTEER_RECORDS_UPDATE,
+        PERMISSIONS.OWN_VOLUNTEER_RECORDS_DELETE,
+        PERMISSIONS.ALL_VOLUNTEER_RECORDS_READ,
+        PERMISSIONS.ALL_VOLUNTEER_RECORDS_UPDATE,
+        PERMISSIONS.ALL_VOLUNTEER_RECORDS_DELETE,
+    ],
     Administration: [
         PERMISSIONS.ROLES_READ,
         PERMISSIONS.ROLES_CREATE,

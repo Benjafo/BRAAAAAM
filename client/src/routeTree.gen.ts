@@ -16,6 +16,7 @@ import { Route as Char123SubdomainChar125AuthRouteRouteImport } from './routes/{
 import { Route as Char123SubdomainChar125LoginSignInRouteImport } from './routes/{-$subdomain}/_login/sign-in'
 import { Route as Char123SubdomainChar125LoginResetPasswordRouteImport } from './routes/{-$subdomain}/_login/reset-password'
 import { Route as Char123SubdomainChar125LoginForgetPasswordRouteImport } from './routes/{-$subdomain}/_login/forget-password'
+import { Route as Char123SubdomainChar125AuthVolunteerRecordsRouteImport } from './routes/{-$subdomain}/_auth/volunteer-records'
 import { Route as Char123SubdomainChar125AuthUsersRouteImport } from './routes/{-$subdomain}/_auth/users'
 import { Route as Char123SubdomainChar125AuthUnavailabilityRouteImport } from './routes/{-$subdomain}/_auth/unavailability'
 import { Route as Char123SubdomainChar125AuthUnassignedRidesRouteImport } from './routes/{-$subdomain}/_auth/unassigned-rides'
@@ -65,6 +66,12 @@ const Char123SubdomainChar125LoginForgetPasswordRoute =
     id: '/forget-password',
     path: '/forget-password',
     getParentRoute: () => Char123SubdomainChar125LoginRouteRoute,
+  } as any)
+const Char123SubdomainChar125AuthVolunteerRecordsRoute =
+  Char123SubdomainChar125AuthVolunteerRecordsRouteImport.update({
+    id: '/volunteer-records',
+    path: '/volunteer-records',
+    getParentRoute: () => Char123SubdomainChar125AuthRouteRoute,
   } as any)
 const Char123SubdomainChar125AuthUsersRoute =
   Char123SubdomainChar125AuthUsersRouteImport.update({
@@ -133,6 +140,7 @@ export interface FileRoutesByFullPath {
   '/{-$subdomain}/unassigned-rides': typeof Char123SubdomainChar125AuthUnassignedRidesRoute
   '/{-$subdomain}/unavailability': typeof Char123SubdomainChar125AuthUnavailabilityRoute
   '/{-$subdomain}/users': typeof Char123SubdomainChar125AuthUsersRoute
+  '/{-$subdomain}/volunteer-records': typeof Char123SubdomainChar125AuthVolunteerRecordsRoute
   '/{-$subdomain}/forget-password': typeof Char123SubdomainChar125LoginForgetPasswordRoute
   '/{-$subdomain}/reset-password': typeof Char123SubdomainChar125LoginResetPasswordRoute
   '/{-$subdomain}/sign-in': typeof Char123SubdomainChar125LoginSignInRoute
@@ -148,6 +156,7 @@ export interface FileRoutesByTo {
   '/{-$subdomain}/unassigned-rides': typeof Char123SubdomainChar125AuthUnassignedRidesRoute
   '/{-$subdomain}/unavailability': typeof Char123SubdomainChar125AuthUnavailabilityRoute
   '/{-$subdomain}/users': typeof Char123SubdomainChar125AuthUsersRoute
+  '/{-$subdomain}/volunteer-records': typeof Char123SubdomainChar125AuthVolunteerRecordsRoute
   '/{-$subdomain}/forget-password': typeof Char123SubdomainChar125LoginForgetPasswordRoute
   '/{-$subdomain}/reset-password': typeof Char123SubdomainChar125LoginResetPasswordRoute
   '/{-$subdomain}/sign-in': typeof Char123SubdomainChar125LoginSignInRoute
@@ -167,6 +176,7 @@ export interface FileRoutesById {
   '/{-$subdomain}/_auth/unassigned-rides': typeof Char123SubdomainChar125AuthUnassignedRidesRoute
   '/{-$subdomain}/_auth/unavailability': typeof Char123SubdomainChar125AuthUnavailabilityRoute
   '/{-$subdomain}/_auth/users': typeof Char123SubdomainChar125AuthUsersRoute
+  '/{-$subdomain}/_auth/volunteer-records': typeof Char123SubdomainChar125AuthVolunteerRecordsRoute
   '/{-$subdomain}/_login/forget-password': typeof Char123SubdomainChar125LoginForgetPasswordRoute
   '/{-$subdomain}/_login/reset-password': typeof Char123SubdomainChar125LoginResetPasswordRoute
   '/{-$subdomain}/_login/sign-in': typeof Char123SubdomainChar125LoginSignInRoute
@@ -185,6 +195,7 @@ export interface FileRouteTypes {
     | '/{-$subdomain}/unassigned-rides'
     | '/{-$subdomain}/unavailability'
     | '/{-$subdomain}/users'
+    | '/{-$subdomain}/volunteer-records'
     | '/{-$subdomain}/forget-password'
     | '/{-$subdomain}/reset-password'
     | '/{-$subdomain}/sign-in'
@@ -200,6 +211,7 @@ export interface FileRouteTypes {
     | '/{-$subdomain}/unassigned-rides'
     | '/{-$subdomain}/unavailability'
     | '/{-$subdomain}/users'
+    | '/{-$subdomain}/volunteer-records'
     | '/{-$subdomain}/forget-password'
     | '/{-$subdomain}/reset-password'
     | '/{-$subdomain}/sign-in'
@@ -218,6 +230,7 @@ export interface FileRouteTypes {
     | '/{-$subdomain}/_auth/unassigned-rides'
     | '/{-$subdomain}/_auth/unavailability'
     | '/{-$subdomain}/_auth/users'
+    | '/{-$subdomain}/_auth/volunteer-records'
     | '/{-$subdomain}/_login/forget-password'
     | '/{-$subdomain}/_login/reset-password'
     | '/{-$subdomain}/_login/sign-in'
@@ -277,6 +290,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/{-$subdomain}/forget-password'
       preLoaderRoute: typeof Char123SubdomainChar125LoginForgetPasswordRouteImport
       parentRoute: typeof Char123SubdomainChar125LoginRouteRoute
+    }
+    '/{-$subdomain}/_auth/volunteer-records': {
+      id: '/{-$subdomain}/_auth/volunteer-records'
+      path: '/volunteer-records'
+      fullPath: '/{-$subdomain}/volunteer-records'
+      preLoaderRoute: typeof Char123SubdomainChar125AuthVolunteerRecordsRouteImport
+      parentRoute: typeof Char123SubdomainChar125AuthRouteRoute
     }
     '/{-$subdomain}/_auth/users': {
       id: '/{-$subdomain}/_auth/users'
@@ -354,6 +374,7 @@ interface Char123SubdomainChar125AuthRouteRouteChildren {
   Char123SubdomainChar125AuthUnassignedRidesRoute: typeof Char123SubdomainChar125AuthUnassignedRidesRoute
   Char123SubdomainChar125AuthUnavailabilityRoute: typeof Char123SubdomainChar125AuthUnavailabilityRoute
   Char123SubdomainChar125AuthUsersRoute: typeof Char123SubdomainChar125AuthUsersRoute
+  Char123SubdomainChar125AuthVolunteerRecordsRoute: typeof Char123SubdomainChar125AuthVolunteerRecordsRoute
 }
 
 const Char123SubdomainChar125AuthRouteRouteChildren: Char123SubdomainChar125AuthRouteRouteChildren =
@@ -376,6 +397,8 @@ const Char123SubdomainChar125AuthRouteRouteChildren: Char123SubdomainChar125Auth
       Char123SubdomainChar125AuthUnavailabilityRoute,
     Char123SubdomainChar125AuthUsersRoute:
       Char123SubdomainChar125AuthUsersRoute,
+    Char123SubdomainChar125AuthVolunteerRecordsRoute:
+      Char123SubdomainChar125AuthVolunteerRecordsRoute,
   }
 
 const Char123SubdomainChar125AuthRouteRouteWithChildren =
