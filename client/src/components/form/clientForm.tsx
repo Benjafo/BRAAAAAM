@@ -221,6 +221,7 @@ export type ClientFormValues = z.infer<typeof clientSchema>;
 type Props = {
     defaultValues: Partial<ClientFormValues>;
     onSubmit: (values: ClientFormValues) => void | Promise<void>;
+    viewMode?: boolean;
 };
 
 // Months and Years values, from AI
@@ -245,7 +246,7 @@ const YEARS = Array.from({ length: 100 }, (_, i) => {
     return { value: String(year), label: String(year) };
 });
 /* --------------------------------- Form ----------------------------------- */
-export default function ClientForm({ defaultValues, onSubmit }: Props) {
+export default function ClientForm({ defaultValues, onSubmit, viewMode = false }: Props) {
     const dynamicFieldsRef = useRef<DynamicFormFieldsRef>(null);
     const form = useForm<ClientFormValues>({
         resolver: zodResolver(clientSchema),
@@ -319,7 +320,10 @@ export default function ClientForm({ defaultValues, onSubmit }: Props) {
         <Form {...form}>
             <form
                 id="new-client-form"
-                className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-6 w-full items-start pt-"
+                className={cn(
+                    "grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-6 w-full items-start pt-5",
+                    viewMode && "pointer-events-none opacity-70"
+                )}
                 onSubmit={form.handleSubmit(handleFormSubmit)}
             >
                 {/* Basic Information Section */}

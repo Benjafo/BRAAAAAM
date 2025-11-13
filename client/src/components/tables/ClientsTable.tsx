@@ -87,12 +87,14 @@ function mapClientToFormValues(client: Client): Partial<ClientFormValues> & { id
 
 export function ClientsTable() {
     const [isClientModalOpen, setIsClientModalOpen] = useState(false);
+    const [isViewMode, setIsViewMode] = useState(false);
     const [selectedClientData, setSelectedClientData] = useState<
         Partial<ClientFormValues> & { id?: string }
     >({});
     const [refreshKey, setRefreshKey] = useState(0);
     const hasCreatePermission = useAuthStore((s) => s.hasPermission(PERMISSIONS.CLIENTS_CREATE));
     const hasEditPermission = useAuthStore((s) => s.hasPermission(PERMISSIONS.CLIENTS_UPDATE));
+    const hasReadPermission = useAuthStore((s) => s.hasPermission(PERMISSIONS.CLIENTS_READ));
 
     // hacky fix to force refresh for the custom fields
     const handleRefresh = () => {
@@ -120,11 +122,13 @@ export function ClientsTable() {
 
     const handleCreateClient = () => {
         setSelectedClientData({});
+        setIsViewMode(false);
         setIsClientModalOpen(true);
     };
 
     const handleEditClient = (client: Client) => {
         setSelectedClientData(mapClientToFormValues(client));
+        setIsViewMode(!hasEditPermission); // View mode if no edit permission
         setIsClientModalOpen(true);
     };
 
@@ -165,7 +169,7 @@ export function ClientsTable() {
                         id: "status",
                     },
                 ]}
-                onRowClick={hasEditPermission ? handleEditClient : undefined}
+                onRowClick={hasReadPermission ? handleEditClient : undefined}
                 actionButton={
                     hasCreatePermission
                         ? {
@@ -180,6 +184,7 @@ export function ClientsTable() {
                 onOpenChange={setIsClientModalOpen}
                 defaultValues={selectedClientData}
                 onSuccess={handleRefresh}
+                viewMode={isViewMode}
             />
         </>
     );

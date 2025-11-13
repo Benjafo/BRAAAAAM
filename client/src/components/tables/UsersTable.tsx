@@ -72,12 +72,14 @@ function mapUserToFormValues(user: TableUser): Partial<UserFormValues> & { id: s
 
 export function UsersTable() {
     const [isUserModalOpen, setIsUserModalOpen] = useState(false);
+    const [isViewMode, setIsViewMode] = useState(false);
     const [selectedUserData, setSelectedUserData] = useState<
         Partial<UserFormValues> & { id?: string }
     >({});
     const [refreshKey, setRefreshKey] = useState(0);
     const hasCreatePermission = useAuthStore((s) => s.hasPermission(PERMISSIONS.USERS_CREATE));
     const hasEditPermission = useAuthStore((s) => s.hasPermission(PERMISSIONS.USERS_UPDATE));
+    const hasReadPermission = useAuthStore((s) => s.hasPermission(PERMISSIONS.USERS_READ));
 
     const handleRefresh = () => {
         setRefreshKey((prev) => prev + 1);
@@ -129,11 +131,13 @@ export function UsersTable() {
 
     const handleCreateUser = () => {
         setSelectedUserData({});
+        setIsViewMode(false);
         setIsUserModalOpen(true);
     };
 
     const handleEditUser = (user: TableUser) => {
         setSelectedUserData(mapUserToFormValues(user));
+        setIsViewMode(!hasEditPermission); // View mode if no edit permission
         setIsUserModalOpen(true);
     };
 
@@ -178,7 +182,7 @@ export function UsersTable() {
                         id: "role",
                     },
                 ]}
-                onRowClick={hasEditPermission ? handleEditUser : undefined}
+                onRowClick={hasReadPermission ? handleEditUser : undefined}
                 actionButton={
                     hasCreatePermission
                         ? {
@@ -193,6 +197,7 @@ export function UsersTable() {
                 onOpenChange={setIsUserModalOpen}
                 defaultValues={selectedUserData}
                 onSuccess={handleRefresh}
+                viewMode={isViewMode}
             />
         </>
     );

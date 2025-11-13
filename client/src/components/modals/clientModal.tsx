@@ -17,15 +17,17 @@ type NewClientModalProps = {
     open: boolean;
     onOpenChange: (open: boolean) => void;
     onSuccess?: () => void;
+    viewMode?: boolean;
 };
 export default function ClientModal({
     defaultValues = {},
     open,
     onOpenChange,
     onSuccess,
+    viewMode = false,
 }: NewClientModalProps) {
     const isEditing = Boolean(defaultValues.id);
-    const modalTitle = isEditing ? "Edit Client" : "New Client";
+    const modalTitle = viewMode ? "View Client" : isEditing ? "Edit Client" : "New Client";
     const successMessage = isEditing ? "Client Updated" : "New Client Created";
 
     console.log("Default Values:", defaultValues);
@@ -102,14 +104,16 @@ export default function ClientModal({
                     <DialogTitle>{modalTitle}</DialogTitle>
                 </DialogHeader>
 
-                <ClientForm onSubmit={handleSubmit} defaultValues={defaultValues} />
+                <ClientForm onSubmit={handleSubmit} defaultValues={defaultValues} viewMode={viewMode} />
                 <DialogFooter className="flex flex-row justify-end gap-3 mt-3">
                     <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
-                        Cancel
+                        {viewMode ? "Close" : "Cancel"}
                     </Button>
-                    <Button type="submit" form="new-client-form">
-                        Save
-                    </Button>
+                    {!viewMode && (
+                        <Button type="submit" form="new-client-form">
+                            Save
+                        </Button>
+                    )}
                 </DialogFooter>
             </DialogContent>
         </Dialog>

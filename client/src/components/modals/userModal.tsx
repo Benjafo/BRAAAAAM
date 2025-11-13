@@ -25,6 +25,7 @@ type NewUserModalProps = {
     open: boolean;
     onOpenChange: (open: boolean) => void;
     onSuccess?: () => void;
+    viewMode?: boolean;
 };
 
 export default function NewUserModal({
@@ -32,13 +33,14 @@ export default function NewUserModal({
     open,
     onOpenChange,
     onSuccess,
+    viewMode = false,
 }: NewUserModalProps) {
     const [roles, setRoles] = useState<Role[]>([]);
     const [isLoadingRoles, setIsLoadingRoles] = useState(false);
 
     // Determine if we're editing based on whether ID is present
     const isEditing = Boolean(defaultValues.id);
-    const modalTitle = isEditing ? "Edit User" : "New User";
+    const modalTitle = viewMode ? "View User" : isEditing ? "Edit User" : "New User";
     const successMessage = isEditing ? "User Updated" : "New User Created";
 
     console.log("Default Values:", defaultValues);
@@ -143,14 +145,17 @@ export default function NewUserModal({
                     defaultValues={defaultValues}
                     availableRoles={roles}
                     isLoadingRoles={isLoadingRoles}
+                    viewMode={viewMode}
                 />
                 <DialogFooter className="flex flex-row justify-end gap-3 mt-3">
                     <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
-                        Cancel
+                        {viewMode ? "Close" : "Cancel"}
                     </Button>
-                    <Button type="submit" form="new-user-form">
-                        Save
-                    </Button>
+                    {!viewMode && (
+                        <Button type="submit" form="new-user-form">
+                            Save
+                        </Button>
+                    )}
                 </DialogFooter>
             </DialogContent>
         </Dialog>

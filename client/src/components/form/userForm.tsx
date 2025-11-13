@@ -255,6 +255,7 @@ type Props = {
     onSubmit: (values: UserFormValues) => void | Promise<void>;
     availableRoles?: Role[];
     isLoadingRoles?: boolean;
+    viewMode?: boolean;
 };
 
 const MONTHS = [
@@ -283,6 +284,7 @@ export default function UserForm({
     onSubmit,
     availableRoles = [],
     isLoadingRoles,
+    viewMode = false,
 }: Props) {
     const dynamicFieldsRef = useRef<DynamicFormFieldsRef>(null);
 
@@ -387,7 +389,10 @@ export default function UserForm({
         <Form {...form}>
             <form
                 id="new-user-form"
-                className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-6 w-full items-start"
+                className={cn(
+                    "grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-6 w-full items-start",
+                    viewMode && "pointer-events-none opacity-70"
+                )}
                 onSubmit={form.handleSubmit(handleFormSubmit)}
             >
                 {/* Basic Information Section */}

@@ -209,7 +209,9 @@ export function DataTable<T extends Record<string, unknown>>({
     // (ai made this function)
     React.useEffect(() => {
         if (onRowSelectionChange) {
-            const selectedRows = table.getFilteredSelectedRowModel().rows.map((row) => row.original);
+            const selectedRows = table
+                .getFilteredSelectedRowModel()
+                .rows.map((row) => row.original);
             onRowSelectionChange(selectedRows);
         }
     }, [rowSelection, data, onRowSelectionChange, table]);
