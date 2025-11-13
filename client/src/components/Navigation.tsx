@@ -138,6 +138,11 @@ export const MainNavigation = ({
             permission: PERMISSIONS.USERS_READ,
         },
         {
+            text: "Volunteer Reporting",
+            link: "/{-$subdomain}/volunteer-records",
+            permission: [PERMISSIONS.OWN_VOLUNTEER_RECORDS_READ, PERMISSIONS.ALL_VOLUNTEER_RECORDS_READ],
+        },
+        {
             text: "Reports",
             link: "/{-$subdomain}/reports",
             permission: PERMISSIONS.REPORTS_EXPORT,

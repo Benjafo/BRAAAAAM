@@ -11,7 +11,7 @@ import { Label } from "../ui/label";
 interface SaveTemplateModalProps {
     open: boolean;
     onOpenChange: (open: boolean) => void;
-    entityType: "clients" | "users" | "appointments";
+    entityType: "clients" | "users" | "appointments" | "volunteerRecords";
     selectedColumns: ColumnDefinition[];
     onTemplateSaved?: () => void;
 }
