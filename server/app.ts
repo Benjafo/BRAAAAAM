@@ -41,6 +41,7 @@ import { withOrg } from "./middleware/with-org.js";
 import { hashPassword } from "./utils/password.js";
 import { withAuthRouting } from "./middleware/with-auth-routing.js";
 import { initializeEmailTransporter } from "./utils/email.js";
+import { initializeScheduler } from "./utils/scheduler.js";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -87,10 +88,12 @@ app.use(cookieParser());
 
 // Preload system and organization database pools on server start
 // Note: this only creates the pools once, other calls reuse them.
+// Preload email transporter and scheduler as well
 (async () => {
     getSysDb();
     await preloadOrgPools();
     initializeEmailTransporter();
+    initializeScheduler();
 })().catch((e) => {
     console.error("Startup error:", e);
     process.exit(1);

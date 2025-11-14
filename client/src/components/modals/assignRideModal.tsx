@@ -114,15 +114,11 @@ export default function AssignRideModal({
                         driverIds,
                     },
                 })
-                .json<{ message: string; successCount: number; failureCount: number }>();
+                .json<{ message: string; queuedCount: number }>();
 
-            if (response.failureCount > 0) {
-                toast.warning(
-                    `${response.successCount} driver(s) notified. ${response.failureCount} failed.`
-                );
-            } else {
-                toast.success(response.message);
-            }
+            toast.success(
+                `${response.message} Emails will be sent at end of business day.`
+            );
         } catch (error) {
             console.error("Failed to notify drivers:", error);
             toast.error("Failed to send notifications. Please try again.");

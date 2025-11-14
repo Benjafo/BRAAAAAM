@@ -7,6 +7,8 @@ import {
     customFormResponses,
     customForms,
     locations,
+    messages,
+    messageRecipients,
     roles,
     users,
     userUnavailability,
@@ -14,7 +16,6 @@ import {
 import { findOrCreateLocation } from "../utils/locations.js";
 import { hasPermission } from "../utils/permissions.js";
 import { applyQueryFilters } from "../utils/queryParams.js";
-import { sendDriverNotificationEmail } from "../utils/email.js";
 
 /*
  * Example Output
@@ -691,33 +692,35 @@ export const notifyDrivers = async (req: Request, res: Response): Promise<Respon
             return res.status(404).json({ message: "No drivers found" });
         }
 
-        // Prepare ride details
-        const rideDetails = {
-            pickupAddress: appointment.pickupAddress || "Not specified",
-            dropoffAddress: appointment.dropoffAddress || "Not specified",
-            pickupTime: `${appointment.startDate} ${appointment.startTime}`,
-        };
+        // Create a queued message for this ride notification
+        const subject = "New Ride Notification - Action Required";
+        const body = `You have been notified about a new ride opportunity for ${appointment.startDate} at ${appointment.startTime}. Details will be sent in your daily notification email.`;
 
-        // Send emails to all drivers
-        const emailPromises = drivers.map((driver) =>
-            sendDriverNotificationEmail(
-                driver.email,
-                `${driver.firstName} ${driver.lastName}`,
-                rideDetails
-            )
+        const [message] = await db
+            .insert(messages)
+            .values({
+                senderId: userId,
+                appointmentId: appointmentId,
+                messageType: "Email",
+                subject,
+                body,
+                status: "pending",
+                priority: "normal", // Use 'immediate' for urgent notifications
+                scheduledSendTime: null, // Will be calculated by scheduler based on org close time
+            })
+            .returning({ id: messages.id });
+
+        // Add all drivers as recipients
+        await db.insert(messageRecipients).values(
+            driverIds.map((driverId) => ({
+                messageId: message.id,
+                userId: driverId,
+            }))
         );
 
-        const results = await Promise.allSettled(emailPromises);
-
-        // Count successes and failures
-        const successCount = results.filter((r) => r.status === "fulfilled" && r.value === true).length;
-        const failureCount = results.length - successCount;
-
         return res.status(200).json({
-            message: `Notifications sent to ${successCount} driver(s)`,
-            successCount,
-            failureCount,
-            totalDrivers: drivers.length,
+            message: `Notifications queued for ${driverIds.length} driver(s)`,
+            queuedCount: driverIds.length,
         });
     } catch (err) {
         console.error("Error notifying drivers:", err);

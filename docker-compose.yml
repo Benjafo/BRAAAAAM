@@ -31,6 +31,18 @@ services:
       # - MIGRATE_ON_START=${MIGRATE_ON_START:-false} # <-- set to false to skip applying migrations on start
       - MIGRATE_ON_START=true
       - ENABLE_PGADMIN=true
+      # Email configuration
+      - SMTP_HOST=${SMTP_HOST}
+      - SMTP_PORT=${SMTP_PORT}
+      - SMTP_USER=${SMTP_USER}
+      - SMTP_PASS=${SMTP_PASS}
+      - SMTP_FROM_EMAIL=${SMTP_FROM_EMAIL}
+      - SMTP_FROM_NAME=${SMTP_FROM_NAME}
+      # Email scheduler configuration
+      - EMAIL_JOB_CRON=${EMAIL_JOB_CRON:-*/15 * * * *}
+      - CRON_TIMEZONE=${CRON_TIMEZONE:-America/New_York}
+      - DEFAULT_ORG_CLOSE_TIME=${DEFAULT_ORG_CLOSE_TIME:-17:00}
+      - EMAIL_BATCH_SIZE=${EMAIL_BATCH_SIZE:-50}
     volumes:
       - ./server:/app/server
       - /app/server/node_modules
@@ -62,6 +74,11 @@ services:
       - SMTP_PASS=${SMTP_PASS}
       - SMTP_FROM_EMAIL=${SMTP_FROM_EMAIL}
       - SMTP_FROM_NAME=${SMTP_FROM_NAME}
+      # Email scheduler configuration
+      - EMAIL_JOB_CRON=${EMAIL_JOB_CRON:-*/15 * * * *}
+      - CRON_TIMEZONE=${CRON_TIMEZONE:-America/New_York}
+      - DEFAULT_ORG_CLOSE_TIME=${DEFAULT_ORG_CLOSE_TIME:-17:00}
+      - EMAIL_BATCH_SIZE=${EMAIL_BATCH_SIZE:-50}
     depends_on:
       postgres:
         condition: service_healthy

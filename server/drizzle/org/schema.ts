@@ -40,6 +40,7 @@ export const genderOptions = pgEnum("gender_options", ["Male", "Female", "Other"
 export const tripType = pgEnum("trip_type", ["roundTrip", "oneWayFrom", "oneWayTo"]);
 export const messageStatus = pgEnum("message_status", ["sent", "pending", "failed"]);
 export const messageType = pgEnum("message_type", ["Email", "Text Message"]);
+export const messagePriority = pgEnum("message_priority", ["normal", "immediate"]);
 export const permissionAction = pgEnum("permission_action", [
     "read",
     "create",
@@ -502,10 +503,14 @@ export const messages = pgTable(
     {
         id: uuid().defaultRandom().primaryKey().notNull(),
         senderId: uuid("sender_id"),
+        appointmentId: uuid("appointment_id"),
         messageType: messageType("message_type").default("Email").notNull(),
         subject: varchar({ length: 255 }).notNull(),
         body: text().notNull(),
         status: messageStatus().default("pending").notNull(),
+        priority: messagePriority().default("normal").notNull(),
+        scheduledSendTime: timestamp("scheduled_send_time", { withTimezone: true, mode: "string" }),
+        sentAt: timestamp("sent_at", { withTimezone: true, mode: "string" }),
         createdAt: timestamp("created_at", { withTimezone: true, mode: "string" })
             .defaultNow()
             .notNull(),
@@ -515,6 +520,11 @@ export const messages = pgTable(
             columns: [table.senderId],
             foreignColumns: [users.id],
             name: "messages_sender_id_fkey",
+        }),
+        foreignKey({
+            columns: [table.appointmentId],
+            foreignColumns: [appointments.id],
+            name: "messages_appointment_id_fkey",
         }),
     ]
 );
