@@ -40,6 +40,8 @@ import { withAuth } from "./middleware/with-auth.js";
 import { withOrg } from "./middleware/with-org.js";
 import { hashPassword } from "./utils/password.js";
 import { withAuthRouting } from "./middleware/with-auth-routing.js";
+import { attachAuditLogMiddleware } from "./middleware/audit-log-middleware.js";
+import { listAuditLogs } from "./controllers/org.audit-log.controller.js";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -455,7 +457,9 @@ app.get("/test/o/:orgId/create-client", withOrg, async (req: Request, res: Respo
 });
 
 // API routes
-app.use("/api", apiRouter);
+// app.use("/api", apiRouter);
+
+app.use(attachAuditLogMiddleware);
 
 // Authentication routes
 app.use("/auth", withAuthRouting);
@@ -471,6 +475,7 @@ app.use("/o/settings/roles", withAuth, withOrg, rolesRouter);
 app.use("/o/settings/locations", withAuth, withOrg, locationsRouter);
 app.use("/o/custom-forms", withAuth, withOrg, customFormsRouter);
 app.use("/o/volunteer-records", withAuth, withOrg, volunteerRecordsRouter);
+app.get('/o/audit-logs', withAuth, withOrg, listAuditLogs); //this is not a router
 
 // Protected system-scoped routes with authentication
 app.use("/s/settings", withAuth, sysSettingsRouter);

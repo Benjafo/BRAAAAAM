@@ -289,6 +289,8 @@ export const createClient = async (req: Request, res: Response): Promise<Respons
             })
             .returning(); // Return full client row
 
+        let customFormFieldsRecord;
+
         // Save custom field responses if provided
         const customFields = req.body.customFields;
         if (customFields && Object.keys(customFields).length > 0) {
@@ -298,15 +300,28 @@ export const createClient = async (req: Request, res: Response): Promise<Respons
                 .where(and(eq(customForms.targetEntity, "client"), eq(customForms.isActive, true)));
 
             if (clientForm) {
-                await db.insert(customFormResponses).values({
+                const clientCustomFormFields = await db.insert(customFormResponses).values({
                     formId: clientForm.id,
                     entityId: newClient.id,
                     entityType: "client",
                     responseData: customFields,
                     submittedBy: req.user?.id,
                 });
+
+                customFormFieldsRecord = customFields;
             }
         }
+
+        req.auditLog({
+            actionType: "appointment.created",
+            objectId: newClient.id,
+            objectType: "appointment",
+            actionMessage: `Appointment created with ID ${newClient.id}`,
+            actionDetails: { 
+                client: newClient,
+                customFormFields: customFormFieldsRecord || null,
+             },
+        });
 
         return res.status(201).json(newClient);
     } catch (err) {
@@ -447,6 +462,8 @@ export const updateClient = async (req: Request, res: Response): Promise<Respons
             return res.status(404).json({ message: "Client not found" });
         }
 
+        let customFormFieldsRecord;
+
         // Update custom field responses if provided
         const customFields = req.body.customFields;
         if (customFields) {
@@ -470,7 +487,7 @@ export const updateClient = async (req: Request, res: Response): Promise<Respons
 
                 if (existingResponse) {
                     // Update existing response
-                    await db
+                     const clientCustomFormFields = await db
                         .update(customFormResponses)
                         .set({
                             responseData: customFields,
@@ -478,18 +495,33 @@ export const updateClient = async (req: Request, res: Response): Promise<Respons
                             updatedAt: new Date().toISOString(),
                         })
                         .where(eq(customFormResponses.id, existingResponse.id));
+
+                    customFormFieldsRecord = clientCustomFormFields;
                 } else {
                     // Create new response
-                    await db.insert(customFormResponses).values({
+                    const clientCustomFormFields = await db.insert(customFormResponses).values({
                         formId: clientForm.id,
                         entityId: clientId,
                         entityType: "client",
                         responseData: customFields,
                         submittedBy: req.user?.id,
                     });
+
+                    customFormFieldsRecord = clientCustomFormFields;
                 }
             }
         }
+
+        req.auditLog({
+            actionType: "client.updated",
+            objectId: updatedClient.id,
+            objectType: "client",
+            actionMessage: `Client updated with ID ${updatedClient.id}`,
+            actionDetails: { 
+                client: updatedClient,
+                customFormFields: customFormFieldsRecord || null,
+             },
+        });
 
         return res.status(200).json(updatedClient);
     } catch (err) {
@@ -512,6 +544,13 @@ export const deleteClient = async (req: Request, res: Response): Promise<Respons
         if (result.rowCount === 0) {
             return res.status(404).json({ message: "Client not found" });
         }
+
+        req.auditLog({
+            actionType: "client.deleted",
+            objectId: clientId,
+            objectType: "client",
+            actionMessage: `Client deleted with ID ${clientId}`,
+        });
 
         return res.status(204).send();
     } catch (err) {

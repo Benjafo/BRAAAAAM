@@ -20,6 +20,7 @@ declare global {
                 email: string;
                 db: string;
             };
+            auditLog: (entry: AuditLogInsert) => Promise<void>;
         }
     }
 }

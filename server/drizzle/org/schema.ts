@@ -206,7 +206,8 @@ export const auditLogs = pgTable(
         id: uuid().defaultRandom().primaryKey().notNull(),
         userId: uuid("user_id"),
         objectId: uuid("object_id"),
-        actionType: auditAction("action_type").notNull(),
+        objectType: text("object_type"),
+        actionType: text("action_type").notNull(),
         actionMessage: text("action_message"),
         actionDetails: jsonb("action_details").default({}).notNull(),
         createdAt: timestamp("created_at", { withTimezone: true, mode: "string" })
@@ -219,6 +220,11 @@ export const auditLogs = pgTable(
         index("idx_audit_created_at").using(
             "btree",
             table.createdAt.asc().nullsLast().op("timestamptz_ops")
+        ),
+        index("idx_audit_user_created_at").using(
+            "btree",
+            table.userId.asc().nullsLast(),
+            table.createdAt.desc().nullsLast()
         ),
         index("idx_audit_details_gin").using(
             "gin",
