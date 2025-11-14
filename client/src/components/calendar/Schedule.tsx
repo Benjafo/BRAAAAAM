@@ -149,6 +149,11 @@ export default function Schedule() {
         Partial<RideFormValues> & { id?: string }
     >({});
     const [acceptRideData, setAcceptRideData] = useState<any>(null);
+    const [refreshKey, setRefreshKey] = useState(0);
+
+    const handleRefresh = () => {
+        setRefreshKey((prev) => prev + 1);
+    };
 
     const user = useAuthStore((s) => s.user);
     const hasCreatePermission = useAuthStore((s) =>
@@ -182,7 +187,7 @@ export default function Schedule() {
         };
 
         fetchRides();
-    }, []);
+    }, [refreshKey]);
 
     // Handle ride selection
     const handleRideSelect = (event: CalendarEvent) => {
@@ -273,15 +278,13 @@ export default function Schedule() {
                 onOpenChange={setIsRideModalOpen}
                 defaultValues={selectedRideData}
                 viewMode={isViewMode}
+                onSuccess={handleRefresh}
             />
             <AcceptRideModal
                 open={isAcceptRideModalOpen}
                 onOpenChange={setIsAcceptRideModalOpen}
                 rideData={acceptRideData}
-                onAccept={() => {
-                    // Refresh rides after accepting
-                    window.location.reload();
-                }}
+                onAccept={handleRefresh}
             />
         </div>
     );

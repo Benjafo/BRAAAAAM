@@ -148,6 +148,11 @@ export default function UnassignedRides() {
         Partial<RideFormValues> & { id?: string }
     >({});
     const [acceptRideData, setAcceptRideData] = useState<any>(null);
+    const [refreshKey, setRefreshKey] = useState(0);
+
+    const handleRefresh = () => {
+        setRefreshKey((prev) => prev + 1);
+    };
 
     const hasAllPermission = useAuthStore((s) =>
         s.hasPermission(PERMISSIONS.ALL_APPOINTMENTS_READ)
@@ -181,7 +186,7 @@ export default function UnassignedRides() {
         };
 
         fetchUnassignedRides();
-    }, []);
+    }, [refreshKey]);
 
     // Handle ride selection - for assigning driver
     const handleRideSelect = (event: CalendarEvent) => {
@@ -249,15 +254,13 @@ export default function UnassignedRides() {
                 open={isRideModalOpen}
                 onOpenChange={setIsRideModalOpen}
                 defaultValues={selectedRideData}
+                onSuccess={handleRefresh}
             />
             <AcceptRideModal
                 open={isAcceptRideModalOpen}
                 onOpenChange={setIsAcceptRideModalOpen}
                 rideData={acceptRideData}
-                onAccept={() => {
-                    // Refresh rides after accepting
-                    window.location.reload();
-                }}
+                onAccept={handleRefresh}
             />
         </div>
     );
