@@ -122,11 +122,11 @@ export const MainNavigation = ({
             link: "/{-$subdomain}/unavailability",
             permission: [PERMISSIONS.OWN_UNAVAILABILITY_READ, PERMISSIONS.ALL_UNAVAILABILITY_READ],
         },
-        // {
-        //     text: "Notifications",
-        //     link: "/notifications",
-        //     permission: PERMISSIONS.VIEW_NOTIFICATIONS,
-        // },
+        {
+            text: "Notifications",
+            link: "/{-$subdomain}/notifications",
+            permission: [PERMISSIONS.OWN_NOTIFICATIONS_READ, PERMISSIONS.ALL_NOTIFICATIONS_READ],
+        },
         {
             text: "Client Management",
             link: "/{-$subdomain}/clients",
@@ -140,7 +140,10 @@ export const MainNavigation = ({
         {
             text: "Volunteer Reporting",
             link: "/{-$subdomain}/volunteer-records",
-            permission: [PERMISSIONS.OWN_VOLUNTEER_RECORDS_READ, PERMISSIONS.ALL_VOLUNTEER_RECORDS_READ],
+            permission: [
+                PERMISSIONS.OWN_VOLUNTEER_RECORDS_READ,
+                PERMISSIONS.ALL_VOLUNTEER_RECORDS_READ,
+            ],
         },
         {
             text: "Reports",

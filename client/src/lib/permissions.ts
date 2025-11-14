@@ -64,6 +64,13 @@ export const PERMISSIONS = {
     ALL_VOLUNTEER_RECORDS_READ: "allvolunteer-records.read",
     ALL_VOLUNTEER_RECORDS_UPDATE: "allvolunteer-records.update",
     ALL_VOLUNTEER_RECORDS_DELETE: "allvolunteer-records.delete",
+
+    // Notifications - Own
+    OWN_NOTIFICATIONS_READ: "ownnotifications.read",
+
+    // Notifications - All
+    ALL_NOTIFICATIONS_READ: "allnotifications.read",
+    ALL_NOTIFICATIONS_UPDATE: "allnotifications.update",
 } as const;
 
 export type Permission = (typeof PERMISSIONS)[keyof typeof PERMISSIONS];

@@ -290,6 +290,31 @@ export const PERMISSIONS: PermissionDefinition[] = [
         action: "update",
         name: "Update All Volunteer Records",
         description: "Modify volunteer hours and miles records for all users",
+    },
+
+    // Notifications - Own (Driver)
+    {
+        permKey: "ownnotifications.read",
+        resource: "ownnotifications",
+        action: "read",
+        name: "View Own Notifications",
+        description: "View notifications sent to you",
+    },
+
+    // Notifications - All (Dispatcher/Admin)
+    {
+        permKey: "allnotifications.read",
+        resource: "allnotifications",
+        action: "read",
+        name: "View All Notifications",
+        description: "View all notifications (queued, sent, failed)",
+    },
+    {
+        permKey: "allnotifications.update",
+        resource: "allnotifications",
+        action: "update",
+        name: "Manage All Notifications",
+        description: "Retry failed or cancel queued notifications",
     }
 
     // Special Permissions

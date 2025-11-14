@@ -23,6 +23,7 @@ import { Route as Char123SubdomainChar125AuthUnassignedRidesRouteImport } from '
 import { Route as Char123SubdomainChar125AuthScheduleRouteImport } from './routes/{-$subdomain}/_auth/schedule'
 import { Route as Char123SubdomainChar125AuthReportsRouteImport } from './routes/{-$subdomain}/_auth/reports'
 import { Route as Char123SubdomainChar125AuthOrganizationsRouteImport } from './routes/{-$subdomain}/_auth/organizations'
+import { Route as Char123SubdomainChar125AuthNotificationsRouteImport } from './routes/{-$subdomain}/_auth/notifications'
 import { Route as Char123SubdomainChar125AuthDashboardRouteImport } from './routes/{-$subdomain}/_auth/dashboard'
 import { Route as Char123SubdomainChar125AuthClientsRouteImport } from './routes/{-$subdomain}/_auth/clients'
 import { Route as Char123SubdomainChar125AuthAdminSettingsRouteImport } from './routes/{-$subdomain}/_auth/admin-settings'
@@ -109,6 +110,12 @@ const Char123SubdomainChar125AuthOrganizationsRoute =
     path: '/organizations',
     getParentRoute: () => Char123SubdomainChar125AuthRouteRoute,
   } as any)
+const Char123SubdomainChar125AuthNotificationsRoute =
+  Char123SubdomainChar125AuthNotificationsRouteImport.update({
+    id: '/notifications',
+    path: '/notifications',
+    getParentRoute: () => Char123SubdomainChar125AuthRouteRoute,
+  } as any)
 const Char123SubdomainChar125AuthDashboardRoute =
   Char123SubdomainChar125AuthDashboardRouteImport.update({
     id: '/dashboard',
@@ -134,6 +141,7 @@ export interface FileRoutesByFullPath {
   '/{-$subdomain}/admin-settings': typeof Char123SubdomainChar125AuthAdminSettingsRoute
   '/{-$subdomain}/clients': typeof Char123SubdomainChar125AuthClientsRoute
   '/{-$subdomain}/dashboard': typeof Char123SubdomainChar125AuthDashboardRoute
+  '/{-$subdomain}/notifications': typeof Char123SubdomainChar125AuthNotificationsRoute
   '/{-$subdomain}/organizations': typeof Char123SubdomainChar125AuthOrganizationsRoute
   '/{-$subdomain}/reports': typeof Char123SubdomainChar125AuthReportsRoute
   '/{-$subdomain}/schedule': typeof Char123SubdomainChar125AuthScheduleRoute
@@ -150,6 +158,7 @@ export interface FileRoutesByTo {
   '/{-$subdomain}/admin-settings': typeof Char123SubdomainChar125AuthAdminSettingsRoute
   '/{-$subdomain}/clients': typeof Char123SubdomainChar125AuthClientsRoute
   '/{-$subdomain}/dashboard': typeof Char123SubdomainChar125AuthDashboardRoute
+  '/{-$subdomain}/notifications': typeof Char123SubdomainChar125AuthNotificationsRoute
   '/{-$subdomain}/organizations': typeof Char123SubdomainChar125AuthOrganizationsRoute
   '/{-$subdomain}/reports': typeof Char123SubdomainChar125AuthReportsRoute
   '/{-$subdomain}/schedule': typeof Char123SubdomainChar125AuthScheduleRoute
@@ -170,6 +179,7 @@ export interface FileRoutesById {
   '/{-$subdomain}/_auth/admin-settings': typeof Char123SubdomainChar125AuthAdminSettingsRoute
   '/{-$subdomain}/_auth/clients': typeof Char123SubdomainChar125AuthClientsRoute
   '/{-$subdomain}/_auth/dashboard': typeof Char123SubdomainChar125AuthDashboardRoute
+  '/{-$subdomain}/_auth/notifications': typeof Char123SubdomainChar125AuthNotificationsRoute
   '/{-$subdomain}/_auth/organizations': typeof Char123SubdomainChar125AuthOrganizationsRoute
   '/{-$subdomain}/_auth/reports': typeof Char123SubdomainChar125AuthReportsRoute
   '/{-$subdomain}/_auth/schedule': typeof Char123SubdomainChar125AuthScheduleRoute
@@ -189,6 +199,7 @@ export interface FileRouteTypes {
     | '/{-$subdomain}/admin-settings'
     | '/{-$subdomain}/clients'
     | '/{-$subdomain}/dashboard'
+    | '/{-$subdomain}/notifications'
     | '/{-$subdomain}/organizations'
     | '/{-$subdomain}/reports'
     | '/{-$subdomain}/schedule'
@@ -205,6 +216,7 @@ export interface FileRouteTypes {
     | '/{-$subdomain}/admin-settings'
     | '/{-$subdomain}/clients'
     | '/{-$subdomain}/dashboard'
+    | '/{-$subdomain}/notifications'
     | '/{-$subdomain}/organizations'
     | '/{-$subdomain}/reports'
     | '/{-$subdomain}/schedule'
@@ -224,6 +236,7 @@ export interface FileRouteTypes {
     | '/{-$subdomain}/_auth/admin-settings'
     | '/{-$subdomain}/_auth/clients'
     | '/{-$subdomain}/_auth/dashboard'
+    | '/{-$subdomain}/_auth/notifications'
     | '/{-$subdomain}/_auth/organizations'
     | '/{-$subdomain}/_auth/reports'
     | '/{-$subdomain}/_auth/schedule'
@@ -340,6 +353,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof Char123SubdomainChar125AuthOrganizationsRouteImport
       parentRoute: typeof Char123SubdomainChar125AuthRouteRoute
     }
+    '/{-$subdomain}/_auth/notifications': {
+      id: '/{-$subdomain}/_auth/notifications'
+      path: '/notifications'
+      fullPath: '/{-$subdomain}/notifications'
+      preLoaderRoute: typeof Char123SubdomainChar125AuthNotificationsRouteImport
+      parentRoute: typeof Char123SubdomainChar125AuthRouteRoute
+    }
     '/{-$subdomain}/_auth/dashboard': {
       id: '/{-$subdomain}/_auth/dashboard'
       path: '/dashboard'
@@ -368,6 +388,7 @@ interface Char123SubdomainChar125AuthRouteRouteChildren {
   Char123SubdomainChar125AuthAdminSettingsRoute: typeof Char123SubdomainChar125AuthAdminSettingsRoute
   Char123SubdomainChar125AuthClientsRoute: typeof Char123SubdomainChar125AuthClientsRoute
   Char123SubdomainChar125AuthDashboardRoute: typeof Char123SubdomainChar125AuthDashboardRoute
+  Char123SubdomainChar125AuthNotificationsRoute: typeof Char123SubdomainChar125AuthNotificationsRoute
   Char123SubdomainChar125AuthOrganizationsRoute: typeof Char123SubdomainChar125AuthOrganizationsRoute
   Char123SubdomainChar125AuthReportsRoute: typeof Char123SubdomainChar125AuthReportsRoute
   Char123SubdomainChar125AuthScheduleRoute: typeof Char123SubdomainChar125AuthScheduleRoute
@@ -385,6 +406,8 @@ const Char123SubdomainChar125AuthRouteRouteChildren: Char123SubdomainChar125Auth
       Char123SubdomainChar125AuthClientsRoute,
     Char123SubdomainChar125AuthDashboardRoute:
       Char123SubdomainChar125AuthDashboardRoute,
+    Char123SubdomainChar125AuthNotificationsRoute:
+      Char123SubdomainChar125AuthNotificationsRoute,
     Char123SubdomainChar125AuthOrganizationsRoute:
       Char123SubdomainChar125AuthOrganizationsRoute,
     Char123SubdomainChar125AuthReportsRoute:

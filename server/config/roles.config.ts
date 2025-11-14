@@ -63,6 +63,10 @@ export const DEFAULT_ROLES: RoleDefinition[] = [
             // Volunteer Records
             "allvolunteer-records.read",
             "allvolunteer-records.update",
+
+            // Notifications
+            "allnotifications.read",
+            "allnotifications.update",
         ],
     },
     {
@@ -93,6 +97,10 @@ export const DEFAULT_ROLES: RoleDefinition[] = [
             "ownvolunteer-records.create",
             "ownvolunteer-records.update",
             "ownvolunteer-records.delete",
+
+            // Notifications
+            "allnotifications.read",
+            "allnotifications.update",
         ],
     },
     {
@@ -107,6 +115,7 @@ export const DEFAULT_ROLES: RoleDefinition[] = [
             "ownunavailability.create",
             "ownunavailability.update",
             "ownunavailability.delete",
+            "ownnotifications.read",
         ],
     },
 ];
