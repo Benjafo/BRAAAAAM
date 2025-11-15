@@ -18,7 +18,8 @@ import { http } from "@/services/auth/serviceResolver";
 import * as React from "react";
 import { toast } from "sonner";
 import { DataTable } from "../dataTable";
-import { ChevronDown } from "lucide-react";
+import { ChevronDown, MoreVertical } from "lucide-react";
+import DriverMatchDetailsModal from "./DriverMatchDetailsModal";
 
 type Driver = {
     id: string;
@@ -30,6 +31,30 @@ type Driver = {
     isActive: boolean;
     roleId: string | null;
     roleName: string | null;
+    matchScore: number;
+    weeklyRideCount: number;
+    maxRidesPerWeek: number | null;
+    matchReasons: string[];
+    scoreBreakdown: {
+        total: number;
+        baseScore: {
+            loadBalancing: number;
+            vehicleMatch: number;
+            mobilityEquipment: number;
+            specialAccommodations: number;
+        };
+        penalties: {
+            unavailable: number;
+            concurrentRide: number;
+            overMaxRides: number;
+        };
+        warnings: {
+            hasUnavailability: boolean;
+            hasConcurrentRide: boolean;
+            isOverMaxRides: boolean;
+            hasVehicleMismatch: boolean;
+        };
+    };
     address: {
         id: string;
         addressLine1: string;
@@ -56,6 +81,8 @@ export default function AssignRideModal({
 }: AssignRideModalProps) {
     const [selectedDrivers, setSelectedDrivers] = React.useState<Driver[]>([]);
     const [isAssigning, setIsAssigning] = React.useState(false);
+    const [selectedDriverForDetails, setSelectedDriverForDetails] = React.useState<Driver | null>(null);
+    const [matchDetailsOpen, setMatchDetailsOpen] = React.useState(false);
 
     const fetchDrivers = React.useCallback(async () => {
         try {
@@ -189,18 +216,41 @@ export default function AssignRideModal({
                             enableSorting: false,
                             cell: ({ row }) => `${row.original.firstName} ${row.original.lastName}`,
                         },
-                        // { header: "Email", accessorKey: "email", enableSorting: false },
-                        // { header: "Phone", accessorKey: "phone", enableSorting: false },
-                        // {
-                        //     header: "Location",
-                        //     accessorKey: "address",
-                        //     enableSorting: false,
-                        //     cell: ({ row }) =>
-                        //         row.original.address
-                        //             ? `${row.original.address.city}, ${row.original.address.state}`
-                        //             : "N/A",
-                        // },
+                        {
+                            header: "Score",
+                            accessorKey: "matchScore",
+                            enableSorting: false,
+                            cell: ({ row }) => (
+                                <span className={`font-semibold ${
+                                    row.original.matchScore >= 70 ? "text-green-600" :
+                                    row.original.matchScore >= 40 ? "text-yellow-600" :
+                                    row.original.matchScore >= 0 ? "text-orange-600" :
+                                    "text-red-600"
+                                }`}>
+                                    {row.original.matchScore}
+                                </span>
+                            ),
+                        },
                     ]}
+                    rowActions={(driver) => (
+                        <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                                <Button variant="ghost" className="h-8 w-8 p-0">
+                                    <MoreVertical className="h-4 w-4" />
+                                </Button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent align="end">
+                                <DropdownMenuItem
+                                    onClick={() => {
+                                        setSelectedDriverForDetails(driver);
+                                        setMatchDetailsOpen(true);
+                                    }}
+                                >
+                                    View Match Details
+                                </DropdownMenuItem>
+                            </DropdownMenuContent>
+                        </DropdownMenu>
+                    )}
                     showFilters={false}
                     usePagination={false}
                 />
@@ -210,6 +260,11 @@ export default function AssignRideModal({
                     </Button>
                 </DialogFooter>
             </DialogContent>
+            <DriverMatchDetailsModal
+                open={matchDetailsOpen}
+                onOpenChange={setMatchDetailsOpen}
+                driver={selectedDriverForDetails}
+            />
         </Dialog>
     );
 }
