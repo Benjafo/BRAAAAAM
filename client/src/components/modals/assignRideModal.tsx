@@ -8,10 +8,17 @@ import {
     DialogHeader,
     DialogTitle,
 } from "@/components/ui/dialog";
+import {
+    DropdownMenu,
+    DropdownMenuContent,
+    DropdownMenuItem,
+    DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { http } from "@/services/auth/serviceResolver";
 import * as React from "react";
 import { toast } from "sonner";
 import { DataTable } from "../dataTable";
+import { ChevronDown } from "lucide-react";
 
 type Driver = {
     id: string;
@@ -100,7 +107,7 @@ export default function AssignRideModal({
         }
     };
 
-    const handleNotifyDrivers = async () => {
+    const handleNotifyDrivers = async (priority: "normal" | "immediate") => {
         if (selectedDrivers.length === 0) return;
 
         setIsAssigning(true);
@@ -112,13 +119,17 @@ export default function AssignRideModal({
                 .post(`o/appointments/${appointmentId}/notify-drivers`, {
                     json: {
                         driverIds,
+                        priority,
                     },
                 })
-                .json<{ message: string; queuedCount: number }>();
+                .json<{ message: string; queuedCount?: number; successCount?: number }>();
 
-            toast.success(
-                `${response.message} Emails will be sent at end of business day.`
-            );
+            const successMessage =
+                priority === "immediate"
+                    ? response.message
+                    : `${response.message} Emails will be sent at end of business day.`;
+
+            toast.success(successMessage);
         } catch (error) {
             console.error("Failed to notify drivers:", error);
             toast.error("Failed to send notifications. Please try again.");
@@ -140,14 +151,26 @@ export default function AssignRideModal({
                     </p>
                 </DialogHeader>
                 <div className="flex flex-row justify-end">
-                    <Button
-                        variant="outline"
-                        className="mr-2"
-                        disabled={selectedDrivers.length === 0 || isAssigning}
-                        onClick={handleNotifyDrivers}
-                    >
-                        Notify Drivers
-                    </Button>
+                    <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                            <Button
+                                variant="outline"
+                                className="mr-2"
+                                disabled={selectedDrivers.length === 0 || isAssigning}
+                            >
+                                {isAssigning ? "Processing..." : "Notify Drivers"}
+                                <ChevronDown className="ml-2 h-4 w-4" />
+                            </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent>
+                            <DropdownMenuItem onClick={() => handleNotifyDrivers("normal")}>
+                                Queue for End of Day
+                            </DropdownMenuItem>
+                            <DropdownMenuItem onClick={() => handleNotifyDrivers("immediate")}>
+                                Send Immediately
+                            </DropdownMenuItem>
+                        </DropdownMenuContent>
+                    </DropdownMenu>
                     <Button
                         variant="default"
                         disabled={selectedDrivers.length !== 1 || isAssigning}

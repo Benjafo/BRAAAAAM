@@ -239,16 +239,30 @@ function shouldSendForOrg(orgId: string): boolean {
     const dayOfWeek = now.getDay();
     const isWeekday = dayOfWeek >= 1 && dayOfWeek <= 5;
 
-    // Only send on weekdays and if current time matches close time
-    return isWeekday && currentTime === closeTime;
+    console.log(`[shouldSendForOrg] orgId: ${orgId}`);
+    console.log(`[shouldSendForOrg] Close time: ${closeTime}, Current time: ${currentTime}`);
+    console.log(`[shouldSendForOrg] Day of week: ${dayOfWeek}, Is weekday: ${isWeekday}`);
+    console.log(
+        `[shouldSendForOrg] Time match: ${currentTime === closeTime}, Final result: ${currentTime === closeTime}`
+    );
+
+    // Send at any time that matches regardless of day, orgs may have schedulws that include weekends
+    return currentTime === closeTime;
 }
 
 // Process pending messages for a specific organization
 async function processPendingMessagesForOrg(db: any, orgId: string): Promise<void> {
+    console.log(`[processPendingMessagesForOrg] Processing org: ${orgId}`);
+
     // Check if it's time to send for this org
     if (!shouldSendForOrg(orgId)) {
+        console.log(`[processPendingMessagesForOrg] Not time to send for org ${orgId}, skipping`);
         return; // Not time yet for this org
     }
+
+    console.log(
+        `[processPendingMessagesForOrg] Time check passed! Proceeding to fetch pending messages...`
+    );
 
     // Get all pending email messages with normal priority (not immediate)
     // Immediate priority messages should be sent right away by a separate process
@@ -298,6 +312,10 @@ async function processPendingMessagesForOrg(db: any, orgId: string): Promise<voi
             )
         )
         .orderBy(messageRecipients.userId, appointments.startDate, appointments.startTime);
+
+    console.log(
+        `[processPendingMessagesForOrg] Found ${pendingMessages.length} pending message(s) matching criteria`
+    );
 
     if (pendingMessages.length === 0) {
         console.log(`No pending messages to send for org ${orgId}`);

@@ -7,12 +7,13 @@ import {
     customFormResponses,
     customForms,
     locations,
-    messages,
     messageRecipients,
+    messages,
     roles,
     users,
     userUnavailability,
 } from "../drizzle/org/schema.js";
+import { sendDriverNotificationEmail } from "../utils/email.js";
 import { findOrCreateLocation } from "../utils/locations.js";
 import { hasPermission } from "../utils/permissions.js";
 import { applyQueryFilters } from "../utils/queryParams.js";
@@ -300,12 +301,10 @@ export const getAppointment = async (req: Request, res: Response): Promise<Respo
         if (!hasAllPermission) {
             // User can only see unassigned appointments or their own
             if (appointment.driverId !== null && appointment.driverId !== userId) {
-                return res
-                    .status(403)
-                    .json({
-                        message:
-                            "You can only view unassigned appointments or appointments assigned to you",
-                    });
+                return res.status(403).json({
+                    message:
+                        "You can only view unassigned appointments or appointments assigned to you",
+                });
             }
         }
 
@@ -632,7 +631,7 @@ export const getMatchingDrivers = async (req: Request, res: Response): Promise<R
 
 export const notifyDrivers = async (req: Request, res: Response): Promise<Response> => {
     const { appointmentId } = req.params;
-    const { driverIds } = req.body;
+    const { driverIds, priority = "normal" } = req.body;
 
     try {
         const db = req.org?.db;
@@ -692,7 +691,7 @@ export const notifyDrivers = async (req: Request, res: Response): Promise<Respon
             return res.status(404).json({ message: "No drivers found" });
         }
 
-        // Create a queued message for this ride notification
+        // Create a message for this ride notification
         const subject = "New Ride Notification - Action Required";
         const body = `You have been notified about a new ride opportunity for ${appointment.startDate} at ${appointment.startTime}. Details will be sent in your daily notification email.`;
 
@@ -705,8 +704,8 @@ export const notifyDrivers = async (req: Request, res: Response): Promise<Respon
                 subject,
                 body,
                 status: "pending",
-                priority: "normal", // Use 'immediate' for urgent notifications
-                scheduledSendTime: null, // Will be calculated by scheduler based on org close time
+                priority: priority as "normal" | "immediate",
+                scheduledSendTime: null,
             })
             .returning({ id: messages.id });
 
@@ -717,6 +716,45 @@ export const notifyDrivers = async (req: Request, res: Response): Promise<Respon
                 userId: driverId,
             }))
         );
+
+        // If immediate priority, send emails now
+        if (priority === "immediate") {
+            let successCount = 0;
+            let failureCount = 0;
+
+            for (const driver of drivers) {
+                const success = await sendDriverNotificationEmail(
+                    driver.email,
+                    `${driver.firstName} ${driver.lastName}`,
+                    {
+                        pickupAddress: appointment.pickupAddress || "Not specified",
+                        dropoffAddress: appointment.dropoffAddress || "Not specified",
+                        pickupTime: `${appointment.startDate} ${appointment.startTime}`,
+                    }
+                );
+
+                if (success) {
+                    successCount++;
+                } else {
+                    failureCount++;
+                }
+            }
+
+            // Update message status
+            await db
+                .update(messages)
+                .set({
+                    status: failureCount === 0 ? "sent" : "failed",
+                    sentAt: new Date().toISOString(),
+                })
+                .where(eq(messages.id, message.id));
+
+            return res.status(200).json({
+                message: `Immediate notifications sent to ${successCount} driver(s)${failureCount > 0 ? `, ${failureCount} failed` : ""}`,
+                successCount,
+                failureCount,
+            });
+        }
 
         return res.status(200).json({
             message: `Notifications queued for ${driverIds.length} driver(s)`,
@@ -750,7 +788,9 @@ export const acceptAppointment = async (req: Request, res: Response): Promise<Re
 
         // Verify the appointment is unassigned
         if (appointment.driverId !== null) {
-            return res.status(400).json({ message: "This ride has already been assigned to a driver" });
+            return res
+                .status(400)
+                .json({ message: "This ride has already been assigned to a driver" });
         }
 
         // Update appointment with driver and status

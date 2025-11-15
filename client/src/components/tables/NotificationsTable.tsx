@@ -5,7 +5,13 @@ import { http } from "@/services/auth/serviceResolver";
 import { useState } from "react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { X } from "lucide-react";
+import {
+    DropdownMenu,
+    DropdownMenuContent,
+    DropdownMenuItem,
+    DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { MoreHorizontal, X } from "lucide-react";
 import { toast } from "sonner";
 import NotificationDetailsModal from "../modals/notificationDetailsModal";
 
@@ -124,28 +130,40 @@ export function NotificationsTable() {
                         },
                         id: "timestamp",
                     },
-                    {
-                        header: "Actions",
-                        id: "actions",
-                        cell: ({ row }) => {
-                            if (!hasUpdatePermission || row.original.status !== "pending") {
-                                return null;
-                            }
-
-                            return (
-                                <Button
-                                    variant="ghost"
-                                    size="sm"
-                                    onClick={(e) => handleCancelNotification(row.original.messageId, e)}
-                                >
-                                    <X className="h-4 w-4 mr-1" />
-                                    Cancel
-                                </Button>
-                            );
-                        },
-                    },
                 ]}
                 onRowClick={handleRowClick}
+                rowActions={
+                    hasUpdatePermission
+                        ? (notification: Notification) => {
+                              if (notification.status !== "pending") {
+                                  return null;
+                              }
+
+                              return (
+                                  <DropdownMenu>
+                                      <DropdownMenuTrigger asChild>
+                                          <Button variant="ghost" className="h-8 w-8 p-0">
+                                              <span className="sr-only">Open menu</span>
+                                              <MoreHorizontal className="h-4 w-4" />
+                                          </Button>
+                                      </DropdownMenuTrigger>
+                                      <DropdownMenuContent align="end">
+                                          <DropdownMenuItem
+                                              onClick={(e) => {
+                                                  e.stopPropagation();
+                                                  handleCancelNotification(notification.messageId, e);
+                                              }}
+                                              className="text-destructive focus:text-destructive"
+                                          >
+                                              <X className="mr-2 h-4 w-4" />
+                                              Cancel
+                                          </DropdownMenuItem>
+                                      </DropdownMenuContent>
+                                  </DropdownMenu>
+                              );
+                          }
+                        : undefined
+                }
             />
             {selectedNotification && (
                 <NotificationDetailsModal
