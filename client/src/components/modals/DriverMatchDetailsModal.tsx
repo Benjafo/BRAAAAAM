@@ -34,6 +34,7 @@ interface Driver {
     maxRidesPerWeek: number | null;
     matchReasons: string[];
     scoreBreakdown: ScoreBreakdown;
+    isPerfectMatch: boolean;
 }
 
 interface DriverMatchDetailsModalProps {
@@ -85,6 +86,21 @@ export default function DriverMatchDetailsModal({
                 </DialogHeader>
 
                 <div className="space-y-6 mt-4">
+                    {/* Perfect Match Banner */}
+                    {driver.isPerfectMatch && (
+                        <div className="border-2 border-green-600 bg-green-50 rounded-lg p-4">
+                            <div className="flex items-center gap-3">
+                                <CheckCircle className="h-6 w-6 text-green-600" />
+                                <div className="flex-1">
+                                    <h4 className="font-bold text-green-900 text-lg">Perfect Match!</h4>
+                                    <p className="text-sm text-green-800">
+                                        This driver meets all requirements with maximum compatibility and no warnings.
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                    )}
+
                     {/* Overall Score */}
                     <div>
                         <h3 className="text-sm font-semibold mb-2">Overall Match Score</h3>

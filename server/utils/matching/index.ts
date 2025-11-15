@@ -4,6 +4,7 @@ export {
     calculateDriverScore,
     calculateScoreBreakdown,
     generateMatchReasons,
+    isPerfectMatch,
 } from "./rideMatching.js";
 export {
     scoreMobilityEquipment,

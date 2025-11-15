@@ -5,6 +5,7 @@ export interface MatchingContext {
     weekRidesMap: Map<string, number>;
     concurrentRidesSet: Set<string>;
     allDriversWeekRides: Array<{ driverId: string; rideCount: number }>;
+    allDriversMaxRides: Array<{ driverId: string; maxRidesPerWeek: number }>;
 }
 
 export interface AppointmentDetails {
@@ -66,6 +67,7 @@ export interface ScoredDriver extends DriverProfile {
     matchReasons: string[];
     weeklyRideCount: number;
     scoreBreakdown: ScoreBreakdown;
+    isPerfectMatch: boolean;
 }
 
 export interface UnavailabilityBlock {

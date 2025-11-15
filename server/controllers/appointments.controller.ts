@@ -18,7 +18,7 @@ import { sendDriverNotificationEmail } from "../utils/email.js";
 import { findOrCreateLocation } from "../utils/locations.js";
 import { hasPermission } from "../utils/permissions.js";
 import { applyQueryFilters } from "../utils/queryParams.js";
-import { calculateDriverScore, generateMatchReasons, calculateScoreBreakdown } from "../utils/matching/index.js";
+import { calculateDriverScore, generateMatchReasons, calculateScoreBreakdown, isPerfectMatch } from "../utils/matching/index.js";
 import type { MatchingContext, ScoredDriver, UnavailabilityBlock } from "../types/matching.types.js";
 
 /*
@@ -720,6 +720,10 @@ export const getMatchingDrivers = async (req: Request, res: Response): Promise<R
                 driverId: r.driverId || "",
                 rideCount: r.rideCount,
             })),
+            allDriversMaxRides: allDrivers.map(d => ({
+                driverId: d.id,
+                maxRidesPerWeek: d.maxRidesPerWeek || 0,
+            })),
         };
 
         // Score each driver
@@ -737,6 +741,7 @@ export const getMatchingDrivers = async (req: Request, res: Response): Promise<R
                     matchReasons: generateMatchReasons(driver, score, context),
                     weeklyRideCount: weekRidesMap.get(driver.id) || 0,
                     scoreBreakdown: calculateScoreBreakdown(driver, context),
+                    isPerfectMatch: isPerfectMatch(driver, context),
                 };
 
                 return scoredDriver;

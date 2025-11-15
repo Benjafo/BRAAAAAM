@@ -1,5 +1,6 @@
 "use client";
 
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
     Dialog,
@@ -55,6 +56,7 @@ type Driver = {
             hasVehicleMismatch: boolean;
         };
     };
+    isPerfectMatch: boolean;
     address: {
         id: string;
         addressLine1: string;
@@ -221,14 +223,21 @@ export default function AssignRideModal({
                             accessorKey: "matchScore",
                             enableSorting: false,
                             cell: ({ row }) => (
-                                <span className={`font-semibold ${
-                                    row.original.matchScore >= 70 ? "text-green-600" :
-                                    row.original.matchScore >= 40 ? "text-yellow-600" :
-                                    row.original.matchScore >= 0 ? "text-orange-600" :
-                                    "text-red-600"
-                                }`}>
-                                    {row.original.matchScore}
-                                </span>
+                                <div className="flex items-center gap-2">
+                                    <span className={`font-semibold ${
+                                        row.original.matchScore >= 70 ? "text-green-600" :
+                                        row.original.matchScore >= 40 ? "text-yellow-600" :
+                                        row.original.matchScore >= 0 ? "text-orange-600" :
+                                        "text-red-600"
+                                    }`}>
+                                        {row.original.matchScore}
+                                    </span>
+                                    {row.original.isPerfectMatch && (
+                                        <Badge variant="default" className="bg-green-600 hover:bg-green-700 text-xs">
+                                            Perfect Match
+                                        </Badge>
+                                    )}
+                                </div>
                             ),
                         },
                     ]}

@@ -136,6 +136,33 @@ export function generateMatchReasons(
 }
 
 /**
+ * Determine if a driver is a perfect match
+ * Perfect match = maximum intrinsic compatibility + no warnings
+ * (Load balancing is NOT considered for perfect match status)
+ */
+export function isPerfectMatch(
+    driver: DriverProfile,
+    context: MatchingContext
+): boolean {
+    const breakdown = calculateScoreBreakdown(driver, context);
+
+    // Perfect intrinsic match (60/60 base score, excluding load balancing)
+    const hasPerfectBaseScore =
+        breakdown.baseScore.vehicleMatch === 25 &&
+        breakdown.baseScore.mobilityEquipment === 20 &&
+        breakdown.baseScore.specialAccommodations === 15;
+
+    // No warnings/penalties
+    const hasNoWarnings =
+        !breakdown.warnings.hasUnavailability &&
+        !breakdown.warnings.hasConcurrentRide &&
+        !breakdown.warnings.isOverMaxRides &&
+        !breakdown.warnings.hasVehicleMismatch;
+
+    return hasPerfectBaseScore && hasNoWarnings;
+}
+
+/**
  * Calculate detailed score breakdown for display in modal
  */
 export function calculateScoreBreakdown(
