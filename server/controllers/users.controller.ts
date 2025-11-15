@@ -207,6 +207,7 @@ export const createUser = async (req: Request, res: Response): Promise<Response>
             canAccommodateOxygen,
             canAccommodateServiceAnimal,
             canAccommodateAdditionalRider,
+            maxRides,
         } = req.body;
 
         if (!firstName || !lastName || !email || !phone) {
@@ -250,6 +251,7 @@ export const createUser = async (req: Request, res: Response): Promise<Response>
                 canAccommodateOxygen: canAccommodateOxygen ?? false,
                 canAccommodateServiceAnimal: canAccommodateServiceAnimal ?? false,
                 canAccommodateAdditionalRider: canAccommodateAdditionalRider ?? false,
+                maxRidesPerWeek: maxRides ?? 0,
                 isDeleted: false,
             })
             .returning();
@@ -395,6 +397,7 @@ export const updateUser = async (req: Request, res: Response): Promise<Response>
                 canAccommodateOxygen: data.canAccommodateOxygen,
                 canAccommodateServiceAnimal: data.canAccommodateServiceAnimal,
                 canAccommodateAdditionalRider: data.canAccommodateAdditionalRider,
+                maxRidesPerWeek: data.maxRides,
                 ...(data.roleId !== undefined && { roleId: data.roleId }),
                 ...(addressId !== undefined && { addressLocation: addressId }),
                 updatedAt: new Date().toISOString(),

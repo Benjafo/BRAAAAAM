@@ -1,6 +1,7 @@
-import { and, eq, inArray, sql } from "drizzle-orm";
+import { and, eq, gte, inArray, lte, sql } from "drizzle-orm";
 import { alias } from "drizzle-orm/pg-core";
 import { Request, Response } from "express";
+import { startOfWeek, endOfWeek } from "date-fns";
 import {
     appointments,
     clients,
@@ -17,6 +18,8 @@ import { sendDriverNotificationEmail } from "../utils/email.js";
 import { findOrCreateLocation } from "../utils/locations.js";
 import { hasPermission } from "../utils/permissions.js";
 import { applyQueryFilters } from "../utils/queryParams.js";
+import { calculateDriverScore, generateMatchReasons, calculateScoreBreakdown } from "../utils/matching/index.js";
+import type { MatchingContext, ScoredDriver, UnavailabilityBlock } from "../types/matching.types.js";
 
 /*
  * Example Output
@@ -530,19 +533,51 @@ export const getMatchingDrivers = async (req: Request, res: Response): Promise<R
         const db = req.org?.db;
         if (!db) return res.status(400).json({ message: "Organization context missing" });
 
-        // Verify appointment exists and get client details
+        // 1. Fetch appointment with location details
+        const pickupLocations = alias(locations, "pickup_locations");
+        const destinationLocations = alias(locations, "destination_locations");
+
         const [appointment] = await db
-            .select()
+            .select({
+                id: appointments.id,
+                clientId: appointments.clientId,
+                startDate: appointments.startDate,
+                startTime: appointments.startTime,
+                estimatedDurationMinutes: appointments.estimatedDurationMinutes,
+                hasAdditionalRider: appointments.hasAdditionalRider,
+                pickupLocation: {
+                    id: pickupLocations.id,
+                    city: pickupLocations.city,
+                    state: pickupLocations.state,
+                    zip: pickupLocations.zip,
+                },
+                destinationLocation: {
+                    id: destinationLocations.id,
+                    city: destinationLocations.city,
+                    state: destinationLocations.state,
+                    zip: destinationLocations.zip,
+                },
+            })
             .from(appointments)
+            .leftJoin(pickupLocations, eq(appointments.pickupLocation, pickupLocations.id))
+            .leftJoin(destinationLocations, eq(appointments.destinationLocation, destinationLocations.id))
             .where(eq(appointments.id, appointmentId));
 
         if (!appointment) {
             return res.status(404).json({ message: "Appointment not found" });
         }
 
-        // Get client details for matching
+        // 2. Get client details for matching
         const [client] = await db
-            .select()
+            .select({
+                id: clients.id,
+                firstName: clients.firstName,
+                lastName: clients.lastName,
+                mobilityEquipment: clients.mobilityEquipment,
+                vehicleTypes: clients.vehicleTypes,
+                hasOxygen: clients.hasOxygen,
+                hasServiceAnimal: clients.hasServiceAnimal,
+            })
             .from(clients)
             .where(eq(clients.id, appointment.clientId));
 
@@ -550,7 +585,7 @@ export const getMatchingDrivers = async (req: Request, res: Response): Promise<R
             return res.status(404).json({ message: "Client not found" });
         }
 
-        // Get all active drivers with their accommodation capabilities
+        // 3. Get all active drivers with capabilities
         const allDrivers = await db
             .select({
                 id: users.id,
@@ -567,6 +602,7 @@ export const getMatchingDrivers = async (req: Request, res: Response): Promise<R
                 canAccommodateOxygen: users.canAccommodateOxygen,
                 canAccommodateServiceAnimal: users.canAccommodateServiceAnimal,
                 canAccommodateAdditionalRider: users.canAccommodateAdditionalRider,
+                maxRidesPerWeek: users.maxRidesPerWeek,
                 address: {
                     id: locations.id,
                     addressLine1: locations.addressLine1,
@@ -582,123 +618,175 @@ export const getMatchingDrivers = async (req: Request, res: Response): Promise<R
             .leftJoin(roles, eq(users.roleId, roles.id))
             .where(sql`${users.isDriver} = true AND ${users.isActive} = true`);
 
-        // Get unavailability blocks for all drivers
         const driverIds = allDrivers.map((d) => d.id);
-        const unavailabilityBlocks =
-            driverIds.length > 0
-                ? await db
-                      .select()
-                      .from(userUnavailability)
-                      .where(inArray(userUnavailability.userId, driverIds))
-                : [];
 
-        // Helper function to check if driver has unavailability during appointment time
-        const hasUnavailability = (driverId: string): boolean => {
-            const driverBlocks = unavailabilityBlocks.filter((block) => block.userId === driverId);
+        // 4. Get unavailability blocks for all drivers
+        const unavailabilityBlocks = driverIds.length > 0
+            ? await db
+                  .select()
+                  .from(userUnavailability)
+                  .where(inArray(userUnavailability.userId, driverIds))
+            : [];
 
-            for (const block of driverBlocks) {
-                if (block.isRecurring) {
-                    // For recurring blocks, check if appointment day matches recurring day
-                    const appointmentDayOfWeek = new Date(appointment.startDate).toLocaleDateString(
-                        "en-US",
-                        { weekday: "long" }
-                    );
-                    if (block.recurringDayOfWeek === appointmentDayOfWeek) {
-                        // Check time overlap if not all-day
-                        if (block.isAllDay) return true;
-                        if (block.startTime && block.endTime && appointment.startTime) {
-                            if (
-                                appointment.startTime >= block.startTime &&
-                                appointment.startTime < block.endTime
-                            ) {
-                                return true;
-                            }
-                        }
-                    }
-                } else {
-                    // For non-recurring blocks, check date and time overlap
-                    if (
-                        appointment.startDate >= block.startDate &&
-                        appointment.startDate <= block.endDate
-                    ) {
-                        if (block.isAllDay) return true;
-                        if (block.startTime && block.endTime && appointment.startTime) {
-                            if (
-                                appointment.startTime >= block.startTime &&
-                                appointment.startTime < block.endTime
-                            ) {
-                                return true;
-                            }
-                        }
-                    }
-                }
+        // 5. Get current week ride counts
+        const appointmentDate = new Date(appointment.startDate);
+        const weekStart = startOfWeek(appointmentDate, { weekStartsOn: 1 }); // Monday
+        const weekEnd = endOfWeek(appointmentDate, { weekStartsOn: 1 }); // Sunday
+
+        const currentWeekRides = driverIds.length > 0
+            ? await db
+                  .select({
+                      driverId: appointments.driverId,
+                      rideCount: sql<number>`count(*)::int`,
+                  })
+                  .from(appointments)
+                  .where(
+                      and(
+                          inArray(appointments.driverId, driverIds),
+                          gte(appointments.startDate, weekStart.toISOString().split("T")[0]),
+                          lte(appointments.startDate, weekEnd.toISOString().split("T")[0]),
+                          inArray(appointments.status, ["Scheduled", "Completed"])
+                      )
+                  )
+                  .groupBy(appointments.driverId)
+            : [];
+
+        // 6. Get concurrent rides (same date)
+        const concurrentRides = await db
+            .select({
+                driverId: appointments.driverId,
+                startTime: appointments.startTime,
+                estimatedDurationMinutes: appointments.estimatedDurationMinutes,
+            })
+            .from(appointments)
+            .where(
+                and(
+                    eq(appointments.startDate, appointment.startDate),
+                    inArray(appointments.status, ["Scheduled", "Unassigned"])
+                )
+            );
+
+        // Build lookup maps for performance
+        const unavailabilityMap = new Map<string, UnavailabilityBlock[]>();
+        for (const block of unavailabilityBlocks) {
+            const existing = unavailabilityMap.get(block.userId) || [];
+            existing.push(block as UnavailabilityBlock);
+            unavailabilityMap.set(block.userId, existing);
+        }
+
+        const weekRidesMap = new Map<string, number>();
+        for (const ride of currentWeekRides) {
+            if (ride.driverId) {
+                weekRidesMap.set(ride.driverId, ride.rideCount);
             }
-            return false;
+        }
+
+        // Check for time overlap in concurrent rides
+        const concurrentRidesSet = new Set<string>();
+        for (const ride of concurrentRides) {
+            if (ride.driverId && checkTimeOverlap(
+                appointment.startTime,
+                appointment.estimatedDurationMinutes || 60,
+                ride.startTime,
+                ride.estimatedDurationMinutes || 60
+            )) {
+                concurrentRidesSet.add(ride.driverId);
+            }
+        }
+
+        // Build matching context
+        const context: MatchingContext = {
+            appointment: {
+                id: appointment.id,
+                startDate: appointment.startDate,
+                startTime: appointment.startTime,
+                estimatedDurationMinutes: appointment.estimatedDurationMinutes,
+                hasAdditionalRider: appointment.hasAdditionalRider,
+                destinationLocation: {
+                    city: appointment.destinationLocation?.city || "",
+                    state: appointment.destinationLocation?.state || "",
+                },
+            },
+            client: {
+                mobilityEquipment: client.mobilityEquipment,
+                vehicleTypes: client.vehicleTypes,
+                hasOxygen: client.hasOxygen,
+                hasServiceAnimal: client.hasServiceAnimal,
+            },
+            unavailabilityMap,
+            weekRidesMap,
+            concurrentRidesSet,
+            allDriversWeekRides: currentWeekRides.map(r => ({
+                driverId: r.driverId || "",
+                rideCount: r.rideCount,
+            })),
         };
 
-        // Calculate score for each driver
-        const driversWithScores = allDrivers.map((driver) => {
-            let score = 0;
+        // Score each driver
+        const scoredDrivers = allDrivers
+            .map((driver) => {
+                const score = calculateDriverScore(driver, context);
 
-            // 1. Availability Check (1 point)
-            if (!hasUnavailability(driver.id)) {
-                score += 1;
-            }
+                if (score === null) {
+                    return null; // Driver failed hard requirements
+                }
 
-            // 2. Mobility Equipment Match (1 point)
-            const clientMobilityEquipment = client.mobilityEquipment || [];
-            const driverCanAccommodate = driver.canAccommodateMobilityEquipment || [];
-            const canAccommodateAllEquipment = clientMobilityEquipment.every(
-                (equipment: "cane" | "crutches" | "lightweight_walker" | "rollator" | "other") =>
-                    driverCanAccommodate.includes(equipment)
-            );
-            if (clientMobilityEquipment.length === 0 || canAccommodateAllEquipment) {
-                score += 1;
-            }
+                const scoredDriver: ScoredDriver = {
+                    ...driver,
+                    matchScore: score,
+                    matchReasons: generateMatchReasons(driver, score, context),
+                    weeklyRideCount: weekRidesMap.get(driver.id) || 0,
+                    scoreBreakdown: calculateScoreBreakdown(driver, context),
+                };
 
-            // 3. Vehicle Type Match (1 point)
-            const clientVehicleTypes = client.vehicleTypes || [];
-            if (
-                clientVehicleTypes.length === 0 ||
-                (driver.vehicleType && clientVehicleTypes.includes(driver.vehicleType))
-            ) {
-                score += 1;
-            }
+                return scoredDriver;
+            })
+            .filter((driver): driver is ScoredDriver => driver !== null)
+            .sort((a, b) => {
+                // Primary sort: score descending
+                if (b.matchScore !== a.matchScore) {
+                    return b.matchScore - a.matchScore;
+                }
 
-            // 4. Oxygen Match (1 point)
-            if (!client.hasOxygen || driver.canAccommodateOxygen) {
-                score += 1;
-            }
+                // Tiebreaker 1: weekly ride count ascending
+                if (a.weeklyRideCount !== b.weeklyRideCount) {
+                    return a.weeklyRideCount - b.weeklyRideCount;
+                }
 
-            // 5. Service Animal Match (1 point)
-            if (!client.hasServiceAnimal || driver.canAccommodateServiceAnimal) {
-                score += 1;
-            }
-
-            // 6. Additional Rider Match (1 point)
-            // Note: Additional rider info may come from appointment in the future
-            // For now, if driver can accommodate, they get the point
-            if (driver.canAccommodateAdditionalRider) {
-                score += 1;
-            }
-
-            return {
-                ...driver,
-                matchScore: score,
-            };
-        });
-
-        // Sort by score (descending) and take top 10
-        const topDrivers = driversWithScores
-            .sort((a, b) => b.matchScore - a.matchScore)
+                // Tiebreaker 2: alphabetical by last name
+                return a.lastName.localeCompare(b.lastName);
+            })
             .slice(0, 10);
 
-        return res.status(200).json({ results: topDrivers });
+        return res.status(200).json({ results: scoredDrivers });
     } catch (err) {
         console.error("Error fetching matching drivers:", err);
         return res.status(500).send();
     }
 };
+
+/**
+ * Helper function to check time overlap
+ */
+function checkTimeOverlap(
+    start1: string,
+    duration1: number,
+    start2: string,
+    duration2: number
+): boolean {
+    const toMinutes = (time: string) => {
+        const [hours, minutes] = time.split(":").map(Number);
+        return hours * 60 + minutes;
+    };
+
+    const start1Minutes = toMinutes(start1);
+    const end1Minutes = start1Minutes + duration1;
+    const start2Minutes = toMinutes(start2);
+    const end2Minutes = start2Minutes + duration2;
+
+    // Overlap if one starts before the other ends
+    return start1Minutes < end2Minutes && start2Minutes < end1Minutes;
+}
 
 export const notifyDrivers = async (req: Request, res: Response): Promise<Response> => {
     const { appointmentId } = req.params;

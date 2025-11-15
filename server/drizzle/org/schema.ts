@@ -155,6 +155,7 @@ export const users = pgTable(
         canAccommodateOxygen: boolean("can_accommodate_oxygen").default(false),
         canAccommodateServiceAnimal: boolean("can_accommodate_service_animal").default(false),
         canAccommodateAdditionalRider: boolean("can_accommodate_additional_rider").default(false),
+        maxRidesPerWeek: integer("max_rides_per_week").default(0),
         isActive: boolean("is_active").default(true),
         isDeleted: boolean("is_deleted").default(false),
         createdAt: timestamp("created_at", { withTimezone: true, mode: "string" })
@@ -449,6 +450,7 @@ export const appointments = pgTable(
         tripType: tripType("trip_type").default("oneWayFrom").notNull(),
         tripPurpose: text("trip_purpose"),
         notes: text(),
+        hasAdditionalRider: boolean("has_additional_rider").default(false),
         donationType: donationType("donation_type").default("None").notNull(),
         donationAmount: numeric("donation_amount", { precision: 10, scale: 2 }),
         milesDriven: integer("miles_driven"),
