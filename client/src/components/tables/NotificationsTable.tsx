@@ -1,8 +1,5 @@
 import { DataTable } from "@/components/dataTable";
 import { useAuthStore } from "@/components/stores/authStore";
-import { PERMISSIONS } from "@/lib/permissions";
-import { http } from "@/services/auth/serviceResolver";
-import { useState } from "react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -11,7 +8,10 @@ import {
     DropdownMenuItem,
     DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { PERMISSIONS } from "@/lib/permissions";
+import { http } from "@/services/auth/serviceResolver";
 import { MoreHorizontal, X } from "lucide-react";
+import { useState } from "react";
 import { toast } from "sonner";
 import NotificationDetailsModal from "../modals/notificationDetailsModal";
 
@@ -106,11 +106,6 @@ export function NotificationsTable() {
                 fetchData={fetchNotifications}
                 columns={[
                     {
-                        header: "Status",
-                        accessorKey: "status",
-                        cell: ({ row }) => getStatusBadge(row.original.status),
-                    },
-                    {
                         header: "Recipient",
                         accessorKey: "recipientName",
                     },
@@ -129,6 +124,11 @@ export function NotificationsTable() {
                             return new Date(date).toLocaleString();
                         },
                         id: "timestamp",
+                    },
+                    {
+                        header: "Status",
+                        accessorKey: "status",
+                        cell: ({ row }) => getStatusBadge(row.original.status),
                     },
                 ]}
                 onRowClick={handleRowClick}
@@ -151,7 +151,10 @@ export function NotificationsTable() {
                                           <DropdownMenuItem
                                               onClick={(e) => {
                                                   e.stopPropagation();
-                                                  handleCancelNotification(notification.messageId, e);
+                                                  handleCancelNotification(
+                                                      notification.messageId,
+                                                      e
+                                                  );
                                               }}
                                               className="text-destructive focus:text-destructive"
                                           >

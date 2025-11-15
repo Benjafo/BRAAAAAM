@@ -10,6 +10,7 @@ import {
     users,
 } from "../drizzle/org/schema.js";
 import { hasPermission } from "../utils/permissions.js";
+import { applyQueryFilters } from "../utils/queryParams.js";
 
 /*
  * Example Notification Output
@@ -210,50 +211,82 @@ export const listEmailNotifications = async (req: Request, res: Response): Promi
             return res.status(403).json({ error: "Insufficient permissions" });
         }
 
-        // Query parameters for filtering
-        const { status, driverId, startDate, endDate } = req.query;
-
         const pickupLocations = alias(locations, "pickup_locations");
         const dropoffLocations = alias(locations, "dropoff_locations");
 
-        // Build where conditions
-        const conditions = [];
+        // Define columns for searching, sorting, and filtering
+        const recipientName = sql<string>`concat(${users.firstName}, ' ', ${users.lastName})`;
+        const clientName = sql<string>`concat(${clients.firstName}, ' ', ${clients.lastName})`;
+        const statusText = sql<string>`${messages.status}::text`;
+        const priorityText = sql<string>`${messages.priority}::text`;
+
+        const searchableColumns = [
+            users.firstName,
+            users.lastName,
+            users.email,
+            messages.subject,
+            messages.body,
+            statusText,
+            priorityText,
+            clients.firstName,
+            clients.lastName,
+        ];
+
+        const sortableColumns: Record<string, any> = {
+            status: messages.status,
+            recipient: users.firstName,
+            recipientName: users.firstName,
+            appointmentDate: appointments.startDate,
+            timestamp: messages.createdAt,
+            createdAt: messages.createdAt,
+            sentAt: messages.sentAt,
+            priority: messages.priority,
+        };
+
+        const filterableColumns: Record<string, any> = {
+            status: statusText,
+            priority: priorityText,
+            recipient: [users.firstName, users.lastName, users.email],
+            recipientName: [users.firstName, users.lastName],
+            client: [clients.firstName, clients.lastName],
+        };
+
+        const { where: filterWhere, orderBy, limit, offset, page, pageSize } = applyQueryFilters(
+            req,
+            searchableColumns,
+            sortableColumns,
+            filterableColumns
+        );
+
+        // Build additional where conditions for permissions
+        const permissionConditions = [];
 
         // Permission-based filtering
         if (!hasAllNotificationsPermission) {
             // Drivers only see their own notifications, excluding pending
-            conditions.push(eq(messageRecipients.userId, userId));
-            conditions.push(ne(messages.status, "pending"));
-        }
-
-        // Status filter
-        if (status && typeof status === "string") {
-            conditions.push(eq(messages.status, status as any));
-        }
-
-        // Driver filter (admin only)
-        if (hasAllNotificationsPermission && driverId && typeof driverId === "string") {
-            conditions.push(eq(messageRecipients.userId, driverId));
-        }
-
-        // Date range filter
-        if (startDate && typeof startDate === "string") {
-            conditions.push(sql`${messages.createdAt} >= ${startDate}`);
-        }
-        if (endDate && typeof endDate === "string") {
-            conditions.push(sql`${messages.createdAt} <= ${endDate}`);
+            permissionConditions.push(eq(messageRecipients.userId, userId));
+            permissionConditions.push(ne(messages.status, "pending"));
         }
 
         // Only show email messages
-        conditions.push(eq(messages.messageType, "Email"));
+        permissionConditions.push(eq(messages.messageType, "Email"));
 
-        const whereClause = conditions.length > 0 ? and(...conditions) : undefined;
+        // Combine permission conditions with filter conditions
+        const whereClause = and(
+            ...(permissionConditions.length > 0 ? permissionConditions : []),
+            filterWhere
+        );
 
         // Get total count
         const [{ total }] = await db
             .select({ total: sql<number>`count(distinct ${messages.id})` })
             .from(messages)
             .innerJoin(messageRecipients, eq(messages.id, messageRecipients.messageId))
+            .innerJoin(users, eq(messageRecipients.userId, users.id))
+            .leftJoin(appointments, eq(messages.appointmentId, appointments.id))
+            .leftJoin(pickupLocations, eq(appointments.pickupLocation, pickupLocations.id))
+            .leftJoin(dropoffLocations, eq(appointments.destinationLocation, dropoffLocations.id))
+            .leftJoin(clients, eq(appointments.clientId, clients.id))
             .where(whereClause);
 
         // Fetch notifications with recipient and appointment info
@@ -295,9 +328,13 @@ export const listEmailNotifications = async (req: Request, res: Response): Promi
             .leftJoin(dropoffLocations, eq(appointments.destinationLocation, dropoffLocations.id))
             .leftJoin(clients, eq(appointments.clientId, clients.id))
             .where(whereClause)
-            .orderBy(messages.createdAt);
+            .orderBy(...(orderBy.length > 0 ? orderBy : [messages.createdAt]))
+            .limit(limit)
+            .offset(offset);
 
         return res.status(200).json({
+            page,
+            pageSize,
             total: Number(total),
             results: data,
         });
