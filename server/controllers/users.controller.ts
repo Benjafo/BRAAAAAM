@@ -254,6 +254,8 @@ export const createUser = async (req: Request, res: Response): Promise<Response>
             })
             .returning();
 
+        let customFormFieldsRecord;
+
         // Save custom field responses if provided
         const customFields = req.body.customFields;
         if (customFields && Object.keys(customFields).length > 0) {
@@ -263,15 +265,28 @@ export const createUser = async (req: Request, res: Response): Promise<Response>
                 .where(and(eq(customForms.targetEntity, "user"), eq(customForms.isActive, true)));
 
             if (userForm) {
-                await db.insert(customFormResponses).values({
+                const userCustomFormFields = await db.insert(customFormResponses).values({
                     formId: userForm.id,
                     entityId: newUser.id,
                     entityType: "user",
                     responseData: customFields,
                     submittedBy: req.user?.id,
                 });
+
+                customFormFieldsRecord = userCustomFormFields;
             }
         }
+
+        req.auditLog({
+            actionType: "users.created",
+            objectId: newUser.id,
+            objectType: "user",
+            actionMessage: `Users created with ID ${newUser.id}`,
+            actionDetails: { 
+                user: newUser,
+                customFormFields: customFormFieldsRecord || null,
+             },
+        });
 
         return res.status(201).json(newUser);
     } catch (err) {
@@ -391,6 +406,8 @@ export const updateUser = async (req: Request, res: Response): Promise<Response>
             return res.status(404).json({ message: "User not found" });
         }
 
+        let customFormFieldsRecord;
+
         // Update custom field responses if provided
         const customFields = req.body.customFields;
         if (customFields) {
@@ -415,7 +432,7 @@ export const updateUser = async (req: Request, res: Response): Promise<Response>
 
                 if (existingResponse) {
                     // Update existing response
-                    await db
+                    const usersCustomFormFields = await db
                         .update(customFormResponses)
                         .set({
                             responseData: customFields,
@@ -423,18 +440,34 @@ export const updateUser = async (req: Request, res: Response): Promise<Response>
                             updatedAt: new Date().toISOString(),
                         })
                         .where(eq(customFormResponses.id, existingResponse.id));
+
+                    customFormFieldsRecord = usersCustomFormFields;
                 } else {
                     // Create new response
-                    await db.insert(customFormResponses).values({
+                    const usersCustomFormFields = await db.insert(customFormResponses).values({
                         formId: userForm.id,
                         entityId: userId,
                         entityType: "user",
                         responseData: customFields,
                         submittedBy: req.user?.id,
                     });
+
+                    customFormFieldsRecord = usersCustomFormFields;
                 }
             }
         }
+
+        req.auditLog({
+            actionType: "users.updated",
+            objectId: updatedUser.id,
+            objectType: "user",
+            actionMessage: `Users updated with ID ${updatedUser.id}`,
+            actionDetails: { 
+                user: updatedUser,
+                customFormFields: customFormFieldsRecord || null,
+             },
+        });
+
 
         return res.status(200).json(updatedUser);
     } catch (err) {
@@ -455,6 +488,13 @@ export const deleteUser = async (req: Request, res: Response): Promise<Response>
         if (result.rowCount === 0) {
             return res.status(404).json({ message: "User not found" });
         }
+
+        req.auditLog({
+            actionType: "users.updated",
+            objectId: userId,
+            objectType: "user",
+            actionMessage: `Users deleted with ID ${userId}`,
+        });
 
         return res.status(204).send();
     } catch (err) {

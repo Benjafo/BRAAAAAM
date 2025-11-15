@@ -248,6 +248,8 @@ export const createAppointment = async (req: Request, res: Response): Promise<Re
             })
             .returning();
 
+        let customFormFieldsRecord;
+
         // Save custom field responses if provided
         if (data.customFields && Object.keys(data.customFields).length > 0) {
             const [appointmentForm] = await db
@@ -258,15 +260,28 @@ export const createAppointment = async (req: Request, res: Response): Promise<Re
                 );
 
             if (appointmentForm) {
-                await db.insert(customFormResponses).values({
+                const [appointmentCustomFormFields] = await db.insert(customFormResponses).values({
                     formId: appointmentForm.id,
                     entityId: newAppointment.id,
                     entityType: "appointment",
                     responseData: data.customFields,
                     submittedBy: req.user?.id || data.createdByUserId,
-                });
+                }).returning();
+
+                customFormFieldsRecord = appointmentCustomFormFields;
             }
         }
+
+        req.auditLog({
+            actionType: "appointment.created",
+            objectId: newAppointment.id,
+            objectType: "appointment",
+            actionMessage: `Appointment created with ID ${newAppointment.id}`,
+            actionDetails: { 
+                appointment: newAppointment,
+                customFormFields: customFormFieldsRecord || null,
+             },
+        });
 
         return res.status(201).json(newAppointment);
     } catch (err) {
@@ -400,6 +415,7 @@ export const updateAppointment = async (req: Request, res: Response): Promise<Re
             return res.status(404).json({ message: "Appointment not found" });
         }
 
+        let customFormFieldsRecord;
         // Update custom field responses if provided
         if (data.customFields) {
             const [appointmentForm] = await db
@@ -424,7 +440,7 @@ export const updateAppointment = async (req: Request, res: Response): Promise<Re
 
                 if (existingResponse) {
                     // Update existing response
-                    await db
+                    const appointmentCustomFormFields = await db
                         .update(customFormResponses)
                         .set({
                             responseData: data.customFields,
@@ -432,18 +448,34 @@ export const updateAppointment = async (req: Request, res: Response): Promise<Re
                             updatedAt: new Date().toISOString(),
                         })
                         .where(eq(customFormResponses.id, existingResponse.id));
+
+                    customFormFieldsRecord = appointmentCustomFormFields;
+
                 } else {
                     // Create new response
-                    await db.insert(customFormResponses).values({
+                    const appointmentCustomFormFields = await db.insert(customFormResponses).values({
                         formId: appointmentForm.id,
                         entityId: appointmentId,
                         entityType: "appointment",
                         responseData: data.customFields,
                         submittedBy: req.user?.id,
                     });
+
+                    customFormFieldsRecord = appointmentCustomFormFields;
                 }
             }
         }
+
+        req.auditLog({
+            actionType: "appointment.updated",
+            objectId: updated.id,
+            objectType: "appointment",
+            actionMessage: `Appointment updated with ID ${updated.id}`,
+            actionDetails: { 
+                appointment: updated,
+                customFormFields: customFormFieldsRecord || null,
+             },
+        });
 
         return res.status(200).json(updated);
     } catch (err) {
@@ -768,6 +800,8 @@ export const notifyDrivers = async (req: Request, res: Response): Promise<Respon
 
 export const acceptAppointment = async (req: Request, res: Response): Promise<Response> => {
     const { appointmentId } = req.params;
+
+    /**@TODO add logging for audit log, maybe */
 
     try {
         const db = req.org?.db;

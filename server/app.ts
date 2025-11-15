@@ -25,22 +25,22 @@ import volunteerRecordsRouter from "./routes/api.org.volunteer-records.js";
 import organizationsRouter from "./routes/api.sys.organizations.js";
 import sysSettingsRouter from "./routes/api.sys.settings.js";
 
-import apiRouter from "./routes/api.js";
-
 import { NextFunction, Request, Response } from "express";
 
 import { eq, sql } from "drizzle-orm";
 import { createProxyMiddleware } from "http-proxy-middleware";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
+import { listAuditLogs } from "./controllers/org.audit-log.controller.js";
 import { clients, locations, roles, users } from "./drizzle/org/schema.js";
 import { createOrgDbFromTemplate, preloadOrgPools } from "./drizzle/pool-manager.js";
 import { getSysDb } from "./drizzle/sys-client.js";
+import { attachAuditLogMiddleware } from "./middleware/audit-log-middleware.js";
+import { withAuthRouting } from "./middleware/with-auth-routing.js";
 import { withAuth } from "./middleware/with-auth.js";
 import { withOrg } from "./middleware/with-org.js";
-import { hashPassword } from "./utils/password.js";
-import { withAuthRouting } from "./middleware/with-auth-routing.js";
 import { initializeEmailTransporter } from "./utils/email.js";
+import { hashPassword } from "./utils/password.js";
 import { initializeScheduler } from "./utils/scheduler.js";
 
 const __filename = fileURLToPath(import.meta.url);
@@ -194,7 +194,8 @@ app.get("/test/o/:orgId/create-user", withOrg, async (req: Request, res: Respons
     ) {
         return res.status(400).json({
             error: "Missing or invalid required query parameters",
-            required: "firstName, lastName, email, password, phone, birthYear, addressLine1, city, state, zip, country",
+            required:
+                "firstName, lastName, email, password, phone, birthYear, addressLine1, city, state, zip, country",
             optional: "roleKey, birthMonth, addressLine2",
         });
     }
@@ -346,8 +347,10 @@ app.get("/test/o/:orgId/create-client", withOrg, async (req: Request, res: Respo
     ) {
         return res.status(400).json({
             error: "Missing or invalid required query parameters",
-            required: "firstName, lastName, phone, gender (Male/Female/Other), livesAlone (true/false), birthYear, addressLine1, city, state, zip, country",
-            optional: "birthMonth, addressLine2, email, phoneIsCell, secondaryPhone, secondaryPhoneIsCell, contactPreference, allowMessages, emergencyContactName, emergencyContactPhone, emergencyContactRelationship, notes, pickupInstructions",
+            required:
+                "firstName, lastName, phone, gender (Male/Female/Other), livesAlone (true/false), birthYear, addressLine1, city, state, zip, country",
+            optional:
+                "birthMonth, addressLine2, email, phoneIsCell, secondaryPhone, secondaryPhoneIsCell, contactPreference, allowMessages, emergencyContactName, emergencyContactPhone, emergencyContactRelationship, notes, pickupInstructions",
         });
     }
 
@@ -423,13 +426,22 @@ app.get("/test/o/:orgId/create-client", withOrg, async (req: Request, res: Respo
                 phoneIsCell: phoneIsCellBool,
                 secondaryPhone: typeof secondaryPhone === "string" ? secondaryPhone : undefined,
                 secondaryPhoneIsCell: secondaryPhoneIsCellBool,
-                contactPreference: typeof contactPreference === "string" ? (contactPreference as "email" | "phone") : "phone",
+                contactPreference:
+                    typeof contactPreference === "string"
+                        ? (contactPreference as "email" | "phone")
+                        : "phone",
                 allowMessages: allowMessagesBool,
-                emergencyContactName: typeof emergencyContactName === "string" ? emergencyContactName : undefined,
-                emergencyContactPhone: typeof emergencyContactPhone === "string" ? emergencyContactPhone : undefined,
-                emergencyContactRelationship: typeof emergencyContactRelationship === "string" ? emergencyContactRelationship : undefined,
+                emergencyContactName:
+                    typeof emergencyContactName === "string" ? emergencyContactName : undefined,
+                emergencyContactPhone:
+                    typeof emergencyContactPhone === "string" ? emergencyContactPhone : undefined,
+                emergencyContactRelationship:
+                    typeof emergencyContactRelationship === "string"
+                        ? emergencyContactRelationship
+                        : undefined,
                 notes: typeof notes === "string" ? notes : undefined,
-                pickupInstructions: typeof pickupInstructions === "string" ? pickupInstructions : undefined,
+                pickupInstructions:
+                    typeof pickupInstructions === "string" ? pickupInstructions : undefined,
                 isActive: true,
             })
             .returning();
@@ -452,7 +464,9 @@ app.get("/test/o/:orgId/create-client", withOrg, async (req: Request, res: Respo
 
         // Check for unique constraint violation
         if (error && typeof error === "object" && "code" in error && error.code === "23505") {
-            return res.status(400).json({ error: "Client with this phone or email already exists" });
+            return res
+                .status(400)
+                .json({ error: "Client with this phone or email already exists" });
         }
 
         return res.status(500).json({ error: "Internal server error" });
@@ -460,7 +474,9 @@ app.get("/test/o/:orgId/create-client", withOrg, async (req: Request, res: Respo
 });
 
 // API routes
-app.use("/api", apiRouter);
+// app.use("/api", apiRouter);
+
+app.use(attachAuditLogMiddleware);
 
 // Authentication routes
 app.use("/auth", withAuthRouting);
@@ -476,6 +492,7 @@ app.use("/o/settings/roles", withAuth, withOrg, rolesRouter);
 app.use("/o/settings/locations", withAuth, withOrg, locationsRouter);
 app.use("/o/custom-forms", withAuth, withOrg, customFormsRouter);
 app.use("/o/volunteer-records", withAuth, withOrg, volunteerRecordsRouter);
+app.get("/o/audit-logs", withAuth, withOrg, listAuditLogs); //this is not a router
 
 // Protected system-scoped routes with authentication
 app.use("/s/settings", withAuth, sysSettingsRouter);
