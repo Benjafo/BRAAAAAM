@@ -92,12 +92,11 @@ const clientSchema = z
         clientEmail: z.email("Please enter a valid email address.").optional().or(z.literal("")),
         primaryPhoneNumber: z
             .string()
-            .min(1, "Phone number is required")
+            .min(1, "Please enter a 10 digit phone number.")
             .regex(
                 /^(\+1\s?)?(\([0-9]{3}\)\s?|[0-9]{3}[-.\s]?)[0-9]{3}[-.\s]?[0-9]{4}$/,
                 "Please enter a 10 digit phone number."
             ),
-
         primaryPhoneIsCellPhone: z.boolean(),
         okToTextPrimaryPhone: z.boolean(),
         endActiveStatus: z.date().optional(),
@@ -996,7 +995,9 @@ export default function ClientForm({ defaultValues, onSubmit, viewMode = false }
 
                 {/* Accessibility & Transportation Needs Section */}
                 <div className="md:col-span-2">
-                    <h3 className="text-lg font-semibold mt-4">Accessibility & Transportation Needs</h3>
+                    <h3 className="text-lg font-semibold mt-4">
+                        Accessibility & Transportation Needs
+                    </h3>
                 </div>
 
                 {/* Mobility Equipment */}
@@ -1058,7 +1059,10 @@ export default function ClientForm({ defaultValues, onSubmit, viewMode = false }
                             render={({ field }) => (
                                 <FormItem className="mt-2">
                                     <FormControl>
-                                        <Input {...field} placeholder="Specify other equipment..." />
+                                        <Input
+                                            {...field}
+                                            placeholder="Specify other equipment..."
+                                        />
                                     </FormControl>
                                     <FormMessage />
                                 </FormItem>
@@ -1132,7 +1136,10 @@ export default function ClientForm({ defaultValues, onSubmit, viewMode = false }
                                 <div className="space-y-2">
                                     <FormItem className="flex flex-row items-center space-x-3 space-y-0">
                                         <FormControl>
-                                            <Checkbox checked={field.value} onCheckedChange={field.onChange} />
+                                            <Checkbox
+                                                checked={field.value}
+                                                onCheckedChange={field.onChange}
+                                            />
                                         </FormControl>
                                         <FormLabel className="font-normal">Has Oxygen</FormLabel>
                                     </FormItem>
@@ -1154,9 +1161,14 @@ export default function ClientForm({ defaultValues, onSubmit, viewMode = false }
                                 <div className="space-y-2">
                                     <FormItem className="flex flex-row items-center space-x-3 space-y-0">
                                         <FormControl>
-                                            <Checkbox checked={field.value} onCheckedChange={field.onChange} />
+                                            <Checkbox
+                                                checked={field.value}
+                                                onCheckedChange={field.onChange}
+                                            />
                                         </FormControl>
-                                        <FormLabel className="font-normal">Has Service Animal</FormLabel>
+                                        <FormLabel className="font-normal">
+                                            Has Service Animal
+                                        </FormLabel>
                                     </FormItem>
                                 </div>
                                 <FormMessage />
@@ -1241,7 +1253,10 @@ export default function ClientForm({ defaultValues, onSubmit, viewMode = false }
                             render={({ field }) => (
                                 <FormItem className="mt-2">
                                     <FormControl>
-                                        <Input {...field} placeholder="Specify other limitations..." />
+                                        <Input
+                                            {...field}
+                                            placeholder="Specify other limitations..."
+                                        />
                                     </FormControl>
                                     <FormMessage />
                                 </FormItem>

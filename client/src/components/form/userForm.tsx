@@ -79,7 +79,7 @@ const userSchema = z
         awayTo: z.date().optional(),
         primaryPhoneNumber: z
             .string()
-            .min(1, "Phone number is required")
+            .min(1, "Please enter a 10 digit phone number.")
             .regex(
                 /^(\+1\s?)?(\([0-9]{3}\)\s?|[0-9]{3}[-.\s]?)[0-9]{3}[-.\s]?[0-9]{4}$/,
                 "Please enter a 10 digit phone number."
