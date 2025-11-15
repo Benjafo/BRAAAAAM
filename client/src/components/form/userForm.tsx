@@ -377,14 +377,6 @@ export default function UserForm({
             field.onChange(isNaN(parsed) ? undefined : parsed);
         };
 
-    const handleFormSubmit = (values: UserFormValues) => {
-        // Validate custom fields before submitting
-        const isValid = dynamicFieldsRef.current?.validateCustomFields(values.customFields || {});
-        if (!isValid) return;
-
-        onSubmit(values);
-    };
-
     return (
         <Form {...form}>
             <form
@@ -393,7 +385,28 @@ export default function UserForm({
                     "grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-6 w-full items-start",
                     viewMode && "pointer-events-none opacity-70"
                 )}
-                onSubmit={form.handleSubmit(handleFormSubmit)}
+                onSubmit={form.handleSubmit(
+                    async (values) => {
+                        // Success handler - all regular fields are valid (AI help)
+                        // Now validate custom fields
+                        const customFieldsValid = dynamicFieldsRef.current?.validateCustomFields(
+                            values.customFields || {}
+                        );
+
+                        if (!customFieldsValid) {
+                            return; // Custom fields invalid, stop here
+                        }
+
+                        // Everything is valid, proceed
+                        onSubmit(values);
+                    },
+                    async () => {
+                        // ALSO validate custom fields to show those errors too
+                        dynamicFieldsRef.current?.validateCustomFields(
+                            form.getValues("customFields") || {}
+                        );
+                    }
+                )}
             >
                 {/* Basic Information Section */}
                 <div className="md:col-span-2">

@@ -39,6 +39,20 @@ function toSnakeCase(str: string): string {
         .replace(/[^a-z0-9_]/g, "");
 }
 
+// Utility to validate and format date strings, AI helped on this
+function isValidDate(dateString: string): boolean {
+    if (!dateString) return false;
+    const date = new Date(dateString);
+    return date instanceof Date && !isNaN(date.getTime());
+}
+
+function formatDateForInput(dateString: string): string {
+    if (!dateString) return "";
+    const date = new Date(dateString);
+    if (isNaN(date.getTime())) return "";
+    return date.toISOString().split("T")[0]; // Returns YYYY-MM-DD
+}
+
 const formSchema = z.object({
     fields: z.array(
         z
@@ -79,15 +93,39 @@ const formSchema = z.object({
                     );
                     if (!supportsPlaceholder) return true;
 
-                    const hasPlaceholder =
-                        field.placeholder && field.placeholder.trim() !== "";
-                    const hasDefaultValue =
-                        field.defaultValue && field.defaultValue.trim() !== "";
+                    const hasPlaceholder = field.placeholder && field.placeholder.trim() !== "";
+                    const hasDefaultValue = field.defaultValue && field.defaultValue.trim() !== "";
                     return !(hasPlaceholder && hasDefaultValue);
                 },
                 {
                     message: "Cannot have both placeholder and default value",
                     path: ["placeholder"],
+                }
+            )
+            .refine(
+                (field) => {
+                    // Validate date format for date fields with default values
+                    if (field.fieldType === "date" && field.defaultValue) {
+                        return isValidDate(field.defaultValue);
+                    }
+                    return true;
+                },
+                {
+                    message: "Invalid date format. Use YYYY-MM-DD",
+                    path: ["defaultValue"],
+                }
+            )
+            .refine(
+                (field) => {
+                    // Validate number format for number fields with default values
+                    if (field.fieldType === "number" && field.defaultValue) {
+                        return !isNaN(Number(field.defaultValue));
+                    }
+                    return true;
+                },
+                {
+                    message: "Default value must be a valid number",
+                    path: ["defaultValue"],
                 }
             )
     ),
@@ -145,7 +183,7 @@ export default function CustomFormBuilder({ defaultValues, onSubmit }: Props) {
     };
 
     const fieldTypeSupportsPlaceholder = (type: FieldType) => {
-        return !["checkbox", "radio", "checkboxGroup"].includes(type);
+        return !["checkbox", "radio", "checkboxGroup", "date"].includes(type);
     };
 
     // Preprocess form data to convert null to undefined for optional fields
@@ -244,7 +282,16 @@ export default function CustomFormBuilder({ defaultValues, onSubmit }: Props) {
                                                         <FormItem>
                                                             <FormLabel>Field Type</FormLabel>
                                                             <Select
-                                                                onValueChange={field.onChange}
+                                                                onValueChange={(value) => {
+                                                                    field.onChange(value);
+                                                                    // Reset isRequired to false when changing to checkbox
+                                                                    if (value === "checkbox") {
+                                                                        form.setValue(
+                                                                            `fields.${index}.isRequired`,
+                                                                            false
+                                                                        );
+                                                                    }
+                                                                }}
                                                                 defaultValue={field.value}
                                                             >
                                                                 <FormControl>
@@ -316,6 +363,10 @@ export default function CustomFormBuilder({ defaultValues, onSubmit }: Props) {
                                                         const currentField = fields[index];
                                                         const isCheckbox =
                                                             currentField.fieldType === "checkbox";
+                                                        const isDate =
+                                                            currentField.fieldType === "date";
+                                                        const isNumber =
+                                                            currentField.fieldType === "number";
                                                         const hasOptions = fieldTypeRequiresOptions(
                                                             currentField.fieldType
                                                         );
@@ -349,6 +400,22 @@ export default function CustomFormBuilder({ defaultValues, onSubmit }: Props) {
                                                                                 </SelectItem>
                                                                             </SelectContent>
                                                                         </Select>
+                                                                    ) : isDate ? (
+                                                                        <Input
+                                                                            type="date"
+                                                                            {...field}
+                                                                            value={formatDateForInput(
+                                                                                field.value ?? ""
+                                                                            )}
+                                                                        />
+                                                                    ) : isNumber ? (
+                                                                        <Input
+                                                                            type="number"
+                                                                            {...field}
+                                                                            value={
+                                                                                field.value ?? ""
+                                                                            }
+                                                                        />
                                                                     ) : hasOptions ? (
                                                                         <Select
                                                                             onValueChange={
@@ -401,9 +468,13 @@ export default function CustomFormBuilder({ defaultValues, onSubmit }: Props) {
                                                                         />
                                                                     )}
                                                                 </FormControl>
+                                                                {/* AI help here */}
                                                                 <p className="text-xs text-muted-foreground">
-                                                                    Pre-fill this field with a
-                                                                    default value
+                                                                    {isDate
+                                                                        ? "Pre-fill with a date (MM-DD-YYYY format)"
+                                                                        : isNumber
+                                                                          ? "Pre-fill with a numeric value"
+                                                                          : "Pre-fill this field with a default value"}
                                                                 </p>
                                                                 <FormMessage />
                                                             </FormItem>
@@ -411,22 +482,28 @@ export default function CustomFormBuilder({ defaultValues, onSubmit }: Props) {
                                                     }}
                                                 />
 
-                                                {/* Is Required */}
-                                                <FormField
-                                                    control={form.control}
-                                                    name={`fields.${index}.isRequired`}
-                                                    render={({ field }) => (
-                                                        <FormItem className="flex flex-row items-start space-x-3 space-y-0">
-                                                            <FormControl>
-                                                                <Checkbox
-                                                                    checked={field.value}
-                                                                    onCheckedChange={field.onChange}
-                                                                />
-                                                            </FormControl>
-                                                            <FormLabel>Required Field</FormLabel>
-                                                        </FormItem>
-                                                    )}
-                                                />
+                                                {/* Is Required, single checkbox is not required */}
+                                                {fields[index].fieldType !== "checkbox" && (
+                                                    <FormField
+                                                        control={form.control}
+                                                        name={`fields.${index}.isRequired`}
+                                                        render={({ field }) => (
+                                                            <FormItem className="flex flex-row items-start space-x-3 space-y-0">
+                                                                <FormControl>
+                                                                    <Checkbox
+                                                                        checked={field.value}
+                                                                        onCheckedChange={
+                                                                            field.onChange
+                                                                        }
+                                                                    />
+                                                                </FormControl>
+                                                                <FormLabel>
+                                                                    Required Field
+                                                                </FormLabel>
+                                                            </FormItem>
+                                                        )}
+                                                    />
+                                                )}
 
                                                 {/* Options (for select, radio, checkboxGroup) */}
                                                 {fieldTypeRequiresOptions(

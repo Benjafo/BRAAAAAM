@@ -296,14 +296,6 @@ export default function EditRideForm({
     const [clientOpen, setClientOpen] = useState(false);
     const [driverOpen, setDriverOpen] = useState(false);
 
-    const handleFormSubmit = (values: RideFormValues) => {
-        // Validate custom fields before submitting
-        const isValid = dynamicFieldsRef.current?.validateCustomFields(values.customFields || {});
-        if (!isValid) return;
-
-        onSubmit(values);
-    };
-
     if (isLoading) {
         return (
             <div className="h-full flex items-center justify-center">
@@ -323,7 +315,28 @@ export default function EditRideForm({
                     "grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-6 w-full items-start pt-5",
                     viewMode && "pointer-events-none opacity-70"
                 )}
-                onSubmit={form.handleSubmit(handleFormSubmit)}
+                onSubmit={form.handleSubmit(
+                    async (values) => {
+                        // Success handler - all regular fields are valid (AI help)
+                        // Now validate custom fields
+                        const customFieldsValid = dynamicFieldsRef.current?.validateCustomFields(
+                            values.customFields || {}
+                        );
+
+                        if (!customFieldsValid) {
+                            return; // Custom fields invalid, stop here
+                        }
+
+                        // Everything is valid, proceed
+                        onSubmit(values);
+                    },
+                    async () => {
+                        // ALSO validate custom fields to show those errors too
+                        dynamicFieldsRef.current?.validateCustomFields(
+                            form.getValues("customFields") || {}
+                        );
+                    }
+                )}
             >
                 {/* Basic Information Section */}
                 <div className="md:col-span-2">
@@ -572,7 +585,11 @@ export default function EditRideForm({
                         <FormItem>
                             <FormLabel>Appointment Date</FormLabel>
                             <FormControl>
-                                <DatePickerInput value={field.value} onChange={field.onChange} disabled={limitedEditMode} />
+                                <DatePickerInput
+                                    value={field.value}
+                                    onChange={field.onChange}
+                                    disabled={limitedEditMode}
+                                />
                             </FormControl>
                             <FormMessage />
                         </FormItem>
@@ -587,7 +604,12 @@ export default function EditRideForm({
                         <FormItem className="w-full">
                             <FormLabel>Appointment Time</FormLabel>
                             <FormControl className="w-full">
-                                <Input type="time" step="60" {...field} disabled={limitedEditMode} />
+                                <Input
+                                    type="time"
+                                    step="60"
+                                    {...field}
+                                    disabled={limitedEditMode}
+                                />
                             </FormControl>
                             <FormMessage />
                         </FormItem>
@@ -602,7 +624,11 @@ export default function EditRideForm({
                         <FormItem className="w-full">
                             <FormLabel>Trip Type</FormLabel>
                             <FormControl className="w-full">
-                                <Select value={field.value} onValueChange={field.onChange} disabled={limitedEditMode}>
+                                <Select
+                                    value={field.value}
+                                    onValueChange={field.onChange}
+                                    disabled={limitedEditMode}
+                                >
                                     <SelectTrigger className="w-full">
                                         <SelectValue />
                                     </SelectTrigger>
@@ -734,7 +760,11 @@ export default function EditRideForm({
                         <FormItem className="w-full">
                             <FormLabel>Additional Rider</FormLabel>
                             <FormControl className="w-full">
-                                <Select value={field.value} onValueChange={field.onChange} disabled={limitedEditMode}>
+                                <Select
+                                    value={field.value}
+                                    onValueChange={field.onChange}
+                                    disabled={limitedEditMode}
+                                >
                                     <SelectTrigger className="w-full">
                                         <SelectValue placeholder="Select a value" />
                                     </SelectTrigger>
@@ -758,7 +788,11 @@ export default function EditRideForm({
                             <FormItem className="w-full">
                                 <FormLabel>Additional Rider First Name</FormLabel>
                                 <FormControl className="w-full">
-                                    <Input {...field} className="w-full" disabled={limitedEditMode} />
+                                    <Input
+                                        {...field}
+                                        className="w-full"
+                                        disabled={limitedEditMode}
+                                    />
                                 </FormControl>
                                 <FormMessage />
                             </FormItem>
@@ -773,7 +807,11 @@ export default function EditRideForm({
                             <FormItem className="w-full">
                                 <FormLabel>Additional Rider Last Name</FormLabel>
                                 <FormControl className="w-full">
-                                    <Input {...field} className="w-full" disabled={limitedEditMode} />
+                                    <Input
+                                        {...field}
+                                        className="w-full"
+                                        disabled={limitedEditMode}
+                                    />
                                 </FormControl>
                                 <FormMessage />
                             </FormItem>
@@ -788,7 +826,11 @@ export default function EditRideForm({
                             <FormItem className="w-full">
                                 <FormLabel>Relationship to Client</FormLabel>
                                 <FormControl className="w-full">
-                                    <Input {...field} className="w-full" disabled={limitedEditMode} />
+                                    <Input
+                                        {...field}
+                                        className="w-full"
+                                        disabled={limitedEditMode}
+                                    />
                                 </FormControl>
                                 <FormMessage />
                             </FormItem>
@@ -880,7 +922,10 @@ export default function EditRideForm({
                             <FormItem className="w-full">
                                 <FormLabel>Donation Type</FormLabel>
                                 <FormControl className="w-full">
-                                    <Select value={field.value ?? undefined} onValueChange={field.onChange}>
+                                    <Select
+                                        value={field.value ?? undefined}
+                                        onValueChange={field.onChange}
+                                    >
                                         <SelectTrigger className="w-full">
                                             <SelectValue placeholder="Select a value" />
                                         </SelectTrigger>

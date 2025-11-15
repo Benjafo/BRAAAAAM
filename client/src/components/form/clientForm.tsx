@@ -308,12 +308,6 @@ export default function ClientForm({ defaultValues, onSubmit, viewMode = false }
     const [yearOpen, setYearOpen] = useState(false);
 
     // Call custom fields validation before submitting
-    const handleFormSubmit = (values: ClientFormValues) => {
-        const isValid = dynamicFieldsRef.current?.validateCustomFields(values.customFields || {});
-        if (!isValid) return;
-
-        onSubmit(values);
-    };
 
     return (
         <Form {...form}>
@@ -323,7 +317,28 @@ export default function ClientForm({ defaultValues, onSubmit, viewMode = false }
                     "grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-6 w-full items-start pt-5",
                     viewMode && "pointer-events-none opacity-70"
                 )}
-                onSubmit={form.handleSubmit(handleFormSubmit)}
+                onSubmit={form.handleSubmit(
+                    async (values) => {
+                        // Success handler - all regular fields are valid (AI help)
+                        // Now validate custom fields
+                        const customFieldsValid = dynamicFieldsRef.current?.validateCustomFields(
+                            values.customFields || {}
+                        );
+
+                        if (!customFieldsValid) {
+                            return; // Custom fields invalid, stop here
+                        }
+
+                        // Everything is valid, proceed
+                        onSubmit(values);
+                    },
+                    async () => {
+                        // ALSO validate custom fields to show those errors too
+                        dynamicFieldsRef.current?.validateCustomFields(
+                            form.getValues("customFields") || {}
+                        );
+                    }
+                )}
             >
                 {/* Basic Information Section */}
                 <div className="md:col-span-2">
