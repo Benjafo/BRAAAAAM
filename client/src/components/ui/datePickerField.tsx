@@ -57,12 +57,14 @@ interface DatePickerInputProps {
     value: Date | undefined;
     onChange: (date: Date | undefined) => void;
     placeholder?: string;
+    disabled?: boolean;
 }
 
 export function DatePickerInput({
     value,
     onChange,
     placeholder = "Select a date",
+    disabled = false,
 }: DatePickerInputProps) {
     const [open, setOpen] = useState(false);
     const [month, setMonth] = useState<Date | undefined>(value || new Date());
@@ -79,6 +81,7 @@ export function DatePickerInput({
                 value={inputValue}
                 placeholder={placeholder}
                 className="bg-background pr-10"
+                disabled={disabled}
                 onChange={(e) => {
                     const inputVal = e.target.value;
                     setInputValue(inputVal);
@@ -107,6 +110,7 @@ export function DatePickerInput({
                     <Button
                         type="button"
                         variant="ghost"
+                        disabled={disabled}
                         className="absolute top-1/2 right-2 size-6 -translate-y-1/2"
                     >
                         <CalendarIcon className="size-3.5" />

@@ -13,6 +13,7 @@ import { http } from "@/services/auth/serviceResolver";
 import * as React from "react";
 import { toast } from "sonner";
 import { useAuthStore } from "../stores/authStore";
+import { PERMISSIONS } from "@/lib/permissions";
 import AssignRideModal from "./assignRideModal";
 
 // Type matching the API response from listClients
@@ -83,6 +84,17 @@ export default function RideModal({
     const [isLoadingClients, setIsLoadingClients] = React.useState(false);
     const [isLoadingDrivers, setIsLoadingDrivers] = React.useState(false);
     const [isAssignDriverModalOpen, setIsAssignDriverModalOpen] = React.useState(false);
+
+    // Check permissions
+    const hasFullUpdatePermission = useAuthStore((s) =>
+        s.hasPermission(PERMISSIONS.ALL_APPOINTMENTS_UPDATE)
+    );
+    const hasOwnUpdatePermission = useAuthStore((s) =>
+        s.hasPermission(PERMISSIONS.OWN_APPOINTMENTS_UPDATE)
+    );
+
+    // Limited edit mode: user only has ownappointments.update permission
+    const limitedEditMode = !hasFullUpdatePermission && hasOwnUpdatePermission;
 
     console.log("Default Values:", defaultValuesProp);
 
@@ -178,56 +190,76 @@ export default function RideModal({
         try {
             console.log("Form values:", values);
 
-            const appointmentDate = values.tripDate;
-            const dayOfWeek = appointmentDate.getDay(); // 0 = Sunday, 6 = Saturday
-            const [hour] = values.appointmentTime.split(":").map(Number); // HH:MM
+            // Skip validation for drivers with limited permissions (they're only updating completion fields)
+            let selectedClient: Client | undefined;
+            if (!limitedEditMode) {
+                const appointmentDate = values.tripDate;
+                const dayOfWeek = appointmentDate.getDay(); // 0 = Sunday, 6 = Saturday
+                const [hour] = values.appointmentTime.split(":").map(Number); // HH:MM
 
-            // Is appointment Mon-Fri 9-5?
-            if (dayOfWeek === 0 || dayOfWeek === 6 || hour < 9 || hour >= 17) {
-                toast.error("Appointment must be within operating hours (Mon–Fri, 9 AM–5 PM)");
-                return;
+                // Is appointment Mon-Fri 9-5?
+                if (dayOfWeek === 0 || dayOfWeek === 6 || hour < 9 || hour >= 17) {
+                    toast.error("Appointment must be within operating hours (Mon–Fri, 9 AM–5 PM)");
+                    return;
+                }
+
+                // Find the selected client to get their address
+                selectedClient = clients.find((c) => c.id === values.clientId);
+                if (!selectedClient?.address) {
+                    toast.error("Client address not found");
+                    return;
+                }
+
+                console.log("Selected client address:", selectedClient.address);
             }
-
-            // Find the selected client to get their address
-            const selectedClient = clients.find((c) => c.id === values.clientId);
-            if (!selectedClient?.address) {
-                toast.error("Client address not found");
-                return;
-            }
-
-            console.log("Selected client address:", selectedClient.address);
 
             // Map form values to API structure
-            const requestBody = {
-                startDate: values.tripDate.toISOString().split("T")[0],
-                startTime: values.appointmentTime,
-                estimatedEndDate: values.tripDate.toISOString().split("T")[0],
-                estimatedEndTime: values.appointmentTime,
-                clientId: values.clientId,
-                driverId: values.assignedDriver || null,
-                dispatcherId: userId,
-                createdByUserId: userId,
-                tripPurpose: values.purposeOfTrip || null,
-                tripType: values.tripType,
-                pickupAddress: {
-                    addressLine1: selectedClient.address.addressLine1,
-                    addressLine2: selectedClient.address.addressLine2 || null,
-                    city: selectedClient.address.city,
-                    state: selectedClient.address.state,
-                    zip: selectedClient.address.zip,
-                    country: selectedClient.address.country || "USA",
-                },
-                destinationAddress: {
-                    addressLine1: values.destinationAddress,
-                    addressLine2: values.destinationAddress2 || null,
-                    city: values.destinationCity,
-                    state: values.destinationState,
-                    zip: values.destinationZip,
-                    country: "USA",
-                },
-                status: values.rideStatus || "unassigned",
-                customFields: values.customFields,
-            };
+            let requestBody: Record<string, unknown>;
+
+            if (limitedEditMode) {
+                // Drivers with limited permissions can only update completion fields
+                requestBody = {
+                    status: values.rideStatus,
+                    milesDriven: values.tripDistance,
+                    estimatedDurationMinutes: values.tripDuration ? values.tripDuration * 60 : undefined,
+                    notes: values.tripDistance ? `Trip completed: ${values.tripDistance} miles` : undefined,
+                    donationType: values.donationType || null,
+                    donationAmount: values.donationAmount,
+                    customFields: values.customFields,
+                };
+            } else {
+                // Full permissions - can update all fields
+                requestBody = {
+                    startDate: values.tripDate.toISOString().split("T")[0],
+                    startTime: values.appointmentTime,
+                    estimatedEndDate: values.tripDate.toISOString().split("T")[0],
+                    estimatedEndTime: values.appointmentTime,
+                    clientId: values.clientId,
+                    driverId: values.assignedDriver || null,
+                    dispatcherId: userId,
+                    createdByUserId: userId,
+                    tripPurpose: values.purposeOfTrip || null,
+                    tripType: values.tripType,
+                    pickupAddress: {
+                        addressLine1: selectedClient!.address!.addressLine1,
+                        addressLine2: selectedClient!.address!.addressLine2 || null,
+                        city: selectedClient!.address!.city,
+                        state: selectedClient!.address!.state,
+                        zip: selectedClient!.address!.zip,
+                        country: selectedClient!.address!.country || "USA",
+                    },
+                    destinationAddress: {
+                        addressLine1: values.destinationAddress,
+                        addressLine2: values.destinationAddress2 || null,
+                        city: values.destinationCity,
+                        state: values.destinationState,
+                        zip: values.destinationZip,
+                        country: "USA",
+                    },
+                    status: values.rideStatus || "unassigned",
+                    customFields: values.customFields,
+                };
+            }
 
             console.log("Sending to API:", requestBody);
 
@@ -272,6 +304,7 @@ export default function RideModal({
                         onFindMatchingDrivers={handleFindMatchingDrivers}
                         isLoading={isLoadingClients || isLoadingDrivers}
                         viewMode={viewMode}
+                        limitedEditMode={limitedEditMode}
                     />
 
                     <DialogFooter className="flex flex-row justify-end gap-3 mt-3">

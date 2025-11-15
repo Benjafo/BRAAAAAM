@@ -126,6 +126,12 @@ export const listAppointments = async (req: Request, res: Response): Promise<Res
                 status: appointments.status,
                 tripPurpose: appointments.tripPurpose,
                 tripType: appointments.tripType,
+                // Completion fields
+                milesDriven: appointments.milesDriven,
+                estimatedDurationMinutes: appointments.estimatedDurationMinutes,
+                notes: appointments.notes,
+                donationType: appointments.donationType,
+                donationAmount: appointments.donationAmount,
                 // Client
                 clientId: appointments.clientId,
                 clientFirstName: clients.firstName,
@@ -359,50 +365,83 @@ export const updateAppointment = async (req: Request, res: Response): Promise<Re
 
         // Check permissions
         const hasAllPermission = await hasPermission(userId, "allappointments.update", db);
+        const hasOwnPermission = await hasPermission(userId, "ownappointments.update", db);
+
+        if (!hasAllPermission && !hasOwnPermission) {
+            return res.status(403).json({ message: "Insufficient permissions to update appointments" });
+        }
+
+        // Fetch the current appointment to check ownership if needed
+        const [currentAppointment] = await db
+            .select({ driverId: appointments.driverId })
+            .from(appointments)
+            .where(eq(appointments.id, appointmentId));
+
+        if (!currentAppointment) {
+            return res.status(404).json({ message: "Appointment not found" });
+        }
 
         // If user only has OWN permission, verify they can update this appointment
-        if (!hasAllPermission) {
-            // Fetch the current appointment to check ownership
-            const [currentAppointment] = await db
-                .select({ driverId: appointments.driverId })
-                .from(appointments)
-                .where(eq(appointments.id, appointmentId));
-
-            if (!currentAppointment) {
-                return res.status(404).json({ message: "Appointment not found" });
-            }
-
-            if (currentAppointment.driverId !== null && currentAppointment.driverId !== userId) {
+        if (!hasAllPermission && hasOwnPermission) {
+            if (currentAppointment.driverId !== userId) {
                 return res
                     .status(403)
                     .json({ message: "You can only update appointments assigned to you" });
             }
         }
 
+        // Build update data based on permissions
         const updateData: Record<string, unknown> = {};
-        if (data.pickupAddress) {
-            updateData.pickupLocation = await findOrCreateLocation(db, data.pickupAddress);
-        }
-        if (data.destinationAddress) {
-            updateData.destinationLocation = await findOrCreateLocation(
-                db,
-                data.destinationAddress
+
+        // Fields that drivers with ownappointments.update can modify (completion fields only)
+        const driverAllowedFields = ["status", "milesDriven", "estimatedDurationMinutes", "notes", "donationType", "donationAmount"];
+
+        if (hasAllPermission) {
+            // Full permission - can update all fields
+            if (data.pickupAddress) {
+                updateData.pickupLocation = await findOrCreateLocation(db, data.pickupAddress);
+            }
+            if (data.destinationAddress) {
+                updateData.destinationLocation = await findOrCreateLocation(
+                    db,
+                    data.destinationAddress
+                );
+            }
+            if (data.startDate) updateData.startDate = data.startDate;
+            if (data.startTime) updateData.startTime = data.startTime;
+            if (data.clientId) updateData.clientId = data.clientId;
+            if (data.driverId !== undefined) updateData.driverId = data.driverId;
+            if (data.dispatcherId) updateData.dispatcherId = data.dispatcherId;
+            if (data.status) updateData.status = data.status;
+            if (data.tripPurpose !== undefined) updateData.tripPurpose = data.tripPurpose;
+            if (data.estimatedDurationMinutes)
+                updateData.estimatedDurationMinutes = data.estimatedDurationMinutes;
+            if (data.tripType) updateData.tripType = data.tripType;
+            if (data.notes !== undefined) updateData.notes = data.notes;
+            if (data.donationType) updateData.donationType = data.donationType;
+            if (data.donationAmount !== undefined) updateData.donationAmount = data.donationAmount;
+            if (data.milesDriven !== undefined) updateData.milesDriven = data.milesDriven;
+        } else {
+            // Limited permission - only completion fields
+            if (data.status) updateData.status = data.status;
+            if (data.notes !== undefined) updateData.notes = data.notes;
+            if (data.donationType !== undefined) updateData.donationType = data.donationType;
+            if (data.donationAmount !== undefined) updateData.donationAmount = data.donationAmount;
+            if (data.milesDriven !== undefined) updateData.milesDriven = data.milesDriven;
+            if (data.estimatedDurationMinutes !== undefined) updateData.estimatedDurationMinutes = data.estimatedDurationMinutes;
+
+            // Reject if trying to update non-allowed fields
+            const attemptedFields = Object.keys(data);
+            const disallowedAttempts = attemptedFields.filter(
+                (field) => !driverAllowedFields.includes(field) && field !== "customFields"
             );
+            if (disallowedAttempts.length > 0) {
+                return res.status(403).json({
+                    message: "You can only update status and completion fields for your appointments",
+                    disallowedFields: disallowedAttempts,
+                });
+            }
         }
-        if (data.startDate) updateData.startDate = data.startDate;
-        if (data.startTime) updateData.startTime = data.startTime;
-        if (data.clientId) updateData.clientId = data.clientId;
-        if (data.driverId !== undefined) updateData.driverId = data.driverId;
-        if (data.dispatcherId) updateData.dispatcherId = data.dispatcherId;
-        if (data.status) updateData.status = data.status;
-        if (data.tripPurpose !== undefined) updateData.tripPurpose = data.tripPurpose;
-        if (data.estimatedDurationMinutes)
-            updateData.estimatedDurationMinutes = data.estimatedDurationMinutes;
-        if (data.tripType) updateData.tripType = data.tripType;
-        if (data.notes !== undefined) updateData.notes = data.notes;
-        if (data.donationType) updateData.donationType = data.donationType;
-        if (data.donationAmount !== undefined) updateData.donationAmount = data.donationAmount;
-        if (data.milesDriven !== undefined) updateData.milesDriven = data.milesDriven;
 
         const [updated] = await db
             .update(appointments)

@@ -110,6 +110,7 @@ export const DEFAULT_ROLES: RoleDefinition[] = [
         isSystem: false,
         permissions: [
             "ownappointments.read",
+            "ownappointments.update",
             "clients.read",
             "ownunavailability.read",
             "ownunavailability.create",

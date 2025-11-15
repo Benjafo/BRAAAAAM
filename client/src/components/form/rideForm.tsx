@@ -130,7 +130,7 @@ const rideSchema = z
                     message: "Miles must be in full or tenths (e.g., 1.0, 1.1, 1.2).",
                 }
             ),
-        donationType: z.enum(["Check", "Cash", "unopenedEnvelope"]).optional(),
+        donationType: z.enum(["Check", "Cash", "unopenedEnvelope"]).nullable().optional(),
         donationAmount: z.number().min(1, "Donation amount must be at least $1.").optional(),
         customFields: z.record(z.string(), z.any()).optional(),
     })
@@ -212,6 +212,7 @@ type Props = {
     onFindMatchingDrivers?: () => void;
     isLoading: boolean;
     viewMode?: boolean; // If true, all fields are disabled/read-only
+    limitedEditMode?: boolean; // If true, only completion fields are editable (for drivers)
 };
 
 /* --------------------------------- Form ----------------------------------- */
@@ -224,6 +225,7 @@ export default function EditRideForm({
     onFindMatchingDrivers,
     isLoading,
     viewMode = false,
+    limitedEditMode = false,
 }: Props) {
     const dynamicFieldsRef = useRef<DynamicFormFieldsRef>(null);
 
@@ -345,6 +347,7 @@ export default function EditRideForm({
                                                     role="combobox"
                                                     aria-expanded={clientOpen}
                                                     className="flex-1 justify-between"
+                                                    disabled={limitedEditMode}
                                                 >
                                                     <span className="truncate">
                                                         {field.value
@@ -462,7 +465,7 @@ export default function EditRideForm({
                         <FormItem className="w-full">
                             <FormLabel>Purpose of Trip</FormLabel>
                             <FormControl className="w-full">
-                                <Input {...field} className="w-full" />
+                                <Input {...field} className="w-full" disabled={limitedEditMode} />
                             </FormControl>
                             <FormMessage />
                         </FormItem>
@@ -557,6 +560,7 @@ export default function EditRideForm({
                         showAliasField={true}
                         aliasFieldLabel="Search Saved Destinations"
                         aliasFieldName="destinationAlias"
+                        disabled={limitedEditMode}
                     />
                 </div>
 
@@ -568,7 +572,7 @@ export default function EditRideForm({
                         <FormItem>
                             <FormLabel>Appointment Date</FormLabel>
                             <FormControl>
-                                <DatePickerInput value={field.value} onChange={field.onChange} />
+                                <DatePickerInput value={field.value} onChange={field.onChange} disabled={limitedEditMode} />
                             </FormControl>
                             <FormMessage />
                         </FormItem>
@@ -583,7 +587,7 @@ export default function EditRideForm({
                         <FormItem className="w-full">
                             <FormLabel>Appointment Time</FormLabel>
                             <FormControl className="w-full">
-                                <Input type="time" step="60" {...field} />
+                                <Input type="time" step="60" {...field} disabled={limitedEditMode} />
                             </FormControl>
                             <FormMessage />
                         </FormItem>
@@ -598,7 +602,7 @@ export default function EditRideForm({
                         <FormItem className="w-full">
                             <FormLabel>Trip Type</FormLabel>
                             <FormControl className="w-full">
-                                <Select value={field.value} onValueChange={field.onChange}>
+                                <Select value={field.value} onValueChange={field.onChange} disabled={limitedEditMode}>
                                     <SelectTrigger className="w-full">
                                         <SelectValue />
                                     </SelectTrigger>
@@ -647,6 +651,7 @@ export default function EditRideForm({
                                                     role="combobox"
                                                     aria-expanded={driverOpen}
                                                     className="flex-1 justify-between"
+                                                    disabled={limitedEditMode}
                                                 >
                                                     <span className="truncate">
                                                         {field.value
@@ -729,7 +734,7 @@ export default function EditRideForm({
                         <FormItem className="w-full">
                             <FormLabel>Additional Rider</FormLabel>
                             <FormControl className="w-full">
-                                <Select value={field.value} onValueChange={field.onChange}>
+                                <Select value={field.value} onValueChange={field.onChange} disabled={limitedEditMode}>
                                     <SelectTrigger className="w-full">
                                         <SelectValue placeholder="Select a value" />
                                     </SelectTrigger>
@@ -753,7 +758,7 @@ export default function EditRideForm({
                             <FormItem className="w-full">
                                 <FormLabel>Additional Rider First Name</FormLabel>
                                 <FormControl className="w-full">
-                                    <Input {...field} className="w-full" />
+                                    <Input {...field} className="w-full" disabled={limitedEditMode} />
                                 </FormControl>
                                 <FormMessage />
                             </FormItem>
@@ -768,7 +773,7 @@ export default function EditRideForm({
                             <FormItem className="w-full">
                                 <FormLabel>Additional Rider Last Name</FormLabel>
                                 <FormControl className="w-full">
-                                    <Input {...field} className="w-full" />
+                                    <Input {...field} className="w-full" disabled={limitedEditMode} />
                                 </FormControl>
                                 <FormMessage />
                             </FormItem>
@@ -783,7 +788,7 @@ export default function EditRideForm({
                             <FormItem className="w-full">
                                 <FormLabel>Relationship to Client</FormLabel>
                                 <FormControl className="w-full">
-                                    <Input {...field} className="w-full" />
+                                    <Input {...field} className="w-full" disabled={limitedEditMode} />
                                 </FormControl>
                                 <FormMessage />
                             </FormItem>
@@ -875,7 +880,7 @@ export default function EditRideForm({
                             <FormItem className="w-full">
                                 <FormLabel>Donation Type</FormLabel>
                                 <FormControl className="w-full">
-                                    <Select value={field.value} onValueChange={field.onChange}>
+                                    <Select value={field.value ?? undefined} onValueChange={field.onChange}>
                                         <SelectTrigger className="w-full">
                                             <SelectValue placeholder="Select a value" />
                                         </SelectTrigger>
