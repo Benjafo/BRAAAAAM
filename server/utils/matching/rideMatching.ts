@@ -1,11 +1,11 @@
 import { DriverProfile, MatchingContext, ScoreBreakdown } from "../../types/matching.types.js";
-import { checkAvailability } from "./availabilityCheck";
-import { scoreLoadBalancing } from "./loadBalancing";
+import { checkAvailability } from "./availabilityCheck.js";
+import { scoreLoadBalancing } from "./loadBalancing.js";
 import {
     scoreMobilityEquipment,
     scoreSpecialAccommodations,
     scoreVehicleMatch,
-} from "./scoringCriteria";
+} from "./scoringCriteria.js";
 
 /**
  * Main matching function - calculates score for a driver
@@ -154,7 +154,7 @@ export function calculateScoreBreakdown(
 
     const driverWeekRides = context.weekRidesMap.get(driver.id) || 0;
     const maxRides = driver.maxRidesPerWeek || 0;
-    const overMaxRidesPenalty = (maxRides > 0 && driverWeekRides >= maxRides) ? -20 : 0;
+    const overMaxRidesPenalty = maxRides > 0 && driverWeekRides >= maxRides ? -20 : 0;
 
     // Calculate total
     const total =

@@ -40,13 +40,17 @@ export function scoreMobilityEquipment(driver: DriverProfile, client: ClientDeta
 export function scoreSpecialAccommodations(driver: DriverProfile, client: ClientDetails): number {
     let score = 0;
 
-    // Oxygen accommodation (hard requirement ensures match if needed)
-    if (client.hasOxygen && driver.canAccommodateOxygen) {
+    // Oxygen accommodation
+    // If client doesn't need it, give points (all drivers can handle this)
+    // If client needs it, driver must have it (hard requirement) so give points
+    if (!client.hasOxygen || driver.canAccommodateOxygen) {
         score += 7.5;
     }
 
-    // Service animal accommodation (hard requirement ensures match if needed)
-    if (client.hasServiceAnimal && driver.canAccommodateServiceAnimal) {
+    // Service animal accommodation
+    // If client doesn't have one, give points (all drivers can handle this)
+    // If client has one, driver must accommodate (hard requirement) so give points
+    if (!client.hasServiceAnimal || driver.canAccommodateServiceAnimal) {
         score += 7.5;
     }
 

@@ -1,8 +1,12 @@
-export { calculateDriverScore, generateMatchReasons, calculateScoreBreakdown } from './rideMatching';
-export { checkAvailability } from './availabilityCheck';
-export { scoreLoadBalancing } from './loadBalancing';
+export { checkAvailability } from "./availabilityCheck.js";
+export { scoreLoadBalancing } from "./loadBalancing.js";
 export {
-    scoreVehicleMatch,
+    calculateDriverScore,
+    calculateScoreBreakdown,
+    generateMatchReasons,
+} from "./rideMatching.js";
+export {
     scoreMobilityEquipment,
     scoreSpecialAccommodations,
-} from './scoringCriteria';
+    scoreVehicleMatch,
+} from "./scoringCriteria.js";
