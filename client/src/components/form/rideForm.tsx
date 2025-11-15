@@ -176,6 +176,26 @@ const rideSchema = z
             }
         }
 
+        // Operating hours validation (Mon-Fri, 9 AM-5 PM)
+        const dayOfWeek = data.tripDate.getDay(); // 0 = Sunday, 6 = Saturday
+        const [hour] = data.appointmentTime.split(":").map(Number);
+
+        if (dayOfWeek === 0 || dayOfWeek === 6) {
+            ctx.addIssue({
+                code: "custom",
+                message: "Appointments must be scheduled Monday through Friday.",
+                path: ["tripDate"],
+            });
+        }
+
+        if (hour < 9 || hour >= 17) {
+            ctx.addIssue({
+                code: "custom",
+                message: "Appointment time must be between 9 AM and 5 PM.",
+                path: ["appointmentTime"],
+            });
+        }
+
         // Driver assignment validation based on ride status
         if (data.rideStatus === "Unassigned") {
             if (data.assignedDriver?.trim()) {
