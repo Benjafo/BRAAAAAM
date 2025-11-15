@@ -39,7 +39,7 @@ const PRESET_RANGES: PresetRange[] = [
         getDates: () => {
             const now = new Date();
             const start = new Date(now.getFullYear(), now.getMonth(), 1);
-            const end = new Date();
+            const end = new Date(now.getFullYear(), now.getMonth() + 1, 0); 
             return { start, end };
         },
     },
@@ -57,7 +57,7 @@ const PRESET_RANGES: PresetRange[] = [
         getDates: () => {
             const now = new Date();
             const start = new Date(now.getFullYear(), 0, 1);
-            const end = new Date();
+            const end = new Date(now.getFullYear(), 11, 31);
             return { start, end };
         },
     },
@@ -89,6 +89,14 @@ function formatDateForInput(date: Date): string {
     return `${year}-${month}-${day}`;
 }
 
+function normalizeDates(start: Date, end: Date) {
+    if (start > end) {
+        return { start: end, end: start }; // swap
+    }
+    return { start, end };
+}
+
+
 export function DateRangeSelector({
     startDate,
     endDate,
@@ -103,7 +111,10 @@ export function DateRangeSelector({
     const handleStartDateChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const newStartDate = e.target.value;
         setLocalStartDate(newStartDate);
-        onDateRangeChange(new Date(newStartDate), new Date(localEndDate));
+        const start = new Date(newStartDate);
+        const end = new Date(localEndDate);
+        const normalizedDate = normalizeDates(start, end);
+        onDateRangeChange(normalizedDate.start, normalizedDate.end);
     };
 
     /**
@@ -112,7 +123,10 @@ export function DateRangeSelector({
     const handleEndDateChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const newEndDate = e.target.value;
         setLocalEndDate(newEndDate);
-        onDateRangeChange(new Date(localStartDate), new Date(newEndDate));
+        const start = new Date(localStartDate);
+        const end = new Date(newEndDate);
+        const normalizedDate = normalizeDates(start, end);
+        onDateRangeChange(normalizedDate.start, normalizedDate.end);
     };
 
     /**
