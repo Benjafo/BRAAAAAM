@@ -4,8 +4,8 @@ import { sendBulkDriverNotifications } from "./email.js";
 // Initialize the email notification scheduler
 // Runs on a configurable schedule to check if any orgs need to send emails
 export const initializeScheduler = () => {
-    // Get cron schedule from environment (default: every 30 minutes)
-    const scheduleExpression = process.env.EMAIL_JOB_CRON || "*/30 * * * *";
+    // Get cron schedule from environment (default: every 15 minutes)
+    const scheduleExpression = process.env.EMAIL_JOB_CRON || "*/15 * * * *";
 
     console.log(`Initializing email scheduler with cron: ${scheduleExpression}`);
 

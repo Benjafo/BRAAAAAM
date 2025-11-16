@@ -189,37 +189,10 @@ BRAAAAAM Team`;
     });
 };
 
-// Placeholder function to get organization close time
+// Get organization close time from environment variable
+// TODO: implement and use actual org settings lookup from database
 function getCloseTimeForOrg(_orgId: string): string {
-    // For testing: Use nearest even minute (e.g., 5:02, 5:04, 5:06, etc.)
-    // If current minute is odd, round up to next even minute
-    const timezone = process.env.CRON_TIMEZONE || "America/New_York";
-    const now = new Date();
-
-    // Get current time in the org's timezone
-    const currentTimeStr = now.toLocaleString("en-US", {
-        timeZone: timezone,
-        hour: "2-digit",
-        minute: "2-digit",
-        hour12: false,
-    });
-
-    // Parse the time string (format: "HH:MM")
-    const [hours, minutes] = currentTimeStr.split(":").map(Number);
-
-    // Calculate nearest even minute (round up if odd)
-    const nearestEvenMinute = minutes % 2 === 0 ? minutes : minutes + 1;
-
-    // Handle edge case: if we go from 59 to 60, increment hour and reset to 00
-    if (nearestEvenMinute === 60) {
-        const nextHour = (hours + 1) % 24;
-        return `${nextHour.toString().padStart(2, "0")}:00`;
-    }
-
-    return `${hours.toString().padStart(2, "0")}:${nearestEvenMinute.toString().padStart(2, "0")}`;
-
-    // TODO: For production, implement actual org settings lookup
-    // return process.env.DEFAULT_ORG_CLOSE_TIME || "17:00";
+    return process.env.DEFAULT_ORG_CLOSE_TIME || "17:00";
 }
 
 // Check if current time matches org close time in the configured timezone
