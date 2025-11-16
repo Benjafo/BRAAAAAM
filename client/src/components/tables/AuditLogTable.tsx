@@ -1,27 +1,15 @@
 import { DataTable } from "@/components/dataTable";
 import { http } from "@/services/auth/serviceResolver";
+import { useState } from "react";
+import AuditLogModal from "@/components/modals/auditLogModal";
+import type { AuditLogEntry, AuditLogModalEntry } from "@/types/org/auditlog";
 
-type AuditLogEntry = {
-    audit_logs: {
-        id: string;
-        userId: string | null;
-        objectId: string | null;
-        objectType: string | null;
-        actionType: string;
-        actionMessage: string | null;
-        actionDetails: Record<string, any>;
-        createdAt: string;
-    }
-    users: {
-        id: string;
-        firstName: string | null;
-        lastName: string | null;
-        email: string | null;
-    }
-};
 
-// const API_AUDIT_LOG_ENDPOINT = `http://localhost:3000/dummy/audit-log`; //TODO fix this
+
 export function AuditLogTable() {
+    const [selectedEntry, setSelectedEntry] = useState<AuditLogModalEntry | null>(null);
+    const [isModalOpen, setIsModalOpen] = useState(false);
+
     const fetchAuditLogEntries = async (params: Record<string, unknown>) => {
         const searchParams = new URLSearchParams();
         Object.entries(params).forEach(([key, value]) => {
@@ -29,46 +17,72 @@ export function AuditLogTable() {
                 searchParams.set(key, String(value));
             }
         });
-        const response = await http.get(`o/audit-logs`, {
-            searchParams: searchParams
-        }).json<AuditLogEntry[]>();
-        // const response = await fetch(`${API_AUDIT_LOG_ENDPOINT}?${searchParams}`);
-        // const res = await response.json();
+        const response = await http
+            .get(`o/audit-logs`, {
+                searchParams: searchParams,
+            })
+            .json<AuditLogEntry[]>();
 
-        const realResponse = response.map((entry) => ({
-            ...entry.audit_logs,
-            userName: entry.users ? `${entry.users.firstName ?? ""} ${entry.users.lastName ?? ""}`.trim() : null,
-            actionDetails: JSON.stringify(entry.audit_logs.actionDetails, null, 2),
-        }));
+        const fullResponse = response.map((entry) => {
+            // Parse timestamp
+            const timestamp = new Date(entry.audit_logs.createdAt);
+            const date = timestamp.toISOString().split("T")[0];
+            const time = timestamp.toTimeString().split(" ")[0];
+
+            // Format action type
+            const actionParts = entry.audit_logs.actionType.split(".");
+            const action = actionParts[actionParts.length - 1];
+            const formattedAction = action.charAt(0).toUpperCase() + action.slice(1);
+
+            // Format object type
+            const objectType = entry.audit_logs.objectType;
+            const formattedObjectType =
+                objectType && objectType.charAt(0).toUpperCase() + objectType.slice(1);
+
+            return {
+                ...entry.audit_logs,
+                userName: entry.users
+                    ? `${entry.users.firstName ?? ""} ${entry.users.lastName ?? ""}`.trim()
+                    : null,
+                actionDetails: JSON.stringify(entry.audit_logs.actionDetails, null, 2),
+                date,
+                time,
+                formattedObjectType,
+                formattedAction,
+            };
+        });
 
         return {
-            data: realResponse,
-            total: realResponse.length,
+            data: fullResponse,
+            total: fullResponse.length,
         };
     };
 
-    const handleEditAuditLogEntry = (auditLogEntry: AuditLogEntry) => {
-        console.log("Audit log entry selected:", auditLogEntry);
+    const handleEditAuditLogEntry = (auditLogEntry: AuditLogModalEntry) => {
+        setSelectedEntry(auditLogEntry);
+        setIsModalOpen(true);
     };
 
     return (
-        <DataTable
-            fetchData={fetchAuditLogEntries as any}
-            columns={[
-                // { header: "User", accessorKey: "user" },
-                // { header: "Date & Time", accessorKey: "timestamp" },
-                // { header: "Event Details", accessorKey: "eventDetails" },
-                // { header: "ID", accessorKey: "id" },
-                { header: "User", accessorKey: "userName" },
-                // { header: "User ID", accessorKey: "userId" },
-                { header: "Object ID", accessorKey: "objectId" },
-                { header: "Object Type", accessorKey: "objectType" },
-                { header: "Action Type", accessorKey: "actionType" },
-                { header: "Action Message", accessorKey: "actionMessage" },
-                { header: "Action Details", accessorKey: "actionDetails" },
-                { header: "Created At", accessorKey: "createdAt" },
-            ]}
-            onRowClick={handleEditAuditLogEntry}
-        />
+        <>
+            <DataTable
+                fetchData={fetchAuditLogEntries as any}
+                columns={[
+                    { header: "Date", accessorKey: "date" },
+                    { header: "Time", accessorKey: "time" },
+                    { header: "User", accessorKey: "userName" },
+                    { header: "Object Type", accessorKey: "objectType" },
+                    { header: "Action", accessorKey: "formattedAction" },
+                    { header: "Action Message", accessorKey: "actionMessage" },
+                ]}
+                onRowClick={handleEditAuditLogEntry}
+            />
+
+            <AuditLogModal
+                auditLogEntry={selectedEntry}
+                open={isModalOpen}
+                onOpenChange={setIsModalOpen}
+            />
+        </>
     );
 }
