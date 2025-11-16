@@ -512,7 +512,7 @@ export default function UserForm({
                         zipFieldName="zipCode"
                         showAddress2={true}
                         showAliasField={true}
-                        aliasFieldLabel="Search Saved Destinations"
+                        aliasFieldLabel="Search Saved Locations"
                         aliasFieldName="streetAlias"
                     />
                 </div>
