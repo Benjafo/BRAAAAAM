@@ -471,7 +471,7 @@ export default function CustomFormBuilder({ defaultValues, onSubmit }: Props) {
                                                                 {/* AI help here */}
                                                                 <p className="text-xs text-muted-foreground">
                                                                     {isDate
-                                                                        ? "Pre-fill with a date (MM-DD-YYYY format)"
+                                                                        ? "Pre-fill with a date"
                                                                         : isNumber
                                                                           ? "Pre-fill with a numeric value"
                                                                           : "Pre-fill this field with a default value"}

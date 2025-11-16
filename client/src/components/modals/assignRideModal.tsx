@@ -9,18 +9,13 @@ import {
     DialogHeader,
     DialogTitle,
 } from "@/components/ui/dialog";
-import {
-    DropdownMenu,
-    DropdownMenuContent,
-    DropdownMenuItem,
-    DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
 import { http } from "@/services/auth/serviceResolver";
 import * as React from "react";
 import { toast } from "sonner";
 import { DataTable } from "../dataTable";
-import { ChevronDown, MoreVertical } from "lucide-react";
+import { ChevronDown } from "lucide-react";
 import DriverMatchDetailsModal from "./DriverMatchDetailsModal";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "../ui/dropdown-menu";
 
 type Driver = {
     id: string;
@@ -211,6 +206,10 @@ export default function AssignRideModal({
                 <DataTable
                     fetchData={fetchDrivers}
                     onRowSelectionChange={setSelectedDrivers}
+                    onRowClick={(driver) => {
+                        setSelectedDriverForDetails(driver);
+                        setMatchDetailsOpen(true);
+                    }}
                     columns={[
                         {
                             header: "Name",
@@ -241,25 +240,6 @@ export default function AssignRideModal({
                             ),
                         },
                     ]}
-                    rowActions={(driver) => (
-                        <DropdownMenu>
-                            <DropdownMenuTrigger asChild>
-                                <Button variant="ghost" className="h-8 w-8 p-0">
-                                    <MoreVertical className="h-4 w-4" />
-                                </Button>
-                            </DropdownMenuTrigger>
-                            <DropdownMenuContent align="end">
-                                <DropdownMenuItem
-                                    onClick={() => {
-                                        setSelectedDriverForDetails(driver);
-                                        setMatchDetailsOpen(true);
-                                    }}
-                                >
-                                    View Match Details
-                                </DropdownMenuItem>
-                            </DropdownMenuContent>
-                        </DropdownMenu>
-                    )}
                     showFilters={false}
                     usePagination={false}
                 />
