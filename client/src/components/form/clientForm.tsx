@@ -576,7 +576,7 @@ export default function ClientForm({ defaultValues, onSubmit, viewMode = false }
                         zipFieldName="zipCode"
                         showAddress2={true}
                         showAliasField={true}
-                        aliasFieldLabel="Search Saved Destinations"
+                        aliasFieldLabel="Search Saved Locations"
                         aliasFieldName="homeAlias"
                     />
                 </div>
