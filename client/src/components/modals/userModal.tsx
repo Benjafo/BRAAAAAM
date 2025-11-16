@@ -14,13 +14,6 @@ import type { UserFormValues } from "../form/userForm";
 import UserForm from "../form/userForm";
 import type { Role } from "@/lib/types";
 
-// type Role = {
-//     id: string;
-//     name: string;
-//     roleKey: string;
-//     description: string;
-// };
-
 type NewUserModalProps = {
     defaultValues?: Partial<UserFormValues> & { id?: string };
     open: boolean;
@@ -84,6 +77,11 @@ export default function NewUserModal({
                 lastName: values.lastName,
                 email: values.clientEmail,
                 phone: `+1${values.primaryPhoneNumber}`,
+                phoneIsCell: values.primaryPhoneIsCellPhone || false,
+                okToTextPrimary: values.okToTextPrimaryPhone || false,
+                secondaryPhone: values.secondaryPhoneNumber ? `+1${values.secondaryPhoneNumber}` : null,
+                secondaryPhoneIsCell: values.secondaryPhoneIsCellPhone || false,
+                okToTextSecondary: values.okToTextSecondaryPhone || false,
                 contactPreference: values.contactPreference.toLowerCase(),
                 birthMonth: values.birthMonth ? values.birthMonth : null,
                 birthYear: values.birthYear ? values.birthYear : null,
@@ -93,10 +91,19 @@ export default function NewUserModal({
                     : null,
                 emergencyContactRelationship: values.emergencyContactRelationship || null,
                 isActive: values.volunteeringStatus === "Active",
+                temporaryInactiveUntil:
+                    (values.volunteeringStatus === "On leave" && values.onLeaveUntil)
+                        ? values.onLeaveUntil.toISOString().split('T')[0]
+                        : (values.volunteeringStatus === "Away" && values.awayTo)
+                        ? values.awayTo.toISOString().split('T')[0]
+                        : null,
                 roleId: values.userRole, // Now sending roleId instead of role name
                 isDriver, // Determined from role selection
                 canAccommodateMobilityEquipment: values.canAccommodateMobilityEquipment || [],
                 vehicleType: values.vehicleType || null,
+                vehicleColor: values.vehicleColor || null,
+                townPreferences: values.townPreferences || null,
+                destinationLimitations: values.destinationLimitations || null,
                 canAccommodateOxygen: values.canAccommodateOxygen || false,
                 canAccommodateServiceAnimal: values.canAccommodateServiceAnimal || false,
                 canAccommodateAdditionalRider: values.canAccommodateAdditionalRider || false,

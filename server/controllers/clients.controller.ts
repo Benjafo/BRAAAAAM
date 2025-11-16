@@ -97,7 +97,8 @@ export const listClients = async (req: Request, res: Response): Promise<Response
                 secondaryPhone: clients.secondaryPhone,
                 secondaryPhoneIsCell: clients.secondaryPhoneIsCell,
                 contactPreference: clients.contactPreference,
-                allowMessages: clients.allowMessages,
+                okToTextPrimary: clients.okToTextPrimary,
+                okToTextSecondary: clients.okToTextSecondary,
                 gender: clients.gender,
                 birthYear: clients.birthYear,
                 birthMonth: clients.birthMonth,
@@ -117,6 +118,7 @@ export const listClients = async (req: Request, res: Response): Promise<Response
                 otherLimitations: clients.otherLimitations,
                 otherLimitationsOther: clients.otherLimitationsOther,
                 isActive: clients.isActive,
+                temporaryInactiveUntil: clients.temporaryInactiveUntil,
                 createdAt: clients.createdAt,
                 updatedAt: clients.updatedAt,
                 address: {
@@ -185,12 +187,16 @@ export const createClient = async (req: Request, res: Response): Promise<Respons
             lastName,
             email,
             phone,
+            phoneIsCell,
+            okToTextPrimary,
+            secondaryPhone,
+            secondaryPhoneIsCell,
+            okToTextSecondary,
             gender,
             contactPreference,
             address,
             birthMonth,
             birthYear,
-            phoneIsCell,
             livesAlone,
             emergencyContactName,
             emergencyContactPhone,
@@ -205,6 +211,7 @@ export const createClient = async (req: Request, res: Response): Promise<Respons
             serviceAnimalDescription,
             otherLimitations,
             otherLimitationsOther,
+            temporaryInactiveUntil,
         } = req.body;
 
         // Validate all required fields are provided
@@ -267,6 +274,10 @@ export const createClient = async (req: Request, res: Response): Promise<Respons
                 email,
                 phone,
                 phoneIsCell: phoneIsCell ?? false,
+                okToTextPrimary: okToTextPrimary ?? false,
+                secondaryPhone: secondaryPhone ?? undefined,
+                secondaryPhoneIsCell: secondaryPhoneIsCell ?? false,
+                okToTextSecondary: okToTextSecondary ?? false,
                 gender,
                 birthMonth,
                 birthYear,
@@ -286,6 +297,7 @@ export const createClient = async (req: Request, res: Response): Promise<Respons
                 serviceAnimalDescription,
                 otherLimitations: otherLimitations ?? [],
                 otherLimitationsOther,
+                temporaryInactiveUntil: temporaryInactiveUntil ?? undefined,
             })
             .returning(); // Return full client row
 
@@ -349,7 +361,8 @@ export const getClient = async (req: Request, res: Response): Promise<Response> 
                 secondaryPhone: clients.secondaryPhone,
                 secondaryPhoneIsCell: clients.secondaryPhoneIsCell,
                 contactPreference: clients.contactPreference,
-                allowMessages: clients.allowMessages,
+                okToTextPrimary: clients.okToTextPrimary,
+                okToTextSecondary: clients.okToTextSecondary,
                 gender: clients.gender,
                 birthYear: clients.birthYear,
                 birthMonth: clients.birthMonth,
@@ -369,6 +382,7 @@ export const getClient = async (req: Request, res: Response): Promise<Response> 
                 otherLimitations: clients.otherLimitations,
                 otherLimitationsOther: clients.otherLimitationsOther,
                 isActive: clients.isActive,
+                temporaryInactiveUntil: clients.temporaryInactiveUntil,
                 createdAt: clients.createdAt,
                 updatedAt: clients.updatedAt,
                 address: {
@@ -434,6 +448,11 @@ export const updateClient = async (req: Request, res: Response): Promise<Respons
                 lastName: data.lastName,
                 email: data.email,
                 phone: data.phone,
+                phoneIsCell: data.phoneIsCell,
+                okToTextPrimary: data.okToTextPrimary,
+                secondaryPhone: data.secondaryPhone,
+                secondaryPhoneIsCell: data.secondaryPhoneIsCell,
+                okToTextSecondary: data.okToTextSecondary,
                 contactPreference: data.contactPreference,
                 gender: data.gender,
                 birthYear: data.birthYear,
@@ -451,6 +470,8 @@ export const updateClient = async (req: Request, res: Response): Promise<Respons
                 serviceAnimalDescription: data.serviceAnimalDescription,
                 otherLimitations: data.otherLimitations,
                 otherLimitationsOther: data.otherLimitationsOther,
+                isActive: data.isActive,
+                temporaryInactiveUntil: data.temporaryInactiveUntil,
                 ...(addressId !== undefined && { addressLocation: addressId }),
                 updatedAt: new Date().toISOString(), // Update timestamp manually
             })

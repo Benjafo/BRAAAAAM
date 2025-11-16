@@ -324,7 +324,8 @@ app.get("/test/o/:orgId/create-client", withOrg, async (req: Request, res: Respo
         secondaryPhone,
         secondaryPhoneIsCell,
         contactPreference,
-        allowMessages,
+        okToTextPrimary,
+        okToTextSecondary,
         emergencyContactName,
         emergencyContactPhone,
         emergencyContactRelationship,
@@ -350,7 +351,7 @@ app.get("/test/o/:orgId/create-client", withOrg, async (req: Request, res: Respo
             required:
                 "firstName, lastName, phone, gender (Male/Female/Other), livesAlone (true/false), birthYear, addressLine1, city, state, zip, country",
             optional:
-                "birthMonth, addressLine2, email, phoneIsCell, secondaryPhone, secondaryPhoneIsCell, contactPreference, allowMessages, emergencyContactName, emergencyContactPhone, emergencyContactRelationship, notes, pickupInstructions",
+                "birthMonth, addressLine2, email, phoneIsCell, secondaryPhone, secondaryPhoneIsCell, contactPreference, okToTextPrimary, okToTextSecondary, emergencyContactName, emergencyContactPhone, emergencyContactRelationship, notes, pickupInstructions",
         });
     }
 
@@ -408,7 +409,8 @@ app.get("/test/o/:orgId/create-client", withOrg, async (req: Request, res: Respo
         const livesAloneBool = livesAlone === "true";
         const phoneIsCellBool = phoneIsCell === "true";
         const secondaryPhoneIsCellBool = secondaryPhoneIsCell === "true";
-        const allowMessagesBool = allowMessages === "true";
+        const okToTextPrimaryBool = okToTextPrimary === "true";
+        const okToTextSecondaryBool = okToTextSecondary === "true";
 
         // Create the client
         const [newClient] = await db
@@ -430,7 +432,8 @@ app.get("/test/o/:orgId/create-client", withOrg, async (req: Request, res: Respo
                     typeof contactPreference === "string"
                         ? (contactPreference as "email" | "phone")
                         : "phone",
-                allowMessages: allowMessagesBool,
+                okToTextPrimary: okToTextPrimaryBool,
+                okToTextSecondary: okToTextSecondaryBool,
                 emergencyContactName:
                     typeof emergencyContactName === "string" ? emergencyContactName : undefined,
                 emergencyContactPhone:

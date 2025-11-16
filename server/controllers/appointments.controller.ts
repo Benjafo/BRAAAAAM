@@ -132,9 +132,15 @@ export const listAppointments = async (req: Request, res: Response): Promise<Res
                 // Completion fields
                 milesDriven: appointments.milesDriven,
                 estimatedDurationMinutes: appointments.estimatedDurationMinutes,
+                actualDurationMinutes: appointments.actualDurationMinutes,
                 notes: appointments.notes,
                 donationType: appointments.donationType,
                 donationAmount: appointments.donationAmount,
+                // Additional rider fields
+                hasAdditionalRider: appointments.hasAdditionalRider,
+                additionalRiderFirstName: appointments.additionalRiderFirstName,
+                additionalRiderLastName: appointments.additionalRiderLastName,
+                relationshipToClient: appointments.relationshipToClient,
                 // Client
                 clientId: appointments.clientId,
                 clientFirstName: clients.firstName,
@@ -246,11 +252,16 @@ export const createAppointment = async (req: Request, res: Response): Promise<Re
                 startDate: data.startDate,
                 startTime: data.startTime,
                 estimatedDurationMinutes: data.estimatedDurationMinutes || null,
+                actualDurationMinutes: data.actualDurationMinutes || null,
                 pickupLocation: pickupLocationId,
                 destinationLocation: destinationLocationId,
                 tripType: data.tripType || "roundTrip",
                 tripPurpose: data.tripPurpose || null,
                 notes: data.notes || null,
+                hasAdditionalRider: data.hasAdditionalRider || false,
+                additionalRiderFirstName: data.additionalRiderFirstName || null,
+                additionalRiderLastName: data.additionalRiderLastName || null,
+                relationshipToClient: data.relationshipToClient || null,
                 donationType: data.donationType || "None",
                 donationAmount: data.donationAmount || null,
                 milesDriven: data.milesDriven || null,
@@ -397,7 +408,7 @@ export const updateAppointment = async (req: Request, res: Response): Promise<Re
         const updateData: Record<string, unknown> = {};
 
         // Fields that drivers with ownappointments.update can modify (completion fields only)
-        const driverAllowedFields = ["status", "milesDriven", "estimatedDurationMinutes", "notes", "donationType", "donationAmount"];
+        const driverAllowedFields = ["status", "milesDriven", "actualDurationMinutes", "estimatedDurationMinutes", "notes", "donationType", "donationAmount"];
 
         if (hasAllPermission) {
             // Full permission - can update all fields
@@ -419,9 +430,15 @@ export const updateAppointment = async (req: Request, res: Response): Promise<Re
             if (data.tripPurpose !== undefined) updateData.tripPurpose = data.tripPurpose;
             if (data.estimatedDurationMinutes)
                 updateData.estimatedDurationMinutes = data.estimatedDurationMinutes;
+            if (data.actualDurationMinutes !== undefined)
+                updateData.actualDurationMinutes = data.actualDurationMinutes;
             if (data.tripType) updateData.tripType = data.tripType;
             if (data.notes !== undefined) updateData.notes = data.notes;
-            if (data.donationType) updateData.donationType = data.donationType;
+            if (data.hasAdditionalRider !== undefined) updateData.hasAdditionalRider = data.hasAdditionalRider;
+            if (data.additionalRiderFirstName !== undefined) updateData.additionalRiderFirstName = data.additionalRiderFirstName;
+            if (data.additionalRiderLastName !== undefined) updateData.additionalRiderLastName = data.additionalRiderLastName;
+            if (data.relationshipToClient !== undefined) updateData.relationshipToClient = data.relationshipToClient;
+            if (data.donationType !== undefined) updateData.donationType = data.donationType;
             if (data.donationAmount !== undefined) updateData.donationAmount = data.donationAmount;
             if (data.milesDriven !== undefined) updateData.milesDriven = data.milesDriven;
         } else {
@@ -432,6 +449,7 @@ export const updateAppointment = async (req: Request, res: Response): Promise<Re
             if (data.donationAmount !== undefined) updateData.donationAmount = data.donationAmount;
             if (data.milesDriven !== undefined) updateData.milesDriven = data.milesDriven;
             if (data.estimatedDurationMinutes !== undefined) updateData.estimatedDurationMinutes = data.estimatedDurationMinutes;
+            if (data.actualDurationMinutes !== undefined) updateData.actualDurationMinutes = data.actualDurationMinutes;
 
             // Reject if trying to update non-allowed fields
             const attemptedFields = Object.keys(data);

@@ -5,7 +5,6 @@ import { http } from "@/services/auth/serviceResolver";
 import { useState } from "react";
 import type { ClientFormValues } from "../form/clientForm";
 import ClientModal from "../modals/clientModal";
-// import { useParams } from "@tanstack/react-router";
 
 type Client = {
     id: string;
@@ -46,7 +45,7 @@ type Client = {
 
 // Helper function to map API Client to form values
 // ai made this
-function mapClientToFormValues(client: Client): Partial<ClientFormValues> & { id: string } {
+function mapClientToFormValues(client: Client & { okToTextPrimary?: boolean, okToTextSecondary?: boolean, secondaryPhone?: string | null, secondaryPhoneIsCell?: boolean, temporaryInactiveUntil?: string | null }): Partial<ClientFormValues> & { id: string } {
     return {
         id: client.id,
         firstName: client.firstName,
@@ -54,6 +53,10 @@ function mapClientToFormValues(client: Client): Partial<ClientFormValues> & { id
         clientEmail: client.email || "",
         primaryPhoneNumber: client.phone?.replace("+1", "") || "",
         primaryPhoneIsCellPhone: client.phoneIsCell,
+        okToTextPrimaryPhone: client.okToTextPrimary || false,
+        secondaryPhoneNumber: client.secondaryPhone?.replace("+1", "") || "",
+        secondaryPhoneIsCellPhone: client.secondaryPhoneIsCell || false,
+        okToTextSecondaryPhone: client.okToTextSecondary || false,
         birthMonth: client.birthMonth ? client.birthMonth.toString().padStart(2, "0") : "",
         birthYear: String(client.birthYear),
         clientGender: client.gender as "Male" | "Female" | "Other",
@@ -79,9 +82,8 @@ function mapClientToFormValues(client: Client): Partial<ClientFormValues> & { id
         state: client.address.state,
         zipCode: client.address.zip,
         customFields: client.customFields || {},
-        // TODO: add clientStatus, volunteeringStatus when available from API
-        // okToText fields are not included
-        // derived date fields for volunteer status are also not included
+        volunteeringStatus: client.isActive ? "Active" : (client.temporaryInactiveUntil ? "On leave" : "Inactive"),
+        onLeaveUntil: client.temporaryInactiveUntil ? new Date(client.temporaryInactiveUntil) : undefined,
     };
 }
 

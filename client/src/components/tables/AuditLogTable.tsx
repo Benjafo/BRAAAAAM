@@ -1,10 +1,8 @@
 import { DataTable } from "@/components/dataTable";
-import { http } from "@/services/auth/serviceResolver";
-import { useState } from "react";
 import AuditLogModal from "@/components/modals/auditLogModal";
+import { http } from "@/services/auth/serviceResolver";
 import type { AuditLogEntry, AuditLogModalEntry } from "@/types/org/auditlog";
-
-
+import { useState } from "react";
 
 export function AuditLogTable() {
     const [selectedEntry, setSelectedEntry] = useState<AuditLogModalEntry | null>(null);
@@ -71,7 +69,7 @@ export function AuditLogTable() {
                     { header: "Date", accessorKey: "date" },
                     { header: "Time", accessorKey: "time" },
                     { header: "User", accessorKey: "userName" },
-                    { header: "Object Type", accessorKey: "objectType" },
+                    { header: "Object Type", accessorKey: "formattedObjectType" },
                     { header: "Action", accessorKey: "formattedAction" },
                     { header: "Action Message", accessorKey: "actionMessage" },
                 ]}

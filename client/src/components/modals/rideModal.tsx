@@ -9,11 +9,11 @@ import {
     DialogHeader,
     DialogTitle,
 } from "@/components/ui/dialog";
+import { PERMISSIONS } from "@/lib/permissions";
 import { http } from "@/services/auth/serviceResolver";
 import * as React from "react";
 import { toast } from "sonner";
 import { useAuthStore } from "../stores/authStore";
-import { PERMISSIONS } from "@/lib/permissions";
 import AssignRideModal from "./assignRideModal";
 
 // Type matching the API response from listClients
@@ -188,7 +188,7 @@ export default function RideModal({
 
     async function handleSubmit(values: RideFormValues) {
         try {
-            console.log("Form values:", values);
+            console.log("Submit ride form values:", values);
 
             // Skip validation for drivers with limited permissions (they're only updating completion fields)
             let selectedClient: Client | undefined;
@@ -221,10 +221,21 @@ export default function RideModal({
                 requestBody = {
                     status: values.rideStatus,
                     milesDriven: values.tripDistance,
-                    estimatedDurationMinutes: values.tripDuration ? values.tripDuration * 60 : undefined,
-                    notes: values.tripDistance ? `Trip completed: ${values.tripDistance} miles` : undefined,
+                    actualDurationMinutes: values.tripDuration
+                        ? values.tripDuration * 60
+                        : undefined,
+                    notes: values.tripDistance
+                        ? `Trip completed: ${values.tripDistance} miles`
+                        : undefined,
                     donationType: values.donationType || null,
                     donationAmount: values.donationAmount,
+                    hasAdditionalRider: values.additionalRider === "Yes",
+                    additionalRiderFirstName:
+                        values.additionalRider === "Yes" ? values.additionalRiderFirstName : null,
+                    additionalRiderLastName:
+                        values.additionalRider === "Yes" ? values.additionalRiderLastName : null,
+                    relationshipToClient:
+                        values.additionalRider === "Yes" ? values.relationshipToClient : null,
                     customFields: values.customFields,
                 };
             } else {
@@ -257,6 +268,19 @@ export default function RideModal({
                         country: "USA",
                     },
                     status: values.rideStatus || "unassigned",
+                    hasAdditionalRider: values.additionalRider === "Yes",
+                    additionalRiderFirstName:
+                        values.additionalRider === "Yes" ? values.additionalRiderFirstName : null,
+                    additionalRiderLastName:
+                        values.additionalRider === "Yes" ? values.additionalRiderLastName : null,
+                    relationshipToClient:
+                        values.additionalRider === "Yes" ? values.relationshipToClient : null,
+                    milesDriven: values.tripDistance,
+                    actualDurationMinutes: values.tripDuration
+                        ? values.tripDuration * 60
+                        : undefined,
+                    donationType: values.donationType || null,
+                    donationAmount: values.donationAmount,
                     customFields: values.customFields,
                 };
             }

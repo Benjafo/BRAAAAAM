@@ -42,6 +42,10 @@ export default function ClientModal({
                 email: values.clientEmail || null,
                 phone: `+1${values.primaryPhoneNumber}`,
                 phoneIsCell: values.primaryPhoneIsCellPhone,
+                okToTextPrimary: values.okToTextPrimaryPhone || false,
+                secondaryPhone: values.secondaryPhoneNumber ? `+1${values.secondaryPhoneNumber}` : null,
+                secondaryPhoneIsCell: values.secondaryPhoneIsCellPhone || false,
+                okToTextSecondary: values.okToTextSecondaryPhone || false,
                 gender: values.clientGender,
                 birthMonth: values.birthMonth ? parseInt(values.birthMonth, 10) : null,
                 birthYear: parseInt(values.birthYear, 10),
@@ -62,6 +66,10 @@ export default function ClientModal({
                 serviceAnimalDescription: values.serviceAnimalDescription || null,
                 otherLimitations: values.otherLimitations || [],
                 otherLimitationsOther: values.otherLimitationsOther || null,
+                isActive: values.volunteeringStatus === "Active",
+                temporaryInactiveUntil: values.volunteeringStatus === "On leave" && values.onLeaveUntil
+                    ? values.onLeaveUntil.toISOString().split('T')[0]
+                    : null,
                 customFields: values.customFields,
                 address: {
                     addressLine1: values.homeAddress,

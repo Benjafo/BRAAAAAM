@@ -28,6 +28,18 @@ type Ride = {
     dispatcherLastName: string | null;
     tripPurpose: string | null;
     tripType: "roundTrip" | "oneWayFrom" | "oneWayTo";
+    // Completion fields
+    milesDriven: number | null;
+    actualDurationMinutes: number | null;
+    notes: string | null;
+    donationType: "Check" | "Cash" | "unopenedEnvelope" | null;
+    donationAmount: number | null;
+    // Additional rider fields
+    hasAdditionalRider: boolean | null;
+    additionalRiderFirstName: string | null;
+    additionalRiderLastName: string | null;
+    relationshipToClient: string | null;
+    // Locations
     pickupLocationId: string;
     pickupAddressLine1: string | null;
     pickupAddressLine2: string | null;
@@ -40,6 +52,7 @@ type Ride = {
     destinationCity: string | null;
     destinationState: string | null;
     destinationZip: string | null;
+    customFields?: Record<string, any>;
 };
 
 // Transform API ride data to CalendarEvent format
@@ -125,6 +138,17 @@ const mapRideToFormValues = (ride: Ride): Partial<RideFormValues> & { id?: strin
         purposeOfTrip: ride.tripPurpose || "",
         assignedDriver: ride.driverId || undefined,
         rideStatus: ride.status,
+        // Completion fields
+        tripDistance: ride.milesDriven || undefined,
+        tripDuration: ride.actualDurationMinutes ? ride.actualDurationMinutes / 60 : undefined,
+        donationType: ride.donationType || undefined,
+        donationAmount: ride.donationAmount || undefined,
+        // Additional rider fields
+        additionalRider: ride.hasAdditionalRider ? "Yes" : "No",
+        additionalRiderFirstName: ride.additionalRiderFirstName || "",
+        additionalRiderLastName: ride.additionalRiderLastName || "",
+        relationshipToClient: ride.relationshipToClient || "",
+        customFields: ride.customFields || {},
     };
 };
 

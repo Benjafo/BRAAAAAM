@@ -24,10 +24,15 @@ type Ride = {
     tripType: "roundTrip" | "oneWayFrom" | "oneWayTo";
     // Completion fields
     milesDriven: number | null;
-    estimatedDurationMinutes: number | null;
+    actualDurationMinutes: number | null;
     notes: string | null;
     donationType: "Check" | "Cash" | "unopenedEnvelope" | null;
     donationAmount: number | null;
+    // Additional rider fields
+    hasAdditionalRider: boolean | null;
+    additionalRiderFirstName: string | null;
+    additionalRiderLastName: string | null;
+    relationshipToClient: string | null;
     // Locations
     pickupLocationId: string;
     pickupAddressLine1: string | null;
@@ -66,11 +71,15 @@ const mapRideToFormValues = (ride: Ride): Partial<RideFormValues> & { id?: strin
         rideStatus: ride.status,
         // Completion fields
         tripDistance: ride.milesDriven || undefined,
-        tripDuration: ride.estimatedDurationMinutes ? ride.estimatedDurationMinutes / 60 : undefined,
+        tripDuration: ride.actualDurationMinutes ? ride.actualDurationMinutes / 60 : undefined,
         donationType: ride.donationType || undefined,
         donationAmount: ride.donationAmount || undefined,
+        // Additional rider fields
+        additionalRider: ride.hasAdditionalRider ? "Yes" : "No",
+        additionalRiderFirstName: ride.additionalRiderFirstName || "",
+        additionalRiderLastName: ride.additionalRiderLastName || "",
+        relationshipToClient: ride.relationshipToClient || "",
         customFields: ride.customFields || {},
-        // Note: additionalRider fields not yet in database schema
     };
 };
 

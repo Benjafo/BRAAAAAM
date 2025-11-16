@@ -44,6 +44,11 @@ function mapUserToFormValues(user: TableUser): Partial<UserFormValues> & { id: s
         lastName: user.lastName,
         clientEmail: user.email || "",
         primaryPhoneNumber: user.phone?.replace("+1", "") || "",
+        primaryPhoneIsCellPhone: user.phoneIsCell || false,
+        okToTextPrimaryPhone: user.okToTextPrimary || false,
+        secondaryPhoneNumber: user.secondaryPhone?.replace("+1", "") || "",
+        secondaryPhoneIsCellPhone: user.secondaryPhoneIsCell || false,
+        okToTextSecondaryPhone: user.okToTextSecondary || false,
         contactPreference:
             (user.contactPreference &&
                 ((user.contactPreference.charAt(0).toUpperCase() +
@@ -54,10 +59,14 @@ function mapUserToFormValues(user: TableUser): Partial<UserFormValues> & { id: s
         emergencyContactName: user.emergencyContactName || "",
         emergencyContactPhone: user.emergencyContactPhone?.replace("+1", "") || "",
         emergencyContactRelationship: user.emergencyContactRelationship || "",
-        volunteeringStatus: user.isActive ? "Active" : "Inactive",
+        volunteeringStatus: user.isActive ? "Active" : (user.temporaryInactiveUntil ? "On leave" : "Inactive"),
+        onLeaveUntil: user.temporaryInactiveUntil ? new Date(user.temporaryInactiveUntil) : undefined,
         userRole: user.roleId || "",
         canAccommodateMobilityEquipment: user.canAccommodateMobilityEquipment as any || [],
         vehicleType: user.vehicleType as any || "",
+        vehicleColor: user.vehicleColor || "",
+        townPreferences: user.townPreferences || "",
+        destinationLimitations: user.destinationLimitations || "",
         canAccommodateOxygen: user.canAccommodateOxygen || false,
         canAccommodateServiceAnimal: user.canAccommodateServiceAnimal || false,
         canAccommodateAdditionalRider: user.canAccommodateAdditionalRider || false,
