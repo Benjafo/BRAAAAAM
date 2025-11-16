@@ -59,6 +59,7 @@ export const listRoles = async (req: Request, res: Response): Promise<Response> 
                 name: roles.name,
                 description: roles.description,
                 isSystem: roles.isSystem,
+                isDriverRole: roles.isDriverRole,
                 createdAt: roles.createdAt,
             })
             .from(roles)
@@ -113,7 +114,7 @@ export const createRole = async (req: Request, res: Response): Promise<Response>
         const db = req.org?.db;
         if (!db) return res.status(500).json({ error: "Database not initialized" });
 
-        const { roleName, description, permissionIds } = req.body;
+        const { roleName, description, isDriverRole, permissionIds } = req.body;
 
         if (!roleName || !description || !Array.isArray(permissionIds)) {
             return res.status(400).json({ message: "Missing required fields" });
@@ -127,6 +128,7 @@ export const createRole = async (req: Request, res: Response): Promise<Response>
                 name: roleName,
                 description,
                 isSystem: false,
+                isDriverRole: isDriverRole ?? false,
             })
             .returning();
 
@@ -166,6 +168,7 @@ export const getRole = async (req: Request, res: Response): Promise<Response> =>
                 name: roles.name,
                 description: roles.description,
                 isSystem: roles.isSystem,
+                isDriverRole: roles.isDriverRole,
             })
             .from(roles)
             .where(eq(roles.id, roleId));
@@ -193,6 +196,7 @@ export const getRole = async (req: Request, res: Response): Promise<Response> =>
             roleName: roleData.name,
             description: roleData.description,
             isSystem: roleData.isSystem,
+            isDriverRole: roleData.isDriverRole,
             permissions: perms,
             permissionIds: perms.map((p) => p.id),
         });
@@ -208,7 +212,7 @@ export const updateRole = async (req: Request, res: Response): Promise<Response>
         if (!db) return res.status(500).json({ error: "Database not initialized" });
 
         const { roleId } = req.params;
-        const { roleName, description, permissionIds } = req.body;
+        const { roleName, description, isDriverRole, permissionIds } = req.body;
 
         const [existingRole] = await db
             .select({ id: roles.id })
@@ -225,6 +229,7 @@ export const updateRole = async (req: Request, res: Response): Promise<Response>
             .set({
                 name: roleName,
                 description,
+                isDriverRole: isDriverRole ?? false,
                 updatedAt: new Date().toISOString(),
             })
             .where(eq(roles.id, roleId))

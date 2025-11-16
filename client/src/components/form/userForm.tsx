@@ -26,6 +26,7 @@ import {
     FormMessage,
 } from "@/components/ui/form";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import type { Role } from "@/lib/types";
 import { GoogleAddressFields } from "../GoogleAddressFields";
 import { Checkbox } from "../ui/checkbox";
 import { DatePickerInput } from "../ui/datePickerField";
@@ -243,12 +244,12 @@ const userSchema = z
 export type UserFormValues = z.infer<typeof userSchema>;
 
 /* --------------------------------- Props ---------------------------------- */
-type Role = {
-    id: string;
-    name: string;
-    roleKey: string;
-    description: string;
-};
+// type Role = {
+//     id: string;
+//     name: string;
+//     roleKey: string;
+//     description: string;
+// };
 
 type Props = {
     defaultValues: Partial<UserFormValues>;
@@ -348,7 +349,7 @@ export default function UserForm({
     const userRole = form.watch("userRole");
     // Check if selected role is a driver role
     const selectedRole = availableRoles?.find((role) => role.id === userRole);
-    const isDriverRole = selectedRole?.roleKey === "driver";
+    const isDriverRole = selectedRole?.isDriverRole ?? false;
 
     // Update form when roles load and no role is selected yet
     useEffect(() => {

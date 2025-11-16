@@ -74,6 +74,7 @@ export async function seedRoles(db: OrgDb) {
                     name: role.name,
                     description: role.description,
                     isSystem: role.isSystem,
+                    isDriverRole: role.isDriverRole,
                 })
                 .returning({ id: orgSchema.roles.id });
 
@@ -87,6 +88,7 @@ export async function seedRoles(db: OrgDb) {
                     name: role.name,
                     description: role.description,
                     isSystem: role.isSystem,
+                    isDriverRole: role.isDriverRole,
                 })
                 .where(eq(orgSchema.roles.id, existingRole.id));
 

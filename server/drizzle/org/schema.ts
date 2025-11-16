@@ -92,6 +92,7 @@ export const roles = pgTable(
         name: text().notNull(),
         description: text().notNull(),
         isSystem: boolean("is_system").default(false).notNull(),
+        isDriverRole: boolean("is_driver_role").default(false).notNull(),
         createdAt: timestamp("created_at", { withTimezone: true, mode: "string" })
             .defaultNow()
             .notNull(),

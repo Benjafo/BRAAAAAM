@@ -12,13 +12,14 @@ import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import type { UserFormValues } from "../form/userForm";
 import UserForm from "../form/userForm";
+import type { Role } from "@/lib/types";
 
-type Role = {
-    id: string;
-    name: string;
-    roleKey: string;
-    description: string;
-};
+// type Role = {
+//     id: string;
+//     name: string;
+//     roleKey: string;
+//     description: string;
+// };
 
 type NewUserModalProps = {
     defaultValues?: Partial<UserFormValues> & { id?: string };
@@ -69,7 +70,7 @@ export default function NewUserModal({
         try {
             // Determine if user is a driver based on selected role
             const selectedRole = roles.find((role) => role.id === values.userRole);
-            const isDriver = selectedRole?.roleKey === "driver";
+            const isDriver = selectedRole?.isDriverRole ?? false;
 
             console.log("Submitting with role:", {
                 roleId: values.userRole,

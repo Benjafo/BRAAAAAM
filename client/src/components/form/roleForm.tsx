@@ -30,6 +30,7 @@ const roleSchema = z.object({
         .string()
         .min(1, "Description is required")
         .max(500, "Max characters allowed is 500"),
+    isDriverRole: z.boolean(),
     permissionIds: z.array(z.string()).min(1, "Select at least one permission"),
 });
 
@@ -80,6 +81,7 @@ export default function RoleForm({ defaultValues, onSubmit, availablePermissions
         defaultValues: {
             roleName: defaultValues?.roleName || "",
             description: defaultValues?.description || "",
+            isDriverRole: defaultValues?.isDriverRole || false,
             permissionIds: defaultValues?.permissionIds || [],
         },
     });
@@ -142,6 +144,27 @@ export default function RoleForm({ defaultValues, onSubmit, availablePermissions
                             </FormControl>
                             <FormDescription>{field.value.length}/500 characters</FormDescription>
                             <FormMessage />
+                        </FormItem>
+                    )}
+                />
+
+                {/* Is Driver Role */}
+                <FormField
+                    control={form.control}
+                    name="isDriverRole"
+                    render={({ field }) => (
+                        <FormItem className="flex flex-row items-start space-x-3 space-y-0 rounded-md border p-4">
+                            <FormControl>
+                                <Checkbox checked={field.value} onCheckedChange={field.onChange} />
+                            </FormControl>
+                            <div className="space-y-1 leading-none">
+                                <FormLabel>Is Driver Role</FormLabel>
+                                <FormDescription>
+                                    Check this if users with this role should be able to be assigned as
+                                    drivers and have access to driver-specific fields (vehicle type,
+                                    mobility accommodations, etc.)
+                                </FormDescription>
+                            </div>
                         </FormItem>
                     )}
                 />

@@ -69,11 +69,13 @@ export default function RoleModal({
             ? {
                   roleName: roleDetails.roleName,
                   description: roleDetails.description,
+                  isDriverRole: roleDetails.isDriverRole,
                   permissionIds: roleDetails.permissionIds,
               }
             : {
                   roleName: "",
                   description: "",
+                  isDriverRole: false,
                   permissionIds: [],
               };
 
@@ -84,6 +86,7 @@ export default function RoleModal({
             const requestBody = {
                 roleName: values.roleName,
                 description: values.description,
+                isDriverRole: values.isDriverRole,
                 permissionIds: values.permissionIds,
             };
 

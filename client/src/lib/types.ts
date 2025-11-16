@@ -13,6 +13,7 @@ export type Role = {
     name: string;
     description: string;
     isSystem: boolean;
+    isDriverRole: boolean;
     permissionCount: number;
     createdAt: string;
 };
@@ -22,6 +23,7 @@ export type RoleDetail = {
     roleName: string;
     description: string;
     isSystem: boolean;
+    isDriverRole: boolean;
     permissions: Permission[];
     permissionIds: string[];
 };

@@ -3,6 +3,7 @@ export interface RoleDefinition {
     name: string;
     description: string;
     isSystem: boolean;
+    isDriverRole: boolean;
     permissions: string[];
 }
 
@@ -12,6 +13,7 @@ export const DEFAULT_ROLES: RoleDefinition[] = [
         name: "Super Administrator",
         description: "Superuser with access to create and manage organizations",
         isSystem: true,
+        isDriverRole: false,
         permissions: ["organizations.read", "organizations.create", "organizations.update"],
     },
     {
@@ -19,6 +21,7 @@ export const DEFAULT_ROLES: RoleDefinition[] = [
         name: "Administrator",
         description: "Administrative access for managing organization info",
         isSystem: false,
+        isDriverRole: false,
         permissions: [
             // Dashboard
             "dashboard.read",
@@ -74,6 +77,7 @@ export const DEFAULT_ROLES: RoleDefinition[] = [
         name: "Dispatcher",
         description: "Manage appointments, clients, and drivers",
         isSystem: false,
+        isDriverRole: false,
         permissions: [
             // Users
             "users.read",
@@ -108,6 +112,7 @@ export const DEFAULT_ROLES: RoleDefinition[] = [
         name: "Driver",
         description: "View own appointments, view client information",
         isSystem: false,
+        isDriverRole: true,
         permissions: [
             "ownappointments.read",
             "ownappointments.update",
