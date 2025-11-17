@@ -20,6 +20,9 @@ type Notification = {
     recipientId: string;
     recipientName: string;
     recipientEmail: string;
+    senderId: string | null;
+    senderName: string | null;
+    senderEmail: string | null;
     appointmentId: string | null;
     appointmentDate: string | null;
     appointmentTime: string | null;
@@ -91,6 +94,23 @@ export default function NotificationDetailsModal({
                             </div>
                         </div>
                     </div>
+
+                    {/* Sender Information */}
+
+                    <div className="mt-4">
+                        <h3 className="text-md font-semibold mb-3">Sender</h3>
+                        <div className="grid grid-cols-2 gap-4">
+                            <div>
+                                <label className="text-sm font-medium text-gray-700">Name</label>
+                                <p className="mt-1 text-sm">{notification.senderName || "System"}</p>
+                            </div>
+                            <div>
+                                <label className="text-sm font-medium text-gray-700">Email</label>
+                                <p className="mt-1 text-sm">{notification.senderEmail || "N/A"}</p>
+                            </div>
+                        </div>
+                    </div>
+
 
                     {/* Appointment Information */}
                     {notification.appointmentId && (

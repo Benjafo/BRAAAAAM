@@ -213,6 +213,8 @@ export const listEmailNotifications = async (req: Request, res: Response): Promi
 
         const pickupLocations = alias(locations, "pickup_locations");
         const dropoffLocations = alias(locations, "dropoff_locations");
+        const sender = alias(users, "sender");
+
 
         // Define columns for searching, sorting, and filtering
         const recipientName = sql<string>`concat(${users.firstName}, ' ', ${users.lastName})`;
@@ -303,6 +305,9 @@ export const listEmailNotifications = async (req: Request, res: Response): Promi
                 recipientId: messageRecipients.userId,
                 recipientName: sql<string>`concat(${users.firstName}, ' ', ${users.lastName})`,
                 recipientEmail: users.email,
+                senderId: messages.senderId,
+                senderName: sql<string>`concat(${sender.firstName}, ' ', ${sender.lastName})`,
+                senderEmail: sender.email,
                 appointmentId: appointments.id,
                 appointmentDate: appointments.startDate,
                 appointmentTime: appointments.startTime,
@@ -323,6 +328,7 @@ export const listEmailNotifications = async (req: Request, res: Response): Promi
             .from(messages)
             .innerJoin(messageRecipients, eq(messages.id, messageRecipients.messageId))
             .innerJoin(users, eq(messageRecipients.userId, users.id))
+            .leftJoin(sender, eq(messages.senderId, sender.id))
             .leftJoin(appointments, eq(messages.appointmentId, appointments.id))
             .leftJoin(pickupLocations, eq(appointments.pickupLocation, pickupLocations.id))
             .leftJoin(dropoffLocations, eq(appointments.destinationLocation, dropoffLocations.id))
