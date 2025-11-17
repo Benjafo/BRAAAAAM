@@ -30,6 +30,9 @@ type Notification = {
     appointmentId: string | null;
     appointmentDate: string | null;
     appointmentTime: string | null;
+    senderId: string | null;
+    senderName: string | null;
+    senderEmail: string | null;
     clientName: string | null;
     pickupAddress: string | null;
     dropoffAddress: string | null;
@@ -108,6 +111,11 @@ export function NotificationsTable() {
                     {
                         header: "Recipient",
                         accessorKey: "recipientName",
+                    },
+                    {
+                        header: "Sender",
+                        accessorFn: (row) => row.senderName || "System",
+                        id: "sender",
                     },
                     {
                         header: "Appointment Date",
