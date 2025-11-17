@@ -1,6 +1,7 @@
 import { DataTable } from "@/components/dataTable";
 import { useAuthStore } from "@/components/stores/authStore";
 import { PERMISSIONS } from "@/lib/permissions";
+import { parseLocalDate } from "@/lib/utils";
 import { http } from "@/services/auth/serviceResolver";
 import { useState } from "react";
 import type { ClientFormValues } from "../form/clientForm";
@@ -89,10 +90,10 @@ function mapClientToFormValues(client: Client & { okToTextPrimary?: boolean, okT
                 : (client.awayFrom || client.awayTo)
                     ? "Away"
                     : "Inactive",
-        onLeaveUntil: client.temporaryInactiveUntil ? new Date(client.temporaryInactiveUntil) : undefined,
-        inactiveSince: client.inactiveSince ? new Date(client.inactiveSince) : undefined,
-        awayFrom: client.awayFrom ? new Date(client.awayFrom) : undefined,
-        awayTo: client.awayTo ? new Date(client.awayTo) : undefined,
+        onLeaveUntil: parseLocalDate(client.temporaryInactiveUntil),
+        inactiveSince: parseLocalDate(client.inactiveSince),
+        awayFrom: parseLocalDate(client.awayFrom),
+        awayTo: parseLocalDate(client.awayTo),
     };
 }
 

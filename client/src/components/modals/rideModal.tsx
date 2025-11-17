@@ -10,6 +10,7 @@ import {
     DialogTitle,
 } from "@/components/ui/dialog";
 import { PERMISSIONS } from "@/lib/permissions";
+import { formatLocalDate } from "@/lib/utils";
 import { http } from "@/services/auth/serviceResolver";
 import * as React from "react";
 import { toast } from "sonner";
@@ -241,9 +242,9 @@ export default function RideModal({
             } else {
                 // Full permissions - can update all fields
                 requestBody = {
-                    startDate: values.tripDate.toISOString().split("T")[0],
+                    startDate: formatLocalDate(values.tripDate),
                     startTime: values.appointmentTime,
-                    estimatedEndDate: values.tripDate.toISOString().split("T")[0],
+                    estimatedEndDate: formatLocalDate(values.tripDate),
                     estimatedEndTime: values.appointmentTime,
                     clientId: values.clientId,
                     driverId: values.assignedDriver || null,

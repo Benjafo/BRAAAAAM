@@ -1,6 +1,7 @@
 import { DataTable } from "@/components/dataTable";
 import { useAuthStore } from "@/components/stores/authStore";
 import { PERMISSIONS } from "@/lib/permissions";
+import { parseLocalDate } from "@/lib/utils";
 import { http } from "@/services/auth/serviceResolver";
 import { useState } from "react";
 import type { UserFormValues } from "../form/userForm";
@@ -66,10 +67,10 @@ function mapUserToFormValues(user: TableUser): Partial<UserFormValues> & { id: s
                 : (user.awayFrom || user.awayTo)
                     ? "Away"
                     : "Inactive",
-        onLeaveUntil: user.temporaryInactiveUntil ? new Date(user.temporaryInactiveUntil) : undefined,
-        inactiveSince: user.inactiveSince ? new Date(user.inactiveSince) : undefined,
-        awayFrom: user.awayFrom ? new Date(user.awayFrom) : undefined,
-        awayTo: user.awayTo ? new Date(user.awayTo) : undefined,
+        onLeaveUntil: parseLocalDate(user.temporaryInactiveUntil),
+        inactiveSince: parseLocalDate(user.inactiveSince),
+        awayFrom: parseLocalDate(user.awayFrom),
+        awayTo: parseLocalDate(user.awayTo),
         userRole: user.roleId || "",
         canAccommodateMobilityEquipment: user.canAccommodateMobilityEquipment as any || [],
         vehicleType: user.vehicleType as any || "",

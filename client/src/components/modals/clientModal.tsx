@@ -7,6 +7,7 @@ import {
     DialogHeader,
     DialogTitle,
 } from "@/components/ui/dialog";
+import { formatLocalDate } from "@/lib/utils";
 import { http } from "@/services/auth/serviceResolver";
 import { toast } from "sonner";
 import type { ClientFormValues } from "../form/clientForm";
@@ -67,17 +68,17 @@ export default function ClientModal({
                 otherLimitations: values.otherLimitations || [],
                 otherLimitationsOther: values.otherLimitationsOther || null,
                 isActive: values.volunteeringStatus === "Active",
-                temporaryInactiveUntil: values.volunteeringStatus === "On leave" && values.onLeaveUntil
-                    ? values.onLeaveUntil.toISOString().split('T')[0]
+                temporaryInactiveUntil: values.volunteeringStatus === "On leave"
+                    ? formatLocalDate(values.onLeaveUntil)
                     : null,
-                inactiveSince: values.volunteeringStatus === "Inactive" && values.inactiveSince
-                    ? values.inactiveSince.toISOString().split('T')[0]
+                inactiveSince: values.volunteeringStatus === "Inactive"
+                    ? formatLocalDate(values.inactiveSince)
                     : null,
-                awayFrom: values.volunteeringStatus === "Away" && values.awayFrom
-                    ? values.awayFrom.toISOString().split('T')[0]
+                awayFrom: values.volunteeringStatus === "Away"
+                    ? formatLocalDate(values.awayFrom)
                     : null,
-                awayTo: values.volunteeringStatus === "Away" && values.awayTo
-                    ? values.awayTo.toISOString().split('T')[0]
+                awayTo: values.volunteeringStatus === "Away"
+                    ? formatLocalDate(values.awayTo)
                     : null,
                 customFields: values.customFields,
                 address: {
