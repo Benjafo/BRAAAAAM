@@ -53,6 +53,7 @@ const mapRideToFormValues = (ride: Ride): Partial<RideFormValues> & { id?: strin
         clientCity: ride.pickupCity || "",
         clientState: ride.pickupState || "",
         clientZip: ride.pickupZip || "",
+        dispatcherName: `${ride.dispatcherFirstName} ${ride.dispatcherLastName}`,
         tripDate: new Date(ride.date),
         appointmentTime: ride.time,
         tripType: ride.tripType,
@@ -66,7 +67,9 @@ const mapRideToFormValues = (ride: Ride): Partial<RideFormValues> & { id?: strin
         rideStatus: ride.status,
         // Completion fields
         tripDistance: ride.milesDriven || undefined,
-        tripDuration: ride.estimatedDurationMinutes ? ride.estimatedDurationMinutes / 60 : undefined,
+        tripDuration: ride.estimatedDurationMinutes
+            ? ride.estimatedDurationMinutes / 60
+            : undefined,
         donationType: ride.donationType || undefined,
         donationAmount: ride.donationAmount || undefined,
         customFields: ride.customFields || {},
@@ -89,8 +92,10 @@ export function RidesTable({
     const hasCreatePermission = useAuthStore((s) =>
         s.hasPermission(PERMISSIONS.ALL_APPOINTMENTS_CREATE)
     );
-    const hasEditPermission = useAuthStore((s) =>
-        s.hasPermission(PERMISSIONS.OWN_APPOINTMENTS_UPDATE) || s.hasPermission(PERMISSIONS.ALL_APPOINTMENTS_UPDATE)
+    const hasEditPermission = useAuthStore(
+        (s) =>
+            s.hasPermission(PERMISSIONS.OWN_APPOINTMENTS_UPDATE) ||
+            s.hasPermission(PERMISSIONS.ALL_APPOINTMENTS_UPDATE)
     );
 
     // hacky fix to force refresh for the custom fields

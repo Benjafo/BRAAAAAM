@@ -117,16 +117,16 @@ export function ColumnSelector({
         <div className="space-y-4">
             {/* Bulk Actions */}
             <div className="flex flex-wrap gap-2">
-                <Button onClick={selectAll} variant="outline" size="sm">
+                <Button onClick={selectAll} size="sm">
                     Select All
                 </Button>
-                <Button onClick={deselectAll} variant="outline" size="sm">
+                <Button onClick={deselectAll} size="sm">
                     Deselect All
                 </Button>
-                <Button onClick={expandAll} variant="outline" size="sm">
+                <Button onClick={expandAll} size="sm">
                     Expand All Groups
                 </Button>
-                <Button onClick={collapseAll} variant="outline" size="sm">
+                <Button onClick={collapseAll} size="sm">
                     Collapse All Groups
                 </Button>
             </div>

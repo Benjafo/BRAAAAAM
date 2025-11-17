@@ -64,6 +64,7 @@ const rideSchema = z
             .min(5, "ZIP code is required")
             .max(10, "Max characters allowed is 10.")
             .regex(/^\d{5}(-\d{4})?$/, "Please enter a valid US zip code."),
+        dispatcherName: z.string().optional(),
         destinationAlias: z.string().max(255, "Max characters allowed is 255.").optional(),
         destinationAddress: z
             .string()
@@ -259,6 +260,7 @@ export default function EditRideForm({
             clientCity: defaultValues.clientCity ?? "",
             clientState: defaultValues.clientState ?? "",
             clientZip: defaultValues.clientZip ?? "",
+            dispatcherName: defaultValues.dispatcherName ?? "Test",
             destinationAlias: defaultValues.destinationAlias ?? "",
             destinationAddress: defaultValues.destinationAddress ?? "",
             destinationCity: defaultValues.destinationCity ?? "",
@@ -565,6 +567,23 @@ export default function EditRideForm({
                         <div className="md:col-span-2">
                             <FormItem>
                                 <FormLabel>Client ZIP Code</FormLabel>
+                                <FormControl>
+                                    <Input {...field} disabled />
+                                </FormControl>
+                                <FormMessage />
+                            </FormItem>
+                        </div>
+                    )}
+                />
+
+                {/* Read only dispatcher name field */}
+                <FormField
+                    control={form.control}
+                    name="dispatcherName"
+                    render={({ field }) => (
+                        <div className="md:col-span-2">
+                            <FormItem>
+                                <FormLabel>Dispatcher</FormLabel>
                                 <FormControl>
                                     <Input {...field} disabled />
                                 </FormControl>

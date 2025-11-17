@@ -93,6 +93,10 @@ export default function RideModal({
         s.hasPermission(PERMISSIONS.OWN_APPOINTMENTS_UPDATE)
     );
 
+    const user = useAuthStore((s) => s.user);
+    const userFirstName = user?.firstName;
+    const userLastName = user?.lastName;
+
     // Limited edit mode: user only has ownappointments.update permission
     const limitedEditMode = !hasFullUpdatePermission && hasOwnUpdatePermission;
 
@@ -221,8 +225,12 @@ export default function RideModal({
                 requestBody = {
                     status: values.rideStatus,
                     milesDriven: values.tripDistance,
-                    estimatedDurationMinutes: values.tripDuration ? values.tripDuration * 60 : undefined,
-                    notes: values.tripDistance ? `Trip completed: ${values.tripDistance} miles` : undefined,
+                    estimatedDurationMinutes: values.tripDuration
+                        ? values.tripDuration * 60
+                        : undefined,
+                    notes: values.tripDistance
+                        ? `Trip completed: ${values.tripDistance} miles`
+                        : undefined,
                     donationType: values.donationType || null,
                     donationAmount: values.donationAmount,
                     customFields: values.customFields,
@@ -237,6 +245,8 @@ export default function RideModal({
                     clientId: values.clientId,
                     driverId: values.assignedDriver || null,
                     dispatcherId: userId,
+                    dispatcherFirstName: userFirstName,
+                    dispatcherLastName: userLastName,
                     createdByUserId: userId,
                     tripPurpose: values.purposeOfTrip || null,
                     tripType: values.tripType,

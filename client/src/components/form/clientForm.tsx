@@ -1091,52 +1091,92 @@ export default function ClientForm({ defaultValues, onSubmit, viewMode = false }
                     <FormField
                         control={form.control}
                         name="vehicleTypes"
-                        render={() => (
-                            <FormItem>
-                                <FormLabel>Acceptable Vehicle Types</FormLabel>
-                                <div className="grid grid-cols-2 gap-2">
-                                    {[
-                                        { id: "sedan", label: "Sedan" },
-                                        { id: "small_suv", label: "Small SUV" },
-                                        { id: "medium_suv", label: "Medium SUV" },
-                                        { id: "large_suv", label: "Large SUV" },
-                                        { id: "small_truck", label: "Small Truck" },
-                                        { id: "large_truck", label: "Large Truck" },
-                                    ].map((item) => (
+                        render={() => {
+                            const vehicleItems = [
+                                { id: "sedan", label: "Sedan" },
+                                { id: "small_suv", label: "Small SUV" },
+                                { id: "medium_suv", label: "Medium SUV" },
+                                { id: "large_suv", label: "Large SUV" },
+                                { id: "small_truck", label: "Small Truck" },
+                                { id: "large_truck", label: "Large Truck" },
+                            ];
+
+                            return (
+                                <FormItem>
+                                    <FormLabel>Acceptable Vehicle Types</FormLabel>
+                                    <div className="grid grid-cols-2 gap-2">
+                                        {vehicleItems.map((item) => (
+                                            <FormField
+                                                key={item.id}
+                                                control={form.control}
+                                                name="vehicleTypes"
+                                                render={({ field }) => (
+                                                    <FormItem className="flex flex-row items-center space-x-3 space-y-0">
+                                                        <FormControl>
+                                                            <Checkbox
+                                                                checked={field.value?.includes(
+                                                                    item.id as any
+                                                                )}
+                                                                onCheckedChange={(checked) => {
+                                                                    const current =
+                                                                        field.value || [];
+                                                                    const updated = checked
+                                                                        ? [...current, item.id]
+                                                                        : current.filter(
+                                                                              (val: string) =>
+                                                                                  val !== item.id
+                                                                          );
+                                                                    field.onChange(updated);
+                                                                }}
+                                                            />
+                                                        </FormControl>
+                                                        <FormLabel className="font-normal">
+                                                            {item.label}
+                                                        </FormLabel>
+                                                    </FormItem>
+                                                )}
+                                            />
+                                        ))}
+
+                                        {/* All checkbox */}
                                         <FormField
-                                            key={item.id}
                                             control={form.control}
                                             name="vehicleTypes"
-                                            render={({ field }) => (
-                                                <FormItem className="flex flex-row items-center space-x-3 space-y-0">
-                                                    <FormControl>
-                                                        <Checkbox
-                                                            checked={field.value?.includes(
-                                                                item.id as any
-                                                            )}
-                                                            onCheckedChange={(checked) => {
-                                                                const current = field.value || [];
-                                                                const updated = checked
-                                                                    ? [...current, item.id]
-                                                                    : current.filter(
-                                                                          (val: string) =>
-                                                                              val !== item.id
-                                                                      );
-                                                                field.onChange(updated);
-                                                            }}
-                                                        />
-                                                    </FormControl>
-                                                    <FormLabel className="font-normal">
-                                                        {item.label}
-                                                    </FormLabel>
-                                                </FormItem>
-                                            )}
+                                            render={({ field }) => {
+                                                const allSelected = vehicleItems.every((item) =>
+                                                    field.value?.includes(item.id as any)
+                                                );
+
+                                                return (
+                                                    <FormItem className="flex flex-row items-center space-x-3 space-y-0">
+                                                        <FormControl>
+                                                            <Checkbox
+                                                                checked={allSelected}
+                                                                onCheckedChange={(checked) => {
+                                                                    if (checked) {
+                                                                        field.onChange(
+                                                                            vehicleItems.map(
+                                                                                (item) => item.id
+                                                                            )
+                                                                        );
+                                                                    } else {
+                                                                        field.onChange([]);
+                                                                    }
+                                                                }}
+                                                            />
+                                                        </FormControl>
+                                                        <FormLabel className="font-normal">
+                                                            All
+                                                        </FormLabel>
+                                                    </FormItem>
+                                                );
+                                            }}
                                         />
-                                    ))}
-                                </div>
-                                <FormMessage />
-                            </FormItem>
-                        )}
+                                    </div>
+                                    <FormMessage />
+                                </FormItem>
+                            );
+                        }}
                     />
                 </div>
 

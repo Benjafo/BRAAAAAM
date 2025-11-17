@@ -206,14 +206,10 @@ export function ReportBuilder() {
             </div>
 
             {/* Step 1: Mode Selection */}
-            <div className="bg-white rounded-lg border p-6">
+            <div className="rounded-lg border p-6">
                 <div className="flex items-center justify-between mb-4">
-                    <h3 className="text-lg font-semibold">Step 1: Select Report Type</h3>
-                    <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => setManageTemplatesDialogOpen(true)}
-                    >
+                    <h3 className="text-lg font-semibold  ">Step 1: Select Report Type</h3>
+                    <Button size="sm" onClick={() => setManageTemplatesDialogOpen(true)}>
                         <Settings className="w-4 h-4 mr-2" />
                         Manage Templates
                     </Button>
@@ -222,7 +218,7 @@ export function ReportBuilder() {
             </div>
 
             {/* Step 2: Date Range Selection */}
-            <div className="bg-white rounded-lg border p-6">
+            <div className="rounded-lg border p-6">
                 <h3 className="text-lg font-semibold mb-4">Step 2: Select Date Range</h3>
                 <DateRangeSelector
                     startDate={dateRange.start}
@@ -232,10 +228,10 @@ export function ReportBuilder() {
             </div>
 
             {/* Step 3: Conditional - Templates or Columns */}
-            <div className="bg-white rounded-lg border p-6">
+            <div className="rounded-lg border p-6">
                 {selectionMode === "templates" ? (
                     <>
-                        <h3 className="text-lg font-semibold mb-4">
+                        <h3 className="text-lg font-semibold mb-4  ">
                             Step 3: Select Template
                             {selectedTemplate && ` - ${selectedTemplate.name}`}
                         </h3>
@@ -244,15 +240,11 @@ export function ReportBuilder() {
                 ) : (
                     <>
                         <div className="flex items-center justify-between mb-4">
-                            <h3 className="text-lg font-semibold">
+                            <h3 className="text-lg font-semibold  ">
                                 Step 3: Select Columns ({selectedColumns.length} selected)
                             </h3>
                             {canSaveTemplate && (
-                                <Button
-                                    variant="outline"
-                                    size="sm"
-                                    onClick={() => setSaveTemplateDialogOpen(true)}
-                                >
+                                <Button size="sm" onClick={() => setSaveTemplateDialogOpen(true)}>
                                     <Save className="w-4 h-4 mr-2" />
                                     Save as Template
                                 </Button>
@@ -275,13 +267,12 @@ export function ReportBuilder() {
             )}
 
             {/* Step 4: Generate Report */}
-            <div className="bg-white rounded-lg border p-6">
-                <h3 className="text-lg font-semibold mb-4">Step 4: Generate Report</h3>
+            <div className="rounded-lg border p-6">
+                <h3 className="text-lg font-semibold mb-4 ">Step 4: Generate Report</h3>
                 <div className="flex gap-4">
                     <Button
                         onClick={handleGeneratePreview}
                         disabled={isGenerating || selectedColumns.length === 0}
-                        variant="outline"
                     >
                         {isGenerating ? (
                             <>
@@ -325,7 +316,7 @@ export function ReportBuilder() {
 
             {/* Preview Table */}
             {previewData.length > 0 && (
-                <div className="bg-white rounded-lg border p-6">
+                <div className="rounded-lg border p-6">
                     <h3 className="text-lg font-semibold mb-4">
                         Preview (showing first 10 of {totalRecords} records)
                     </h3>
@@ -343,7 +334,7 @@ export function ReportBuilder() {
                                     ))}
                                 </tr>
                             </thead>
-                            <tbody className="bg-white divide-y divide-gray-200">
+                            <tbody className="divide-y divide-gray-200">
                                 {previewData.map((item, rowIndex) => (
                                     <tr key={rowIndex}>
                                         {selectedColumns.map((col) => {
@@ -377,7 +368,9 @@ export function ReportBuilder() {
             <SaveTemplateModal
                 open={saveTemplateDialogOpen}
                 onOpenChange={setSaveTemplateDialogOpen}
-                entityType={selectionMode as "clients" | "users" | "appointments" | "volunteerRecords"}
+                entityType={
+                    selectionMode as "clients" | "users" | "appointments" | "volunteerRecords"
+                }
                 selectedColumns={selectedColumns}
                 onTemplateSaved={() => toast.success("Template saved!")}
             />

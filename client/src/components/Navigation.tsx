@@ -1,6 +1,6 @@
 import { useLogout } from "@/hooks/useAuth";
 import { PERMISSIONS } from "@/lib/permissions";
-import { Link, useNavigate, type ToOptions } from "@tanstack/react-router";
+import { Link, useNavigate, useMatchRoute, type ToOptions } from "@tanstack/react-router";
 import { LogOut } from "lucide-react";
 import WebsterLogo from "../../public/WebsterBeeLogo.png";
 import { useAuthStore } from "./stores/authStore";
@@ -23,7 +23,7 @@ interface NavigationLayoutProps {
  */
 const NavigationLayout = ({ leftNavItems, rightNavItems }: NavigationLayoutProps) => {
     return (
-        <div className="flex items-center justify-beween p-[10px]">
+        <div className="flex items-center justify-between p-[10px]">
             <div className="flex flex-row items-center gap-[10px] justify-start w-full">
                 {leftNavItems}
             </div>
@@ -162,6 +162,7 @@ export const MainNavigation = ({
     ],
 }: MainNavProps) => {
     const navigate = useNavigate();
+    const matchRoute = useMatchRoute();
     const user = useAuthStore((s) => s.user);
     const hasPermission = useAuthStore((s) => s.hasPermission);
     const hasAnyPermission = useAuthStore((s) => s.hasAnyPermission);
@@ -195,17 +196,21 @@ export const MainNavigation = ({
                         <AvatarImage src={logo.src} />
                         <AvatarFallback>{logo.fallbackText}</AvatarFallback>
                     </Avatar>
-                    {visibleNavItems.map((button, idx) => (
-                        <Link key={button.link ?? idx} to={button.link}>
-                            <Button
-                                size="sm"
-                                variant={"secondary"}
-                                className="active:bg-secondary/70"
-                            >
-                                {button.text}
-                            </Button>
-                        </Link>
-                    ))}
+                    {visibleNavItems.map((button, idx) => {
+                        const isActive = matchRoute({ to: button.link, fuzzy: true });
+
+                        return (
+                            <Link key={button.link ?? idx} to={button.link}>
+                                <Button
+                                    size="sm"
+                                    variant={isActive ? "default" : "secondary"}
+                                    className="active:bg-secondary/70"
+                                >
+                                    {button.text}
+                                </Button>
+                            </Link>
+                        );
+                    })}
                 </>
             }
             rightNavItems={

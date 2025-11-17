@@ -99,15 +99,16 @@ const userSchema = z
         secondaryPhoneIsCellPhone: z.boolean(),
         okToTextSecondaryPhone: z.boolean(),
         vehicleType: z
-            .enum([
-                "sedan",
-                "small_suv",
-                "medium_suv",
-                "large_suv",
-                "small_truck",
-                "large_truck",
-                "",
-            ])
+            .array(
+                z.enum([
+                    "sedan",
+                    "small_suv",
+                    "medium_suv",
+                    "large_suv",
+                    "small_truck",
+                    "large_truck",
+                ])
+            )
             .optional(),
         vehicleColor: z
             .string()
@@ -325,7 +326,7 @@ export default function UserForm({
             secondaryPhoneNumber: defaultValues.secondaryPhoneNumber ?? "",
             secondaryPhoneIsCellPhone: defaultValues.secondaryPhoneIsCellPhone ?? false,
             okToTextSecondaryPhone: defaultValues.okToTextSecondaryPhone ?? false,
-            vehicleType: defaultValues.vehicleType ?? "",
+            vehicleType: defaultValues.vehicleType ?? [],
             vehicleColor: defaultValues.vehicleColor ?? "",
             canAccommodateMobilityEquipment: defaultValues.canAccommodateMobilityEquipment ?? [],
             canAccommodateOxygen: defaultValues.canAccommodateOxygen ?? false,
@@ -947,33 +948,85 @@ export default function UserForm({
                             <h3 className="text-lg font-semibold mt-4">Driver Information</h3>
                         </div>
 
-                        {/* Vehicle Type */}
+                        {/* Vehicle Type, AI helped on the logic to allow multiple selects */}
                         <FormField
                             control={form.control}
                             name="vehicleType"
                             render={({ field }) => (
                                 <FormItem className="w-full">
                                     <FormLabel>Vehicle Type</FormLabel>
-                                    <Select value={field.value} onValueChange={field.onChange}>
+                                    <Select
+                                        value=""
+                                        onValueChange={(value) => {
+                                            const typedValue = value as
+                                                | "sedan"
+                                                | "small_suv"
+                                                | "medium_suv"
+                                                | "large_suv"
+                                                | "small_truck"
+                                                | "large_truck";
+                                            const current = field.value || [];
+                                            if (current.includes(typedValue)) {
+                                                // Remove if already selected
+                                                field.onChange(
+                                                    current.filter((v) => v !== typedValue)
+                                                );
+                                            } else {
+                                                // Add to selection
+                                                field.onChange([...current, typedValue]);
+                                            }
+                                        }}
+                                    >
                                         <FormControl className="w-full">
-                                            <SelectTrigger className="w-full">
-                                                <SelectValue placeholder="Select vehicle type" />
+                                            <SelectTrigger className="w-full overflow-hidden">
+                                                <span className="truncate block text-left text-black dark:text-white">
+                                                    {field.value && field.value.length > 0
+                                                        ? field.value
+                                                              .map((v) => {
+                                                                  const labels: Record<
+                                                                      string,
+                                                                      string
+                                                                  > = {
+                                                                      sedan: "Sedan",
+                                                                      small_suv: "Small SUV",
+                                                                      medium_suv: "Medium SUV",
+                                                                      large_suv: "Large SUV",
+                                                                      small_truck: "Small Truck",
+                                                                      large_truck: "Large Truck",
+                                                                  };
+                                                                  return labels[v];
+                                                              })
+                                                              .join(", ")
+                                                        : ""}
+                                                </span>
                                             </SelectTrigger>
                                         </FormControl>
                                         <SelectContent>
-                                            <SelectItem value="sedan">Sedan</SelectItem>
-                                            <SelectItem value="small_suv">Small SUV</SelectItem>
-                                            <SelectItem value="medium_suv">Medium SUV</SelectItem>
-                                            <SelectItem value="large_suv">Large SUV</SelectItem>
-                                            <SelectItem value="small_truck">Small Truck</SelectItem>
-                                            <SelectItem value="large_truck">Large Truck</SelectItem>
+                                            {[
+                                                { value: "sedan", label: "Sedan" },
+                                                { value: "small_suv", label: "Small SUV" },
+                                                { value: "medium_suv", label: "Medium SUV" },
+                                                { value: "large_suv", label: "Large SUV" },
+                                                { value: "small_truck", label: "Small Truck" },
+                                                { value: "large_truck", label: "Large Truck" },
+                                            ].map((option) => (
+                                                <SelectItem
+                                                    key={option.value}
+                                                    value={option.value}
+                                                    className="relative"
+                                                >
+                                                    <span>{option.label}</span>
+                                                    {field.value?.includes(option.value as any) && (
+                                                        <Check className="h-4 w-4 absolute right-2 top-1/2 -translate-y-1/2" />
+                                                    )}
+                                                </SelectItem>
+                                            ))}
                                         </SelectContent>
                                     </Select>
                                     <FormMessage />
                                 </FormItem>
                             )}
                         />
-
                         {/* Vehicle Color */}
                         <FormField
                             control={form.control}
@@ -1095,60 +1148,114 @@ export default function UserForm({
                             )}
                         /> */}
 
-                        {/* Can Accommodate Mobility Equipment */}
+                        {/* Can Accommodate Mobility Equipment, AI help on adding 'All' */}
                         <div className="md:col-span-2">
                             <FormField
                                 control={form.control}
                                 name="canAccommodateMobilityEquipment"
-                                render={() => (
-                                    <FormItem>
-                                        <FormLabel>Can Accommodate Mobility Equipment</FormLabel>
-                                        <div className="space-y-2">
-                                            {[
-                                                { id: "cane", label: "Cane" },
-                                                { id: "crutches", label: "Crutches" },
-                                                {
-                                                    id: "lightweight_walker",
-                                                    label: "Lightweight Walker",
-                                                },
-                                                { id: "rollator", label: "Rollator" },
-                                            ].map((item) => (
+                                render={() => {
+                                    const mobilityItems = [
+                                        { id: "cane", label: "Cane" },
+                                        { id: "crutches", label: "Crutches" },
+                                        {
+                                            id: "lightweight_walker",
+                                            label: "Lightweight Walker",
+                                        },
+                                        { id: "rollator", label: "Rollator" },
+                                    ];
+
+                                    return (
+                                        <FormItem>
+                                            <FormLabel>
+                                                Can Accommodate Mobility Equipment
+                                            </FormLabel>
+                                            <div className="space-y-2">
+                                                {mobilityItems.map((item) => (
+                                                    <FormField
+                                                        key={item.id}
+                                                        control={form.control}
+                                                        name="canAccommodateMobilityEquipment"
+                                                        render={({ field }) => (
+                                                            <FormItem className="flex flex-row items-center space-x-3 space-y-0">
+                                                                <FormControl>
+                                                                    <Checkbox
+                                                                        checked={field.value?.includes(
+                                                                            item.id as any
+                                                                        )}
+                                                                        onCheckedChange={(
+                                                                            checked
+                                                                        ) => {
+                                                                            const current =
+                                                                                field.value || [];
+                                                                            const updated = checked
+                                                                                ? [
+                                                                                      ...current,
+                                                                                      item.id,
+                                                                                  ]
+                                                                                : current.filter(
+                                                                                      (
+                                                                                          val: string
+                                                                                      ) =>
+                                                                                          val !==
+                                                                                          item.id
+                                                                                  );
+                                                                            field.onChange(updated);
+                                                                        }}
+                                                                    />
+                                                                </FormControl>
+                                                                <FormLabel className="font-normal">
+                                                                    {item.label}
+                                                                </FormLabel>
+                                                            </FormItem>
+                                                        )}
+                                                    />
+                                                ))}
+
+                                                {/* All checkbox */}
                                                 <FormField
-                                                    key={item.id}
                                                     control={form.control}
                                                     name="canAccommodateMobilityEquipment"
-                                                    render={({ field }) => (
-                                                        <FormItem className="flex flex-row items-center space-x-3 space-y-0">
-                                                            <FormControl>
-                                                                <Checkbox
-                                                                    checked={field.value?.includes(
-                                                                        item.id as any
-                                                                    )}
-                                                                    onCheckedChange={(checked) => {
-                                                                        const current =
-                                                                            field.value || [];
-                                                                        const updated = checked
-                                                                            ? [...current, item.id]
-                                                                            : current.filter(
-                                                                                  (val: string) =>
-                                                                                      val !==
-                                                                                      item.id
-                                                                              );
-                                                                        field.onChange(updated);
-                                                                    }}
-                                                                />
-                                                            </FormControl>
-                                                            <FormLabel className="font-normal">
-                                                                {item.label}
-                                                            </FormLabel>
-                                                        </FormItem>
-                                                    )}
+                                                    render={({ field }) => {
+                                                        const allSelected = mobilityItems.every(
+                                                            (item) =>
+                                                                field.value?.includes(
+                                                                    item.id as any
+                                                                )
+                                                        );
+
+                                                        return (
+                                                            <FormItem className="flex flex-row items-center space-x-3 space-y-0">
+                                                                <FormControl>
+                                                                    <Checkbox
+                                                                        checked={allSelected}
+                                                                        onCheckedChange={(
+                                                                            checked
+                                                                        ) => {
+                                                                            if (checked) {
+                                                                                field.onChange(
+                                                                                    mobilityItems.map(
+                                                                                        (item) =>
+                                                                                            item.id
+                                                                                    )
+                                                                                );
+                                                                            } else {
+                                                                                field.onChange([]);
+                                                                            }
+                                                                        }}
+                                                                    />
+                                                                </FormControl>
+                                                                <FormLabel className="font-normal">
+                                                                    All
+                                                                </FormLabel>
+                                                            </FormItem>
+                                                        );
+                                                    }}
                                                 />
-                                            ))}
-                                        </div>
-                                        <FormMessage />
-                                    </FormItem>
-                                )}
+                                            </div>
+                                            <FormMessage />
+                                        </FormItem>
+                                    );
+                                }}
                             />
                         </div>
 

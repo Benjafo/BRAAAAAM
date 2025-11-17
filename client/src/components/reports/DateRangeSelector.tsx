@@ -39,7 +39,7 @@ const PRESET_RANGES: PresetRange[] = [
         getDates: () => {
             const now = new Date();
             const start = new Date(now.getFullYear(), now.getMonth(), 1);
-            const end = new Date(now.getFullYear(), now.getMonth() + 1, 0); 
+            const end = new Date(now.getFullYear(), now.getMonth() + 1, 0);
             return { start, end };
         },
     },
@@ -96,7 +96,6 @@ function normalizeDates(start: Date, end: Date) {
     return { start, end };
 }
 
-
 export function DateRangeSelector({
     startDate,
     endDate,
@@ -144,10 +143,7 @@ export function DateRangeSelector({
             {/* Custom Date Range Inputs */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
-                    <label
-                        htmlFor="start-date"
-                        className="block text-sm font-medium text-gray-700 mb-1"
-                    >
+                    <label htmlFor="start-date" className="block text-sm font-medium  mb-1">
                         Start Date
                     </label>
                     <input
@@ -159,10 +155,7 @@ export function DateRangeSelector({
                     />
                 </div>
                 <div>
-                    <label
-                        htmlFor="end-date"
-                        className="block text-sm font-medium text-gray-700 mb-1"
-                    >
+                    <label htmlFor="end-date" className="block text-sm font-medium mb-1">
                         End Date
                     </label>
                     <input
@@ -177,17 +170,10 @@ export function DateRangeSelector({
 
             {/* Preset Ranges */}
             <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Quick Presets
-                </label>
+                <label className="block text-sm font-medium mb-2">Quick Presets</label>
                 <div className="flex flex-wrap gap-2">
                     {PRESET_RANGES.map((preset) => (
-                        <Button
-                            key={preset.label}
-                            onClick={() => applyPreset(preset)}
-                            variant="outline"
-                            size="sm"
-                        >
+                        <Button key={preset.label} onClick={() => applyPreset(preset)} size="sm">
                             {preset.label}
                         </Button>
                     ))}
