@@ -119,6 +119,9 @@ export const listClients = async (req: Request, res: Response): Promise<Response
                 otherLimitationsOther: clients.otherLimitationsOther,
                 isActive: clients.isActive,
                 temporaryInactiveUntil: clients.temporaryInactiveUntil,
+                inactiveSince: clients.inactiveSince,
+                awayFrom: clients.awayFrom,
+                awayTo: clients.awayTo,
                 createdAt: clients.createdAt,
                 updatedAt: clients.updatedAt,
                 address: {
@@ -212,6 +215,9 @@ export const createClient = async (req: Request, res: Response): Promise<Respons
             otherLimitations,
             otherLimitationsOther,
             temporaryInactiveUntil,
+            inactiveSince,
+            awayFrom,
+            awayTo,
         } = req.body;
 
         // Validate all required fields are provided
@@ -298,6 +304,9 @@ export const createClient = async (req: Request, res: Response): Promise<Respons
                 otherLimitations: otherLimitations ?? [],
                 otherLimitationsOther,
                 temporaryInactiveUntil: temporaryInactiveUntil ?? undefined,
+                inactiveSince: inactiveSince ?? undefined,
+                awayFrom: awayFrom ?? undefined,
+                awayTo: awayTo ?? undefined,
             })
             .returning(); // Return full client row
 
@@ -383,6 +392,9 @@ export const getClient = async (req: Request, res: Response): Promise<Response> 
                 otherLimitationsOther: clients.otherLimitationsOther,
                 isActive: clients.isActive,
                 temporaryInactiveUntil: clients.temporaryInactiveUntil,
+                inactiveSince: clients.inactiveSince,
+                awayFrom: clients.awayFrom,
+                awayTo: clients.awayTo,
                 createdAt: clients.createdAt,
                 updatedAt: clients.updatedAt,
                 address: {
@@ -472,6 +484,9 @@ export const updateClient = async (req: Request, res: Response): Promise<Respons
                 otherLimitationsOther: data.otherLimitationsOther,
                 isActive: data.isActive,
                 temporaryInactiveUntil: data.temporaryInactiveUntil,
+                inactiveSince: data.inactiveSince,
+                awayFrom: data.awayFrom,
+                awayTo: data.awayTo,
                 ...(addressId !== undefined && { addressLocation: addressId }),
                 updatedAt: new Date().toISOString(), // Update timestamp manually
             })

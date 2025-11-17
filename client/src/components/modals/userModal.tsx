@@ -91,12 +91,18 @@ export default function NewUserModal({
                     : null,
                 emergencyContactRelationship: values.emergencyContactRelationship || null,
                 isActive: values.volunteeringStatus === "Active",
-                temporaryInactiveUntil:
-                    (values.volunteeringStatus === "On leave" && values.onLeaveUntil)
-                        ? values.onLeaveUntil.toISOString().split('T')[0]
-                        : (values.volunteeringStatus === "Away" && values.awayTo)
-                        ? values.awayTo.toISOString().split('T')[0]
-                        : null,
+                temporaryInactiveUntil: values.volunteeringStatus === "On leave" && values.onLeaveUntil
+                    ? values.onLeaveUntil.toISOString().split('T')[0]
+                    : null,
+                inactiveSince: values.volunteeringStatus === "Inactive" && values.inactiveSince
+                    ? values.inactiveSince.toISOString().split('T')[0]
+                    : null,
+                awayFrom: values.volunteeringStatus === "Away" && values.awayFrom
+                    ? values.awayFrom.toISOString().split('T')[0]
+                    : null,
+                awayTo: values.volunteeringStatus === "Away" && values.awayTo
+                    ? values.awayTo.toISOString().split('T')[0]
+                    : null,
                 roleId: values.userRole, // Now sending roleId instead of role name
                 isDriver, // Determined from role selection
                 canAccommodateMobilityEquipment: values.canAccommodateMobilityEquipment || [],

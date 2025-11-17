@@ -359,6 +359,7 @@ export default function ClientForm({ defaultValues, onSubmit, viewMode = false }
                         </FormItem>
                     )}
                 />
+
                 {/* Last name */}
                 <FormField
                     control={form.control}
@@ -373,6 +374,48 @@ export default function ClientForm({ defaultValues, onSubmit, viewMode = false }
                         </FormItem>
                     )}
                 />
+                
+                {/* Client Gender */}
+                <div className="space-y-4">
+                    <FormField
+                        control={form.control}
+                        name="clientGender"
+                        render={({ field }) => (
+                            <FormItem>
+                                <FormLabel>Client Gender</FormLabel>
+                                <FormControl>
+                                    <RadioGroup
+                                        className="flex flex-col gap-2"
+                                        value={field.value}
+                                        onValueChange={field.onChange}
+                                    >
+                                        <div className="flex items-center space-x-2">
+                                            <RadioGroupItem id="male" value="Male" />
+                                            <FormLabel htmlFor="male" className="font-normal">
+                                                Male
+                                            </FormLabel>
+                                        </div>
+                                        <div className="flex items-center space-x-2">
+                                            <RadioGroupItem id="female" value="Female" />
+                                            <FormLabel htmlFor="female" className="font-normal">
+                                                Female
+                                            </FormLabel>
+                                        </div>
+
+                                        <div className="flex items-center space-x-2">
+                                            <RadioGroupItem id="other" value="Other" />
+                                            <FormLabel htmlFor="other" className="font-normal">
+                                                Other
+                                            </FormLabel>
+                                        </div>
+                                    </RadioGroup>
+                                </FormControl>
+                                <FormMessage />
+                            </FormItem>
+                        )}
+                    />
+                </div>
+
                 {/* Living alone / not */}
                 <FormField
                     control={form.control}
@@ -410,28 +453,7 @@ export default function ClientForm({ defaultValues, onSubmit, viewMode = false }
                         </FormItem>
                     )}
                 />
-                {/* Primary contact preference */}
-                <FormField
-                    control={form.control}
-                    name="contactPref"
-                    render={({ field }) => (
-                        <FormItem className="w-full">
-                            <FormLabel>Contact Preference</FormLabel>
-                            <FormControl className="w-full">
-                                <Select value={field.value} onValueChange={field.onChange}>
-                                    <SelectTrigger className="w-full">
-                                        <SelectValue />
-                                    </SelectTrigger>
-                                    <SelectContent>
-                                        <SelectItem value="Phone">Phone</SelectItem>
-                                        <SelectItem value="Email">Email</SelectItem>
-                                    </SelectContent>
-                                </Select>
-                            </FormControl>
-                            <FormMessage />
-                        </FormItem>
-                    )}
-                />
+
                 {/* Birth Month, AI helped create this  */}
                 <FormField
                     control={form.control}
@@ -495,6 +517,7 @@ export default function ClientForm({ defaultValues, onSubmit, viewMode = false }
                         </FormItem>
                     )}
                 />
+
                 {/* Birth Year, AI helped create this  */}
                 <FormField
                     control={form.control}
@@ -558,135 +581,6 @@ export default function ClientForm({ defaultValues, onSubmit, viewMode = false }
                     )}
                 />
 
-                {/* Contact Information Section */}
-                <div className="md:col-span-2">
-                    <h3 className="text-lg font-semibold mt-4">Contact Information</h3>
-                </div>
-
-                {/* Home Address */}
-                <div className="md:col-span-2">
-                    {/* className="md:col-span-2" */}
-                    <GoogleAddressFields
-                        control={form.control}
-                        setValue={form.setValue}
-                        addressFieldName="homeAddress"
-                        address2FieldName="homeAddress2"
-                        cityFieldName="city"
-                        stateFieldName="state"
-                        zipFieldName="zipCode"
-                        showAddress2={true}
-                        showAliasField={true}
-                        aliasFieldLabel="Search Saved Locations"
-                        aliasFieldName="homeAlias"
-                    />
-                </div>
-                {/* Client Gender */}
-                <div className="space-y-4">
-                    <FormField
-                        control={form.control}
-                        name="clientGender"
-                        render={({ field }) => (
-                            <FormItem>
-                                <FormLabel>Client Gender</FormLabel>
-                                <FormControl>
-                                    <RadioGroup
-                                        className="flex flex-col gap-2"
-                                        value={field.value}
-                                        onValueChange={field.onChange}
-                                    >
-                                        <div className="flex items-center space-x-2">
-                                            <RadioGroupItem id="male" value="Male" />
-                                            <FormLabel htmlFor="male" className="font-normal">
-                                                Male
-                                            </FormLabel>
-                                        </div>
-                                        <div className="flex items-center space-x-2">
-                                            <RadioGroupItem id="female" value="Female" />
-                                            <FormLabel htmlFor="female" className="font-normal">
-                                                Female
-                                            </FormLabel>
-                                        </div>
-
-                                        <div className="flex items-center space-x-2">
-                                            <RadioGroupItem id="other" value="Other" />
-                                            <FormLabel htmlFor="other" className="font-normal">
-                                                Other
-                                            </FormLabel>
-                                        </div>
-                                    </RadioGroup>
-                                </FormControl>
-                                <FormMessage />
-                            </FormItem>
-                        )}
-                    />
-                </div>
-                {/* Client Permanency Status */}
-                <div className="space-y-4">
-                    <FormField
-                        control={form.control}
-                        name="clientStatus"
-                        render={({ field }) => (
-                            <FormItem>
-                                <FormLabel>Client Status</FormLabel>
-                                <FormControl>
-                                    <RadioGroup
-                                        className="flex flex-col gap-2"
-                                        value={field.value}
-                                        onValueChange={field.onChange}
-                                    >
-                                        <div className="flex items-center space-x-2">
-                                            <RadioGroupItem
-                                                id="permanent-client"
-                                                value="Permanent client"
-                                            />
-                                            <FormLabel
-                                                htmlFor="permanent-client"
-                                                className="font-normal"
-                                            >
-                                                Permanent Client
-                                            </FormLabel>
-                                        </div>
-                                        <div className="flex items-center space-x-2">
-                                            <RadioGroupItem
-                                                id="temporary-client"
-                                                value="Temporary client"
-                                            />
-                                            <FormLabel
-                                                htmlFor="temporary-client"
-                                                className="font-normal"
-                                            >
-                                                Temporary Client
-                                            </FormLabel>
-                                        </div>
-                                    </RadioGroup>
-                                </FormControl>
-                                <FormMessage />
-                            </FormItem>
-                        )}
-                    />
-
-                    {/* End date of active status */}
-                    <div>
-                        {clientStatus === "Temporary client" && (
-                            <FormField
-                                control={form.control}
-                                name="endActiveStatus"
-                                render={({ field }) => (
-                                    <FormItem>
-                                        <FormLabel>End Date of Active Status</FormLabel>
-                                        <FormControl>
-                                            <DatePickerInput
-                                                value={field.value}
-                                                onChange={field.onChange}
-                                            />
-                                        </FormControl>
-                                        <FormMessage />
-                                    </FormItem>
-                                )}
-                            />
-                        )}
-                    </div>
-                </div>
                 {/* Client Status */}
                 <div className="space-y-4">
                     <FormField
@@ -791,6 +685,121 @@ export default function ClientForm({ defaultValues, onSubmit, viewMode = false }
                         </>
                     )}
                 </div>
+
+                {/* Client Permanency Status */}
+                <div className="space-y-4">
+                    <FormField
+                        control={form.control}
+                        name="clientStatus"
+                        render={({ field }) => (
+                            <FormItem>
+                                <FormLabel>Client Status</FormLabel>
+                                <FormControl>
+                                    <RadioGroup
+                                        className="flex flex-col gap-2"
+                                        value={field.value}
+                                        onValueChange={field.onChange}
+                                    >
+                                        <div className="flex items-center space-x-2">
+                                            <RadioGroupItem
+                                                id="permanent-client"
+                                                value="Permanent client"
+                                            />
+                                            <FormLabel
+                                                htmlFor="permanent-client"
+                                                className="font-normal"
+                                            >
+                                                Permanent Client
+                                            </FormLabel>
+                                        </div>
+                                        <div className="flex items-center space-x-2">
+                                            <RadioGroupItem
+                                                id="temporary-client"
+                                                value="Temporary client"
+                                            />
+                                            <FormLabel
+                                                htmlFor="temporary-client"
+                                                className="font-normal"
+                                            >
+                                                Temporary Client
+                                            </FormLabel>
+                                        </div>
+                                    </RadioGroup>
+                                </FormControl>
+                                <FormMessage />
+                            </FormItem>
+                        )}
+                    />
+
+                    {/* End date of active status */}
+                    <div>
+                        {clientStatus === "Temporary client" && (
+                            <FormField
+                                control={form.control}
+                                name="endActiveStatus"
+                                render={({ field }) => (
+                                    <FormItem>
+                                        <FormLabel>End Date of Active Status</FormLabel>
+                                        <FormControl>
+                                            <DatePickerInput
+                                                value={field.value}
+                                                onChange={field.onChange}
+                                            />
+                                        </FormControl>
+                                        <FormMessage />
+                                    </FormItem>
+                                )}
+                            />
+                        )}
+                    </div>
+                </div>
+
+                {/* Contact Information Section */}
+                <div className="md:col-span-2">
+                    <h3 className="text-lg font-semibold mt-4">Contact Information</h3>
+                </div>
+
+                {/* Home Address */}
+                <div className="md:col-span-2">
+                    {/* className="md:col-span-2" */}
+                    <GoogleAddressFields
+                        control={form.control}
+                        setValue={form.setValue}
+                        addressFieldName="homeAddress"
+                        address2FieldName="homeAddress2"
+                        cityFieldName="city"
+                        stateFieldName="state"
+                        zipFieldName="zipCode"
+                        showAddress2={true}
+                        showAliasField={true}
+                        aliasFieldLabel="Search Saved Locations"
+                        aliasFieldName="homeAlias"
+                    />
+                </div>
+
+                {/* Primary contact preference */}
+                <FormField
+                    control={form.control}
+                    name="contactPref"
+                    render={({ field }) => (
+                        <FormItem className="w-full">
+                            <FormLabel>Contact Preference</FormLabel>
+                            <FormControl className="w-full">
+                                <Select value={field.value} onValueChange={field.onChange}>
+                                    <SelectTrigger className="w-full">
+                                        <SelectValue />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        <SelectItem value="Phone">Phone</SelectItem>
+                                        <SelectItem value="Email">Email</SelectItem>
+                                    </SelectContent>
+                                </Select>
+                            </FormControl>
+                            <FormMessage />
+                        </FormItem>
+                    )}
+                />
+
                 {/* Email */}
                 <FormField
                     control={form.control}
@@ -864,6 +873,7 @@ export default function ClientForm({ defaultValues, onSubmit, viewMode = false }
                         />
                     )}
                 </div>
+
                 {/* Secondary Phone, adding div to make checkboxes align underneath secondary phone number. */}
                 <div className="space-y-4">
                     <FormField

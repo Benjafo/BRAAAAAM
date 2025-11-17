@@ -45,7 +45,7 @@ type Client = {
 
 // Helper function to map API Client to form values
 // ai made this
-function mapClientToFormValues(client: Client & { okToTextPrimary?: boolean, okToTextSecondary?: boolean, secondaryPhone?: string | null, secondaryPhoneIsCell?: boolean, temporaryInactiveUntil?: string | null }): Partial<ClientFormValues> & { id: string } {
+function mapClientToFormValues(client: Client & { okToTextPrimary?: boolean, okToTextSecondary?: boolean, secondaryPhone?: string | null, secondaryPhoneIsCell?: boolean, temporaryInactiveUntil?: string | null, inactiveSince?: string | null, awayFrom?: string | null, awayTo?: string | null }): Partial<ClientFormValues> & { id: string } {
     return {
         id: client.id,
         firstName: client.firstName,
@@ -82,8 +82,17 @@ function mapClientToFormValues(client: Client & { okToTextPrimary?: boolean, okT
         state: client.address.state,
         zipCode: client.address.zip,
         customFields: client.customFields || {},
-        volunteeringStatus: client.isActive ? "Active" : (client.temporaryInactiveUntil ? "On leave" : "Inactive"),
+        volunteeringStatus: client.isActive
+            ? "Active"
+            : client.temporaryInactiveUntil
+                ? "On leave"
+                : (client.awayFrom || client.awayTo)
+                    ? "Away"
+                    : "Inactive",
         onLeaveUntil: client.temporaryInactiveUntil ? new Date(client.temporaryInactiveUntil) : undefined,
+        inactiveSince: client.inactiveSince ? new Date(client.inactiveSince) : undefined,
+        awayFrom: client.awayFrom ? new Date(client.awayFrom) : undefined,
+        awayTo: client.awayTo ? new Date(client.awayTo) : undefined,
     };
 }
 

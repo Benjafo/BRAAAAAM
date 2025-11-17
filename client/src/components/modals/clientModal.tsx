@@ -70,6 +70,15 @@ export default function ClientModal({
                 temporaryInactiveUntil: values.volunteeringStatus === "On leave" && values.onLeaveUntil
                     ? values.onLeaveUntil.toISOString().split('T')[0]
                     : null,
+                inactiveSince: values.volunteeringStatus === "Inactive" && values.inactiveSince
+                    ? values.inactiveSince.toISOString().split('T')[0]
+                    : null,
+                awayFrom: values.volunteeringStatus === "Away" && values.awayFrom
+                    ? values.awayFrom.toISOString().split('T')[0]
+                    : null,
+                awayTo: values.volunteeringStatus === "Away" && values.awayTo
+                    ? values.awayTo.toISOString().split('T')[0]
+                    : null,
                 customFields: values.customFields,
                 address: {
                     addressLine1: values.homeAddress,

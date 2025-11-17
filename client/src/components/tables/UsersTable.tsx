@@ -59,8 +59,17 @@ function mapUserToFormValues(user: TableUser): Partial<UserFormValues> & { id: s
         emergencyContactName: user.emergencyContactName || "",
         emergencyContactPhone: user.emergencyContactPhone?.replace("+1", "") || "",
         emergencyContactRelationship: user.emergencyContactRelationship || "",
-        volunteeringStatus: user.isActive ? "Active" : (user.temporaryInactiveUntil ? "On leave" : "Inactive"),
+        volunteeringStatus: user.isActive
+            ? "Active"
+            : user.temporaryInactiveUntil
+                ? "On leave"
+                : (user.awayFrom || user.awayTo)
+                    ? "Away"
+                    : "Inactive",
         onLeaveUntil: user.temporaryInactiveUntil ? new Date(user.temporaryInactiveUntil) : undefined,
+        inactiveSince: user.inactiveSince ? new Date(user.inactiveSince) : undefined,
+        awayFrom: user.awayFrom ? new Date(user.awayFrom) : undefined,
+        awayTo: user.awayTo ? new Date(user.awayTo) : undefined,
         userRole: user.roleId || "",
         canAccommodateMobilityEquipment: user.canAccommodateMobilityEquipment as any || [],
         vehicleType: user.vehicleType as any || "",
