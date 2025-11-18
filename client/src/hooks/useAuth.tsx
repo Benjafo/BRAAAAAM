@@ -2,7 +2,7 @@ import { authStore } from "@/components/stores/authStore";
 import type { Credentials, LoginResponse, ResetPasswordCredentials } from "@/lib/types";
 import { useAuthService } from "@/services/auth/serviceResolver";
 // import { authService } from "@/services/auth/serviceResolver";
-import { useMutation } from "@tanstack/react-query";
+import { useMutation, useQuery } from "@tanstack/react-query";
 
 export function useLogin() {
 
@@ -79,4 +79,14 @@ export function useResetPassword() {
       }
     }
   })
+}
+
+export function useSupportContact() {
+    const authService = useAuthService();
+
+    return useQuery({
+        queryKey: ['support-contact'],
+        queryFn: () => authService.getSupportContact(),
+        staleTime: 5 * 60 * 1000, // 5 minutes
+    });
 }

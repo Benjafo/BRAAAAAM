@@ -1,5 +1,5 @@
 
-import type { AuthService, Credentials, ForgotPasswordResponse, LoginResponse, RefreshResponse, ResetPasswordCredentials } from '@/lib/types';
+import type { AuthService, Credentials, ForgotPasswordResponse, LoginResponse, RefreshResponse, ResetPasswordCredentials, SupportContactResponse } from '@/lib/types';
 import type { KyInstance } from 'ky';
 
 export const makeAuthService = (http: KyInstance): AuthService => ({
@@ -20,5 +20,8 @@ export const makeAuthService = (http: KyInstance): AuthService => ({
   },
   async refresh(refreshToken: string): Promise<RefreshResponse> {
     return http.post('auth/token-refresh', { json: { refreshToken } }).json<RefreshResponse>();
+  },
+  async getSupportContact(): Promise<SupportContactResponse> {
+    return http.get('auth/support-contact').json<SupportContactResponse>();
   },
 });

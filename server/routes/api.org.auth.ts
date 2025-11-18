@@ -12,5 +12,6 @@ router.post("/sign-out", withAuth, controller.signOut);
 router.post("/reset-password", controller.resetPassword);
 router.post("/token-refresh", controller.refreshToken);
 router.post("/request-password-reset", controller.requestPasswordReset);
+router.get("/support-contact", controller.getSupportContact);
 
 export default router;

@@ -108,6 +108,7 @@ app.get("/test/create-org-db", async (req: Request, res: Response) => {
         name,
         pocName,
         pocEmail,
+        pocPhone,
         addressLine1,
         addressLine2,
         city,
@@ -141,7 +142,8 @@ app.get("/test/create-org-db", async (req: Request, res: Response) => {
             state,
             zip,
             country,
-            typeof addressLine2 === "string" ? addressLine2 : undefined
+            typeof addressLine2 === "string" ? addressLine2 : undefined,
+            typeof pocPhone === "string" ? pocPhone : undefined
         );
         return res.json({ message: `Organization database '${subdomain}' created successfully.` });
     } catch (error) {

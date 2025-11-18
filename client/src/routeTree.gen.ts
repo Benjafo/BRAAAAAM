@@ -15,6 +15,7 @@ import { Route as Char123SubdomainChar125LoginRouteRouteImport } from './routes/
 import { Route as Char123SubdomainChar125AuthRouteRouteImport } from './routes/{-$subdomain}/_auth/route'
 import { Route as Char123SubdomainChar125LoginSignInRouteImport } from './routes/{-$subdomain}/_login/sign-in'
 import { Route as Char123SubdomainChar125LoginResetPasswordRouteImport } from './routes/{-$subdomain}/_login/reset-password'
+import { Route as Char123SubdomainChar125LoginRequestAdminHelpRouteImport } from './routes/{-$subdomain}/_login/request-admin-help'
 import { Route as Char123SubdomainChar125LoginForgetPasswordRouteImport } from './routes/{-$subdomain}/_login/forget-password'
 import { Route as Char123SubdomainChar125AuthVolunteerRecordsRouteImport } from './routes/{-$subdomain}/_auth/volunteer-records'
 import { Route as Char123SubdomainChar125AuthUsersRouteImport } from './routes/{-$subdomain}/_auth/users'
@@ -60,6 +61,12 @@ const Char123SubdomainChar125LoginResetPasswordRoute =
   Char123SubdomainChar125LoginResetPasswordRouteImport.update({
     id: '/reset-password',
     path: '/reset-password',
+    getParentRoute: () => Char123SubdomainChar125LoginRouteRoute,
+  } as any)
+const Char123SubdomainChar125LoginRequestAdminHelpRoute =
+  Char123SubdomainChar125LoginRequestAdminHelpRouteImport.update({
+    id: '/request-admin-help',
+    path: '/request-admin-help',
     getParentRoute: () => Char123SubdomainChar125LoginRouteRoute,
   } as any)
 const Char123SubdomainChar125LoginForgetPasswordRoute =
@@ -150,6 +157,7 @@ export interface FileRoutesByFullPath {
   '/{-$subdomain}/users': typeof Char123SubdomainChar125AuthUsersRoute
   '/{-$subdomain}/volunteer-records': typeof Char123SubdomainChar125AuthVolunteerRecordsRoute
   '/{-$subdomain}/forget-password': typeof Char123SubdomainChar125LoginForgetPasswordRoute
+  '/{-$subdomain}/request-admin-help': typeof Char123SubdomainChar125LoginRequestAdminHelpRoute
   '/{-$subdomain}/reset-password': typeof Char123SubdomainChar125LoginResetPasswordRoute
   '/{-$subdomain}/sign-in': typeof Char123SubdomainChar125LoginSignInRoute
 }
@@ -167,6 +175,7 @@ export interface FileRoutesByTo {
   '/{-$subdomain}/users': typeof Char123SubdomainChar125AuthUsersRoute
   '/{-$subdomain}/volunteer-records': typeof Char123SubdomainChar125AuthVolunteerRecordsRoute
   '/{-$subdomain}/forget-password': typeof Char123SubdomainChar125LoginForgetPasswordRoute
+  '/{-$subdomain}/request-admin-help': typeof Char123SubdomainChar125LoginRequestAdminHelpRoute
   '/{-$subdomain}/reset-password': typeof Char123SubdomainChar125LoginResetPasswordRoute
   '/{-$subdomain}/sign-in': typeof Char123SubdomainChar125LoginSignInRoute
 }
@@ -188,6 +197,7 @@ export interface FileRoutesById {
   '/{-$subdomain}/_auth/users': typeof Char123SubdomainChar125AuthUsersRoute
   '/{-$subdomain}/_auth/volunteer-records': typeof Char123SubdomainChar125AuthVolunteerRecordsRoute
   '/{-$subdomain}/_login/forget-password': typeof Char123SubdomainChar125LoginForgetPasswordRoute
+  '/{-$subdomain}/_login/request-admin-help': typeof Char123SubdomainChar125LoginRequestAdminHelpRoute
   '/{-$subdomain}/_login/reset-password': typeof Char123SubdomainChar125LoginResetPasswordRoute
   '/{-$subdomain}/_login/sign-in': typeof Char123SubdomainChar125LoginSignInRoute
 }
@@ -208,6 +218,7 @@ export interface FileRouteTypes {
     | '/{-$subdomain}/users'
     | '/{-$subdomain}/volunteer-records'
     | '/{-$subdomain}/forget-password'
+    | '/{-$subdomain}/request-admin-help'
     | '/{-$subdomain}/reset-password'
     | '/{-$subdomain}/sign-in'
   fileRoutesByTo: FileRoutesByTo
@@ -225,6 +236,7 @@ export interface FileRouteTypes {
     | '/{-$subdomain}/users'
     | '/{-$subdomain}/volunteer-records'
     | '/{-$subdomain}/forget-password'
+    | '/{-$subdomain}/request-admin-help'
     | '/{-$subdomain}/reset-password'
     | '/{-$subdomain}/sign-in'
   id:
@@ -245,6 +257,7 @@ export interface FileRouteTypes {
     | '/{-$subdomain}/_auth/users'
     | '/{-$subdomain}/_auth/volunteer-records'
     | '/{-$subdomain}/_login/forget-password'
+    | '/{-$subdomain}/_login/request-admin-help'
     | '/{-$subdomain}/_login/reset-password'
     | '/{-$subdomain}/_login/sign-in'
   fileRoutesById: FileRoutesById
@@ -295,6 +308,13 @@ declare module '@tanstack/react-router' {
       path: '/reset-password'
       fullPath: '/{-$subdomain}/reset-password'
       preLoaderRoute: typeof Char123SubdomainChar125LoginResetPasswordRouteImport
+      parentRoute: typeof Char123SubdomainChar125LoginRouteRoute
+    }
+    '/{-$subdomain}/_login/request-admin-help': {
+      id: '/{-$subdomain}/_login/request-admin-help'
+      path: '/request-admin-help'
+      fullPath: '/{-$subdomain}/request-admin-help'
+      preLoaderRoute: typeof Char123SubdomainChar125LoginRequestAdminHelpRouteImport
       parentRoute: typeof Char123SubdomainChar125LoginRouteRoute
     }
     '/{-$subdomain}/_login/forget-password': {
@@ -431,6 +451,7 @@ const Char123SubdomainChar125AuthRouteRouteWithChildren =
 
 interface Char123SubdomainChar125LoginRouteRouteChildren {
   Char123SubdomainChar125LoginForgetPasswordRoute: typeof Char123SubdomainChar125LoginForgetPasswordRoute
+  Char123SubdomainChar125LoginRequestAdminHelpRoute: typeof Char123SubdomainChar125LoginRequestAdminHelpRoute
   Char123SubdomainChar125LoginResetPasswordRoute: typeof Char123SubdomainChar125LoginResetPasswordRoute
   Char123SubdomainChar125LoginSignInRoute: typeof Char123SubdomainChar125LoginSignInRoute
 }
@@ -439,6 +460,8 @@ const Char123SubdomainChar125LoginRouteRouteChildren: Char123SubdomainChar125Log
   {
     Char123SubdomainChar125LoginForgetPasswordRoute:
       Char123SubdomainChar125LoginForgetPasswordRoute,
+    Char123SubdomainChar125LoginRequestAdminHelpRoute:
+      Char123SubdomainChar125LoginRequestAdminHelpRoute,
     Char123SubdomainChar125LoginResetPasswordRoute:
       Char123SubdomainChar125LoginResetPasswordRoute,
     Char123SubdomainChar125LoginSignInRoute:

@@ -31,6 +31,8 @@ services:
       # - MIGRATE_ON_START=${MIGRATE_ON_START:-false} # <-- set to false to skip applying migrations on start
       - MIGRATE_ON_START=true
       - ENABLE_PGADMIN=true
+      # Application URL
+      - APP_URL=${APP_URL}
       # Email configuration
       - SMTP_HOST=${SMTP_HOST}
       - SMTP_PORT=${SMTP_PORT}
@@ -67,6 +69,8 @@ services:
       # - MIGRATE_ON_START=${MIGRATE_ON_START:-false} # <-- set to false to skip applying migrations on start
       - MIGRATE_ON_START=true
       - ENABLE_PGADMIN=${ENABLE_PGADMIN:-true}
+      # Application URL
+      - APP_URL=${APP_URL}
       # Email configuration (smtp2go)
       - SMTP_HOST=${SMTP_HOST}
       - SMTP_PORT=${SMTP_PORT}

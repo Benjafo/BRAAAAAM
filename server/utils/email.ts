@@ -532,5 +532,147 @@ export async function sendBulkDriverNotifications(): Promise<void> {
     console.log(`[${new Date().toISOString()}] Bulk driver notifications job completed`);
 }
 
+// Send password reset email to a user
+export const sendPasswordResetEmail = async (
+    email: string,
+    userName: string,
+    resetLink: string,
+    expiresInMinutes: number
+): Promise<boolean> => {
+    const currentYear = new Date().getFullYear();
+    const subject = "Password Reset Request - BRAAAAAM";
+
+    const text = `Hello ${userName},
+
+We received a request to reset your password for your BRAAAAAM account.
+
+Click the link below to reset your password:
+${resetLink}
+
+This link will expire in ${expiresInMinutes} minutes.
+
+If you didn't request this password reset, you can safely ignore this email. Your password will remain unchanged.
+
+Thank you,
+BRAAAAAM Team`;
+
+    const html = `
+<!DOCTYPE html>
+<html>
+<head>
+    <style>
+        body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; margin: 0; padding: 0; }
+        .container { max-width: 600px; margin: 0 auto; padding: 20px; }
+        .header { background-color: #4CAF50; color: white; padding: 20px; text-align: center; border-radius: 5px 5px 0 0; }
+        .content { background-color: #f9f9f9; padding: 20px; }
+        .button { background-color: #4CAF50; color: white; padding: 12px 24px; text-decoration: none; border-radius: 4px; display: inline-block; }
+        .button:hover { background-color: #45a049; }
+        .warning { background-color: #fff3cd; border-left: 4px solid #ffc107; padding: 12px; margin: 15px 0; }
+        .footer { text-align: center; padding: 20px; color: #666; font-size: 12px; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h2>Password Reset Request</h2>
+        </div>
+        <div class="content">
+            <p>Hello ${userName},</p>
+            <p>We received a request to reset your password for your BRAAAAAM account.</p>
+
+            <p style="text-align: center; margin: 30px 0;">
+                <a href="${resetLink}" class="button">Reset Your Password</a>
+            </p>
+
+            <div class="warning">
+                <strong>⚠️ Security Notice:</strong> This link will expire in ${expiresInMinutes} minutes.
+            </div>
+
+            <p><strong>If you didn't request this password reset, you can safely ignore this email.</strong> Your password will remain unchanged.</p>
+
+            <p style="font-size: 12px; color: #666;">
+                If the button doesn't work, copy and paste this link into your browser:<br>
+                ${resetLink}
+            </p>
+        </div>
+        <div class="footer">
+            <p>This is an automated email. Please do not reply.</p>
+            <p>© ${currentYear} BRAAAAAM. All rights reserved.</p>
+        </div>
+    </div>
+</body>
+</html>`;
+
+    return sendEmail({ to: email, subject, text, html });
+};
+
+// Send password reset confirmation email to a user
+export const sendPasswordResetConfirmationEmail = async (
+    email: string,
+    userName: string
+): Promise<boolean> => {
+    const currentYear = new Date().getFullYear();
+    const timestamp = new Date().toLocaleString("en-US", {
+        timeZone: "America/New_York",
+        dateStyle: "long",
+        timeStyle: "short",
+    });
+    const subject = "Password Reset Successful - BRAAAAAM";
+
+    const text = `Hello ${userName},
+
+Your password was successfully reset on ${timestamp}.
+
+If you didn't make this change, please contact your organization administrator immediately.
+
+You can now sign in with your new password.
+
+Thank you,
+BRAAAAAM Team`;
+
+    const html = `
+<!DOCTYPE html>
+<html>
+<head>
+    <style>
+        body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; margin: 0; padding: 0; }
+        .container { max-width: 600px; margin: 0 auto; padding: 20px; }
+        .header { background-color: #4CAF50; color: white; padding: 20px; text-align: center; border-radius: 5px 5px 0 0; }
+        .content { background-color: #f9f9f9; padding: 20px; }
+        .success { background-color: #d4edda; border-left: 4px solid #28a745; padding: 12px; margin: 15px 0; }
+        .warning { background-color: #f8d7da; border-left: 4px solid #dc3545; padding: 12px; margin: 15px 0; }
+        .footer { text-align: center; padding: 20px; color: #666; font-size: 12px; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h2>✓ Password Reset Successful</h2>
+        </div>
+        <div class="content">
+            <p>Hello ${userName},</p>
+
+            <div class="success">
+                <p style="margin: 0;"><strong>Your password was successfully reset.</strong></p>
+                <p style="margin: 5px 0 0 0; font-size: 14px;">Changed on ${timestamp}</p>
+            </div>
+
+            <p>You can now sign in to your account with your new password.</p>
+
+            <div class="warning">
+                <strong>⚠️ Security Alert:</strong> If you didn't make this change, please contact your organization administrator immediately.
+            </div>
+        </div>
+        <div class="footer">
+            <p>This is an automated email. Please do not reply.</p>
+            <p>© ${currentYear} BRAAAAAM. All rights reserved.</p>
+        </div>
+    </div>
+</body>
+</html>`;
+
+    return sendEmail({ to: email, subject, text, html });
+};
+
 // Export for manual testing
 export { processPendingMessagesForOrg };

@@ -16,6 +16,9 @@ import {
 } from "../utils/jwt.js";
 import { TokenPayload } from "../types/auth.types.js";
 import { alias } from "drizzle-orm/pg-core";
+import { sendPasswordResetEmail, sendPasswordResetConfirmationEmail } from "../utils/email.js";
+import { getSysDb } from "../drizzle/sys-client.js";
+import { organizations } from "../drizzle/sys/schema.js";
 
 const signIn = async (req: Request, res: Response) => {
     try {
@@ -171,14 +174,21 @@ const requestPasswordReset = async (req: Request, res: Response) => {
             columns: {
                 id: true,
                 email: true,
+                firstName: true,
+                lastName: true,
                 passwordHash: true,
             },
             where: eq(users.email, email),
         });
 
+        // Calculate expiration time (60 minutes from now)
+        const expiresAt = new Date(Date.now() + 60 * 60 * 1000);
+
         if (!user) {
+            // Return success message even if user doesn't exist (security best practice)
             return res.json({
                 message: "If the email exists, a password reset link has been sent",
+                expiresAt: expiresAt.toISOString(),
             });
         }
 
@@ -188,16 +198,26 @@ const requestPasswordReset = async (req: Request, res: Response) => {
             password: user.passwordHash ?? "",
         });
 
-        /**
-         * @TODO handle email integration for sending password reset.
-         * Link needs to send reset token and userId as query params
-         * to the found email address.
-         */
+        // Build the reset URL with subdomain
+        const appUrl = process.env.APP_URL || "http://localhost:5173";
+        const resetLink = `${appUrl}/${req.org?.subdomain}/reset-password?token=${resetToken}&id=${user.id}`;
 
-        console.log("requestResetPassword link:", `?token=${resetToken}&id=${user.id}`);
+        // Send password reset email
+        const userName = user.firstName && user.lastName
+            ? `${user.firstName} ${user.lastName}`
+            : user.firstName || "User";
+
+        try {
+            await sendPasswordResetEmail(user.email, userName, resetLink, 60);
+            console.log(`Password reset email sent to ${user.email}`);
+        } catch (emailError) {
+            console.error("Failed to send password reset email:", emailError);
+            // Still return success to prevent email enumeration
+        }
 
         return res.json({
             message: "If the email exists, a password reset link has been sent",
+            expiresAt: expiresAt.toISOString(),
         });
     } catch (error) {
         console.error("requestPasswordReset error:", error);
@@ -251,10 +271,29 @@ const resetPassword = async (req: Request, res: Response) => {
             .set({ passwordHash: newHashPassword })
             .where(eq(users.id, userId));
 
-        /**
-         * @TODO Send email to user that password reset has
-         * been successful.
-         */
+        // Send confirmation email
+        const user = await req.org?.db.query.users.findFirst({
+            columns: {
+                email: true,
+                firstName: true,
+                lastName: true,
+            },
+            where: eq(users.id, userId),
+        });
+
+        if (user) {
+            const userName = user.firstName && user.lastName
+                ? `${user.firstName} ${user.lastName}`
+                : user.firstName || "User";
+
+            try {
+                await sendPasswordResetConfirmationEmail(user.email, userName);
+                console.log(`Password reset confirmation email sent to ${user.email}`);
+            } catch (emailError) {
+                console.error("Failed to send password reset confirmation email:", emailError);
+                // Don't fail the request if email fails
+            }
+        }
 
         return res.json({
             message: "Reset password successfully",
@@ -267,10 +306,44 @@ const resetPassword = async (req: Request, res: Response) => {
     }
 };
 
+const getSupportContact = async (req: Request, res: Response) => {
+    try {
+        // Get organization contact info from system DB
+        const sysDb = getSysDb();
+        const org = await sysDb.query.organizations.findFirst({
+            where: eq(organizations.subdomain, req.org?.subdomain || ""),
+            columns: {
+                name: true,
+                pocName: true,
+                pocPhone: true,
+            },
+        });
+
+        if (!org) {
+            return res.status(404).json({
+                error: "Organization not found",
+            });
+        }
+
+        // Return support contact info
+        return res.json({
+            organizationName: org.name,
+            contactName: org.pocName,
+            phone: org.pocPhone || null,
+        });
+    } catch (error) {
+        console.error("getSupportContact error:", error);
+        return res.status(500).json({
+            error: "Internal server error",
+        });
+    }
+};
+
 export default {
     signIn,
     signOut,
     refreshToken,
     requestPasswordReset,
     resetPassword,
+    getSupportContact,
 };

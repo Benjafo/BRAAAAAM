@@ -119,12 +119,19 @@ export type ResetPasswordCredentials = {
     confirmNewPassword: string;
 };
 
+export type SupportContactResponse = {
+    organizationName: string;
+    contactName: string;
+    phone: string | null;
+};
+
 export interface AuthService {
     login(form: Credentials): Promise<LoginResponse>;
     logout(): Promise<void>;
     resetPassword(form: ResetPasswordCredentials & { token: string, id: string }): Promise<void>;
     forgotPassword(form: { email: string }): Promise<ForgotPasswordResponse>;
     refresh?(refreshToken: string): Promise<RefreshResponse>;
+    getSupportContact(): Promise<SupportContactResponse>;
 }
 export type Location = {
     placeId: string;

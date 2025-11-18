@@ -59,7 +59,8 @@ export async function createOrgDbFromTemplate(
     state: string,
     zip: string,
     country: string,
-    addressLine2?: string
+    addressLine2?: string,
+    pocPhone?: string
 ) {
     const organizationInsertSchema = createInsertSchema(organizations);
     const parsed = organizationInsertSchema.parse({
@@ -67,6 +68,7 @@ export async function createOrgDbFromTemplate(
         name,
         pocName,
         pocEmail,
+        pocPhone,
         addressLine1,
         addressLine2,
         city,
