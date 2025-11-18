@@ -699,22 +699,53 @@ export default function EditRideForm({
                 <FormField
                     control={form.control}
                     name="estimatedDuration"
-                    render={({ field }) => (
-                        <FormItem className="w-full">
-                            <FormLabel>Estimated Duration (Hours)</FormLabel>
-                            <FormControl className="w-full">
-                                <Input
-                                    type="number"
-                                    step="1"
-                                    min="0"
-                                    value={field.value ?? ""}
-                                    onChange={handleNumberChange(field)}
-                                    className="w-full"
-                                />
-                            </FormControl>
-                            <FormMessage />
-                        </FormItem>
-                    )}
+                    render={({ field }) => {
+                        const totalHours = field.value ?? 0;
+                        const hours = Math.floor(totalHours);
+                        const minutes = Math.round((totalHours - hours) * 60);
+
+                        return (
+                            <FormItem className="w-full">
+                                <FormLabel>Estimated Duration</FormLabel>
+                                <div className="flex gap-2">
+                                    <div className="flex-1">
+                                        <FormControl>
+                                            <Input
+                                                type="number"
+                                                min="0"
+                                                max="23"
+                                                placeholder="Hours"
+                                                value={hours || ""}
+                                                onChange={(e) => {
+                                                    const newHours = parseInt(e.target.value) || 0;
+                                                    field.onChange(newHours + minutes / 60);
+                                                }}
+                                                className="w-full"
+                                            />
+                                        </FormControl>
+                                    </div>
+                                    <div className="flex-1">
+                                        <FormControl>
+                                            <Input
+                                                type="number"
+                                                min="0"
+                                                max="59"
+                                                step="15"
+                                                placeholder="Minutes"
+                                                value={minutes || ""}
+                                                onChange={(e) => {
+                                                    const newMinutes = parseInt(e.target.value) || 0;
+                                                    field.onChange(hours + newMinutes / 60);
+                                                }}
+                                                className="w-full"
+                                            />
+                                        </FormControl>
+                                    </div>
+                                </div>
+                                <FormMessage />
+                            </FormItem>
+                        );
+                    }}
                 />
 
                 {/* Assignment Section */}
@@ -947,22 +978,53 @@ export default function EditRideForm({
                     <FormField
                         control={form.control}
                         name="tripDuration"
-                        render={({ field }) => (
-                            <FormItem className="w-full">
-                                <FormLabel>Trip Duration (Hours)</FormLabel>
-                                <FormControl className="w-full">
-                                    <Input
-                                        type="number"
-                                        step="0.25"
-                                        min="0"
-                                        value={field.value ?? ""}
-                                        onChange={handleNumberChange(field)}
-                                        className="w-full"
-                                    />
-                                </FormControl>
-                                <FormMessage />
-                            </FormItem>
-                        )}
+                        render={({ field }) => {
+                            const totalHours = field.value ?? 0;
+                            const hours = Math.floor(totalHours);
+                            const minutes = Math.round((totalHours - hours) * 60);
+
+                            return (
+                                <FormItem className="w-full">
+                                    <FormLabel>Trip Duration</FormLabel>
+                                    <div className="flex gap-2">
+                                        <div className="flex-1">
+                                            <FormControl>
+                                                <Input
+                                                    type="number"
+                                                    min="0"
+                                                    max="23"
+                                                    placeholder="Hours"
+                                                    value={hours || ""}
+                                                    onChange={(e) => {
+                                                        const newHours = parseInt(e.target.value) || 0;
+                                                        field.onChange(newHours + minutes / 60);
+                                                    }}
+                                                    className="w-full"
+                                                />
+                                            </FormControl>
+                                        </div>
+                                        <div className="flex-1">
+                                            <FormControl>
+                                                <Input
+                                                    type="number"
+                                                    min="0"
+                                                    max="59"
+                                                    step="15"
+                                                    placeholder="Minutes"
+                                                    value={minutes || ""}
+                                                    onChange={(e) => {
+                                                        const newMinutes = parseInt(e.target.value) || 0;
+                                                        field.onChange(hours + newMinutes / 60);
+                                                    }}
+                                                    className="w-full"
+                                                />
+                                            </FormControl>
+                                        </div>
+                                    </div>
+                                    <FormMessage />
+                                </FormItem>
+                            );
+                        }}
                     />
                 )}
                 {isCompleted && (

@@ -287,6 +287,9 @@ export default function RideModal({
                     relationshipToClient:
                         values.additionalRider === "Yes" ? values.relationshipToClient : null,
                     milesDriven: values.tripDistance,
+                    estimatedDurationMinutes: values.estimatedDuration
+                        ? values.estimatedDuration * 60
+                        : undefined,
                     actualDurationMinutes: values.tripDuration
                         ? values.tripDuration * 60
                         : undefined,

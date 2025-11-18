@@ -30,6 +30,7 @@ type Ride = {
     tripType: "roundTrip" | "oneWayFrom" | "oneWayTo";
     // Completion fields
     milesDriven: number | null;
+    estimatedDurationMinutes: number | null;
     actualDurationMinutes: number | null;
     notes: string | null;
     donationType: "Check" | "Cash" | "unopenedEnvelope" | null;
@@ -142,6 +143,7 @@ const mapRideToFormValues = (ride: Ride): Partial<RideFormValues> & { id?: strin
         assignedDriver: ride.driverId || undefined,
         rideStatus: ride.status,
         dispatcherName: dispatcherName,
+        estimatedDuration: ride.estimatedDurationMinutes ? ride.estimatedDurationMinutes / 60 : undefined,
         // Completion fields
         tripDistance: ride.milesDriven || undefined,
         tripDuration: ride.actualDurationMinutes ? ride.actualDurationMinutes / 60 : undefined,
