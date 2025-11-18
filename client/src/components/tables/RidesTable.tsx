@@ -154,7 +154,7 @@ export function RidesTable({
                 key={refreshKey}
                 fetchData={fetchRides}
                 columns={[
-                    { header: "Date", accessorKey: "date", id: "date" },
+                    { header: "Appointment Date", accessorKey: "date", id: "date" },
                     { header: "Time", accessorKey: "time", id: "time" },
                     {
                         header: "Client",
