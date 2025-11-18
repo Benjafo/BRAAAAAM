@@ -96,6 +96,8 @@ export default function RideModal({
     const user = useAuthStore((s) => s.user);
     const userFirstName = user?.firstName;
     const userLastName = user?.lastName;
+    const dispatcherFullName =
+        userFirstName && userLastName ? `${userFirstName} ${userLastName}` : "";
 
     // Limited edit mode: user only has ownappointments.update permission
     const limitedEditMode = !hasFullUpdatePermission && hasOwnUpdatePermission;
@@ -169,6 +171,7 @@ export default function RideModal({
     const defaultValues: Partial<RideFormValues> = {
         // additionalRider: "No",
         // tripType: "roundTrip",
+        dispatcherName: dispatcherFullName,
         ...defaultValuesProp,
     };
 
