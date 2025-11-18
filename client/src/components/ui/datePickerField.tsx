@@ -127,6 +127,8 @@ export function DatePickerInput({
                         mode="single"
                         selected={value}
                         captionLayout="dropdown"
+                        startMonth={new Date(2000, 0, 1)}  // January 2000
+                        endMonth={new Date(2099, 11, 31)}  // December 2099
                         month={month}
                         onMonthChange={setMonth}
                         onSelect={(date) => {
