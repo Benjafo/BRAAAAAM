@@ -49,7 +49,13 @@ export default function UnavailabilityModal({
     const isEditing = isEditingTemp || isEditingRecurring;
     const modalTitle = isEditing ? "Edit Unavailability" : "Add Unavailability";
 
-    async function handleTempSubmit(values: TempUnavailabilityFormValues, ignoreOverlap = false) {
+    async function handleTempSubmit(values: TempUnavailabilityFormValues, eventOrIgnoreOverlap?: any) {
+        // Check if second param is a boolean (from handleOverlapConfirm) or an event (from form submit)
+        const ignoreOverlap = typeof eventOrIgnoreOverlap === "boolean" ? eventOrIgnoreOverlap : false;
+
+        console.log("handleTempSubmit called with ignoreOverlap:", ignoreOverlap);
+        console.log("handleTempSubmit values:", values);
+
         if (!userId) {
             toast.error("User not authenticated, please log in again.");
             return;
@@ -89,30 +95,42 @@ export default function UnavailabilityModal({
                 response = await http.post(url, { json: requestBody });
             }
 
-            // Handle overlap conflict
-            if (response.status === 409) {
-                const data = await response.json();
-                setOverlapConflicts(data.conflicts || []);
-                setIsSubmitting(false);
-                return;
-            }
-
-            if (!response.ok) {
-                throw new Error(
-                    isEditingTemp
-                        ? "Failed to update unavailability"
-                        : "Failed to create unavailability"
-                );
-            }
+            console.log("Unavailability response:", response);
 
             toast.success(
                 isEditingTemp ? "Unavailability updated" : "Temporary unavailability created"
             );
             onOpenChange(false);
             onSuccess?.();
-        } catch (err) {
+        } catch (err: any) {
             console.error("Error creating unavailability:", err);
-            toast.error("Failed to create unavailability");
+            console.log("Error response status:", err.response?.status);
+
+            // Handle 409 conflicts (overlap or duplicate)
+            if (err.response?.status === 409) {
+                const data = await err.response.json();
+                console.log("409 response data:", data);
+
+                // Check if it's a duplicate error
+                if (data.error === "duplicate_detected") {
+                    toast.error(data.message || "This unavailability already exists");
+                    setIsSubmitting(false);
+                    return;
+                }
+
+                // Otherwise, it's an overlap conflict
+                console.log("Setting overlap conflicts:", data.conflicts);
+                setOverlapConflicts(data.conflicts || []);
+                setIsSubmitting(false);
+                return;
+            }
+
+            // Generic error for other cases
+            toast.error(
+                isEditingTemp
+                    ? "Failed to update unavailability"
+                    : "Failed to create unavailability"
+            );
         } finally {
             setIsSubmitting(false);
         }
@@ -120,8 +138,11 @@ export default function UnavailabilityModal({
 
     async function handleRecurringSubmit(
         values: RecurringUnavailabilityFormValues,
-        ignoreOverlap = false
+        eventOrIgnoreOverlap?: any
     ) {
+        // Check if second param is a boolean (from handleOverlapConfirm) or an event (from form submit)
+        const ignoreOverlap = typeof eventOrIgnoreOverlap === "boolean" ? eventOrIgnoreOverlap : false;
+
         if (!userId) {
             toast.error("User not authenticated");
             return;
@@ -160,36 +181,49 @@ export default function UnavailabilityModal({
                 response = await http.post(url, { json: requestBody });
             }
 
-            // Handle overlap conflict
-            if (response.status === 409) {
-                const data = await response.json();
-                setOverlapConflicts(data.conflicts || []);
-                setIsSubmitting(false);
-                return;
-            }
-
-            if (!response.ok) {
-                throw new Error(
-                    isEditingRecurring
-                        ? "Failed to update unavailability"
-                        : "Failed to create unavailability"
-                );
-            }
+            console.log("Unavailability response:", response);
 
             toast.success(
                 isEditingRecurring ? "Unavailability updated" : "Recurring unavailability created"
             );
             onOpenChange(false);
             onSuccess?.();
-        } catch (err) {
+        } catch (err: any) {
             console.error("Error creating unavailability:", err);
-            toast.error("Failed to create unavailability");
+            console.log("Error response status:", err.response?.status);
+
+            // Handle 409 conflicts (overlap or duplicate)
+            if (err.response?.status === 409) {
+                const data = await err.response.json();
+                console.log("409 response data:", data);
+
+                // Check if it's a duplicate error
+                if (data.error === "duplicate_detected") {
+                    toast.error(data.message || "This unavailability already exists");
+                    setIsSubmitting(false);
+                    return;
+                }
+
+                // Otherwise, it's an overlap conflict
+                console.log("Setting overlap conflicts:", data.conflicts);
+                setOverlapConflicts(data.conflicts || []);
+                setIsSubmitting(false);
+                return;
+            }
+
+            // Generic error for other cases
+            toast.error(
+                isEditingRecurring
+                    ? "Failed to update unavailability"
+                    : "Failed to create unavailability"
+            );
         } finally {
             setIsSubmitting(false);
         }
     }
 
     function handleOverlapConfirm() {
+        console.log("handleOverlapConfirm called with lastSubmittedValues:", lastSubmittedValues);
         setOverlapConflicts([]);
         if (lastSubmittedValues) {
             if (lastSubmittedValues.type === "temporary") {

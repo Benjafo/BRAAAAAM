@@ -697,6 +697,95 @@ async function checkOverlaps(
     return conflicts;
 }
 
+/**
+ * Helper function to detect identical (duplicate) unavailability blocks
+ * Checks for exact duplicates including cross-type duplicates (temporary vs recurring)
+ */
+async function checkDuplicate(
+    db: any,
+    userId: string,
+    newBlock: {
+        startDate: string;
+        endDate: string;
+        startTime: string | null;
+        endTime: string | null;
+        isAllDay: boolean;
+        isRecurring: boolean;
+        recurringDayOfWeek?: string | null;
+    },
+    excludeId?: string
+): Promise<UnavailabilityBlock | null> {
+    // Get all existing blocks for this user
+    let existingBlocks = await db
+        .select()
+        .from(userUnavailability)
+        .where(
+            excludeId
+                ? and(
+                      eq(userUnavailability.userId, userId),
+                      sql`${userUnavailability.id} != ${excludeId}`
+                  )
+                : eq(userUnavailability.userId, userId)
+        );
+
+    for (const existing of existingBlocks) {
+        let isDuplicate = false;
+
+        if (!newBlock.isRecurring && !existing.isRecurring) {
+            // Case 1: Both Temporary - check exact match
+            isDuplicate =
+                newBlock.startDate === existing.startDate &&
+                newBlock.endDate === existing.endDate &&
+                newBlock.startTime === existing.startTime &&
+                newBlock.endTime === existing.endTime &&
+                newBlock.isAllDay === existing.isAllDay;
+        } else if (newBlock.isRecurring && existing.isRecurring) {
+            // Case 2: Both Recurring - check day of week and times
+            isDuplicate =
+                newBlock.recurringDayOfWeek === existing.recurringDayOfWeek &&
+                newBlock.startTime === existing.startTime &&
+                newBlock.endTime === existing.endTime &&
+                newBlock.isAllDay === existing.isAllDay;
+        } else {
+            // Case 3: One Temporary, One Recurring
+            // Only check if temporary is single-day
+            const tempBlock = newBlock.isRecurring ? existing : newBlock;
+            const recurBlock = newBlock.isRecurring ? newBlock : existing;
+
+            // Check if temporary is single-day
+            const isSingleDay = tempBlock.startDate === tempBlock.endDate;
+
+            if (isSingleDay) {
+                // Get day of week for the temporary date
+                const tempDate = new Date(tempBlock.startDate);
+                const daysOfWeek = [
+                    "Sunday",
+                    "Monday",
+                    "Tuesday",
+                    "Wednesday",
+                    "Thursday",
+                    "Friday",
+                    "Saturday",
+                ];
+                const tempDayOfWeek = daysOfWeek[tempDate.getDay()];
+
+                // Check if day matches and times are identical
+                isDuplicate =
+                    tempDayOfWeek === recurBlock.recurringDayOfWeek &&
+                    tempBlock.startTime === recurBlock.startTime &&
+                    tempBlock.endTime === recurBlock.endTime &&
+                    tempBlock.isAllDay === recurBlock.isAllDay;
+            }
+        }
+
+        if (isDuplicate) {
+            return existing;
+        }
+    }
+
+    return null;
+}
+
 export const createUnavailability = async (req: Request, res: Response): Promise<Response> => {
     try {
         const db = req.org?.db;
@@ -710,6 +799,25 @@ export const createUnavailability = async (req: Request, res: Response): Promise
         // Validate required fields
         if (!startDate || !endDate) {
             return res.status(400).json({ error: "Start date and end date are required" });
+        }
+
+        // Check for duplicates first
+        const duplicate = await checkDuplicate(db, userId, {
+            startDate,
+            endDate,
+            startTime: startTime || null,
+            endTime: endTime || null,
+            isAllDay: isAllDay || false,
+            isRecurring: isRecurring || false,
+            recurringDayOfWeek: recurringDayOfWeek || null,
+        });
+
+        if (duplicate) {
+            return res.status(409).json({
+                error: "duplicate_detected",
+                message: "This unavailability already exists",
+                duplicate,
+            });
         }
 
         // Check for overlaps unless ignoreOverlap flag is set
@@ -973,6 +1081,31 @@ export const updateUnavailability = async (req: Request, res: Response): Promise
 
         const { startDate, endDate, startTime, endTime, isAllDay, reason, isRecurring, recurringDayOfWeek } =
             req.body;
+
+        // Check for duplicates first
+        const duplicate = await checkDuplicate(
+            db,
+            userId,
+            {
+                startDate: startDate || existing.startDate,
+                endDate: endDate || existing.endDate,
+                startTime: startTime !== undefined ? startTime : existing.startTime,
+                endTime: endTime !== undefined ? endTime : existing.endTime,
+                isAllDay: isAllDay !== undefined ? isAllDay : existing.isAllDay,
+                isRecurring: isRecurring !== undefined ? isRecurring : existing.isRecurring,
+                recurringDayOfWeek:
+                    recurringDayOfWeek !== undefined ? recurringDayOfWeek : existing.recurringDayOfWeek,
+            },
+            unavailabilityId
+        );
+
+        if (duplicate) {
+            return res.status(409).json({
+                error: "duplicate_detected",
+                message: "This unavailability already exists",
+                duplicate,
+            });
+        }
 
         // Check for overlaps unless ignoreOverlap flag is set
         const ignoreOverlap = req.query.ignoreOverlap === "true";
