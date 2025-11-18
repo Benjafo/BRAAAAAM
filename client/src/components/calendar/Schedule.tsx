@@ -117,6 +117,9 @@ const transformRidesToCalendarEvents = (rides: Ride[]): CalendarEvent[] => {
 
 // Map ride data to form values format
 const mapRideToFormValues = (ride: Ride): Partial<RideFormValues> & { id?: string } => {
+    // Build dispatcher name from first and last name
+    const dispatcherName = `${ride.dispatcherFirstName || ""} ${ride.dispatcherLastName || ""}`.trim();
+
     return {
         id: ride.id,
         clientId: ride.clientId,
@@ -136,6 +139,7 @@ const mapRideToFormValues = (ride: Ride): Partial<RideFormValues> & { id?: strin
         purposeOfTrip: ride.tripPurpose || "",
         assignedDriver: ride.driverId || undefined,
         rideStatus: ride.status,
+        dispatcherName: dispatcherName,
         // Completion fields
         tripDistance: ride.milesDriven ?? undefined,
         tripDuration: ride.actualDurationMinutes ? ride.actualDurationMinutes / 60 : undefined,
