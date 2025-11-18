@@ -199,13 +199,6 @@ export const PERMISSIONS: PermissionDefinition[] = [
         name: "Delete Roles",
         description: "Delete unused roles",
     },
-    {
-        permKey: "permissions.read",
-        resource: "permissions",
-        action: "read",
-        name: "View Permissions",
-        description: "View available permissions",
-    },
 
     // Settings
     {
@@ -291,6 +284,13 @@ export const PERMISSIONS: PermissionDefinition[] = [
         name: "Update All Volunteer Records",
         description: "Modify volunteer hours and miles records for all users",
     },
+    {
+        permKey: "allvolunteer-records.delete",
+        resource: "allvolunteer-records",
+        action: "delete",
+        name: "Delete All Volunteer Records",
+        description: "Delete all volunteer hours and miles records",
+    },
 
     // Notifications - Own (Driver)
     {
@@ -315,7 +315,7 @@ export const PERMISSIONS: PermissionDefinition[] = [
         action: "update",
         name: "Manage All Notifications",
         description: "Retry failed or cancel queued notifications",
-    }
+    },
 
     // Special Permissions
     // {

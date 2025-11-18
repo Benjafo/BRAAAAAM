@@ -56,9 +56,6 @@ export const DEFAULT_ROLES: RoleDefinition[] = [
             "roles.update",
             "roles.delete",
 
-            // Permissions
-            "permissions.read",
-
             // Settings
             "settings.read",
             "settings.update",
@@ -66,6 +63,8 @@ export const DEFAULT_ROLES: RoleDefinition[] = [
             // Volunteer Records
             "allvolunteer-records.read",
             "allvolunteer-records.update",
+            "allvolunteer-records.delete",
+            "ownvolunteer-records.create",
 
             // Notifications
             "allnotifications.read",

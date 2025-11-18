@@ -62,14 +62,23 @@ function capitalizeResource(resource: string): string {
     const resourceMap: Record<string, string> = {
         users: "User Management",
         clients: "Client Management",
-        appointments: "Appointments",
-        appointmentsall: "All Appointments",
+        // appointments: "Appointments",
+        // appointmentsall: "All Appointments",
         reports: "Reports",
         roles: "Roles",
         permissions: "Permissions",
         settings: "Settings",
         organizations: "Organizations",
         dashboard: "Dashboard",
+        // All/Own scoped resources
+        allappointments: "Appointments (all)",
+        ownappointments: "Appointments (own)",
+        "allvolunteer-records": "Volunteer Records (all)",
+        "ownvolunteer-records": "Volunteer Records (own)",
+        allunavailability: "Unavailability (all)",
+        ownunavailability: "Unavailability (own)",
+        allnotifications: "Notifications (all)",
+        ownnotifications: "Notifications (own)",
     };
     return resourceMap[resource] || resource.charAt(0).toUpperCase() + resource.slice(1);
 }
@@ -87,7 +96,9 @@ export default function RoleForm({ defaultValues, onSubmit, availablePermissions
     });
 
     const groupedPermissions = groupPermissionsByResource(availablePermissions);
-    const resourceNames = Object.keys(groupedPermissions).sort();
+    const resourceNames = Object.keys(groupedPermissions).sort((a, b) =>
+        capitalizeResource(a).localeCompare(capitalizeResource(b))
+    );
 
     const handleSelectAll = (resource: string, checked: boolean) => {
         const currentPerms = form.getValues("permissionIds");
@@ -160,9 +171,9 @@ export default function RoleForm({ defaultValues, onSubmit, availablePermissions
                             <div className="space-y-1 leading-none">
                                 <FormLabel>Is Driver Role</FormLabel>
                                 <FormDescription>
-                                    Check this if users with this role should be able to be assigned as
-                                    drivers and have access to driver-specific fields (vehicle type,
-                                    mobility accommodations, etc.)
+                                    Check this if users with this role should be able to be assigned
+                                    as drivers and have access to driver-specific fields (vehicle
+                                    type, mobility accommodations, etc.)
                                 </FormDescription>
                             </div>
                         </FormItem>
