@@ -99,8 +99,10 @@ export function RidesTable({
     const hasCreatePermission = useAuthStore((s) =>
         s.hasPermission(PERMISSIONS.ALL_APPOINTMENTS_CREATE)
     );
-    const hasEditPermission = useAuthStore((s) =>
-        s.hasPermission(PERMISSIONS.OWN_APPOINTMENTS_UPDATE) || s.hasPermission(PERMISSIONS.ALL_APPOINTMENTS_UPDATE)
+    const hasEditPermission = useAuthStore(
+        (s) =>
+            s.hasPermission(PERMISSIONS.OWN_APPOINTMENTS_UPDATE) ||
+            s.hasPermission(PERMISSIONS.ALL_APPOINTMENTS_UPDATE)
     );
 
     // hacky fix to force refresh for the custom fields
@@ -155,7 +157,7 @@ export function RidesTable({
                 fetchData={fetchRides}
                 columns={[
                     { header: "Appointment Date", accessorKey: "date", id: "date" },
-                    { header: "Time", accessorKey: "time", id: "time" },
+                    { header: "Appointment Time", accessorKey: "time", id: "time" },
                     {
                         header: "Client",
                         accessorFn: (row) => `${row.clientFirstName} ${row.clientLastName}`,
