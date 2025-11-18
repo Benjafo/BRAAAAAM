@@ -236,7 +236,7 @@ export default function RideModal({
                     notes: values.tripDistance
                         ? `Trip completed: ${values.tripDistance} miles`
                         : undefined,
-                    donationType: values.donationType || null,
+                    donationType: values.donationType || "None",
                     donationAmount: values.donationAmount,
                     hasAdditionalRider: values.additionalRider === "Yes",
                     additionalRiderFirstName:
@@ -293,7 +293,7 @@ export default function RideModal({
                     actualDurationMinutes: values.tripDuration
                         ? values.tripDuration * 60
                         : undefined,
-                    donationType: values.donationType || null,
+                    donationType: values.donationType || "None",
                     donationAmount: values.donationAmount,
                     customFields: values.customFields,
                 };

@@ -33,7 +33,7 @@ type Ride = {
     estimatedDurationMinutes: number | null;
     actualDurationMinutes: number | null;
     notes: string | null;
-    donationType: "Check" | "Cash" | "unopenedEnvelope" | null;
+    donationType: "Check" | "Cash" | "unopenedEnvelope" | "None" | null;
     donationAmount: number | null;
     // Additional rider fields
     hasAdditionalRider: boolean | null;
@@ -147,8 +147,8 @@ const mapRideToFormValues = (ride: Ride): Partial<RideFormValues> & { id?: strin
         // Completion fields
         tripDistance: ride.milesDriven || undefined,
         tripDuration: ride.actualDurationMinutes ? ride.actualDurationMinutes / 60 : undefined,
-        donationType: ride.donationType || undefined,
-        donationAmount: ride.donationAmount || undefined,
+        donationType: ride.donationType && ride.donationType !== "None" ? ride.donationType : undefined,
+        donationAmount: ride.donationAmount ? parseFloat(String(ride.donationAmount)) : undefined,
         // Additional rider fields
         additionalRider: ride.hasAdditionalRider ? "Yes" : "No",
         additionalRiderFirstName: ride.additionalRiderFirstName || "",
