@@ -616,7 +616,7 @@ export const getMatchingDrivers = async (req: Request, res: Response): Promise<R
                 roleId: users.roleId,
                 roleName: roles.name,
                 canAccommodateMobilityEquipment: users.canAccommodateMobilityEquipment,
-                vehicleType: users.vehicleType,
+                vehicleTypes: users.vehicleTypes,
                 canAccommodateOxygen: users.canAccommodateOxygen,
                 canAccommodateServiceAnimal: users.canAccommodateServiceAnimal,
                 canAccommodateAdditionalRider: users.canAccommodateAdditionalRider,

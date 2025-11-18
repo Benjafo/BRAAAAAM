@@ -43,7 +43,7 @@ export type TableUser = Omit<User, 'role'> & {
     awayFrom?: string | null,
     awayTo?: string | null,
     canAccommodateMobilityEquipment?: string[] | null,
-    vehicleType?: string | null,
+    vehicleTypes?: string[] | null,
     vehicleColor?: string | null,
     townPreferences?: string | null,
     destinationLimitations?: string | null,

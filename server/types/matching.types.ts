@@ -34,7 +34,7 @@ export interface DriverProfile {
     email: string;
     phone: string | null;
     canAccommodateMobilityEquipment: string[] | null;
-    vehicleType: string | null;
+    vehicleTypes: string[] | null;
     canAccommodateOxygen: boolean | null;
     canAccommodateServiceAnimal: boolean | null;
     canAccommodateAdditionalRider: boolean | null;

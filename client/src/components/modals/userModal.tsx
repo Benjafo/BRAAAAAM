@@ -72,7 +72,7 @@ export default function NewUserModal({
                 roleKey: selectedRole?.roleKey,
             });
 
-            console.log("Vehicle type: ", values.vehicleType);
+            console.log("Vehicle types: ", values.vehicleTypes);
 
             // Map form values to API structure
             const requestBody = {
@@ -109,7 +109,7 @@ export default function NewUserModal({
                 roleId: values.userRole, // Now sending roleId instead of role name
                 isDriver, // Determined from role selection
                 canAccommodateMobilityEquipment: values.canAccommodateMobilityEquipment || [],
-                vehicleType: values.vehicleType || null,
+                vehicleTypes: values.vehicleTypes || [],
                 vehicleColor: values.vehicleColor || null,
                 townPreferences: values.townPreferences || null,
                 destinationLimitations: values.destinationLimitations || null,

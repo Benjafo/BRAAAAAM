@@ -98,7 +98,7 @@ const userSchema = z
             .optional(),
         secondaryPhoneIsCellPhone: z.boolean(),
         okToTextSecondaryPhone: z.boolean(),
-        vehicleType: z
+        vehicleTypes: z
             .array(
                 z.enum([
                     "sedan",
@@ -197,11 +197,11 @@ const userSchema = z
         // TODO we cant access the whether the user's role is a driver here, this needs fix
         // eslint-disable-next-line no-constant-condition
         if (false) {
-            if (!data.vehicleType) {
+            if (!data.vehicleTypes) {
                 ctx.addIssue({
                     code: "custom",
                     message: "Please enter the vehicle type.",
-                    path: ["vehicleType"],
+                    path: ["vehicleTypes"],
                 });
             }
             if (!data.vehicleColor) {
@@ -289,6 +289,8 @@ export default function UserForm({
     viewMode = false,
 }: Props) {
     const dynamicFieldsRef = useRef<DynamicFormFieldsRef>(null);
+    const [vehicleTypesSelectOpen, setVehicleTypesSelectOpen] = useState(false);
+    const isSelectingVehicleType = useRef(false);
 
     // Find default role, dispatcher by default or first available
     const defaultRoleId =
@@ -326,7 +328,7 @@ export default function UserForm({
             secondaryPhoneNumber: defaultValues.secondaryPhoneNumber ?? "",
             secondaryPhoneIsCellPhone: defaultValues.secondaryPhoneIsCellPhone ?? false,
             okToTextSecondaryPhone: defaultValues.okToTextSecondaryPhone ?? false,
-            vehicleType: defaultValues.vehicleType ?? [],
+            vehicleTypes: defaultValues.vehicleTypes ?? [],
             vehicleColor: defaultValues.vehicleColor ?? "",
             canAccommodateMobilityEquipment: defaultValues.canAccommodateMobilityEquipment ?? [],
             canAccommodateOxygen: defaultValues.canAccommodateOxygen ?? false,
@@ -951,13 +953,24 @@ export default function UserForm({
                         {/* Vehicle Type, AI helped on the logic to allow multiple selects */}
                         <FormField
                             control={form.control}
-                            name="vehicleType"
+                            name="vehicleTypes"
                             render={({ field }) => (
                                 <FormItem className="w-full">
                                     <FormLabel>Vehicle Type</FormLabel>
                                     <Select
                                         value=""
+                                        open={vehicleTypesSelectOpen}
+                                        onOpenChange={(open) => {
+                                            // Prevent close if we're actively selecting an item
+                                            if (!open && isSelectingVehicleType.current) {
+                                                return; // Ignore close event when selecting
+                                            }
+                                            setVehicleTypesSelectOpen(open);
+                                        }}
                                         onValueChange={(value) => {
+                                            // Mark that we're selecting to prevent auto-close
+                                            isSelectingVehicleType.current = true;
+
                                             const typedValue = value as
                                                 | "sedan"
                                                 | "small_suv"
@@ -975,6 +988,11 @@ export default function UserForm({
                                                 // Add to selection
                                                 field.onChange([...current, typedValue]);
                                             }
+
+                                            // Reset flag after close event would have fired
+                                            setTimeout(() => {
+                                                isSelectingVehicleType.current = false;
+                                            }, 0);
                                         }}
                                     >
                                         <FormControl className="w-full">
@@ -1166,9 +1184,43 @@ export default function UserForm({
 
                                     return (
                                         <FormItem>
-                                            <FormLabel>
-                                                Can Accommodate Mobility Equipment
-                                            </FormLabel>
+                                            <FormField
+                                                control={form.control}
+                                                name="canAccommodateMobilityEquipment"
+                                                render={({ field }) => {
+                                                    const allSelected = mobilityItems.every(
+                                                        (item) =>
+                                                            field.value?.includes(item.id as any)
+                                                    );
+
+                                                    return (
+                                                        <div className="flex items-center gap-2">
+                                                            <FormLabel>
+                                                                Can Accommodate Mobility Equipment
+                                                            </FormLabel>
+                                                            <button
+                                                                type="button"
+                                                                onClick={() => {
+                                                                    if (allSelected) {
+                                                                        field.onChange([]);
+                                                                    } else {
+                                                                        field.onChange(
+                                                                            mobilityItems.map(
+                                                                                (item) => item.id
+                                                                            )
+                                                                        );
+                                                                    }
+                                                                }}
+                                                                className="text-sm text-blue-600 hover:text-blue-800 cursor-pointer"
+                                                            >
+                                                                {allSelected
+                                                                    ? "(Deselect all)"
+                                                                    : "(Select all)"}
+                                                            </button>
+                                                        </div>
+                                                    );
+                                                }}
+                                            />
                                             <div className="space-y-2">
                                                 {mobilityItems.map((item) => (
                                                     <FormField
@@ -1210,47 +1262,6 @@ export default function UserForm({
                                                         )}
                                                     />
                                                 ))}
-
-                                                {/* All checkbox */}
-                                                <FormField
-                                                    control={form.control}
-                                                    name="canAccommodateMobilityEquipment"
-                                                    render={({ field }) => {
-                                                        const allSelected = mobilityItems.every(
-                                                            (item) =>
-                                                                field.value?.includes(
-                                                                    item.id as any
-                                                                )
-                                                        );
-
-                                                        return (
-                                                            <FormItem className="flex flex-row items-center space-x-3 space-y-0">
-                                                                <FormControl>
-                                                                    <Checkbox
-                                                                        checked={allSelected}
-                                                                        onCheckedChange={(
-                                                                            checked
-                                                                        ) => {
-                                                                            if (checked) {
-                                                                                field.onChange(
-                                                                                    mobilityItems.map(
-                                                                                        (item) =>
-                                                                                            item.id
-                                                                                    )
-                                                                                );
-                                                                            } else {
-                                                                                field.onChange([]);
-                                                                            }
-                                                                        }}
-                                                                    />
-                                                                </FormControl>
-                                                                <FormLabel className="font-normal">
-                                                                    All
-                                                                </FormLabel>
-                                                            </FormItem>
-                                                        );
-                                                    }}
-                                                />
                                             </div>
                                             <FormMessage />
                                         </FormItem>
@@ -1262,7 +1273,41 @@ export default function UserForm({
                         {/* Other Accomodations */}
                         <div className="md:col-span-2">
                             <FormItem>
-                                <FormLabel>Other Accommodations</FormLabel>
+                                <div className="flex items-center gap-2">
+                                    <FormLabel>Other Accommodations</FormLabel>
+                                    <button
+                                        type="button"
+                                        onClick={() => {
+                                            const allSelected =
+                                                form.getValues("canAccommodateOxygen") &&
+                                                form.getValues("canAccommodateServiceAnimal") &&
+                                                form.getValues("canAccommodateAdditionalRider");
+
+                                            if (allSelected) {
+                                                form.setValue("canAccommodateOxygen", false);
+                                                form.setValue("canAccommodateServiceAnimal", false);
+                                                form.setValue(
+                                                    "canAccommodateAdditionalRider",
+                                                    false
+                                                );
+                                            } else {
+                                                form.setValue("canAccommodateOxygen", true);
+                                                form.setValue("canAccommodateServiceAnimal", true);
+                                                form.setValue(
+                                                    "canAccommodateAdditionalRider",
+                                                    true
+                                                );
+                                            }
+                                        }}
+                                        className="text-sm text-blue-600 hover:text-blue-800 cursor-pointer"
+                                    >
+                                        {form.watch("canAccommodateOxygen") &&
+                                        form.watch("canAccommodateServiceAnimal") &&
+                                        form.watch("canAccommodateAdditionalRider")
+                                            ? "(Deselect all)"
+                                            : "(Select all)"}
+                                    </button>
+                                </div>
                                 <div className="space-y-2">
                                     {/* Can Accommodate Oxygen */}
                                     <FormField

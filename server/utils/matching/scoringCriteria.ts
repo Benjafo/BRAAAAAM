@@ -12,8 +12,12 @@ export function scoreVehicleMatch(driver: DriverProfile, client: ClientDetails):
         return 20;
     }
 
+    // Check if driver has any vehicle type that matches client preferences
+    const driverVehicleTypes = driver.vehicleTypes || [];
+    const hasMatch = driverVehicleTypes.some((vehicleType) => clientVehicleTypes.includes(vehicleType));
+
     // Perfect match
-    if (driver.vehicleType && clientVehicleTypes.includes(driver.vehicleType)) {
+    if (hasMatch) {
         return 25;
     }
 

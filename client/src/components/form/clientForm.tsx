@@ -374,7 +374,7 @@ export default function ClientForm({ defaultValues, onSubmit, viewMode = false }
                         </FormItem>
                     )}
                 />
-                
+
                 {/* Client Gender */}
                 <div className="space-y-4">
                     <FormField
@@ -1113,7 +1113,40 @@ export default function ClientForm({ defaultValues, onSubmit, viewMode = false }
 
                             return (
                                 <FormItem>
-                                    <FormLabel>Acceptable Vehicle Types</FormLabel>
+                                    <FormField
+                                        control={form.control}
+                                        name="vehicleTypes"
+                                        render={({ field }) => {
+                                            const allSelected = vehicleItems.every((item) =>
+                                                field.value?.includes(item.id as any)
+                                            );
+
+                                            return (
+                                                <div className="flex items-center gap-2">
+                                                    <FormLabel>Acceptable Vehicle Types</FormLabel>
+                                                    <button
+                                                        type="button"
+                                                        onClick={() => {
+                                                            if (allSelected) {
+                                                                field.onChange([]);
+                                                            } else {
+                                                                field.onChange(
+                                                                    vehicleItems.map(
+                                                                        (item) => item.id
+                                                                    )
+                                                                );
+                                                            }
+                                                        }}
+                                                        className="text-sm text-blue-600 hover:text-blue-800 cursor-pointer"
+                                                    >
+                                                        {allSelected
+                                                            ? "(Deselect all)"
+                                                            : "(Select all)"}
+                                                    </button>
+                                                </div>
+                                            );
+                                        }}
+                                    />
                                     <div className="grid grid-cols-2 gap-2">
                                         {vehicleItems.map((item) => (
                                             <FormField
@@ -1147,41 +1180,6 @@ export default function ClientForm({ defaultValues, onSubmit, viewMode = false }
                                                 )}
                                             />
                                         ))}
-
-                                        {/* All checkbox */}
-                                        <FormField
-                                            control={form.control}
-                                            name="vehicleTypes"
-                                            render={({ field }) => {
-                                                const allSelected = vehicleItems.every((item) =>
-                                                    field.value?.includes(item.id as any)
-                                                );
-
-                                                return (
-                                                    <FormItem className="flex flex-row items-center space-x-3 space-y-0">
-                                                        <FormControl>
-                                                            <Checkbox
-                                                                checked={allSelected}
-                                                                onCheckedChange={(checked) => {
-                                                                    if (checked) {
-                                                                        field.onChange(
-                                                                            vehicleItems.map(
-                                                                                (item) => item.id
-                                                                            )
-                                                                        );
-                                                                    } else {
-                                                                        field.onChange([]);
-                                                                    }
-                                                                }}
-                                                            />
-                                                        </FormControl>
-                                                        <FormLabel className="font-normal">
-                                                            All
-                                                        </FormLabel>
-                                                    </FormItem>
-                                                );
-                                            }}
-                                        />
                                     </div>
                                     <FormMessage />
                                 </FormItem>

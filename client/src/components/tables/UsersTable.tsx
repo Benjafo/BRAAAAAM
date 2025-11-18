@@ -73,7 +73,7 @@ function mapUserToFormValues(user: TableUser): Partial<UserFormValues> & { id: s
         awayTo: parseLocalDate(user.awayTo),
         userRole: user.roleId || "",
         canAccommodateMobilityEquipment: user.canAccommodateMobilityEquipment as any || [],
-        vehicleType: user.vehicleType as any || "",
+        vehicleTypes: user.vehicleTypes as any || [],
         vehicleColor: user.vehicleColor || "",
         townPreferences: user.townPreferences || "",
         destinationLimitations: user.destinationLimitations || "",

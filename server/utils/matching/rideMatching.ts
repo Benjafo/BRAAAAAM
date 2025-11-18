@@ -115,8 +115,11 @@ export function generateMatchReasons(
     }
 
     // Vehicle match
-    if (context.client.vehicleTypes?.includes(driver.vehicleType || "")) {
-        reasons.push(`Vehicle type matches preference (${driver.vehicleType})`);
+    const driverVehicleTypes = driver.vehicleTypes || [];
+    const clientVehicleTypes = context.client.vehicleTypes || [];
+    const matchingVehicles = driverVehicleTypes.filter((vt) => clientVehicleTypes.includes(vt));
+    if (matchingVehicles.length > 0) {
+        reasons.push(`Vehicle type matches preference (${matchingVehicles.join(", ")})`);
     }
 
     // Warning conditions

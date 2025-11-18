@@ -157,7 +157,7 @@ export const users = pgTable(
         emergencyContactRelationship: varchar("emergency_contact_relationship", { length: 100 }),
         isDriver: boolean("is_driver").default(false),
         canAccommodateMobilityEquipment: mobilityEquipment("can_accommodate_mobility_equipment").array(),
-        vehicleType: vehicleType("vehicle_type"),
+        vehicleTypes: vehicleType("vehicle_types").array(),
         vehicleColor: text("vehicle_color"),
         canAccommodateOxygen: boolean("can_accommodate_oxygen").default(false),
         canAccommodateServiceAnimal: boolean("can_accommodate_service_animal").default(false),
