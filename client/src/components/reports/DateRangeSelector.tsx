@@ -173,7 +173,7 @@ export function DateRangeSelector({
                 <label className="block text-sm font-medium mb-2">Quick Presets</label>
                 <div className="flex flex-wrap gap-2">
                     {PRESET_RANGES.map((preset) => (
-                        <Button key={preset.label} onClick={() => applyPreset(preset)} size="sm">
+                        <Button variant={"secondary"} key={preset.label} onClick={() => applyPreset(preset)} size="sm">
                             {preset.label}
                         </Button>
                     ))}

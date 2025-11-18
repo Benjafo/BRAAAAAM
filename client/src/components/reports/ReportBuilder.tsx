@@ -271,19 +271,6 @@ export function ReportBuilder() {
                 <h3 className="text-lg font-semibold mb-4 ">Step 4: Generate Report</h3>
                 <div className="flex gap-4">
                     <Button
-                        onClick={handleGeneratePreview}
-                        disabled={isGenerating || selectedColumns.length === 0}
-                    >
-                        {isGenerating ? (
-                            <>
-                                <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                                Generating...
-                            </>
-                        ) : (
-                            "Generate Preview"
-                        )}
-                    </Button>
-                    <Button
                         onClick={handleExportCSV}
                         disabled={
                             isGenerating || selectedColumns.length === 0 || !hasExportPermission
@@ -304,6 +291,20 @@ export function ReportBuilder() {
                                 <Download className="w-4 h-4 mr-2" />
                                 Export to CSV
                             </>
+                        )}
+                    </Button>
+                    <Button
+                        variant={"secondary"}
+                        onClick={handleGeneratePreview}
+                        disabled={isGenerating || selectedColumns.length === 0}
+                    >
+                        {isGenerating ? (
+                            <>
+                                <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                                Generating...
+                            </>
+                        ) : (
+                            "Generate Preview"
                         )}
                     </Button>
                 </div>

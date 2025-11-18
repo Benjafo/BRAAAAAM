@@ -1,6 +1,6 @@
+import { type ColumnDefinition, getGroupedColumns } from "@/lib/reportColumns";
 import { CheckSquare, ChevronDown, ChevronRight, Square } from "lucide-react";
 import { useState } from "react";
-import { type ColumnDefinition, getGroupedColumns } from "@/lib/reportColumns";
 import { Button } from "../ui/button";
 
 interface ColumnSelectorProps {
@@ -117,16 +117,16 @@ export function ColumnSelector({
         <div className="space-y-4">
             {/* Bulk Actions */}
             <div className="flex flex-wrap gap-2">
-                <Button onClick={selectAll} size="sm">
+                <Button onClick={selectAll} variant={"secondary"} size="sm">
                     Select All
                 </Button>
-                <Button onClick={deselectAll} size="sm">
+                <Button onClick={deselectAll} variant={"secondary"} size="sm">
                     Deselect All
                 </Button>
-                <Button onClick={expandAll} size="sm">
+                <Button onClick={expandAll} variant={"secondary"} size="sm">
                     Expand All Groups
                 </Button>
-                <Button onClick={collapseAll} size="sm">
+                <Button onClick={collapseAll} variant={"secondary"} size="sm">
                     Collapse All Groups
                 </Button>
             </div>
@@ -171,6 +171,7 @@ export function ColumnSelector({
                                             <Button
                                                 onClick={() => deselectAllInGroup(groupName)}
                                                 size="sm"
+                                                variant={"secondary"}
                                             >
                                                 Deselect All
                                             </Button>
