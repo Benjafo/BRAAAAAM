@@ -225,50 +225,10 @@ export const createClient = async (req: Request, res: Response): Promise<Respons
             return res.status(400).json({ message: "Missing required fields" });
         }
 
-        // Create or reuse a location record if provided
+        // Create or get location if address provided
         let addressId: string | null = null;
         if (address) {
-            // Normalize fields to avoid case-sensitive mismatches
-            const addr1 = address.addressLine1?.trim() ?? "";
-            const addr2 = address.addressLine2?.trim() ?? null;
-            const city = address.city?.trim() ?? "";
-            const state = address.state?.trim() ?? "";
-            const zip = address.zip?.trim() ?? "";
-            const country = address.country?.trim() ?? "";
-
-            // Look for existing location with same full address
-            const [existingLocation] = await db
-                .select({ id: locations.id })
-                .from(locations)
-                .where(
-                    and(
-                        eq(locations.addressLine1, addr1),
-                        eq(locations.addressLine2, addr2),
-                        eq(locations.city, city),
-                        eq(locations.state, state),
-                        eq(locations.zip, zip),
-                        eq(locations.country, country)
-                    )
-                );
-
-            if (existingLocation) {
-                addressId = existingLocation.id;
-            } else {
-                // No existing match, make new location
-                const [newLocation] = await db
-                    .insert(locations)
-                    .values({
-                        addressLine1: addr1,
-                        addressLine2: addr2,
-                        city,
-                        state,
-                        zip,
-                        country,
-                    })
-                    .returning({ id: locations.id });
-
-                addressId = newLocation.id;
-            }
+            addressId = await findOrCreateLocation(db, address);
         }
 
         // Create client record and link to addressLocation if it exists
