@@ -64,6 +64,7 @@ const rideSchema = z
             .min(5, "ZIP code is required")
             .max(10, "Max characters allowed is 10.")
             .regex(/^\d{5}(-\d{4})?$/, "Please enter a valid US zip code."),
+        dispatcherName: z.string().optional(),
         destinationAlias: z.string().max(255, "Max characters allowed is 255.").optional(),
         destinationAddress: z
             .string()
@@ -88,6 +89,7 @@ const rideSchema = z
         tripType: z.enum(["roundTrip", "oneWayFrom", "oneWayTo"], {
             message: "Please specify the trip type.",
         }),
+        estimatedDuration: z.number().min(1, "Trip duration must be atleast 1 hour.").optional(),
         appointmentTime: z.string().min(1, "Please select a time."),
         additionalRider: z.enum(["Yes", "No"], {
             message: "Please specify if there's an additional rider.",
@@ -259,6 +261,7 @@ export default function EditRideForm({
             clientCity: defaultValues.clientCity ?? "",
             clientState: defaultValues.clientState ?? "",
             clientZip: defaultValues.clientZip ?? "",
+            dispatcherName: defaultValues.dispatcherName ?? "",
             destinationAlias: defaultValues.destinationAlias ?? "",
             destinationAddress: defaultValues.destinationAddress ?? "",
             destinationCity: defaultValues.destinationCity ?? "",
@@ -271,6 +274,7 @@ export default function EditRideForm({
             // TODO fix this
             // tripType: defaultValues.tripType,
             tripType: defaultValues.tripType ?? "roundTrip",
+            estimatedDuration: defaultValues.estimatedDuration ?? 1,
             // appointmentTime: defaultValues.appointmentTime ?? "12:00:00",
             appointmentTime: defaultValues.appointmentTime ?? "12:00",
 
@@ -301,13 +305,12 @@ export default function EditRideForm({
         (e: React.ChangeEvent<HTMLInputElement>) => {
             const value = e.target.value;
             if (value === "") {
-                field.onChange(undefined); // Set to undefined when empty
+                field.onChange(undefined);
                 return;
             }
             const parsed = parseFloat(value);
             field.onChange(isNaN(parsed) ? undefined : parsed);
         };
-
     // Client and driver lists
     const clients = clientsProp ?? [];
     const drivers = driversProp ?? [];
@@ -574,6 +577,23 @@ export default function EditRideForm({
                     )}
                 />
 
+                {/* Read only dispatcher name field */}
+                <FormField
+                    control={form.control}
+                    name="dispatcherName"
+                    render={({ field }) => (
+                        <div className="md:col-span-2">
+                            <FormItem>
+                                <FormLabel>Dispatcher</FormLabel>
+                                <FormControl>
+                                    <Input {...field} disabled />
+                                </FormControl>
+                                <FormMessage />
+                            </FormItem>
+                        </div>
+                    )}
+                />
+
                 {/* Destination Address with Google Autocomplete */}
                 <div className="md:col-span-2">
                     <GoogleAddressFields
@@ -658,6 +678,27 @@ export default function EditRideForm({
                                         <SelectItem value="oneWayTo">One Way To</SelectItem>
                                     </SelectContent>
                                 </Select>
+                            </FormControl>
+                            <FormMessage />
+                        </FormItem>
+                    )}
+                />
+                {/* Estimated Trip Duration */}
+                <FormField
+                    control={form.control}
+                    name="estimatedDuration"
+                    render={({ field }) => (
+                        <FormItem className="w-full">
+                            <FormLabel>Estimated Duration (Hours)</FormLabel>
+                            <FormControl className="w-full">
+                                <Input
+                                    type="number"
+                                    step="1"
+                                    min="0"
+                                    value={field.value ?? ""}
+                                    onChange={handleNumberChange(field)}
+                                    className="w-full"
+                                />
                             </FormControl>
                             <FormMessage />
                         </FormItem>

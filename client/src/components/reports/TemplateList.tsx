@@ -56,14 +56,14 @@ export function TemplateList({ onTemplateSelect }: TemplateListProps) {
     );
 
     if (isLoading) {
-        return <div className="text-center py-8 text-gray-500">Loading templates...</div>;
+        return <div className="text-center py-8">Loading templates...</div>;
     }
 
     if (templates.length === 0) {
         return (
             <div className="text-center py-12">
-                <p className="text-gray-500 mb-2">No saved templates yet</p>
-                <p className="text-sm text-gray-400">
+                <p className=" mb-2">No saved templates yet</p>
+                <p className="text-sm">
                     Create a custom report and save it as a template to reuse later
                 </p>
             </div>
@@ -79,7 +79,7 @@ export function TemplateList({ onTemplateSelect }: TemplateListProps) {
                         <h4 className="font-semibold text-lg">
                             {ENTITY_LABELS[entityType as keyof typeof ENTITY_LABELS]}
                         </h4>
-                        <span className="text-sm text-gray-500">({entityTemplates.length})</span>
+                        <span className="text-sm">({entityTemplates.length})</span>
                     </div>
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
                         {entityTemplates.map((template) => (
@@ -94,7 +94,7 @@ export function TemplateList({ onTemplateSelect }: TemplateListProps) {
                                     ${
                                         selectedTemplateId === template.id
                                             ? "border-blue-500 bg-blue-50"
-                                            : "border-gray-200 hover:border-gray-300 bg-white"
+                                            : "border-gray-200"
                                     }
                                 `}
                             >
@@ -107,11 +107,9 @@ export function TemplateList({ onTemplateSelect }: TemplateListProps) {
                                     )}
                                 </div>
                                 {template.description && (
-                                    <p className="text-xs text-gray-600 mb-2">
-                                        {template.description}
-                                    </p>
+                                    <p className="text-xs  mb-2">{template.description}</p>
                                 )}
-                                <div className="flex items-center gap-3 text-xs text-gray-500">
+                                <div className="flex items-center gap-3 text-xs">
                                     <span>{template.selectedColumns.length} columns</span>
                                     <span>•</span>
                                     <span>

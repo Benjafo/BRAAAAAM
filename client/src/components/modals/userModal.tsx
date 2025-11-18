@@ -72,6 +72,8 @@ export default function NewUserModal({
                 roleKey: selectedRole?.roleKey,
             });
 
+            console.log("Vehicle type: ", values.vehicleType);
+
             // Map form values to API structure
             const requestBody = {
                 firstName: values.firstName,

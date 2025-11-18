@@ -117,16 +117,16 @@ export function ColumnSelector({
         <div className="space-y-4">
             {/* Bulk Actions */}
             <div className="flex flex-wrap gap-2">
-                <Button onClick={selectAll} variant="outline" size="sm">
+                <Button onClick={selectAll} size="sm">
                     Select All
                 </Button>
-                <Button onClick={deselectAll} variant="outline" size="sm">
+                <Button onClick={deselectAll} size="sm">
                     Deselect All
                 </Button>
-                <Button onClick={expandAll} variant="outline" size="sm">
+                <Button onClick={expandAll} size="sm">
                     Expand All Groups
                 </Button>
-                <Button onClick={collapseAll} variant="outline" size="sm">
+                <Button onClick={collapseAll} size="sm">
                     Collapse All Groups
                 </Button>
             </div>
@@ -140,7 +140,7 @@ export function ColumnSelector({
                     const selectedCount = columns.filter((col) => isColumnSelected(col)).length;
 
                     return (
-                        <div key={groupName} className="bg-white">
+                        <div key={groupName}>
                             {/* Group Header */}
                             <div className="p-4">
                                 <div className="flex items-center justify-between">
@@ -149,14 +149,12 @@ export function ColumnSelector({
                                         className="flex items-center space-x-2 flex-1 text-left"
                                     >
                                         {isExpanded ? (
-                                            <ChevronDown className="w-5 h-5 text-gray-500" />
+                                            <ChevronDown className="w-5 h-5 " />
                                         ) : (
-                                            <ChevronRight className="w-5 h-5 text-gray-500" />
+                                            <ChevronRight className="w-5 h-5 " />
                                         )}
-                                        <span className="font-semibold text-gray-900">
-                                            {groupName}
-                                        </span>
-                                        <span className="text-sm text-gray-500">
+                                        <span className="font-semibold ">{groupName}</span>
+                                        <span className="text-sm ">
                                             ({selectedCount}/{columns.length} selected)
                                         </span>
                                     </button>
@@ -164,7 +162,6 @@ export function ColumnSelector({
                                         {!isFullySelected && (
                                             <Button
                                                 onClick={() => selectAllInGroup(groupName)}
-                                                variant="outline"
                                                 size="sm"
                                             >
                                                 Select All
@@ -173,7 +170,6 @@ export function ColumnSelector({
                                         {(isFullySelected || isPartiallySelected) && (
                                             <Button
                                                 onClick={() => deselectAllInGroup(groupName)}
-                                                variant="outline"
                                                 size="sm"
                                             >
                                                 Deselect All
@@ -200,14 +196,14 @@ export function ColumnSelector({
                                                         ${
                                                             selected
                                                                 ? "bg-blue-50 border-blue-200 text-blue-900"
-                                                                : "bg-white border-gray-200 hover:bg-gray-50"
+                                                                : "bg-white dark:bg-muted border-gray-200 hover:bg-gray-50 dark:hover:bg-popover"
                                                         }
                                                     `}
                                                 >
                                                     {selected ? (
                                                         <CheckSquare className="w-4 h-4 text-blue-600 flex-shrink-0" />
                                                     ) : (
-                                                        <Square className="w-4 h-4 text-gray-400 flex-shrink-0" />
+                                                        <Square className="w-4 h-4 flex-shrink-0" />
                                                     )}
                                                     <span className="text-sm truncate">
                                                         {column.label}
@@ -225,7 +221,7 @@ export function ColumnSelector({
 
             {/* Summary */}
             {selectedColumns.length > 0 && (
-                <div className="text-sm text-gray-600">
+                <div className="text-sm">
                     <strong>{selectedColumns.length}</strong> column
                     {selectedColumns.length !== 1 ? "s" : ""} selected
                 </div>

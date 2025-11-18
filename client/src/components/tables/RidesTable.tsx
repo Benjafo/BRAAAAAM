@@ -1,7 +1,6 @@
 import { DataTable } from "@/components/dataTable";
 import { useAuthStore } from "@/components/stores/authStore";
 import { PERMISSIONS } from "@/lib/permissions";
-import { parseLocalDate } from "@/lib/utils";
 import { http } from "@/services/auth/serviceResolver";
 import { useState } from "react";
 import type { RideFormValues } from "../form/rideForm";
@@ -59,7 +58,8 @@ const mapRideToFormValues = (ride: Ride): Partial<RideFormValues> & { id?: strin
         clientCity: ride.pickupCity || "",
         clientState: ride.pickupState || "",
         clientZip: ride.pickupZip || "",
-        tripDate: parseLocalDate(ride.date) || new Date(),
+        dispatcherName: `${ride.dispatcherFirstName} ${ride.dispatcherLastName}`,
+        tripDate: new Date(ride.date),
         appointmentTime: ride.time,
         tripType: ride.tripType,
         destinationAddress: ride.destinationAddressLine1 || "",
