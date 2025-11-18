@@ -200,7 +200,7 @@ export function ReportBuilder() {
             {/* Header */}
             <div className="ml-4">
                 <h2 className="text-2xl font-bold">Custom Report Builder</h2>
-                <p className="text-gray-600 mt-2">
+                <p className="mt-2">
                     Select an entity or template, choose a date range, and export to CSV
                 </p>
             </div>

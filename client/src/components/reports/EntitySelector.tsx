@@ -62,7 +62,7 @@ export function EntitySelector({ selectedEntity, onEntityChange }: EntitySelecto
                             ${
                                 isSelected
                                     ? "border-blue-500 bg-blue-50"
-                                    : "border-gray-200 hover:border-gray-300 bg-white"
+                                    : "bg-secondary border-gray-200 hover:border-gray-300"
                             }
                         `}
                     >
@@ -70,7 +70,7 @@ export function EntitySelector({ selectedEntity, onEntityChange }: EntitySelecto
                             <div
                                 className={`
                                 flex-shrink-0 p-2 rounded-lg
-                                ${isSelected ? "bg-blue-100 text-blue-600" : "bg-gray-100 text-gray-600"}
+                                ${isSelected ? "bg-blue-100 text-blue-600" : "bg-gray-100 "}
                             `}
                             >
                                 {option.icon}
@@ -84,7 +84,7 @@ export function EntitySelector({ selectedEntity, onEntityChange }: EntitySelecto
                                 >
                                     {option.label}
                                 </h4>
-                                <p className="text-xs text-gray-600 mt-1">{option.description}</p>
+                                <p className="text-xs  mt-1">{option.description}</p>
                             </div>
                         </div>
                     </button>
