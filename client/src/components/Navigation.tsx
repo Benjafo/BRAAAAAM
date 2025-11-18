@@ -1,6 +1,6 @@
 import { useLogout } from "@/hooks/useAuth";
 import { PERMISSIONS } from "@/lib/permissions";
-import { Link, useNavigate, useMatchRoute, type ToOptions } from "@tanstack/react-router";
+import { Link, useNavigate, type ToOptions } from "@tanstack/react-router";
 import { LogOut } from "lucide-react";
 import WebsterLogo from "../../public/WebsterBeeLogo.png";
 import { useAuthStore } from "./stores/authStore";
@@ -23,7 +23,7 @@ interface NavigationLayoutProps {
  */
 const NavigationLayout = ({ leftNavItems, rightNavItems }: NavigationLayoutProps) => {
     return (
-        <div className="flex items-center justify-between p-[10px]">
+        <div className="flex items-center justify-beween p-[10px]">
             <div className="flex flex-row items-center gap-[10px] justify-start w-full">
                 {leftNavItems}
             </div>
@@ -104,6 +104,7 @@ export const MainNavigation = ({
         },
         {
             text: "Dashboard",
+            // Add the org name somewhere (top right? Top left?) - Replace with {$orgName} Dashboard 
             link: "/{-$subdomain}/dashboard",
             permission: PERMISSIONS.DASHBOARD_READ,
         },
@@ -162,13 +163,35 @@ export const MainNavigation = ({
     ],
 }: MainNavProps) => {
     const navigate = useNavigate();
-    const matchRoute = useMatchRoute();
     const user = useAuthStore((s) => s.user);
     const hasPermission = useAuthStore((s) => s.hasPermission);
     const hasAnyPermission = useAuthStore((s) => s.hasAnyPermission);
+    const subdomain = useAuthStore((s) => s.subdomain);
     const logout = useLogout();
 
-    const visibleNavItems = navItems.filter((item) => {
+    // org-name, org_name -> Org Name
+    const orgName = subdomain
+        ? subdomain
+            // Convert hyphen or underscore to space -> org_name, org-name -> "org name"
+            .replace(/[-_]/g, " ")
+            // Convert camelCase to split -> orgName -> "org name"
+            .replace(/([a-z])([A-Z])/g, "$1 $2")
+            // Normalize spaces
+            .replace(/\s+/g, " ")
+            .trim()
+            // Title Case everything
+            .toLowerCase()
+            .replace(/\b\w/g, (c) => c.toUpperCase())
+        : null;
+
+    const navItemsWithOrgName = navItems.map((item) => {
+        if (item.text === "Dashboard" && orgName) {
+            return { ...item, text: `${orgName} Dashboard` };
+        }
+        return item;
+    });
+
+    const visibleNavItems = navItemsWithOrgName.filter((item) => {
         // Show the item if no permission required
         if (!item.permission) return true;
         // Check if user has any of the required permissions
@@ -177,6 +200,13 @@ export const MainNavigation = ({
         }
         // Handle single permission
         return hasPermission(item.permission);
+    });
+
+    const computedNavItems = visibleNavItems.map((item) => {
+        if (item.text === "Dashboard" && orgName) {
+            return { ...item, text: `${orgName} Dashboard` };
+        }
+        return item;
     });
 
     const handleSignOut = async () => {
@@ -196,21 +226,17 @@ export const MainNavigation = ({
                         <AvatarImage src={logo.src} />
                         <AvatarFallback>{logo.fallbackText}</AvatarFallback>
                     </Avatar>
-                    {visibleNavItems.map((button, idx) => {
-                        const isActive = matchRoute({ to: button.link, fuzzy: true });
-
-                        return (
-                            <Link key={button.link ?? idx} to={button.link}>
-                                <Button
-                                    size="sm"
-                                    variant={isActive ? "default" : "secondary"}
-                                    className="active:bg-secondary/70"
-                                >
-                                    {button.text}
-                                </Button>
-                            </Link>
-                        );
-                    })}
+                    {computedNavItems.map((button, idx) => (
+                        <Link key={button.link ?? idx} to={button.link}>
+                            <Button
+                                size="sm"
+                                variant={"secondary"}
+                                className="active:bg-secondary/70"
+                            >
+                                {button.text}
+                            </Button>
+                        </Link>
+                    ))}
                 </>
             }
             rightNavItems={
