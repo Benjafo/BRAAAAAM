@@ -167,6 +167,8 @@ export const listAppointments = async (req: Request, res: Response): Promise<Res
                 destinationCity: destinationLocations.city,
                 destinationState: destinationLocations.state,
                 destinationZip: destinationLocations.zip,
+                // Timestamps
+                createdAt: appointments.createdAt,
             })
             .from(appointments)
             .leftJoin(clients, eq(appointments.clientId, clients.id))

@@ -47,6 +47,7 @@ type Ride = {
     destinationState: string | null;
     destinationZip: string | null;
     customFields?: Record<string, any>;
+    createdAt: string;
 };
 
 const mapRideToFormValues = (ride: Ride): Partial<RideFormValues> & { id?: string } => {
@@ -182,6 +183,11 @@ export function RidesTable({
                         id: "dispatcher",
                     },
                     { header: "Status", accessorKey: "status", id: "status" },
+                    {
+                        header: "Created At",
+                        accessorFn: (row) => row.createdAt ? new Date(row.createdAt).toISOString().split('T')[0] : "",
+                        id: "createdAt",
+                    },
                 ]}
                 onRowClick={hasEditPermission ? handleEditRide : undefined}
                 actionButton={

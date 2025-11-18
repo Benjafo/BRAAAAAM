@@ -122,13 +122,14 @@ export function VolunteerRecordForm({
                             <FormControl>
                                 <Input
                                     type="number"
+                                    step="0.1"
                                     min="0"
                                     placeholder="Enter miles driven"
                                     {...field}
                                     value={field.value === null ? "" : field.value || ""}
                                     onChange={(e) => {
                                         const value = e.target.value;
-                                        field.onChange(value === "" ? null : parseInt(value));
+                                        field.onChange(value === "" ? null : parseFloat(value));
                                     }}
                                 />
                             </FormControl>

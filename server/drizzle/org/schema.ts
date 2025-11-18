@@ -792,7 +792,7 @@ export const volunteerRecords = pgTable(
         userId: uuid("user_id").notNull(),
         date: date().notNull(),
         hours: numeric({ precision: 10, scale: 2 }).notNull(),
-        miles: integer(),
+        miles: numeric({ precision: 10, scale: 1 }),
         description: text(),
         createdAt: timestamp("created_at", { withTimezone: true, mode: "string" })
             .defaultNow()

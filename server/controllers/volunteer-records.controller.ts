@@ -139,12 +139,13 @@ export const createVolunteerRecord = async (req: Request, res: Response): Promis
         }
 
         // Validate miles if provided (must be non-negative)
-        let milesNum: number | null = null;
+        let milesStr: string | null = null;
         if (miles !== null && miles !== undefined && miles !== "") {
-            milesNum = parseInt(miles);
+            const milesNum = parseFloat(miles);
             if (isNaN(milesNum) || milesNum < 0) {
                 return res.status(400).json({ message: "Miles must be a non-negative number" });
             }
+            milesStr = milesNum.toString();
         }
 
         // Users can only create records for themselves
@@ -155,7 +156,7 @@ export const createVolunteerRecord = async (req: Request, res: Response): Promis
                 userId: currentUserId,
                 date,
                 hours: hoursNum.toString(),
-                miles: milesNum,
+                miles: milesStr,
                 description: description || null,
                 createdByUserId: currentUserId,
             })
@@ -266,16 +267,16 @@ export const updateVolunteerRecord = async (req: Request, res: Response): Promis
         }
 
         // Validate miles if provided
-        let milesNum: number | null | undefined = undefined;
+        let milesStr: string | null | undefined = undefined;
         if (miles !== undefined) {
             if (miles === null || miles === "") {
-                milesNum = null;
+                milesStr = null;
             } else {
-                const parsedMiles = parseInt(miles);
+                const parsedMiles = parseFloat(miles);
                 if (isNaN(parsedMiles) || parsedMiles < 0) {
                     return res.status(400).json({ message: "Miles must be a non-negative number" });
                 }
-                milesNum = parsedMiles;
+                milesStr = parsedMiles.toString();
             }
         }
 
@@ -285,7 +286,7 @@ export const updateVolunteerRecord = async (req: Request, res: Response): Promis
             .set({
                 ...(date !== undefined && { date }),
                 ...(hoursNum !== undefined && { hours: hoursNum }),
-                ...(milesNum !== undefined && { miles: milesNum }),
+                ...(milesStr !== undefined && { miles: milesStr }),
                 ...(description !== undefined && { description }),
                 updatedAt: new Date().toISOString(),
             })
