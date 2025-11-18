@@ -50,5 +50,7 @@ export type TableUser = Omit<User, 'role'> & {
     canAccommodateOxygen?: boolean | null,
     canAccommodateServiceAnimal?: boolean | null,
     canAccommodateAdditionalRider?: boolean | null,
+    maxRidesPerWeek?: number | null,
+    lifespanReimbursement?: boolean | null,
     customFields?: Record<string, any>
 }

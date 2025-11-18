@@ -134,6 +134,8 @@ export const listUsers = async (req: Request, res: Response): Promise<Response> 
                 canAccommodateOxygen: users.canAccommodateOxygen,
                 canAccommodateServiceAnimal: users.canAccommodateServiceAnimal,
                 canAccommodateAdditionalRider: users.canAccommodateAdditionalRider,
+                maxRidesPerWeek: users.maxRidesPerWeek,
+                lifespanReimbursement: users.lifespanReimbursement,
                 roleId: users.roleId,
                 roleName: roles.name,
                 address: {
@@ -232,6 +234,7 @@ export const createUser = async (req: Request, res: Response): Promise<Response>
             canAccommodateServiceAnimal,
             canAccommodateAdditionalRider,
             maxRides,
+            lifespanReimbursement,
         } = req.body;
 
         if (!firstName || !lastName || !email || !phone) {
@@ -288,6 +291,7 @@ export const createUser = async (req: Request, res: Response): Promise<Response>
                 canAccommodateServiceAnimal: canAccommodateServiceAnimal ?? false,
                 canAccommodateAdditionalRider: canAccommodateAdditionalRider ?? false,
                 maxRidesPerWeek: maxRides ?? 0,
+                lifespanReimbursement: lifespanReimbursement ?? false,
                 isDeleted: false,
             })
             .returning();
@@ -372,6 +376,8 @@ export const getUser = async (req: Request, res: Response): Promise<Response> =>
                 canAccommodateOxygen: users.canAccommodateOxygen,
                 canAccommodateServiceAnimal: users.canAccommodateServiceAnimal,
                 canAccommodateAdditionalRider: users.canAccommodateAdditionalRider,
+                maxRidesPerWeek: users.maxRidesPerWeek,
+                lifespanReimbursement: users.lifespanReimbursement,
                 roleId: users.roleId,
                 roleName: roles.name,
                 address: {
@@ -458,6 +464,7 @@ export const updateUser = async (req: Request, res: Response): Promise<Response>
                 canAccommodateServiceAnimal: data.canAccommodateServiceAnimal,
                 canAccommodateAdditionalRider: data.canAccommodateAdditionalRider,
                 maxRidesPerWeek: data.maxRides,
+                lifespanReimbursement: data.lifespanReimbursement,
                 ...(data.roleId !== undefined && { roleId: data.roleId }),
                 ...(addressId !== undefined && { addressLocation: addressId }),
                 updatedAt: new Date().toISOString(),

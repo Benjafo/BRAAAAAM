@@ -80,6 +80,8 @@ function mapUserToFormValues(user: TableUser): Partial<UserFormValues> & { id: s
         canAccommodateOxygen: user.canAccommodateOxygen || false,
         canAccommodateServiceAnimal: user.canAccommodateServiceAnimal || false,
         canAccommodateAdditionalRider: user.canAccommodateAdditionalRider || false,
+        maxRides: user.maxRidesPerWeek ?? undefined,
+        lifeSpanReimbursement: user.lifespanReimbursement ? "Yes" : "No",
         streetAddress: user.address?.addressLine1 || "",
         streetAddress2: user.address?.addressLine2 || "",
         city: user.address?.city || "",

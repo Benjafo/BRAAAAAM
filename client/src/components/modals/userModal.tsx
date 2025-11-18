@@ -114,6 +114,8 @@ export default function NewUserModal({
                 canAccommodateOxygen: values.canAccommodateOxygen || false,
                 canAccommodateServiceAnimal: values.canAccommodateServiceAnimal || false,
                 canAccommodateAdditionalRider: values.canAccommodateAdditionalRider || false,
+                maxRides: values.maxRides,
+                lifespanReimbursement: values.lifeSpanReimbursement === "Yes",
                 customFields: values.customFields,
                 address: {
                     addressLine1: values.streetAddress,

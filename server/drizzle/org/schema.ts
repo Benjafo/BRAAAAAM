@@ -163,6 +163,7 @@ export const users = pgTable(
         canAccommodateServiceAnimal: boolean("can_accommodate_service_animal").default(false),
         canAccommodateAdditionalRider: boolean("can_accommodate_additional_rider").default(false),
         maxRidesPerWeek: integer("max_rides_per_week").default(0),
+        lifespanReimbursement: boolean("lifespan_reimbursement").default(false),
         townPreferences: text("town_preferences"),
         destinationLimitations: text("destination_limitations"),
         isActive: boolean("is_active").default(true),
