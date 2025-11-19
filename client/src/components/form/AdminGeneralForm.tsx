@@ -1,12 +1,4 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
-import {
-    Select,
-    SelectContent,
-    SelectItem,
-    SelectTrigger,
-    SelectValue,
-} from "@/components/ui/select";
 import {
     Form,
     FormControl,
@@ -15,9 +7,17 @@ import {
     FormLabel,
     FormMessage,
 } from "@/components/ui/form";
+import { Input } from "@/components/ui/input";
+import {
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
+} from "@/components/ui/select";
 import { zodResolver } from "@hookform/resolvers/zod";
+import { forwardRef, useCallback, useEffect, useImperativeHandle, useRef, useState } from "react";
 import { useForm } from "react-hook-form";
-import { useCallback, useEffect, useRef, useState, forwardRef, useImperativeHandle } from "react";
 import { toast } from "sonner";
 import z from "zod";
 
@@ -28,6 +28,11 @@ const THEMES = {
     LIGHT: "light",
     DARK: "dark",
     DARK_AMBER: "dark-amber",
+    OCEAN_BLUE: "ocean-blue",
+    FOREST_GREEN: "forest-green",
+    SUNSET_PURPLE: "sunset-purple",
+    MIDNIGHT_SLATE: "midnight-slate",
+    CORAL_REEF: "coral-reef",
 } as const;
 
 type Theme = (typeof THEMES)[keyof typeof THEMES];
@@ -41,13 +46,31 @@ const applyTheme = (theme: Theme) => {
     const root = document.documentElement;
 
     // Remove all theme classes
-    root.classList.remove("dark", "dark-amber");
+    root.classList.remove(
+        "dark",
+        "dark-amber",
+        "ocean-blue",
+        "forest-green",
+        "sunset-purple",
+        "midnight-slate",
+        "coral-reef"
+    );
 
     // Apply selected theme
     if (theme === THEMES.DARK) {
         root.classList.add("dark");
     } else if (theme === THEMES.DARK_AMBER) {
         root.classList.add("dark-amber");
+    } else if (theme === THEMES.OCEAN_BLUE) {
+        root.classList.add("ocean-blue");
+    } else if (theme === THEMES.FOREST_GREEN) {
+        root.classList.add("forest-green");
+    } else if (theme === THEMES.SUNSET_PURPLE) {
+        root.classList.add("sunset-purple");
+    } else if (theme === THEMES.MIDNIGHT_SLATE) {
+        root.classList.add("midnight-slate");
+    } else if (theme === THEMES.CORAL_REEF) {
+        root.classList.add("coral-reef");
     }
     // Light theme is the default
 };
@@ -88,7 +111,16 @@ const adminGeneralSchema = z.object({
             /^(?:[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?\.)+[a-z0-9][a-z0-9-]{0,61}[a-z0-9]$/i,
             "Please enter a valid domain (e.g., example.com)"
         ),
-    theme: z.enum([THEMES.LIGHT, THEMES.DARK, THEMES.DARK_AMBER]),
+    theme: z.enum([
+        THEMES.LIGHT,
+        THEMES.DARK,
+        THEMES.DARK_AMBER,
+        THEMES.OCEAN_BLUE,
+        THEMES.FOREST_GREEN,
+        THEMES.SUNSET_PURPLE,
+        THEMES.MIDNIGHT_SLATE,
+        THEMES.CORAL_REEF,
+    ]),
     creationDate: z.date(),
 
     // Organization Contacts
@@ -479,6 +511,25 @@ export const AdminGeneralForm = forwardRef<AdminGeneralFormRef, AdminGeneralForm
                                                             </SelectItem>
                                                             <SelectItem value={THEMES.DARK_AMBER}>
                                                                 Dark Amber
+                                                            </SelectItem>
+                                                            <SelectItem value={THEMES.OCEAN_BLUE}>
+                                                                Ocean Blue
+                                                            </SelectItem>
+                                                            <SelectItem value={THEMES.FOREST_GREEN}>
+                                                                Forest Green
+                                                            </SelectItem>
+                                                            <SelectItem
+                                                                value={THEMES.SUNSET_PURPLE}
+                                                            >
+                                                                Sunset Purple
+                                                            </SelectItem>
+                                                            <SelectItem
+                                                                value={THEMES.MIDNIGHT_SLATE}
+                                                            >
+                                                                Midnight Slate
+                                                            </SelectItem>
+                                                            <SelectItem value={THEMES.CORAL_REEF}>
+                                                                Coral Reef
                                                             </SelectItem>
                                                         </SelectContent>
                                                     </Select>
