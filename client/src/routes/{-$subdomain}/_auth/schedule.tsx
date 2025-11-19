@@ -18,7 +18,10 @@ export const Route = createFileRoute("/{-$subdomain}/_auth/schedule")({
             });
         }
 
-        if (!s.hasPermission(PERMISSIONS.OWN_APPOINTMENTS_READ) && !s.hasPermission(PERMISSIONS.ALL_APPOINTMENTS_READ)) {
+        if (
+            !s.hasPermission(PERMISSIONS.OWN_APPOINTMENTS_READ) &&
+            !s.hasPermission(PERMISSIONS.ALL_APPOINTMENTS_READ)
+        ) {
             throw redirect({
                 to: "/{-$subdomain}/dashboard",
             });
@@ -30,7 +33,7 @@ export const Route = createFileRoute("/{-$subdomain}/_auth/schedule")({
 });
 
 function RouteComponent() {
-    const [activeTab, setActiveTab] = useState("list");
+    const [activeTab, setActiveTab] = useState("calendar");
 
     const handleTabChange = useCallback((value: string) => {
         setActiveTab(value);

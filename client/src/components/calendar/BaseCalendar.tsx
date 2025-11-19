@@ -429,21 +429,21 @@ export default function BaseCalendar({
     };
 
     // ("------------------------------------------------------------------------------------------Styles-----------------------------------------------------------------------------------------------------");
-    // Custom CSS styles for light themed colors
+    // Custom CSS styles using theme colors
     const customStyles = `
     .rbc-calendar {
-      background-color: #ffffff;
-      color: #000000;
+      background-color: var(--background);
+      color: var(--foreground);
       font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
       height: 100%;
       border: none;
     }
 
     .rbc-header {
-      background-color: #ffffff;
+      background-color: var(--background);
       border-bottom: none; /* remove bottom border */
       border-right: none; /* remove right border */
-      color: #000000;
+      color: var(--foreground);
       font-weight: 500;
       padding: 8px 4px;
       text-align: center;
@@ -458,49 +458,49 @@ export default function BaseCalendar({
       border-right: none;
     }
 
-    /* Force specific borders in week view - light grey borders */
+    /* Force specific borders in week view */
     .rbc-time-view *,
     .rbc-time-view .rbc-time-header *,
     .rbc-time-view .rbc-time-header-gutter *,
     .rbc-time-view .rbc-time-gutter *,
     .rbc-time-view .rbc-header * {
-      border-color: #e5e7eb !important; /* default light grey for most borders */
+      border-color: var(--border) !important;
     }
 
-    /* Top border below day headers - light grey */
+    /* Top border below day headers */
     .rbc-time-view .rbc-time-header {
-      border-bottom: 1px solid #d1d5db !important;
+      border-bottom: 1px solid var(--border) !important;
     }
 
     .rbc-time-view .rbc-time-header .rbc-row {
-      border-bottom: 1px solid #d1d5db !important;
+      border-bottom: 1px solid var(--border) !important;
     }
 
-    /* Left border (right of time column) - light grey */
+    /* Left border (right of time column) */
     .rbc-time-view .rbc-time-header-gutter {
-      border-right: 1px solid #d1d5db !important;
-      border-bottom: 1px solid #d1d5db !important;
+      border-right: 1px solid var(--border) !important;
+      border-bottom: 1px solid var(--border) !important;
     }
 
     .rbc-time-view .rbc-time-gutter {
-      border-right: 1px solid #d1d5db !important;
+      border-right: 1px solid var(--border) !important;
     }
 
-    /* Force day separator borders to light grey - multiple selectors */
+    /* Force day separator borders - multiple selectors */
     .rbc-time-view .rbc-header,
     .rbc-time-view .rbc-time-header .rbc-header,
     .rbc-time-view .rbc-time-header .rbc-row .rbc-header {
-      border-bottom: 1px solid #d1d5db !important;
-      border-right: 1px solid #d1d5db !important;
-      border-color: #d1d5db !important;
+      border-bottom: 1px solid var(--border) !important;
+      border-right: 1px solid var(--border) !important;
+      border-color: var(--border) !important;
     }
 
     /* Override any remaining borders between headers */
     .rbc-time-view .rbc-header + .rbc-header {
-      border-left: 1px solid #d1d5db !important;
+      border-left: 1px solid var(--border) !important;
     }
 
-    /* Force all header borders to light grey */
+    /* Force all header borders */
     .rbc-time-view .rbc-time-header .rbc-header:nth-child(1),
     .rbc-time-view .rbc-time-header .rbc-header:nth-child(2),
     .rbc-time-view .rbc-time-header .rbc-header:nth-child(3),
@@ -508,25 +508,25 @@ export default function BaseCalendar({
     .rbc-time-view .rbc-time-header .rbc-header:nth-child(5),
     .rbc-time-view .rbc-time-header .rbc-header:nth-child(6),
     .rbc-time-view .rbc-time-header .rbc-header:nth-child(7) {
-      border-right: 1px solid #d1d5db !important;
-      border-bottom: 1px solid #d1d5db !important;
+      border-right: 1px solid var(--border) !important;
+      border-bottom: 1px solid var(--border) !important;
     }
 
     .rbc-time-view {
-      background-color: #ffffff;
+      background-color: var(--background);
       border: none;
     }
 
     .rbc-time-gutter {
-      background-color: #ffffff;
+      background-color: var(--background);
       border-right: none; /* remove right border */
       width: 60px;
     }
 
     .rbc-time-gutter .rbc-timeslot-group {
-      border-bottom: 1px solid #e5e7eb;
+      border-bottom: 1px solid var(--border);
       min-height: 60px;
-      background-color: #ffffff !important;
+      background-color: var(--background) !important;
     }
 
     .rbc-time-slot {
@@ -537,7 +537,7 @@ export default function BaseCalendar({
     }
 
     .rbc-day-slot {
-      border-left: 1px solid #e5e7eb;
+      border-left: 1px solid var(--border);
 
       min-height: 60px;
 
@@ -548,16 +548,16 @@ export default function BaseCalendar({
     }
 
     .rbc-timeslot-group {
-      border-bottom: 1px solid #e5e7eb;
+      border-bottom: 1px solid var(--border);
       min-height: 60px;
     }
 
     .rbc-today {
-      background-color: #fef3c7;
+      background-color: color-mix(in srgb, var(--primary) 15%, transparent);
     }
 
     .rbc-time-header-gutter {
-      background-color: #ffffff;
+      background-color: var(--background);
       border-bottom: none; /* remove bottom border */
       border-right: none; /* remove right border */
       width: 60px;
@@ -565,34 +565,34 @@ export default function BaseCalendar({
 
     .rbc-time-content  > .rbc-day-slot:first-child .rbc-time-slot{
       border-top: none;
-      background-color: #f3f4f6 !important;
+      background-color: var(--muted) !important;
     }
 
-    /* Week view: make Sunday header match others (white) */
+    /* Week view: make Sunday header match others */
     .rbc-time-view .rbc-time-header .rbc-row .rbc-header:nth-child(1) {
-      background-color: #ffffff !important;
+      background-color: var(--background) !important;
     }
 
     .rbc-day-slot.sunday .rbc-time-slot {
-        background-color: #f3f4f6 !important;
+        background-color: var(--muted) !important;
     }
 
     .rbc-time-gutter .rbc-time-slot {
-      color: #000000;
+      color: var(--foreground);
       font-size: 11px;
       text-align: right;
       padding-right: 8px;
-      border-bottom: 1px solid #e5e7eb;
+      border-bottom: 1px solid var(--border);
       display: flex;
       align-items: flex-start;
       padding-top: 4px;
-      background-color: #ffffff !important;
+      background-color: var(--background) !important;
     }
 
-    /* Ensure time labels in the gutter stay on white */
+    /* Ensure time labels in the gutter use theme colors */
     .rbc-time-gutter .rbc-label {
-      background-color: #ffffff !important;
-      color: #000000;
+      background-color: var(--background) !important;
+      color: var(--foreground);
     }
 
     /* Hide all-day section completely - we'll render all-day events as regular timed events */
@@ -735,16 +735,16 @@ export default function BaseCalendar({
     }
 
     .rbc-time-content::-webkit-scrollbar-track {
-      background: #f9fafb;
+      background: var(--muted);
     }
 
     .rbc-time-content::-webkit-scrollbar-thumb {
-      background: #d1d5db;
+      background: var(--border);
       border-radius: 4px;
     }
 
     .rbc-time-content::-webkit-scrollbar-thumb:hover {
-      background: #9ca3af;
+      background: var(--muted-foreground);
     }
 
 
@@ -757,20 +757,20 @@ export default function BaseCalendar({
       border-bottom: none; /* remove bottom border */
     }
 
-    /* Month view: light borders on weekday headers */
+    /* Month view: borders on weekday headers */
     .rbc-month-view .rbc-header {
-      background-color: #ffffff;
-      border-bottom: 1px solid #d1d5db !important;
-      border-right: 1px solid #d1d5db !important;
+      background-color: var(--background);
+      border-bottom: 1px solid var(--border) !important;
+      border-right: 1px solid var(--border) !important;
     }
     .rbc-month-view .rbc-header + .rbc-header {
-      border-left: 1px solid #d1d5db !important;
+      border-left: 1px solid var(--border) !important;
     }
 
-    /* Month view: force off-range day backgrounds to light grey */
+    /* Month view: force off-range day backgrounds to muted */
     .rbc-month-view .rbc-off-range-bg,
     .rbc-off-range-bg {
-      background-color: #f3f4f6 !important;
+      background-color: var(--muted) !important;
     }
 
 

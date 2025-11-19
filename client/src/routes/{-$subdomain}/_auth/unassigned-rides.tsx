@@ -9,7 +9,7 @@ export const Route = createFileRoute("/{-$subdomain}/_auth/unassigned-rides")({
 });
 
 function RouteComponent() {
-    const [activeTab, setActiveTab] = useState("list");
+    const [activeTab, setActiveTab] = useState("calendar");
 
     const handleTabChange = useCallback((value: string) => {
         setActiveTab(value);
