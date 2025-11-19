@@ -17,18 +17,18 @@ type Organization = {
     isActive: boolean;
 };
 
-const mapOrganizationToFormValues = (
-    organization: Organization
-): Partial<OrganizationValues> & { id: string, status: string, createdAt: Date | string } => {
-    return {
-        id: organization.id,
-        name: organization.name,
-        email: organization.pocEmail,
-        phone: organization.pocPhone?.replace(/^\+1/, "") || "",
-        status: organization.isActive ? "Active" : "Inactive",
-        createdAt: organization.createdAt,
-    };
-};
+// const mapOrganizationToFormValues = (
+//     organization: Organization
+// ): Partial<OrganizationValues> & { id: string, status: string, createdAt: Date | string } => {
+//     return {
+//         id: organization.id,
+//         name: organization.name,
+//         email: organization.pocEmail,
+//         phone: organization.pocPhone?.replace(/^\+1/, "") || "",
+//         status: organization.isActive ? "Active" : "Inactive",
+//         createdAt: organization.createdAt,
+//     };
+// };
 
 export function OrganizationsTable() {
     const [isOrganizationModalOpen, setIsOrganizationModalOpen] = useState(false);
@@ -62,11 +62,11 @@ export function OrganizationsTable() {
         setIsOrganizationModalOpen(true);
     };
 
-    const handleEditOrganization = (organization: Organization) => {
-        console.log(`Selected organization data: ${selectedOrganizationData}`);
-        setSelectedOrganizationData(mapOrganizationToFormValues(organization));
-        setIsOrganizationModalOpen(true);
-    };
+    // const handleEditOrganization = (organization: Organization) => {
+    //     console.log(`Selected organization data: ${selectedOrganizationData}`);
+    //     setSelectedOrganizationData(mapOrganizationToFormValues(organization));
+    //     setIsOrganizationModalOpen(true);
+    // };
 
     return (
         <>
