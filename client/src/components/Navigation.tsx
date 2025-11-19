@@ -1,6 +1,6 @@
 import { useLogout } from "@/hooks/useAuth";
 import { PERMISSIONS } from "@/lib/permissions";
-import { Link, useNavigate, type ToOptions } from "@tanstack/react-router";
+import { Link, useNavigate, useRouterState, type ToOptions } from "@tanstack/react-router";
 import { LogOut } from "lucide-react";
 import WebsterLogo from "../../public/WebsterBeeLogo.png";
 import { useAuthStore } from "./stores/authStore";
@@ -23,7 +23,7 @@ interface NavigationLayoutProps {
  */
 const NavigationLayout = ({ leftNavItems, rightNavItems }: NavigationLayoutProps) => {
     return (
-        <div className="flex items-center justify-beween p-[10px]">
+        <div className="flex items-center justify-between p-[10px]">
             <div className="flex flex-row items-center gap-[10px] justify-start w-full">
                 {leftNavItems}
             </div>
@@ -104,7 +104,7 @@ export const MainNavigation = ({
         },
         {
             text: "Dashboard",
-            // Add the org name somewhere (top right? Top left?) - Replace with {$orgName} Dashboard 
+            // Add the org name somewhere (top right? Top left?) - Replace with {$orgName} Dashboard
             link: "/{-$subdomain}/dashboard",
             permission: PERMISSIONS.DASHBOARD_READ,
         },
@@ -159,11 +159,11 @@ export const MainNavigation = ({
             text: "Settings",
             link: "/{-$subdomain}/admin-settings",
             permission: PERMISSIONS.SETTINGS_READ,
+            // {
+            //     text: "Help Center",
+            //     link: "/help",
+            // },
         },
-        // {
-        //     text: "Help Center",
-        //     link: "/help",
-        // },
     ],
 }: MainNavProps) => {
     const navigate = useNavigate();
@@ -173,19 +173,23 @@ export const MainNavigation = ({
     const subdomain = useAuthStore((s) => s.subdomain);
     const logout = useLogout();
 
+    // Get current route to highlight active tab
+    const routerState = useRouterState();
+    const currentPath = routerState.location.pathname;
+
     // org-name, org_name -> Org Name
     const orgName = subdomain
         ? subdomain
-            // Convert hyphen or underscore to space -> org_name, org-name -> "org name"
-            .replace(/[-_]/g, " ")
-            // Convert camelCase to split -> orgName -> "org name"
-            .replace(/([a-z])([A-Z])/g, "$1 $2")
-            // Normalize spaces
-            .replace(/\s+/g, " ")
-            .trim()
-            // Title Case everything
-            .toLowerCase()
-            .replace(/\b\w/g, (c) => c.toUpperCase())
+              // Convert hyphen or underscore to space -> org_name, org-name -> "org name"
+              .replace(/[-_]/g, " ")
+              // Convert camelCase to split -> orgName -> "org name"
+              .replace(/([a-z])([A-Z])/g, "$1 $2")
+              // Normalize spaces
+              .replace(/\s+/g, " ")
+              .trim()
+              // Title Case everything
+              .toLowerCase()
+              .replace(/\b\w/g, (c) => c.toUpperCase())
         : null;
 
     const navItemsWithOrgName = navItems.map((item) => {
@@ -213,6 +217,17 @@ export const MainNavigation = ({
         return item;
     });
 
+    // Helper function to check if a nav item is active (AI help on this)
+    const isActiveRoute = (link: ToOptions["to"]): boolean => {
+        // Convert link to string for comparison
+        const linkStr = typeof link === "string" ? link : String(link);
+
+        const linkPath = subdomain ? linkStr.replace("{-$subdomain}", subdomain) : linkStr;
+
+        // Check if current path starts with the link path
+        return currentPath.startsWith(linkPath);
+    };
+
     const handleSignOut = async () => {
         logout.mutate(undefined, {
             onSettled: () => {
@@ -230,17 +245,21 @@ export const MainNavigation = ({
                         <AvatarImage src={logo.src} />
                         <AvatarFallback>{logo.fallbackText}</AvatarFallback>
                     </Avatar>
-                    {computedNavItems.map((button, idx) => (
-                        <Link key={button.link ?? idx} to={button.link}>
-                            <Button
-                                size="sm"
-                                variant={"secondary"}
-                                className="active:bg-secondary/70"
-                            >
-                                {button.text}
-                            </Button>
-                        </Link>
-                    ))}
+                    {/* AI help on this */}
+                    {computedNavItems.map((button, idx) => {
+                        const isActive = isActiveRoute(button.link);
+                        return (
+                            <Link key={button.link ?? idx} to={button.link}>
+                                <Button
+                                    size="sm"
+                                    variant={isActive ? "default" : "secondary"}
+                                    className={isActive ? "" : "active:bg-secondary/70"}
+                                >
+                                    {button.text}
+                                </Button>
+                            </Link>
+                        );
+                    })}
                 </>
             }
             rightNavItems={
