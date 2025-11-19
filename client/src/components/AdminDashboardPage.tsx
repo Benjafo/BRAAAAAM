@@ -172,7 +172,7 @@ const AdminDashboard = () => {
                                 </div>
                             )}
                         </div>
-                        <div className="p-4 text-center border-t">
+                        <div className="p-2 text-center border-t">
                             <Link
                                 to="/{-$subdomain}/schedule"
                                 className="text-sm text-primary hover:underline"
