@@ -32,7 +32,7 @@ export const Route = createFileRoute("/{-$subdomain}/_auth/schedule")({
 });
 
 function RouteComponent() {
-    const [activeTab, setActiveTab] = useState("calendar");
+    const [activeTab, setActiveTab] = useState("list");
 
     const handleTabChange = useCallback((value: string) => {
         setActiveTab(value);
