@@ -382,6 +382,13 @@ export const retryNotification = async (req: Request, res: Response): Promise<Re
             .where(eq(messages.id, id))
             .returning();
 
+        req.auditLog({
+            actionType: "notification.updated",
+            objectId: updatedMessage.id,
+            objectType: "notification",
+            actionMessage: `Driver notification retried by ${req.user?.firstName} ${req.user?.lastName}, status set to pending`,
+        });
+
         return res.status(200).json({
             message: "Notification queued for retry",
             notification: updatedMessage,
@@ -422,6 +429,13 @@ export const cancelNotification = async (req: Request, res: Response): Promise<R
             })
             .where(eq(messages.id, id))
             .returning();
+
+        req.auditLog({
+            actionType: "notification.updated",
+            objectId: updatedMessage.id,
+            objectType: "notification",
+            actionMessage: `Driver notification cancelled by ${req.user?.firstName} ${req.user?.lastName}, status set to cancelled`,
+        });
 
         return res.status(200).json({
             message: "Notification cancelled",

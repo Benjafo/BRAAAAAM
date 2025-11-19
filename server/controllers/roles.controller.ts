@@ -143,6 +143,16 @@ export const createRole = async (req: Request, res: Response): Promise<Response>
             );
         }
 
+        req.auditLog({
+            actionType: "role.created",
+            objectId: newRole.id,
+            objectType: "role",
+            actionMessage: `Role '${roleName}' created by ${req.user?.firstName} ${req.user?.lastName}`,
+            actionDetails: {
+                permissionIds: permissionIds,
+            }
+        });
+
         return res.status(201).json({
             id: newRole.id,
             roleName: newRole.name,
@@ -235,9 +245,11 @@ export const updateRole = async (req: Request, res: Response): Promise<Response>
             .where(eq(roles.id, roleId))
             .returning();
 
+        let deletedPermissionsRecord;
         // Replace existing permissions
         if (Array.isArray(permissionIds)) {
-            await db.delete(rolePermissions).where(eq(rolePermissions.roleId, roleId));
+            const deletedPermissions = await db.delete(rolePermissions).where(eq(rolePermissions.roleId, roleId)).returning();
+            deletedPermissionsRecord = deletedPermissions;
 
             if (permissionIds.length > 0) {
                 await db.insert(rolePermissions).values(
@@ -249,6 +261,23 @@ export const updateRole = async (req: Request, res: Response): Promise<Response>
                 );
             }
         }
+
+        req.auditLog({
+            actionType: "role.updated",
+            objectId: updatedRole.id,
+            objectType: "role",
+            actionMessage: `Role '${updatedRole.name}' updated by ${req.user?.firstName} ${req.user?.lastName}`,
+            actionDetails: {
+                original: {
+                    role: existingRole,
+                    permissions: deletedPermissionsRecord,
+                },
+                updated: {
+                    role: updatedRole,
+                    permissionIds: permissionIds,
+                }
+            }
+        });
 
         return res.status(200).json({
             id: updatedRole.id,
@@ -297,7 +326,17 @@ export const deleteRole = async (req: Request, res: Response): Promise<Response>
         await db.delete(rolePermissions).where(eq(rolePermissions.roleId, roleId));
 
         // Delete the role
-        await db.delete(roles).where(eq(roles.id, roleId));
+        const [deletedRole] = await db.delete(roles).where(eq(roles.id, roleId)).returning();
+
+        req.auditLog({
+            actionType: "role.deleted",
+            objectId: deletedRole.id,
+            objectType: "role",
+            actionMessage: `Role '${deletedRole.name}' deleted by ${req.user?.firstName} ${req.user?.lastName}`,
+            actionDetails: {
+                role: deletedRole,
+            }
+        });
 
         return res.status(204).send();
     } catch (err) {

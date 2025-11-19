@@ -15,13 +15,19 @@ export function AuditLogTable() {
                 searchParams.set(key, String(value));
             }
         });
+
+        type AuditLogResponse = {
+            total: number;
+            results: AuditLogEntry[];
+        }
+
         const response = await http
             .get(`o/audit-logs`, {
                 searchParams: searchParams,
             })
-            .json<AuditLogEntry[]>();
+            .json<AuditLogResponse>();
 
-        const fullResponse = response.map((entry) => {
+        const fullResponse = response.results.map((entry) => {
             // Parse timestamp
             const timestamp = new Date(entry.audit_logs.createdAt);
             const date = timestamp.toISOString().split("T")[0];
@@ -52,7 +58,7 @@ export function AuditLogTable() {
 
         return {
             data: fullResponse,
-            total: fullResponse.length,
+            total: response.total,
         };
     };
 
@@ -74,6 +80,8 @@ export function AuditLogTable() {
                     { header: "Action Message", accessorKey: "actionMessage" },
                 ]}
                 onRowClick={handleEditAuditLogEntry}
+                showSearch={false}
+                usePagination={true}
             />
 
             <AuditLogModal

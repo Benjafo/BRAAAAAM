@@ -389,7 +389,7 @@ export const updateAppointment = async (req: Request, res: Response): Promise<Re
 
         // Fetch the current appointment to check ownership if needed
         const [currentAppointment] = await db
-            .select({ driverId: appointments.driverId })
+            .select()
             .from(appointments)
             .where(eq(appointments.id, appointmentId));
 
@@ -413,6 +413,7 @@ export const updateAppointment = async (req: Request, res: Response): Promise<Re
         const driverAllowedFields = ["status", "milesDriven", "actualDurationMinutes", "estimatedDurationMinutes", "notes", "donationType", "donationAmount"];
 
         if (hasAllPermission) {
+            /**@TODO this is so diabolical, a wall of code?!? this should be refactored lol */
             // Full permission - can update all fields
             if (data.pickupAddress) {
                 updateData.pickupLocation = await findOrCreateLocation(db, data.pickupAddress);
@@ -477,6 +478,7 @@ export const updateAppointment = async (req: Request, res: Response): Promise<Re
             return res.status(404).json({ message: "Appointment not found" });
         }
 
+        let existingCustomFormFieldsRecord;
         let customFormFieldsRecord;
         // Update custom field responses if provided
         if (data.customFields) {
@@ -509,9 +511,11 @@ export const updateAppointment = async (req: Request, res: Response): Promise<Re
                             submittedBy: req.user?.id,
                             updatedAt: new Date().toISOString(),
                         })
-                        .where(eq(customFormResponses.id, existingResponse.id));
+                        .where(eq(customFormResponses.id, existingResponse.id))
+                        .returning();
 
                     customFormFieldsRecord = appointmentCustomFormFields;
+                    existingCustomFormFieldsRecord = existingResponse;
 
                 } else {
                     // Create new response
@@ -521,7 +525,7 @@ export const updateAppointment = async (req: Request, res: Response): Promise<Re
                         entityType: "appointment",
                         responseData: data.customFields,
                         submittedBy: req.user?.id,
-                    });
+                    }).returning();
 
                     customFormFieldsRecord = appointmentCustomFormFields;
                 }
@@ -532,10 +536,16 @@ export const updateAppointment = async (req: Request, res: Response): Promise<Re
             actionType: "appointment.updated",
             objectId: updated.id,
             objectType: "appointment",
-            actionMessage: `Appointment updated with ID ${updated.id}`,
+            actionMessage: `Appointment updated by ${req.user?.firstName} ${req.user?.lastName}`,
             actionDetails: { 
-                appointment: updated,
-                customFormFields: customFormFieldsRecord || null,
+                original: {
+                    appointment: currentAppointment,
+                    customFormFields: existingCustomFormFieldsRecord || null,
+                },
+                updated: {
+                    appointment: updated,
+                    customFormFields: customFormFieldsRecord || null,
+                }
              },
         });
 
@@ -1059,6 +1069,21 @@ export const acceptAppointment = async (req: Request, res: Response): Promise<Re
             })
             .where(eq(appointments.id, appointmentId))
             .returning();
+
+        req.auditLog({
+            actionType: "appointment.updated",
+            objectId: updated.id,
+            objectType: "appointment",
+            actionMessage: `Appointment accepted by driver ${req.user?.firstName} ${req.user?.lastName}`,
+            actionDetails: { 
+                original: {
+                    appointment: appointment,
+                },
+                updated: {
+                    appointment: updated,
+                },
+             },
+        });
 
         return res.status(200).json(updated);
     } catch (err) {

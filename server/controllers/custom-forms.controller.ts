@@ -128,6 +128,17 @@ export const createCustomForm = async (req: Request, res: Response): Promise<Res
             .where(eq(customFormFields.formId, newForm.id))
             .orderBy(customFormFields.displayOrder);
 
+        req.auditLog({
+            actionType: "customForm.created",
+            objectId: newForm.id,
+            objectType: "customForm",
+            actionMessage: `Custom form '${newForm.name}' created for entity '${newForm.targetEntity}' by ${req.user?.firstName} ${req.user?.lastName}`,
+            actionDetails: {
+                form: newForm,
+                fields: createdFields,
+            }
+        });
+
         return res.status(201).json({ ...newForm, fields: createdFields });
     } catch (err) {
         console.error("Error creating custom form:", err);
@@ -142,6 +153,11 @@ export const updateCustomForm = async (req: Request, res: Response): Promise<Res
 
         const { formId } = req.params;
         const { name, description, isActive, fields } = req.body;
+
+        const [existingForm] = await db
+            .select()
+            .from(customForms)
+            .where(eq(customForms.id, formId));
 
         // Update form metadata
         const [updatedForm] = await db
@@ -159,11 +175,13 @@ export const updateCustomForm = async (req: Request, res: Response): Promise<Res
             return res.status(404).json({ error: "Form not found" });
         }
 
+        let existingFieldsRecord;
+        let updatedFieldsRecord;
         // Update fields if provided
         if (fields && Array.isArray(fields)) {
             // Delete existing fields
-            await db.delete(customFormFields).where(eq(customFormFields.formId, formId));
-
+            const [existingFields] = await db.delete(customFormFields).where(eq(customFormFields.formId, formId)).returning();
+            existingFieldsRecord = existingFields;
             // Insert updated fields
             if (fields.length > 0) {
                 const fieldValues = fields.map((field: any, index: number) => ({
@@ -178,7 +196,8 @@ export const updateCustomForm = async (req: Request, res: Response): Promise<Res
                     displayOrder: field.displayOrder ?? index,
                 }));
 
-                await db.insert(customFormFields).values(fieldValues);
+                const updatedFields = await db.insert(customFormFields).values(fieldValues).returning();
+                updatedFieldsRecord = updatedFields
             }
         }
 
@@ -188,6 +207,23 @@ export const updateCustomForm = async (req: Request, res: Response): Promise<Res
             .from(customFormFields)
             .where(eq(customFormFields.formId, formId))
             .orderBy(customFormFields.displayOrder);
+
+        req.auditLog({
+            actionType: "customForm.updated",
+            objectId: existingForm.id,
+            objectType: "customForm",
+            actionMessage: `Custom form '${existingForm.name}' updated for entity '${existingForm.targetEntity}' by ${req.user?.firstName} ${req.user?.lastName}`,
+            actionDetails: {
+                original: {
+                    form: existingForm,
+                    fields: existingFieldsRecord,
+                },
+                updated: {
+                    form: updatedForm,
+                    fields: updatedFieldsRecord,
+                },
+            }
+        });
 
         return res.status(200).json({ ...updatedForm, fields: updatedFields });
     } catch (err) {

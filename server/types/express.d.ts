@@ -18,6 +18,8 @@ declare global {
             user?: {
                 id: string;
                 email: string;
+                firstName: string;
+                lastName: string;
                 db: string;
             };
             auditLog: (entry: AuditLogInsert) => Promise<void>;

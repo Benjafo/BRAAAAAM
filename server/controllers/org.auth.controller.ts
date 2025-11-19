@@ -19,6 +19,7 @@ import { alias } from "drizzle-orm/pg-core";
 import { sendPasswordResetEmail, sendPasswordResetConfirmationEmail } from "../utils/email.js";
 import { getSysDb } from "../drizzle/sys-client.js";
 import { organizations } from "../drizzle/sys/schema.js";
+import { success } from "zod";
 
 const signIn = async (req: Request, res: Response) => {
     try {
@@ -70,7 +71,9 @@ const signIn = async (req: Request, res: Response) => {
         const tokenPayload: TokenPayload = {
             id: user.id,
             email: user.email,
-            db: req.org?.subdomain || "",
+            firstName: user.firstName,
+            lastName: user.lastName,
+            db: req.org?.subdomain || "sys",
         };
 
         const accessToken = generateAccessToken(tokenPayload);
@@ -84,6 +87,11 @@ const signIn = async (req: Request, res: Response) => {
         });
 
         const { passwordHash, ...userResponse } = user;
+
+        req.auditLog({
+            userId: user.id,
+            actionType: "auth.signIn",
+        });
 
         return res.json({
             message: "Signed in successfully",
@@ -141,6 +149,8 @@ const refreshToken = async (req: Request, res: Response) => {
         const tokenPayload: TokenPayload = {
             id: decoded.id,
             email: decoded.email,
+            firstName: decoded.firstName,
+            lastName: decoded.lastName,
             db: decoded.db,
         };
 
@@ -215,6 +225,14 @@ const requestPasswordReset = async (req: Request, res: Response) => {
             // Still return success to prevent email enumeration
         }
 
+        req.auditLog({
+            actionType: "auth.passwordResetRequested",
+            actionDetails: {
+                userId: user.id,
+                email: user.email,
+            }
+        });
+
         return res.json({
             message: "If the email exists, a password reset link has been sent",
             expiresAt: expiresAt.toISOString(),
@@ -281,6 +299,8 @@ const resetPassword = async (req: Request, res: Response) => {
             where: eq(users.id, userId),
         });
 
+        let success = false;
+
         if (user) {
             const userName = user.firstName && user.lastName
                 ? `${user.firstName} ${user.lastName}`
@@ -293,7 +313,18 @@ const resetPassword = async (req: Request, res: Response) => {
                 console.error("Failed to send password reset confirmation email:", emailError);
                 // Don't fail the request if email fails
             }
+
+            success = true;
         }
+
+        req.auditLog({
+            actionType: "auth.passwordReset",
+            actionDetails: {
+                userId: userId,
+                email: user?.email,
+                success: success,
+            }
+        });
 
         return res.json({
             message: "Reset password successfully",

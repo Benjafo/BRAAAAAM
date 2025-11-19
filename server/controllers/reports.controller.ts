@@ -724,6 +724,13 @@ export const createReportTemplate = async (req: Request, res: Response): Promise
             })
             .returning();
 
+        req.auditLog({
+            actionType: "reportTemplate.created",
+            objectId: newTemplate.id,
+            objectType: "reportTemplate",
+            actionMessage: `Report Template '${name}' created by ${req.user?.firstName} ${req.user?.lastName}`,
+        });
+
         return res.status(201).json({ template: newTemplate });
     } catch (err: any) {
         console.error("Error creating report template:", err);
@@ -808,6 +815,21 @@ export const updateReportTemplate = async (req: Request, res: Response): Promise
             .where(eq(reportTemplates.id, templateId))
             .returning();
 
+        req.auditLog({
+            actionType: "reportTemplate.updated",
+            objectId: updated.id,
+            objectType: "reportTemplate",
+            actionMessage: `Report Template '${updated.name}' updated by ${req.user?.firstName} ${req.user?.lastName}`,
+            actionDetails: {
+                original: {
+                    reportTemplate: existing,
+                },
+                updated: {
+                    reportTemplate: updated,
+                }
+            }
+        });
+
         return res.status(200).json({ template: updated });
     } catch (err) {
         console.error("Error updating report template:", err);
@@ -839,6 +861,16 @@ export const deleteReportTemplate = async (req: Request, res: Response): Promise
         }
 
         await db.delete(reportTemplates).where(eq(reportTemplates.id, templateId));
+
+        req.auditLog({
+            actionType: "reportTemplate.deleted",
+            objectId: existing.id,
+            objectType: "reportTemplate",
+            actionMessage: `Report Template '${existing.name}' deleted by ${req.user?.firstName} ${req.user?.lastName}`,
+            actionDetails: {
+                reportTemplate: existing,
+            }
+        });
 
         return res.status(204).send();
     } catch (err) {
