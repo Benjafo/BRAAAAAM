@@ -6,6 +6,36 @@ import { createRouter, RouterProvider } from "@tanstack/react-router";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 // import App from './App.tsx'
 
+// Apply theme from localStorage on initial load
+const THEME_STORAGE_KEY = "app-theme";
+const storedTheme = localStorage.getItem(THEME_STORAGE_KEY) || "light";
+
+// Remove all theme classes first
+document.documentElement.classList.remove(
+    "cherry-blossom",
+    "lavender-dreams",
+    "rose-gold",
+    "coffee-mocha",
+    "desert-sand",
+    "arctic-frost",
+    "electric-cyan",
+    "electric-neon",
+    "crimson-night",
+    "wine-cellar",
+    "dark",
+    "dark-amber",
+    "ocean-blue",
+    "forest-green",
+    "sunset-purple",
+    "midnight-slate",
+    "coral-reef"
+);
+
+// Apply the stored theme
+if (storedTheme !== "light") {
+    document.documentElement.classList.add(storedTheme);
+}
+
 const router = createRouter({ routeTree });
 
 declare module "@tanstack/react-router" {
