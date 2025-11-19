@@ -134,6 +134,10 @@ export const MainNavigation = ({
             permission: PERMISSIONS.CLIENTS_READ,
         },
         {
+            text: "Call Logs",
+            link: "/{-$subdomain}/call-logs",
+        },
+        {
             text: "User Management",
             link: "/{-$subdomain}/users",
             permission: PERMISSIONS.USERS_READ,

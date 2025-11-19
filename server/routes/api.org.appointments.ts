@@ -22,7 +22,7 @@ router.put(
 
 router.get(
     "/:appointmentId/matching-drivers",
-    withPermission({ permissions: "allappointments.read" }),
+    withPermission({ permissions: ["ownappointments.read", "allappointments.read"] }),
     appt.getMatchingDrivers
 );
 

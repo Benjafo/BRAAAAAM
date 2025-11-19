@@ -27,6 +27,7 @@ import { Route as Char123SubdomainChar125AuthOrganizationsRouteImport } from './
 import { Route as Char123SubdomainChar125AuthNotificationsRouteImport } from './routes/{-$subdomain}/_auth/notifications'
 import { Route as Char123SubdomainChar125AuthDashboardRouteImport } from './routes/{-$subdomain}/_auth/dashboard'
 import { Route as Char123SubdomainChar125AuthClientsRouteImport } from './routes/{-$subdomain}/_auth/clients'
+import { Route as Char123SubdomainChar125AuthCallLogsRouteImport } from './routes/{-$subdomain}/_auth/call-logs'
 import { Route as Char123SubdomainChar125AuthAdminSettingsRouteImport } from './routes/{-$subdomain}/_auth/admin-settings'
 
 const Char123SubdomainChar125RouteRoute =
@@ -135,6 +136,12 @@ const Char123SubdomainChar125AuthClientsRoute =
     path: '/clients',
     getParentRoute: () => Char123SubdomainChar125AuthRouteRoute,
   } as any)
+const Char123SubdomainChar125AuthCallLogsRoute =
+  Char123SubdomainChar125AuthCallLogsRouteImport.update({
+    id: '/call-logs',
+    path: '/call-logs',
+    getParentRoute: () => Char123SubdomainChar125AuthRouteRoute,
+  } as any)
 const Char123SubdomainChar125AuthAdminSettingsRoute =
   Char123SubdomainChar125AuthAdminSettingsRouteImport.update({
     id: '/admin-settings',
@@ -146,6 +153,7 @@ export interface FileRoutesByFullPath {
   '/{-$subdomain}': typeof Char123SubdomainChar125LoginRouteRouteWithChildren
   '/{-$subdomain}/': typeof Char123SubdomainChar125IndexRoute
   '/{-$subdomain}/admin-settings': typeof Char123SubdomainChar125AuthAdminSettingsRoute
+  '/{-$subdomain}/call-logs': typeof Char123SubdomainChar125AuthCallLogsRoute
   '/{-$subdomain}/clients': typeof Char123SubdomainChar125AuthClientsRoute
   '/{-$subdomain}/dashboard': typeof Char123SubdomainChar125AuthDashboardRoute
   '/{-$subdomain}/notifications': typeof Char123SubdomainChar125AuthNotificationsRoute
@@ -164,6 +172,7 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/{-$subdomain}': typeof Char123SubdomainChar125IndexRoute
   '/{-$subdomain}/admin-settings': typeof Char123SubdomainChar125AuthAdminSettingsRoute
+  '/{-$subdomain}/call-logs': typeof Char123SubdomainChar125AuthCallLogsRoute
   '/{-$subdomain}/clients': typeof Char123SubdomainChar125AuthClientsRoute
   '/{-$subdomain}/dashboard': typeof Char123SubdomainChar125AuthDashboardRoute
   '/{-$subdomain}/notifications': typeof Char123SubdomainChar125AuthNotificationsRoute
@@ -186,6 +195,7 @@ export interface FileRoutesById {
   '/{-$subdomain}/_login': typeof Char123SubdomainChar125LoginRouteRouteWithChildren
   '/{-$subdomain}/': typeof Char123SubdomainChar125IndexRoute
   '/{-$subdomain}/_auth/admin-settings': typeof Char123SubdomainChar125AuthAdminSettingsRoute
+  '/{-$subdomain}/_auth/call-logs': typeof Char123SubdomainChar125AuthCallLogsRoute
   '/{-$subdomain}/_auth/clients': typeof Char123SubdomainChar125AuthClientsRoute
   '/{-$subdomain}/_auth/dashboard': typeof Char123SubdomainChar125AuthDashboardRoute
   '/{-$subdomain}/_auth/notifications': typeof Char123SubdomainChar125AuthNotificationsRoute
@@ -207,6 +217,7 @@ export interface FileRouteTypes {
     | '/{-$subdomain}'
     | '/{-$subdomain}/'
     | '/{-$subdomain}/admin-settings'
+    | '/{-$subdomain}/call-logs'
     | '/{-$subdomain}/clients'
     | '/{-$subdomain}/dashboard'
     | '/{-$subdomain}/notifications'
@@ -225,6 +236,7 @@ export interface FileRouteTypes {
   to:
     | '/{-$subdomain}'
     | '/{-$subdomain}/admin-settings'
+    | '/{-$subdomain}/call-logs'
     | '/{-$subdomain}/clients'
     | '/{-$subdomain}/dashboard'
     | '/{-$subdomain}/notifications'
@@ -246,6 +258,7 @@ export interface FileRouteTypes {
     | '/{-$subdomain}/_login'
     | '/{-$subdomain}/'
     | '/{-$subdomain}/_auth/admin-settings'
+    | '/{-$subdomain}/_auth/call-logs'
     | '/{-$subdomain}/_auth/clients'
     | '/{-$subdomain}/_auth/dashboard'
     | '/{-$subdomain}/_auth/notifications'
@@ -394,6 +407,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof Char123SubdomainChar125AuthClientsRouteImport
       parentRoute: typeof Char123SubdomainChar125AuthRouteRoute
     }
+    '/{-$subdomain}/_auth/call-logs': {
+      id: '/{-$subdomain}/_auth/call-logs'
+      path: '/call-logs'
+      fullPath: '/{-$subdomain}/call-logs'
+      preLoaderRoute: typeof Char123SubdomainChar125AuthCallLogsRouteImport
+      parentRoute: typeof Char123SubdomainChar125AuthRouteRoute
+    }
     '/{-$subdomain}/_auth/admin-settings': {
       id: '/{-$subdomain}/_auth/admin-settings'
       path: '/admin-settings'
@@ -406,6 +426,7 @@ declare module '@tanstack/react-router' {
 
 interface Char123SubdomainChar125AuthRouteRouteChildren {
   Char123SubdomainChar125AuthAdminSettingsRoute: typeof Char123SubdomainChar125AuthAdminSettingsRoute
+  Char123SubdomainChar125AuthCallLogsRoute: typeof Char123SubdomainChar125AuthCallLogsRoute
   Char123SubdomainChar125AuthClientsRoute: typeof Char123SubdomainChar125AuthClientsRoute
   Char123SubdomainChar125AuthDashboardRoute: typeof Char123SubdomainChar125AuthDashboardRoute
   Char123SubdomainChar125AuthNotificationsRoute: typeof Char123SubdomainChar125AuthNotificationsRoute
@@ -422,6 +443,8 @@ const Char123SubdomainChar125AuthRouteRouteChildren: Char123SubdomainChar125Auth
   {
     Char123SubdomainChar125AuthAdminSettingsRoute:
       Char123SubdomainChar125AuthAdminSettingsRoute,
+    Char123SubdomainChar125AuthCallLogsRoute:
+      Char123SubdomainChar125AuthCallLogsRoute,
     Char123SubdomainChar125AuthClientsRoute:
       Char123SubdomainChar125AuthClientsRoute,
     Char123SubdomainChar125AuthDashboardRoute:

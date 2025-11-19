@@ -420,6 +420,7 @@ export const callLogs = pgTable(
         id: uuid().defaultRandom().primaryKey().notNull(),
         createdByUserId: uuid("created_by_user_id").notNull(),
         date: date().notNull(),
+        time: time(),
         callType: uuid("call_type").notNull(),
         firstName: varchar("first_name", { length: 255 }).notNull(),
         lastName: varchar("last_name", { length: 255 }).notNull(),

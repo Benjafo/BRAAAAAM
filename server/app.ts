@@ -9,6 +9,7 @@ import sseRouter from "./routes/sse.js";
 
 // org-scoped
 import appointmentsRouter from "./routes/api.org.appointments.js";
+import callLogsRouter from "./routes/api.org.callLogs.js";
 import clientsRouter from "./routes/api.org.clients.js";
 import customFormsRouter from "./routes/api.org.custom-forms.js";
 import locationsRouter from "./routes/api.org.locations.js";
@@ -489,6 +490,7 @@ app.use("/auth", withAuthRouting);
 // Protected org-scoped routes with authentication
 app.use("/o/users", withAuth, withOrg, usersRouter);
 app.use("/o/clients", withAuth, withOrg, clientsRouter);
+app.use("/o/call-logs", withAuth, withOrg, callLogsRouter);
 app.use("/o/settings", withAuth, withOrg, orgSettingsRouter);
 app.use("/o/appointments", withAuth, withOrg, appointmentsRouter);
 app.use("/o/notifications", withAuth, withOrg, notificationsRouter);

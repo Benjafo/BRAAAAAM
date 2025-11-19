@@ -553,7 +553,10 @@ export const getMatchingDrivers = async (req: Request, res: Response): Promise<R
         const db = req.org?.db;
         if (!db) return res.status(400).json({ message: "Organization context missing" });
 
-        // 1. Fetch appointment with location details
+        const userId = req.user?.id;
+        if (!userId) return res.status(401).json({ error: "Unauthorized" });
+
+        // 1. Fetch appointment with location details and status
         const pickupLocations = alias(locations, "pickup_locations");
         const destinationLocations = alias(locations, "destination_locations");
 
@@ -561,6 +564,8 @@ export const getMatchingDrivers = async (req: Request, res: Response): Promise<R
             .select({
                 id: appointments.id,
                 clientId: appointments.clientId,
+                driverId: appointments.driverId,
+                status: appointments.status,
                 startDate: appointments.startDate,
                 startTime: appointments.startTime,
                 estimatedDurationMinutes: appointments.estimatedDurationMinutes,
@@ -587,6 +592,14 @@ export const getMatchingDrivers = async (req: Request, res: Response): Promise<R
             return res.status(404).json({ message: "Appointment not found" });
         }
 
+        // Check permissions - drivers can only see matching for unassigned rides
+        const hasAllPermission = await hasPermission(userId, "allappointments.read", db);
+        if (!hasAllPermission && appointment.driverId !== null) {
+            return res.status(403).json({
+                message: "You can only view matching drivers for unassigned appointments"
+            });
+        }
+
         // 2. Get client details for matching
         const [client] = await db
             .select({
@@ -605,7 +618,22 @@ export const getMatchingDrivers = async (req: Request, res: Response): Promise<R
             return res.status(404).json({ message: "Client not found" });
         }
 
-        // 3. Get all active drivers with capabilities
+        // 3. Get current user's driver profile (for warnings check)
+        const [currentUserProfile] = await db
+            .select({
+                id: users.id,
+                canAccommodateMobilityEquipment: users.canAccommodateMobilityEquipment,
+                vehicleTypes: users.vehicleTypes,
+                canAccommodateOxygen: users.canAccommodateOxygen,
+                canAccommodateServiceAnimal: users.canAccommodateServiceAnimal,
+                canAccommodateAdditionalRider: users.canAccommodateAdditionalRider,
+                maxRidesPerWeek: users.maxRidesPerWeek,
+                isDriver: users.isDriver,
+            })
+            .from(users)
+            .where(eq(users.id, userId));
+
+        // 4. Get all active drivers with capabilities
         const allDrivers = await db
             .select({
                 id: users.id,
@@ -783,7 +811,50 @@ export const getMatchingDrivers = async (req: Request, res: Response): Promise<R
             })
             .slice(0, 10);
 
-        return res.status(200).json({ results: scoredDrivers });
+        // Include client accessibility info for frontend validation
+        const clientInfo = {
+            mobilityEquipment: client.mobilityEquipment,
+            hasOxygen: client.hasOxygen,
+            hasServiceAnimal: client.hasServiceAnimal,
+            vehicleTypes: client.vehicleTypes,
+        };
+
+        const appointmentInfo = {
+            hasAdditionalRider: appointment.hasAdditionalRider,
+        };
+
+        // Include current user's driver profile and score breakdown for warnings
+        let currentDriverProfile = null;
+        let currentDriverScoreBreakdown = null;
+
+        if (currentUserProfile?.isDriver) {
+            // Find current user in allDrivers to get full profile
+            const currentDriverInList = allDrivers.find((d) => String(d.id) === String(userId));
+
+            if (currentDriverInList) {
+                // Calculate score breakdown for current user
+                currentDriverScoreBreakdown = calculateScoreBreakdown(currentDriverInList, context);
+            }
+
+            currentDriverProfile = {
+                id: currentUserProfile.id,
+                canAccommodateMobilityEquipment: currentUserProfile.canAccommodateMobilityEquipment,
+                canAccommodateOxygen: currentUserProfile.canAccommodateOxygen,
+                canAccommodateServiceAnimal: currentUserProfile.canAccommodateServiceAnimal,
+                canAccommodateAdditionalRider: currentUserProfile.canAccommodateAdditionalRider,
+                vehicleTypes: currentUserProfile.vehicleTypes,
+                maxRidesPerWeek: currentUserProfile.maxRidesPerWeek,
+                scoreBreakdown: currentDriverScoreBreakdown,
+                weeklyRideCount: weekRidesMap.get(String(userId)) || 0,
+            };
+        }
+
+        return res.status(200).json({
+            results: scoredDrivers,
+            client: clientInfo,
+            appointment: appointmentInfo,
+            currentDriverProfile: currentDriverProfile
+        });
     } catch (err) {
         console.error("Error fetching matching drivers:", err);
         return res.status(500).send();
