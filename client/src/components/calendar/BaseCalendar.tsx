@@ -153,12 +153,13 @@ export default function BaseCalendar({
 
     // Calculate min and max times from business hours
     // (ai generated)
-    const { minTime, maxTime } = useMemo(() => {
+    const { minTime, maxTime, calendarHeight } = useMemo(() => {
         if (!businessHours) {
             // Default to 9 AM - 6 PM if no business hours configured
             return {
                 minTime: new Date(1970, 1, 1, 9, 0, 0),
                 maxTime: new Date(1970, 1, 1, 18, 0, 0),
+                calendarHeight: 1160, // 9 hours * 2 slots/hour * 60px + 65px header/buffer
             };
         }
 
@@ -197,6 +198,7 @@ export default function BaseCalendar({
             return {
                 minTime: new Date(1970, 1, 1, 9, 0, 0),
                 maxTime: new Date(1970, 1, 1, 18, 0, 0),
+                calendarHeight: 1140,
             };
         }
 
@@ -204,9 +206,17 @@ export default function BaseCalendar({
         const paddedStart = Math.max(0, earliestStart - 30);
         const paddedEnd = Math.min(24 * 60, latestEnd + 30);
 
+        // Calculate calendar height based on time range
+        // Each 30-minute slot is 60px tall, plus ~60px for header, plus buffer for borders/padding
+        const totalMinutes = paddedEnd - paddedStart;
+        const numSlots = totalMinutes / 30; // 30-minute slots
+        const contentHeight = numSlots * 60; // 60px per slot
+        const calculatedHeight = contentHeight + 65; // Add header height + buffer for borders/padding
+
         return {
             minTime: new Date(1970, 1, 1, Math.floor(paddedStart / 60), paddedStart % 60, 0),
             maxTime: new Date(1970, 1, 1, Math.floor(paddedEnd / 60), paddedEnd % 60, 0),
+            calendarHeight: calculatedHeight,
         };
     }, [businessHours]);
 
@@ -816,13 +826,17 @@ export default function BaseCalendar({
                         {viewToggle && (
                             <div className="flex items-center space-x-1 ml-4">
                                 <Button
-                                    variant={viewToggle.activeView === "calendar" ? "default" : "outline"}
+                                    variant={
+                                        viewToggle.activeView === "calendar" ? "default" : "outline"
+                                    }
                                     onClick={() => viewToggle.onChange("calendar")}
                                 >
                                     Calendar
                                 </Button>
                                 <Button
-                                    variant={viewToggle.activeView === "list" ? "default" : "outline"}
+                                    variant={
+                                        viewToggle.activeView === "list" ? "default" : "outline"
+                                    }
                                     onClick={() => viewToggle.onChange("list")}
                                 >
                                     List
@@ -884,7 +898,7 @@ export default function BaseCalendar({
             </div>
 
             {/* React Big Calendar  */}
-            <div style={{ height: "800px" }}>
+            <div style={{ height: `${calendarHeight}px` }}>
                 <Calendar
                     localizer={localizer}
                     events={events}
