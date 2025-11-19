@@ -8,22 +8,21 @@ export const Route = createFileRoute("/{-$subdomain}/")({
         const s = authStore.getState();
         const isAuthed = Boolean(s.user && s.accessToken);
 
-        console.log("state in /{-$subdomain}/ index route:", s);
+        // console.log("state in /{-$subdomain}/ index route:", s);
 
-        // if (isAuthed && s.subdomain !== undefined ) {
-        //     throw redirect({
-        //         to: "/{-$subdomain}/dashboard",
-        //     });
-        // } else if (isAuthed && (!s.subdomain || s.subdomain === 'sys')) {
-        //     throw redirect({
-        //         to: "/{-$subdomain}/organizations",
-        //     });
-        // } else {
-        //     throw redirect({
-        //         to: "/{-$subdomain}/sign-in",
-        //     });
-        // }
-        if (!isAuthed) {
+        if (isAuthed) {
+            // Authenticated: if there's a non-system subdomain, go to dashboard; otherwise go to organizations
+            if (s.subdomain && s.subdomain !== "sys") {
+                throw redirect({
+                    to: "/{-$subdomain}/dashboard",
+                });
+            } else {
+                throw redirect({
+                    to: "/{-$subdomain}/organizations",
+                });
+            }
+        } else {
+            // Not authenticated: go to sign-in
             throw redirect({
                 to: "/{-$subdomain}/sign-in",
             });
