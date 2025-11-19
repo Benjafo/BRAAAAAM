@@ -3,6 +3,7 @@ import { alias } from "drizzle-orm/pg-core";
 import { Request, Response } from "express";
 import {
     appointments,
+    callLogs,
     clients,
     customFormResponses,
     locations,
@@ -572,6 +573,75 @@ export const exportVolunteerRecords = async (req: Request, res: Response): Promi
     }
 };
 
+export const exportCallLogs = async (req: Request, res: Response): Promise<Response> => {
+    try {
+        const db = req.org?.db;
+        if (!db) return res.status(400).json({ message: "Organization context missing" });
+
+        // Parse query parameters
+        const startDate = req.query.startDate as string | undefined;
+        const endDate = req.query.endDate as string | undefined;
+        const page = parseInt(req.query.page as string) || 1;
+        const pageSize = Math.min(parseInt(req.query.pageSize as string) || 100, 1000);
+        const offset = (page - 1) * pageSize;
+
+        // Build date filter
+        let dateFilter = undefined;
+        if (startDate && endDate) {
+            dateFilter = and(
+                gte(callLogs.date, startDate),
+                lte(callLogs.date, endDate)
+            );
+        } else if (startDate) {
+            dateFilter = gte(callLogs.date, startDate);
+        } else if (endDate) {
+            dateFilter = lte(callLogs.date, endDate);
+        }
+
+        // Get total count
+        const [{ total }] = await db
+            .select({ total: sql<number>`count(*)` })
+            .from(callLogs)
+            .where(dateFilter);
+
+        // Fetch call logs data with user join
+        const data = await db
+            .select({
+                id: callLogs.id,
+                date: callLogs.date,
+                time: callLogs.time,
+                firstName: callLogs.firstName,
+                lastName: callLogs.lastName,
+                phoneNumber: callLogs.phoneNumber,
+                callType: callLogs.callType,
+                message: callLogs.message,
+                notes: callLogs.notes,
+                createdByUserName: sql<string>`CONCAT(${users.firstName}, ' ', ${users.lastName})`,
+                createdAt: callLogs.createdAt,
+                updatedAt: callLogs.updatedAt,
+            })
+            .from(callLogs)
+            .leftJoin(users, eq(callLogs.createdByUserId, users.id))
+            .where(dateFilter)
+            .orderBy(callLogs.date)
+            .limit(pageSize)
+            .offset(offset);
+
+        return res.status(200).json({
+            results: data,
+            pagination: {
+                page,
+                pageSize,
+                totalRecords: Number(total),
+                totalPages: Math.ceil(Number(total) / pageSize),
+            },
+        });
+    } catch (err) {
+        console.error("Error exporting call logs:", err);
+        return res.status(500).json({ error: "Internal server error" });
+    }
+};
+
 export const listReportTemplates = async (req: Request, res: Response): Promise<Response> => {
     try {
         const db = req.org?.db;
@@ -637,7 +707,7 @@ export const createReportTemplate = async (req: Request, res: Response): Promise
         }
 
         // Validate entity type
-        if (!["clients", "users", "appointments", "volunteerRecords"].includes(entityType)) {
+        if (!["clients", "users", "appointments", "volunteerRecords", "callLogs"].includes(entityType)) {
             return res.status(400).json({ message: "Invalid entity type" });
         }
 

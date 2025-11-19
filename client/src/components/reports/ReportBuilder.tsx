@@ -17,7 +17,7 @@ import { DateRangeSelector } from "./DateRangeSelector";
 import { EntitySelector } from "./EntitySelector";
 import { TemplateList } from "./TemplateList";
 
-type SelectionMode = "clients" | "users" | "appointments" | "volunteerRecords" | "templates";
+type SelectionMode = "clients" | "users" | "appointments" | "volunteerRecords" | "callLogs" | "templates";
 
 export function ReportBuilder() {
     const [selectionMode, setSelectionMode] = useState<SelectionMode>("clients");
@@ -38,11 +38,11 @@ export function ReportBuilder() {
     const hasExportPermission = useAuthStore((s) => s.hasPermission(PERMISSIONS.REPORTS_EXPORT));
 
     // Get the actual entity type for data fetching (from mode or template)
-    const getEntityType = (): "clients" | "users" | "appointments" | "volunteerRecords" => {
+    const getEntityType = (): "clients" | "users" | "appointments" | "volunteerRecords" | "callLogs" => {
         if (selectionMode === "templates" && selectedTemplate) {
             return selectedTemplate.entityType;
         }
-        return selectionMode as "clients" | "users" | "appointments" | "volunteerRecords";
+        return selectionMode as "clients" | "users" | "appointments" | "volunteerRecords" | "callLogs";
     };
 
     // Get available columns for column selector (when not in templates mode)
@@ -370,7 +370,7 @@ export function ReportBuilder() {
                 open={saveTemplateDialogOpen}
                 onOpenChange={setSaveTemplateDialogOpen}
                 entityType={
-                    selectionMode as "clients" | "users" | "appointments" | "volunteerRecords"
+                    selectionMode as "clients" | "users" | "appointments" | "volunteerRecords" | "callLogs"
                 }
                 selectedColumns={selectedColumns}
                 onTemplateSaved={() => toast.success("Template saved!")}

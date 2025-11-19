@@ -175,6 +175,25 @@ export const VOLUNTEER_RECORDS_COLUMNS: ColumnDefinition[] = [
     { key: "updatedAt", label: "Updated At", group: "Metadata" },
 ];
 
+export const CALL_LOG_COLUMNS: ColumnDefinition[] = [
+    // Basic Information
+    { key: "id", label: "Call Log ID", group: "Basic Information" },
+    { key: "date", label: "Date", group: "Basic Information" },
+    { key: "time", label: "Time", group: "Basic Information" },
+    { key: "callType", label: "Call Type", group: "Basic Information" },
+    // Caller Information
+    { key: "firstName", label: "Caller First Name", group: "Caller Information" },
+    { key: "lastName", label: "Caller Last Name", group: "Caller Information" },
+    { key: "phoneNumber", label: "Phone Number", group: "Caller Information" },
+    // Call Details
+    { key: "message", label: "Message", group: "Call Details" },
+    { key: "notes", label: "Notes", group: "Call Details" },
+    // Created By
+    { key: "createdByUserName", label: "Created By", group: "Metadata" },
+    { key: "createdAt", label: "Created Date", group: "Metadata" },
+    { key: "updatedAt", label: "Updated Date", group: "Metadata" },
+];
+
 export const APPOINTMENT_COLUMNS: ColumnDefinition[] = [
     // Basic Information
     { key: "id", label: "Appointment ID", group: "Basic Information" },
@@ -257,7 +276,7 @@ export const APPOINTMENT_COLUMNS: ColumnDefinition[] = [
 
 // Helper function to get columns for entity type
 export function getColumnsForEntity(
-    entityType: "clients" | "users" | "appointments" | "volunteerRecords"
+    entityType: "clients" | "users" | "appointments" | "volunteerRecords" | "callLogs"
 ): ColumnDefinition[] {
     switch (entityType) {
         case "clients":
@@ -268,6 +287,8 @@ export function getColumnsForEntity(
             return APPOINTMENT_COLUMNS;
         case "volunteerRecords":
             return VOLUNTEER_RECORDS_COLUMNS;
+        case "callLogs":
+            return CALL_LOG_COLUMNS;
         default:
             return [];
     }

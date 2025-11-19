@@ -16,6 +16,7 @@ router.get("/clients/export", withPermission({ permissions: "reports.export" }),
 router.get("/users/export", withPermission({ permissions: "reports.export" }), reports.exportUsers);
 router.get("/appointments/export", withPermission({ permissions: "reports.export" }), reports.exportAppointments);
 router.get("/volunteer-records/export", withPermission({ permissions: "reports.export" }), reports.exportVolunteerRecords);
+router.get("/call-logs/export", withPermission({ permissions: "reports.export" }), reports.exportCallLogs);
 
 // Report template routes
 router.get("/templates", withPermission({ permissions: "reports.export" }), reports.listReportTemplates);
