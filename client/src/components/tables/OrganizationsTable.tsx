@@ -17,19 +17,6 @@ type Organization = {
     isActive: boolean;
 };
 
-const mapOrganizationToFormValues = (
-    organization: Organization
-): Partial<OrganizationValues> & { id: string, status: string, createdAt: Date | string } => {
-    return {
-        id: organization.id,
-        name: organization.name,
-        email: organization.pocEmail,
-        phone: organization.pocPhone?.replace(/^\+1/, "") || "",
-        status: organization.isActive ? "Active" : "Inactive",
-        createdAt: organization.createdAt,
-    };
-};
-
 export function OrganizationsTable() {
     const [isOrganizationModalOpen, setIsOrganizationModalOpen] = useState(false);
     const [selectedOrganizationData, setSelectedOrganizationData] = useState<
@@ -59,12 +46,6 @@ export function OrganizationsTable() {
 
     const handleCreateOrganization = () => {
         setSelectedOrganizationData({});
-        setIsOrganizationModalOpen(true);
-    };
-
-    const handleEditOrganization = (organization: Organization) => {
-        console.log(`Selected organization data: ${selectedOrganizationData}`);
-        setSelectedOrganizationData(mapOrganizationToFormValues(organization));
         setIsOrganizationModalOpen(true);
     };
 
@@ -99,12 +80,10 @@ export function OrganizationsTable() {
                     },
                 ]}
                 // onRowClick={handleEditOrganization}
-                actionButton={
-                    {
-                        label: "Create Organization",
-                        onClick: handleCreateOrganization,
-                    }
-                }
+                actionButton={{
+                    label: "Create Organization",
+                    onClick: handleCreateOrganization,
+                }}
             />
             <NewOrganizationModal
                 open={isOrganizationModalOpen}
