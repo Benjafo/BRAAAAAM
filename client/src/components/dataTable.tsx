@@ -54,6 +54,10 @@ export type DataTableProps<T extends Record<string, unknown>> = {
         label: string;
         onClick: () => void;
     } | null;
+    viewToggle?: {
+        activeView: string;
+        onChange: (view: string) => void;
+    };
 };
 
 // Convert camelCase variables into nice format - firstName -> First Name
@@ -91,6 +95,7 @@ export function DataTable<T extends Record<string, unknown>>({
     selectable = true,
     onRowSelectionChange,
     actionButton,
+    viewToggle,
 }: DataTableProps<T>) {
     // Internal state
     const [data, setData] = React.useState<T[]>([]);
@@ -286,8 +291,26 @@ export function DataTable<T extends Record<string, unknown>>({
                         </>
                     )}
 
+                    {/* View Toggle */}
+                    {viewToggle && (
+                        <div className="flex items-center space-x-1 ml-auto mr-2">
+                            <Button
+                                variant={viewToggle.activeView === "calendar" ? "default" : "outline"}
+                                onClick={() => viewToggle.onChange("calendar")}
+                            >
+                                Calendar
+                            </Button>
+                            <Button
+                                variant={viewToggle.activeView === "list" ? "default" : "outline"}
+                                onClick={() => viewToggle.onChange("list")}
+                            >
+                                List
+                            </Button>
+                        </div>
+                    )}
+
                     {/* Search */}
-                    <div className="ml-auto">
+                    <div className={viewToggle ? "" : "ml-auto"}>
                         {showSearch && (
                             <Input
                                 value={globalFilter ?? ""}

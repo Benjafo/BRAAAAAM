@@ -88,9 +88,14 @@ const mapRideToFormValues = (ride: Ride): Partial<RideFormValues> & { id?: strin
 export function RidesTable({
     isUnassignedRidesOnly,
     hideActionButton,
+    viewToggle,
 }: {
     isUnassignedRidesOnly?: boolean;
     hideActionButton?: boolean;
+    viewToggle?: {
+        activeView: string;
+        onChange: (view: string) => void;
+    };
 }) {
     const [isRideModalOpen, setIsRideModalOpen] = useState(false);
     const [selectedRideData, setSelectedRideData] = useState<
@@ -198,6 +203,7 @@ export function RidesTable({
                           }
                         : undefined
                 }
+                viewToggle={viewToggle}
             />
             <RideModal
                 open={isRideModalOpen}

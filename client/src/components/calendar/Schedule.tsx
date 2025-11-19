@@ -167,7 +167,14 @@ const businessHours: BusinessHoursConfig = {
     sunday: [], // Closed on Sunday
 };
 
-export default function Schedule() {
+interface ScheduleProps {
+    viewToggle?: {
+        activeView: string;
+        onChange: (view: string) => void;
+    };
+}
+
+export default function Schedule({ viewToggle }: ScheduleProps) {
     const [rides, setRides] = useState<CalendarEvent[]>([]);
     const [loading, setLoading] = useState(true);
     const [isRideModalOpen, setIsRideModalOpen] = useState(false);
@@ -300,6 +307,7 @@ export default function Schedule() {
                 }
                 onEventSelect={handleRideSelect}
                 onSlotSelect={handleSlotSelect}
+                viewToggle={viewToggle}
             />
             <RideModal
                 open={isRideModalOpen}

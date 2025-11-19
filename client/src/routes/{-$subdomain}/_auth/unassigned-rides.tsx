@@ -1,8 +1,6 @@
 import UnassignedRides from "@/components/calendar/UnassignedRides";
 import { MainNavigation } from "@/components/Navigation";
 import { RidesTable } from "@/components/tables/RidesTable";
-import { Button } from "@/components/ui/button";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@radix-ui/react-tabs";
 import { createFileRoute } from "@tanstack/react-router";
 import { useCallback, useState } from "react";
 
@@ -17,30 +15,21 @@ function RouteComponent() {
         setActiveTab(value);
     }, []);
 
+    const viewToggle = {
+        activeView: activeTab,
+        onChange: handleTabChange,
+    };
+
     return (
         <>
             <MainNavigation />
-            <Tabs value={activeTab} onValueChange={handleTabChange} className="w-full">
-                <div className="relative flex items-center justify-between mb-[15px] pt-2.5">
-                    <TabsList>
-                        <TabsTrigger value="calendar">
-                            <Button variant="outline">Calendar</Button>
-                        </TabsTrigger>
-                        <TabsTrigger value="list">
-                            <Button variant="outline">List</Button>
-                        </TabsTrigger>
-                    </TabsList>
-                </div>
-
-                <TabsContent value="calendar">
-                    <UnassignedRides />
-                </TabsContent>
-                <TabsContent value="list">
-                    <div className="w-full px-2.5 py-6">
-                        <RidesTable isUnassignedRidesOnly={true} hideActionButton={true} />
-                    </div>
-                </TabsContent>
-            </Tabs>
+            <div className="w-full px-2.5 py-6">
+                {activeTab === "calendar" ? (
+                    <UnassignedRides viewToggle={viewToggle} />
+                ) : (
+                    <RidesTable isUnassignedRidesOnly={true} hideActionButton={true} viewToggle={viewToggle} />
+                )}
+            </div>
         </>
     );
 }

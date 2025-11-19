@@ -139,6 +139,7 @@ export default function BaseCalendar({
     onEventSelect,
     onSlotSelect,
     actionButton,
+    viewToggle,
     eventStyleGetter: customEventStyleGetter,
 }: BaseCalendarProps) {
     const [currentView, setCurrentView] = useState<View>(Views.WEEK);
@@ -768,7 +769,7 @@ export default function BaseCalendar({
 
     // ("--------------------------------------------------------------------------------------------------HTML Struct------------------------------------------------------------------------------------------------");
     return (
-        <div className="h-screen">
+        <div className="border rounded-lg overflow-hidden">
             <style>{customStyles}</style>
 
             {/* Top Navigation Bar  */}
@@ -812,10 +813,22 @@ export default function BaseCalendar({
                             </div>
                         </Tabs>
 
-                        {/* <div className="flex items-center space-x-1">
-                            <Button variant="default">Filters</Button>
-                            <Button variant="default">Print</Button>
-                        </div> */}
+                        {viewToggle && (
+                            <div className="flex items-center space-x-1 ml-4">
+                                <Button
+                                    variant={viewToggle.activeView === "calendar" ? "default" : "outline"}
+                                    onClick={() => viewToggle.onChange("calendar")}
+                                >
+                                    Calendar
+                                </Button>
+                                <Button
+                                    variant={viewToggle.activeView === "list" ? "default" : "outline"}
+                                    onClick={() => viewToggle.onChange("list")}
+                                >
+                                    List
+                                </Button>
+                            </div>
+                        )}
                     </div>
 
                     <div className="flex items-center space-x-1">
@@ -871,7 +884,7 @@ export default function BaseCalendar({
             </div>
 
             {/* React Big Calendar  */}
-            <div className="flex-1" style={{ height: "calc(100vh - 80px)" }}>
+            <div style={{ height: "800px" }}>
                 <Calendar
                     localizer={localizer}
                     events={events}

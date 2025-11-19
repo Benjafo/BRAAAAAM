@@ -46,6 +46,10 @@ export interface BaseCalendarProps {
         label: string;
         onClick: () => void;
     } | null;
+    viewToggle?: {
+        activeView: string;
+        onChange: (view: string) => void;
+    };
 
     // Styling
     eventStyleGetter?: (event: CalendarEvent) => object;

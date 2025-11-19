@@ -169,7 +169,14 @@ const businessHours: BusinessHoursConfig = {
     sunday: [],
 };
 
-export default function UnassignedRides() {
+interface UnassignedRidesProps {
+    viewToggle?: {
+        activeView: string;
+        onChange: (view: string) => void;
+    };
+}
+
+export default function UnassignedRides({ viewToggle }: UnassignedRidesProps) {
     const [rides, setRides] = useState<CalendarEvent[]>([]);
     const [loading, setLoading] = useState(true);
     const [isRideModalOpen, setIsRideModalOpen] = useState(false);
@@ -279,6 +286,7 @@ export default function UnassignedRides() {
                 businessHours={businessHours}
                 onEventSelect={handleRideSelect}
                 onSlotSelect={handleSlotSelect}
+                viewToggle={viewToggle}
             />
             <RideModal
                 open={isRideModalOpen}
