@@ -46,6 +46,8 @@ const signIn = async (req: Request, res: Response) => {
         const tokenPayload: TokenPayload = {
             id: user.id,
             email: user.email,
+            firstName: user.firstName,
+            lastName: user.lastName,
             db: "sys" /**@TODO make dynamic, possibly with with-sys middleware */,
         };
 

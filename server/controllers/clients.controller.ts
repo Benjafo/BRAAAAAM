@@ -294,14 +294,10 @@ export const createClient = async (req: Request, res: Response): Promise<Respons
         }
 
         req.auditLog({
-            actionType: "appointment.created",
+            actionType: "client.created",
             objectId: newClient.id,
-            objectType: "appointment",
-            actionMessage: `Appointment created with ID ${newClient.id}`,
-            actionDetails: { 
-                client: newClient,
-                customFormFields: customFormFieldsRecord || null,
-             },
+            objectType: "client",
+            actionMessage: `Client ${newClient.firstName} ${newClient.lastName} created by ${req.user?.firstName} ${req.user?.lastName}`,
         });
 
         return res.status(201).json(newClient);
@@ -413,6 +409,11 @@ export const updateClient = async (req: Request, res: Response): Promise<Respons
             addressId = await findOrCreateLocation(db, data.address);
         }
 
+        const [existingClient] = await db
+            .select()
+            .from(clients)
+            .where(eq(clients.id, clientId));
+
         const [updatedClient] = await db
             .update(clients)
             .set({
@@ -458,6 +459,7 @@ export const updateClient = async (req: Request, res: Response): Promise<Respons
             return res.status(404).json({ message: "Client not found" });
         }
 
+        let existingCustomFormFieldsRecord;
         let customFormFieldsRecord;
 
         // Update custom field responses if provided
@@ -493,6 +495,7 @@ export const updateClient = async (req: Request, res: Response): Promise<Respons
                         .where(eq(customFormResponses.id, existingResponse.id));
 
                     customFormFieldsRecord = clientCustomFormFields;
+                    existingCustomFormFieldsRecord = existingResponse;
                 } else {
                     // Create new response
                     const clientCustomFormFields = await db.insert(customFormResponses).values({
@@ -512,10 +515,16 @@ export const updateClient = async (req: Request, res: Response): Promise<Respons
             actionType: "client.updated",
             objectId: updatedClient.id,
             objectType: "client",
-            actionMessage: `Client updated with ID ${updatedClient.id}`,
+            actionMessage: `Client ${updatedClient.firstName} ${updatedClient.lastName} updated by ${req.user?.firstName} ${req.user?.lastName}`,
             actionDetails: { 
-                client: updatedClient,
-                customFormFields: customFormFieldsRecord || null,
+                original: {
+                    client: existingClient,
+                    customFormFields: existingCustomFormFieldsRecord || null,
+                },
+                updated: {
+                    client: updatedClient,
+                    customFormFields: customFormFieldsRecord || null,
+                },
              },
         });
 
@@ -534,10 +543,10 @@ export const deleteClient = async (req: Request, res: Response): Promise<Respons
         const { clientId } = req.params;
 
         // Delete client by ID
-        const result = await db.delete(clients).where(eq(clients.id, clientId));
+        const [deletedClient] = await db.delete(clients).where(eq(clients.id, clientId)).returning();
 
         // Ensure data was deleted
-        if (result.rowCount === 0) {
+        if (!deletedClient) {
             return res.status(404).json({ message: "Client not found" });
         }
 
@@ -545,7 +554,10 @@ export const deleteClient = async (req: Request, res: Response): Promise<Respons
             actionType: "client.deleted",
             objectId: clientId,
             objectType: "client",
-            actionMessage: `Client deleted with ID ${clientId}`,
+            actionMessage: `Client ${deletedClient.firstName} ${deletedClient.lastName} deleted by ${req.user?.firstName} ${req.user?.lastName}`,
+            actionDetails: {
+                client: deletedClient
+            }
         });
 
         return res.status(204).send();

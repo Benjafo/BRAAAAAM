@@ -108,6 +108,13 @@ export const createLocation = async (req: Request, res: Response): Promise<Respo
             })
             .returning();
 
+        req.auditLog({
+            actionType: "location.created",
+            objectId: newLocation.id,
+            objectType: "location",
+            // actionMessage: `Location ${addressLine1} with alias '${aliasName}' created by ${req.user?.firstName} ${req.user?.lastName}`,
+        });
+
         return res.status(201).json(newLocation);
     } catch (err) {
         console.error("Error creating location:", err);
@@ -160,6 +167,11 @@ export const updateLocation = async (req: Request, res: Response): Promise<Respo
         const { locationId } = req.params;
         const data = req.body;
 
+        const [existingLocation] = await db
+            .select()
+            .from(locations)
+            .where(eq(locations.id, locationId));
+
         // Update only provided fields
         const [updatedLocation] = await db
             .update(locations)
@@ -182,6 +194,21 @@ export const updateLocation = async (req: Request, res: Response): Promise<Respo
             return res.status(404).json({ message: "Location not found" });
         }
 
+        req.auditLog({
+            actionType: "location.updated",
+            objectId: updatedLocation.id,
+            objectType: "location",
+            actionMessage: `Location with alias '${updatedLocation.aliasName}' updated by ${req.user?.firstName} ${req.user?.lastName}`,
+            actionDetails: {
+                original: {
+                    location: existingLocation,
+                },
+                updated: {
+                    location: updatedLocation
+                },
+            }
+        });
+
         return res.status(200).json(updatedLocation);
     } catch (err) {
         console.error("Error updating location:", err);
@@ -197,12 +224,22 @@ export const deleteLocation = async (req: Request, res: Response): Promise<Respo
         const { locationId } = req.params;
 
         // Delete record by ID
-        const result = await db.delete(locations).where(eq(locations.id, locationId));
+        const [deletedLocation] = await db.delete(locations).where(eq(locations.id, locationId)).returning();
 
         // Ensure record actually deleted
-        if (result.rowCount === 0) {
+        if (!deletedLocation) {
             return res.status(404).json({ message: "Location not found" });
         }
+
+        req.auditLog({
+            actionType: "location.deleted",
+            objectId: deletedLocation.id,
+            objectType: "location",
+            actionMessage: `Location with alias '${deletedLocation.aliasName}' deleted by ${req.user?.firstName} ${req.user?.lastName}`,
+            actionDetails: {
+                location: deletedLocation,
+            }
+        });
 
         return res.status(204).send();
     } catch (err) {

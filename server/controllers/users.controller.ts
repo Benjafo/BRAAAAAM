@@ -296,8 +296,6 @@ export const createUser = async (req: Request, res: Response): Promise<Response>
             })
             .returning();
 
-        let customFormFieldsRecord;
-
         // Save custom field responses if provided
         const customFields = req.body.customFields;
         if (customFields && Object.keys(customFields).length > 0) {
@@ -307,27 +305,21 @@ export const createUser = async (req: Request, res: Response): Promise<Response>
                 .where(and(eq(customForms.targetEntity, "user"), eq(customForms.isActive, true)));
 
             if (userForm) {
-                const userCustomFormFields = await db.insert(customFormResponses).values({
+                await db.insert(customFormResponses).values({
                     formId: userForm.id,
                     entityId: newUser.id,
                     entityType: "user",
                     responseData: customFields,
                     submittedBy: req.user?.id,
                 });
-
-                customFormFieldsRecord = userCustomFormFields;
             }
         }
 
         req.auditLog({
-            actionType: "users.created",
+            actionType: "user.created",
             objectId: newUser.id,
             objectType: "user",
-            actionMessage: `Users created with ID ${newUser.id}`,
-            actionDetails: { 
-                user: newUser,
-                customFormFields: customFormFieldsRecord || null,
-             },
+            actionMessage: `User '${firstName} ${lastName}' created by ${req.user?.firstName} ${req.user?.lastName}`,
         });
 
         return res.status(201).json(newUser);
@@ -431,6 +423,11 @@ export const updateUser = async (req: Request, res: Response): Promise<Response>
             addressId = await findOrCreateLocation(db, data.address);
         }
 
+        const [existingUser] = await db
+            .select()
+            .from(users)
+            .where(eq(users.id, userId));
+
         const [updatedUser] = await db
             .update(users)
             .set({
@@ -476,6 +473,7 @@ export const updateUser = async (req: Request, res: Response): Promise<Response>
             return res.status(404).json({ message: "User not found" });
         }
 
+        let existingCustomFormFieldsRecord;
         let customFormFieldsRecord;
 
         // Update custom field responses if provided
@@ -512,6 +510,7 @@ export const updateUser = async (req: Request, res: Response): Promise<Response>
                         .where(eq(customFormResponses.id, existingResponse.id));
 
                     customFormFieldsRecord = usersCustomFormFields;
+                    existingCustomFormFieldsRecord = existingResponse;
                 } else {
                     // Create new response
                     const usersCustomFormFields = await db.insert(customFormResponses).values({
@@ -528,13 +527,19 @@ export const updateUser = async (req: Request, res: Response): Promise<Response>
         }
 
         req.auditLog({
-            actionType: "users.updated",
+            actionType: "user.updated",
             objectId: updatedUser.id,
             objectType: "user",
-            actionMessage: `Users updated with ID ${updatedUser.id}`,
+            actionMessage: `User '${updatedUser.firstName} ${updatedUser.lastName}' updated by ${req.user?.firstName} ${req.user?.lastName}`,
             actionDetails: { 
-                user: updatedUser,
-                customFormFields: customFormFieldsRecord || null,
+                original: {
+                    user: existingUser,
+                    customFormFields: existingCustomFormFieldsRecord || null,
+                },
+                updated: {
+                    user: updatedUser,
+                    customFormFields: customFormFieldsRecord || null,
+                },
              },
         });
 
@@ -553,17 +558,20 @@ export const deleteUser = async (req: Request, res: Response): Promise<Response>
 
         const { userId } = req.params;
 
-        const result = await db.delete(users).where(eq(users.id, userId));
+        const [deletedUser] = await db.delete(users).where(eq(users.id, userId)).returning();
 
-        if (result.rowCount === 0) {
+        if (!deletedUser) {
             return res.status(404).json({ message: "User not found" });
         }
 
         req.auditLog({
-            actionType: "users.updated",
+            actionType: "user.deleted",
             objectId: userId,
             objectType: "user",
-            actionMessage: `Users deleted with ID ${userId}`,
+            actionMessage: `User '${deletedUser.firstName} ${deletedUser.lastName}' deleted by ${req.user?.firstName} ${req.user?.lastName}`,
+            actionDetails: {
+                user: deletedUser,
+            }
         });
 
         return res.status(204).send();

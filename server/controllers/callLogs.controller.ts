@@ -143,6 +143,13 @@ export const createCallLog = async (req: Request, res: Response): Promise<Respon
             })
             .returning();
 
+        req.auditLog({
+            actionType: "callLog.created",
+            objectId: newCallLog.id,
+            objectType: "callLog",
+            actionMessage: `Call Log created by ${req.user?.firstName} ${req.user?.lastName} for ${firstName} ${lastName} with the phone number ${phoneNumber}`,
+        });
+
         return res.status(201).json(newCallLog);
     } catch (error) {
         console.error("createCallLog error:", error);
@@ -157,6 +164,11 @@ export const updateCallLog = async (req: Request, res: Response): Promise<Respon
 
         const { id } = req.params;
         const { date, time, firstName, lastName, phoneNumber, callType, message, notes } = req.body;
+
+        const [callLog] = await db
+            .select()
+            .from(callLogs)
+            .where(and(eq(callLogs.id, id), eq(callLogs.isDeleted, false)));
 
         const [updatedCallLog] = await db
             .update(callLogs)
@@ -177,6 +189,21 @@ export const updateCallLog = async (req: Request, res: Response): Promise<Respon
         if (!updatedCallLog) {
             return res.status(404).json({ error: "Call log not found" });
         }
+
+        req.auditLog({
+            actionType: "callLog.updated",
+            objectId: updatedCallLog.id,
+            objectType: "callLog",
+            actionMessage: `Call Log updated by ${req.user?.firstName} ${req.user?.lastName}`,
+            actionDetails: { 
+                original: {
+                    callLog: callLog,
+                },
+                updated: {
+                    callLog: updatedCallLog,
+                }
+             },
+        });
 
         return res.json(updatedCallLog);
     } catch (error) {
@@ -205,6 +232,16 @@ export const deleteCallLog = async (req: Request, res: Response): Promise<Respon
         if (!deletedCallLog) {
             return res.status(404).json({ error: "Call log not found" });
         }
+
+        req.auditLog({
+            actionType: "callLog.deleted",
+            objectId: deletedCallLog.id,
+            objectType: "callLog",
+            actionMessage: `Call Log deleted by ${req.user?.firstName} ${req.user?.lastName}`,
+            actionDetails: { 
+                callLog: deletedCallLog,
+             },
+        });
 
         return res.json({ message: "Call log deleted successfully" });
     } catch (error) {

@@ -14,7 +14,7 @@ export default function AuditLogModal({ auditLogEntry, open, onOpenChange }: Aud
 
     return (
         <Dialog open={open} onOpenChange={onOpenChange}>
-            <DialogContent className="max-w-[900px] max-h-[90vh] overflow-y-auto">
+            <DialogContent className="lg:max-w-3xl max-h-7/8 overflow-y-auto">
                 <DialogHeader>
                     <DialogTitle>Audit Log Details</DialogTitle>
                 </DialogHeader>

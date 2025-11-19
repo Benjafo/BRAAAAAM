@@ -28,6 +28,8 @@ export interface LoginResponse {
 export interface TokenPayload {
     id: string;
     email: string;
+    firstName: string;
+    lastName: string;
     db: string;
 }
 

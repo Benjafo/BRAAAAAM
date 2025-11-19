@@ -1,4 +1,4 @@
-import { and, eq, isNull } from "drizzle-orm";
+import { and, eq, isNull, sql } from "drizzle-orm";
 import { locations } from "../drizzle/org/schema.js";
 
 export type Address = {
@@ -76,44 +76,72 @@ export type Address = {
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export const findOrCreateLocation = async (db: any, address: Address): Promise<string> => {
     const addr1 = address.addressLine1?.trim() ?? "";
-    const addr2 = address.addressLine2?.trim() || null;
+    const addr2 = address.addressLine2?.trim() ?? "";
     const city = address.city?.trim() ?? "";
     const state = address.state?.trim() ?? "";
     const zip = address.zip?.trim() ?? "";
     const country = address.country?.trim() ?? "";
 
+    //this needs to be an execute with raw SQL to do the ON CONFLICT properly -Miles
+    const result = await db.execute(sql`
+        INSERT INTO locations (
+            address_line_1, address_line_2, city, state, zip, country
+        )
+        VALUES (
+            ${addr1}, ${addr2}, ${city}, ${state}, ${zip}, ${country}
+        )
+        ON CONFLICT (
+            lower((address_line_1)::text),
+            COALESCE(lower((address_line_2)::text), ''::text),
+            lower((city)::text),
+            lower((state)::text),
+            lower((zip)::text),
+            lower((country)::text)
+        )
+        DO UPDATE SET updated_at = NOW()
+        RETURNING id;
+    `);
+
+    const row = result.rows[0];
+    console.log("findOrCreateLocation row:", row);
+
+    return row.id;
+
+    /**@TODO REMOVE DEAD CODE BELOW */
+
+
     // Look for existing location with same full address
     // Note: SQL NULL comparisons require IS NULL, not = NULL
-    const [existingLocation] = await db
-        .select({ id: locations.id })
-        .from(locations)
-        .where(
-            and(
-                eq(locations.addressLine1, addr1),
-                addr2 === null ? isNull(locations.addressLine2) : eq(locations.addressLine2, addr2),
-                eq(locations.city, city),
-                eq(locations.state, state),
-                eq(locations.zip, zip),
-                eq(locations.country, country)
-            )
-        );
+//     const [existingLocation] = await db
+//         .select({ id: locations.id })
+//         .from(locations)
+//         .where(
+//             and(
+//                 eq(locations.addressLine1, addr1),
+//                 addr2?.length === 0 ? isNull(locations.addressLine2) : eq(locations.addressLine2, addr2),
+//                 eq(locations.city, city),
+//                 eq(locations.state, state),
+//                 eq(locations.zip, zip),
+//                 eq(locations.country, country)
+//             )
+//         );
 
-    if (existingLocation) {
-        return existingLocation.id;
-    }
+//     if (existingLocation) {
+//         return existingLocation.id;
+//     }
 
-    // No existing match, make new location
-    const [newLocation] = await db
-        .insert(locations)
-        .values({
-            addressLine1: addr1,
-            addressLine2: addr2,
-            city,
-            state,
-            zip,
-            country,
-        })
-        .returning({ id: locations.id });
+//     // No existing match, make new location
+//     const [newLocation] = await db
+//         .insert(locations)
+//         .values({
+//             addressLine1: addr1,
+//             addressLine2: addr2,
+//             city,
+//             state,
+//             zip,
+//             country,
+//         })
+//         .returning({ id: locations.id });
 
-    return newLocation.id;
+//     return newLocation.id;
 };
