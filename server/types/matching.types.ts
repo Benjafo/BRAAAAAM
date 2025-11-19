@@ -3,7 +3,7 @@ export interface MatchingContext {
     client: ClientDetails;
     unavailabilityMap: Map<string, UnavailabilityBlock[]>;
     weekRidesMap: Map<string, number>;
-    concurrentRidesSet: Set<string>;
+    concurrentRideOverlapMap: Map<string, number>; // driverId -> overlap percentage (0-100)
     allDriversWeekRides: Array<{ driverId: string; rideCount: number }>;
     allDriversMaxRides: Array<{ driverId: string; maxRidesPerWeek: number }>;
 }
@@ -44,10 +44,9 @@ export interface DriverProfile {
 export interface ScoreBreakdown {
     total: number;
     baseScore: {
-        loadBalancing: number;
+        rideBalancing: number;
         vehicleMatch: number;
-        mobilityEquipment: number;
-        specialAccommodations: number;
+        underMaxRidesPerWeek: number;
     };
     penalties: {
         unavailable: number;

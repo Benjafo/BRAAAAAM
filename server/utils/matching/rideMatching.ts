@@ -2,9 +2,8 @@ import { DriverProfile, MatchingContext, ScoreBreakdown } from "../../types/matc
 import { checkAvailability } from "./availabilityCheck.js";
 import { scoreLoadBalancing } from "./loadBalancing.js";
 import {
-    scoreMobilityEquipment,
-    scoreSpecialAccommodations,
     scoreVehicleMatch,
+    scoreUnderMaxRidesPerWeek,
 } from "./scoringCriteria.js";
 
 /**
@@ -23,31 +22,36 @@ export function calculateDriverScore(
     // START WITH BASE SCORING - Calculate points
     let score = 0;
 
-    score += scoreLoadBalancing(driver, context); // 40pts
-    score += scoreVehicleMatch(driver, context.client); // 25pts (or -15 penalty)
-    score += scoreMobilityEquipment(driver, context.client); // 20pts
-    score += scoreSpecialAccommodations(driver, context.client); // 15pts
+    score += scoreLoadBalancing(driver, context); // up to 50pts
+    score += scoreVehicleMatch(driver, context.client); // 30pts
+    score += scoreUnderMaxRidesPerWeek(driver, context); // up to 20pts
 
     // APPLY PENALTIES - These are warnings, not disqualifiers
 
-    // 1. Unavailability penalty (-30pts)
+    // 1. Unavailability penalty (-50pts)
     if (!checkAvailability(driver, context)) {
-        score -= 30;
+        score -= 50;
     }
 
-    // 2. Concurrent ride penalty (-25pts)
-    if (context.concurrentRidesSet.has(driver.id)) {
+    // 2. Concurrent ride penalty (tiered based on overlap percentage)
+    const overlapPercentage = context.concurrentRideOverlapMap.get(driver.id) || 0;
+    if (overlapPercentage >= 50) {
         score -= 25;
+    } else if (overlapPercentage >= 25) {
+        score -= 15;
+    } else if (overlapPercentage > 0) {
+        score -= 10;
     }
 
-    // 3. Over max rides penalty (-20pts)
+    // 3. Over max rides penalty (-5pts per ride over)
     const driverWeekRides = context.weekRidesMap.get(driver.id) || 0;
     const maxRides = driver.maxRidesPerWeek || 0;
-    if (maxRides > 0 && driverWeekRides >= maxRides) {
-        score -= 20;
+    if (maxRides > 0 && driverWeekRides > maxRides) {
+        const ridesOver = driverWeekRides - maxRides;
+        score -= ridesOver * 5;
     }
 
-    return score; // Can range from -90 to +100
+    return score;
 }
 
 /**
@@ -83,8 +87,6 @@ function meetsAccessibilityRequirements(driver: DriverProfile, context: Matching
         return false;
     }
 
-    // Vehicle type is now handled as a scoring penalty, not a hard requirement
-
     return true;
 }
 
@@ -106,14 +108,6 @@ export function generateMatchReasons(
         reasons.push(`Low weekly load (${weekRides} rides)`);
     }
 
-    // Accessibility
-    if (context.client.hasOxygen && driver.canAccommodateOxygen) {
-        reasons.push("Can accommodate oxygen");
-    }
-    if (context.client.hasServiceAnimal && driver.canAccommodateServiceAnimal) {
-        reasons.push("Can accommodate service animal");
-    }
-
     // Vehicle match
     const driverVehicleTypes = driver.vehicleTypes || [];
     const clientVehicleTypes = context.client.vehicleTypes || [];
@@ -122,17 +116,26 @@ export function generateMatchReasons(
         reasons.push(`Vehicle type matches preference (${matchingVehicles.join(", ")})`);
     }
 
+    // Max rides status
+    const maxRides = driver.maxRidesPerWeek || 0;
+    if (maxRides > 0 && weekRides < maxRides) {
+        const ridesRemaining = maxRides - weekRides;
+        reasons.push(`Under weekly limit (${weekRides}/${maxRides}, ${ridesRemaining} remaining)`);
+    }
+
     // Warning conditions
     if (!checkAvailability(driver, context)) {
         reasons.push("⚠️ Unavailable during appointment time");
     }
-    if (context.concurrentRidesSet.has(driver.id)) {
-        reasons.push("⚠️ Has concurrent ride scheduled");
+
+    const overlapPercentage = context.concurrentRideOverlapMap.get(driver.id) || 0;
+    if (overlapPercentage > 0) {
+        reasons.push(`⚠️ Has concurrent ride (${Math.round(overlapPercentage)}% overlap)`);
     }
-    const driverWeekRides = context.weekRidesMap.get(driver.id) || 0;
-    const maxRides = driver.maxRidesPerWeek || 0;
-    if (maxRides > 0 && driverWeekRides >= maxRides) {
-        reasons.push(`⚠️ At weekly ride limit (${driverWeekRides}/${maxRides})`);
+
+    if (maxRides > 0 && weekRides > maxRides) {
+        const ridesOver = weekRides - maxRides;
+        reasons.push(`⚠️ Over weekly limit (${weekRides}/${maxRides}, ${ridesOver} over)`);
     }
 
     return reasons;
@@ -140,8 +143,11 @@ export function generateMatchReasons(
 
 /**
  * Determine if a driver is a perfect match
- * Perfect match = maximum intrinsic compatibility + no warnings
- * (Load balancing is NOT considered for perfect match status)
+ * Perfect match criteria:
+ * - All fail checks pass (already handled by meetsAccessibilityRequirements)
+ * - Vehicle types match (30 points)
+ * - Driver under max rides per week >= 0 points (at or under max)
+ * - No negative points applied
  */
 export function isPerfectMatch(
     driver: DriverProfile,
@@ -149,20 +155,19 @@ export function isPerfectMatch(
 ): boolean {
     const breakdown = calculateScoreBreakdown(driver, context);
 
-    // Perfect intrinsic match (60/60 base score, excluding load balancing)
-    const hasPerfectBaseScore =
-        breakdown.baseScore.vehicleMatch === 25 &&
-        breakdown.baseScore.mobilityEquipment === 20 &&
-        breakdown.baseScore.specialAccommodations === 15;
+    // Vehicle type must match (30 points)
+    const hasVehicleMatch = breakdown.baseScore.vehicleMatch === 30;
 
-    // No warnings/penalties
-    const hasNoWarnings =
-        !breakdown.warnings.hasUnavailability &&
-        !breakdown.warnings.hasConcurrentRide &&
-        !breakdown.warnings.isOverMaxRides &&
-        !breakdown.warnings.hasVehicleMismatch;
+    // Driver must be at or under max rides (>= 0 points)
+    const isUnderMaxRides = breakdown.baseScore.underMaxRidesPerWeek >= 0;
 
-    return hasPerfectBaseScore && hasNoWarnings;
+    // No penalties applied
+    const hasNoPenalties =
+        breakdown.penalties.unavailable === 0 &&
+        breakdown.penalties.concurrentRide === 0 &&
+        breakdown.penalties.overMaxRides === 0;
+
+    return hasVehicleMatch && isUnderMaxRides && hasNoPenalties;
 }
 
 /**
@@ -173,25 +178,38 @@ export function calculateScoreBreakdown(
     context: MatchingContext
 ): ScoreBreakdown {
     // Calculate base scores
-    const loadBalancingScore = scoreLoadBalancing(driver, context);
+    const rideBalancingScore = scoreLoadBalancing(driver, context);
     const vehicleMatchScore = scoreVehicleMatch(driver, context.client);
-    const mobilityEquipmentScore = scoreMobilityEquipment(driver, context.client);
-    const specialAccommodationsScore = scoreSpecialAccommodations(driver, context.client);
+    const underMaxRidesScore = scoreUnderMaxRidesPerWeek(driver, context);
 
     // Calculate penalties
-    const unavailabilityPenalty = !checkAvailability(driver, context) ? -30 : 0;
-    const concurrentRidePenalty = context.concurrentRidesSet.has(driver.id) ? -25 : 0;
+    const unavailabilityPenalty = !checkAvailability(driver, context) ? -50 : 0;
 
+    // Concurrent ride penalty (tiered)
+    const overlapPercentage = context.concurrentRideOverlapMap.get(driver.id) || 0;
+    let concurrentRidePenalty = 0;
+    if (overlapPercentage >= 50) {
+        concurrentRidePenalty = -25;
+    } else if (overlapPercentage >= 25) {
+        concurrentRidePenalty = -15;
+    } else if (overlapPercentage > 0) {
+        concurrentRidePenalty = -10;
+    }
+
+    // Over max rides penalty (-5 per ride over)
     const driverWeekRides = context.weekRidesMap.get(driver.id) || 0;
     const maxRides = driver.maxRidesPerWeek || 0;
-    const overMaxRidesPenalty = maxRides > 0 && driverWeekRides >= maxRides ? -20 : 0;
+    let overMaxRidesPenalty = 0;
+    if (maxRides > 0 && driverWeekRides > maxRides) {
+        const ridesOver = driverWeekRides - maxRides;
+        overMaxRidesPenalty = -(ridesOver * 5);
+    }
 
     // Calculate total
     const total =
-        loadBalancingScore +
+        rideBalancingScore +
         vehicleMatchScore +
-        mobilityEquipmentScore +
-        specialAccommodationsScore +
+        underMaxRidesScore +
         unavailabilityPenalty +
         concurrentRidePenalty +
         overMaxRidesPenalty;
@@ -199,10 +217,9 @@ export function calculateScoreBreakdown(
     return {
         total,
         baseScore: {
-            loadBalancing: loadBalancingScore,
+            rideBalancing: rideBalancingScore,
             vehicleMatch: vehicleMatchScore,
-            mobilityEquipment: mobilityEquipmentScore,
-            specialAccommodations: specialAccommodationsScore,
+            underMaxRidesPerWeek: underMaxRidesScore,
         },
         penalties: {
             unavailable: unavailabilityPenalty,
@@ -213,7 +230,7 @@ export function calculateScoreBreakdown(
             hasUnavailability: unavailabilityPenalty < 0,
             hasConcurrentRide: concurrentRidePenalty < 0,
             isOverMaxRides: overMaxRidesPenalty < 0,
-            hasVehicleMismatch: vehicleMatchScore < 0,
+            hasVehicleMismatch: vehicleMatchScore === 0,
         },
     };
 }

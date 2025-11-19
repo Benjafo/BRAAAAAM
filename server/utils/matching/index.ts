@@ -7,7 +7,6 @@ export {
     isPerfectMatch,
 } from "./rideMatching.js";
 export {
-    scoreMobilityEquipment,
-    scoreSpecialAccommodations,
     scoreVehicleMatch,
+    scoreUnderMaxRidesPerWeek,
 } from "./scoringCriteria.js";

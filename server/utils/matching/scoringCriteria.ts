@@ -1,62 +1,52 @@
-import { ClientDetails, DriverProfile } from "../../types/matching.types.js";
+import { ClientDetails, DriverProfile, MatchingContext } from "../../types/matching.types.js";
 
 /**
  * Score vehicle type match
- * Returns -15 to 25 points
+ * Returns 30 points if match, 0 points if no match
  */
 export function scoreVehicleMatch(driver: DriverProfile, client: ClientDetails): number {
     const clientVehicleTypes = client.vehicleTypes || [];
 
-    // Client has no preference
+    // Client has no preference - give full points
     if (clientVehicleTypes.length === 0) {
-        return 20;
+        return 30;
     }
 
     // Check if driver has any vehicle type that matches client preferences
     const driverVehicleTypes = driver.vehicleTypes || [];
     const hasMatch = driverVehicleTypes.some((vehicleType) => clientVehicleTypes.includes(vehicleType));
 
-    // Perfect match
+    // Match found
     if (hasMatch) {
-        return 25;
+        return 30;
     }
 
-    // No match - apply penalty (warning condition)
-    return -15;
+    // No match - no points awarded
+    return 0;
 }
 
 /**
- * Score mobility equipment match
- * Returns 20 points (all qualifying drivers receive full points)
+ * Score driver under max rides per week
+ * Returns 0-20 points
  */
-export function scoreMobilityEquipment(driver: DriverProfile, client: ClientDetails): number {
-    const clientEquipment = client.mobilityEquipment || [];
+export function scoreUnderMaxRidesPerWeek(driver: DriverProfile, context: MatchingContext): number {
+    const driverWeekRides = context.weekRidesMap.get(driver.id) || 0;
+    const maxRides = driver.maxRidesPerWeek || 0;
 
-    // Client has no equipment OR driver can accommodate all (hard requirement ensures 100% match)
-    // All qualifying drivers receive full points
-    return 20;
-}
-
-/**
- * Score special accommodations (oxygen, service animal)
- * Returns 0-15 points
- */
-export function scoreSpecialAccommodations(driver: DriverProfile, client: ClientDetails): number {
-    let score = 0;
-
-    // Oxygen accommodation
-    // If client doesn't need it, give points (all drivers can handle this)
-    // If client needs it, driver must have it (hard requirement) so give points
-    if (!client.hasOxygen || driver.canAccommodateOxygen) {
-        score += 7.5;
+    // No max set (unlimited) - give full points
+    if (maxRides === 0) {
+        return 20;
     }
 
-    // Service animal accommodation
-    // If client doesn't have one, give points (all drivers can handle this)
-    // If client has one, driver must accommodate (hard requirement) so give points
-    if (!client.hasServiceAnimal || driver.canAccommodateServiceAnimal) {
-        score += 7.5;
+    // Driver is at or over max - no positive points
+    if (driverWeekRides >= maxRides) {
+        return 0;
     }
 
-    return score;
+    // Driver is under max - scale from 0 (at max) to 20 (no rides)
+    // Linear scale: 20 * (maxRides - currentRides) / maxRides
+    const score = 20 * (maxRides - driverWeekRides) / maxRides;
+
+    return Math.round(score);
 }
+

@@ -739,16 +739,19 @@ export const getMatchingDrivers = async (req: Request, res: Response): Promise<R
             }
         }
 
-        // Check for time overlap in concurrent rides
-        const concurrentRidesSet = new Set<string>();
+        // Calculate overlap percentage for concurrent rides
+        const concurrentRideOverlapMap = new Map<string, number>();
         for (const ride of concurrentRides) {
-            if (ride.driverId && checkTimeOverlap(
-                appointment.startTime,
-                appointment.estimatedDurationMinutes || 60,
-                ride.startTime,
-                ride.estimatedDurationMinutes || 60
-            )) {
-                concurrentRidesSet.add(ride.driverId);
+            if (ride.driverId) {
+                const overlapPercentage = calculateOverlapPercentage(
+                    appointment.startTime,
+                    appointment.estimatedDurationMinutes || 60,
+                    ride.startTime,
+                    ride.estimatedDurationMinutes || 60
+                );
+                if (overlapPercentage > 0) {
+                    concurrentRideOverlapMap.set(ride.driverId, overlapPercentage);
+                }
             }
         }
 
@@ -773,7 +776,7 @@ export const getMatchingDrivers = async (req: Request, res: Response): Promise<R
             },
             unavailabilityMap,
             weekRidesMap,
-            concurrentRidesSet,
+            concurrentRideOverlapMap,
             allDriversWeekRides: currentWeekRides.map(r => ({
                 driverId: r.driverId || "",
                 rideCount: r.rideCount,
@@ -892,6 +895,37 @@ function checkTimeOverlap(
 
     // Overlap if one starts before the other ends
     return start1Minutes < end2Minutes && start2Minutes < end1Minutes;
+}
+
+function calculateOverlapPercentage(
+    start1: string,
+    duration1: number,
+    start2: string,
+    duration2: number
+): number {
+    const toMinutes = (time: string) => {
+        const [hours, minutes] = time.split(":").map(Number);
+        return hours * 60 + minutes;
+    };
+
+    const start1Minutes = toMinutes(start1);
+    const end1Minutes = start1Minutes + duration1;
+    const start2Minutes = toMinutes(start2);
+    const end2Minutes = start2Minutes + duration2;
+
+    // Calculate overlap
+    const overlapStart = Math.max(start1Minutes, start2Minutes);
+    const overlapEnd = Math.min(end1Minutes, end2Minutes);
+    const overlapMinutes = Math.max(0, overlapEnd - overlapStart);
+
+    if (overlapMinutes === 0) {
+        return 0;
+    }
+
+    // Calculate percentage based on the first ride's duration
+    const overlapPercentage = (overlapMinutes / duration1) * 100;
+
+    return overlapPercentage;
 }
 
 export const notifyDrivers = async (req: Request, res: Response): Promise<Response> => {
