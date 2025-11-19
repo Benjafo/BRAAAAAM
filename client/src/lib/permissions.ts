@@ -71,6 +71,12 @@ export const PERMISSIONS = {
     // Notifications - All
     ALL_NOTIFICATIONS_READ: "allnotifications.read",
     ALL_NOTIFICATIONS_UPDATE: "allnotifications.update",
+
+    // Call Logs
+    CALL_LOGS_READ: "calllogs.read",
+    CALL_LOGS_CREATE: "calllogs.create",
+    CALL_LOGS_UPDATE: "calllogs.update",
+    CALL_LOGS_DELETE: "calllogs.delete",
 } as const;
 
 export type Permission = (typeof PERMISSIONS)[keyof typeof PERMISSIONS];
@@ -108,6 +114,12 @@ export const PERMISSION_GROUPS = {
         PERMISSIONS.ALL_VOLUNTEER_RECORDS_READ,
         PERMISSIONS.ALL_VOLUNTEER_RECORDS_UPDATE,
         PERMISSIONS.ALL_VOLUNTEER_RECORDS_DELETE,
+    ],
+    "Call Logs": [
+        PERMISSIONS.CALL_LOGS_READ,
+        PERMISSIONS.CALL_LOGS_CREATE,
+        PERMISSIONS.CALL_LOGS_UPDATE,
+        PERMISSIONS.CALL_LOGS_DELETE,
     ],
     Administration: [
         PERMISSIONS.ROLES_READ,

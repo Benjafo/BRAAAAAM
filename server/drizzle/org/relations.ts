@@ -3,7 +3,6 @@ import {
     appointments,
     auditLogs,
     callLogs,
-    callLogTypes,
     clients,
     customFormFields,
     customFormResponses,
@@ -75,14 +74,6 @@ export const callLogsRelations = relations(callLogs, ({ one }) => ({
         fields: [callLogs.createdByUserId],
         references: [users.id],
     }),
-    callLogType: one(callLogTypes, {
-        fields: [callLogs.callType],
-        references: [callLogTypes.id],
-    }),
-}));
-
-export const callLogTypesRelations = relations(callLogTypes, ({ many }) => ({
-    callLogs: many(callLogs),
 }));
 
 export const appointmentsRelations = relations(appointments, ({ one }) => ({

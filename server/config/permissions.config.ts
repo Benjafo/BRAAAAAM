@@ -317,6 +317,36 @@ export const PERMISSIONS: PermissionDefinition[] = [
         description: "Retry failed or cancel queued notifications",
     },
 
+    // Call Logs
+    {
+        permKey: "calllogs.read",
+        resource: "calllogs",
+        action: "read",
+        name: "View Call Logs",
+        description: "View call log records",
+    },
+    {
+        permKey: "calllogs.create",
+        resource: "calllogs",
+        action: "create",
+        name: "Create Call Logs",
+        description: "Create new call log entries",
+    },
+    {
+        permKey: "calllogs.update",
+        resource: "calllogs",
+        action: "update",
+        name: "Update Call Logs",
+        description: "Modify existing call log entries",
+    },
+    {
+        permKey: "calllogs.delete",
+        resource: "calllogs",
+        action: "delete",
+        name: "Delete Call Logs",
+        description: "Delete call log entries",
+    },
+
     // Special Permissions
     // {
     //     permKey: "system.admin",

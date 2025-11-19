@@ -409,11 +409,6 @@ export const clients = pgTable(
     ]
 );
 
-export const callLogTypes = pgTable("call_log_types", {
-    id: uuid().defaultRandom().primaryKey().notNull(),
-    title: varchar({ length: 50 }).notNull(),
-});
-
 export const callLogs = pgTable(
     "call_logs",
     {
@@ -421,7 +416,7 @@ export const callLogs = pgTable(
         createdByUserId: uuid("created_by_user_id").notNull(),
         date: date().notNull(),
         time: time(),
-        callType: uuid("call_type").notNull(),
+        callType: varchar("call_type", { length: 100 }).notNull(),
         firstName: varchar("first_name", { length: 255 }).notNull(),
         lastName: varchar("last_name", { length: 255 }).notNull(),
         phoneNumber: text("phone_number").notNull(),
@@ -441,14 +436,9 @@ export const callLogs = pgTable(
             foreignColumns: [users.id],
             name: "call_logs_created_by_user_id_fkey",
         }),
-        foreignKey({
-            columns: [table.callType],
-            foreignColumns: [callLogTypes.id],
-            name: "call_logs_call_type_fkey",
-        }),
         check(
             "call_logs_phone_number_e164_check",
-            sql`(phone_number IS NULL) OR (phone_number ~ '^\\+[1-9]\d{1,14}$'::text)`
+            sql`(phone_number IS NULL) OR (phone_number ~ '^\\+[1-9][0-9]{1,14}$'::text)`
         ),
     ]
 );

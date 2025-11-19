@@ -69,6 +69,12 @@ export const DEFAULT_ROLES: RoleDefinition[] = [
             // Notifications
             "allnotifications.read",
             "allnotifications.update",
+
+            // Call Logs
+            "calllogs.read",
+            "calllogs.create",
+            "calllogs.update",
+            "calllogs.delete",
         ],
     },
     {
@@ -104,6 +110,11 @@ export const DEFAULT_ROLES: RoleDefinition[] = [
             // Notifications
             "allnotifications.read",
             "allnotifications.update",
+
+            // Call Logs
+            "calllogs.read",
+            "calllogs.create",
+            "calllogs.update",
         ],
     },
     {
