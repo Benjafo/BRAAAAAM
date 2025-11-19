@@ -1,6 +1,5 @@
 "use client";
 
-import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Progress } from "@/components/ui/progress";
 import { AlertTriangle, CheckCircle, XCircle } from "lucide-react";
@@ -8,10 +7,9 @@ import { AlertTriangle, CheckCircle, XCircle } from "lucide-react";
 interface ScoreBreakdown {
     total: number;
     baseScore: {
-        loadBalancing: number;
+        rideBalancing: number;
         vehicleMatch: number;
-        mobilityEquipment: number;
-        specialAccommodations: number;
+        underMaxRidesPerWeek: number;
     };
     penalties: {
         unavailable: number;
@@ -65,12 +63,6 @@ export default function DriverMatchDetailsModal({
         return "text-red-600";
     };
 
-    const getScoreBadgeVariant = (score: number): "default" | "secondary" | "destructive" => {
-        if (score >= 70) return "default";
-        if (score >= 40) return "secondary";
-        return "destructive";
-    };
-
     return (
         <Dialog open={open} onOpenChange={onOpenChange}>
             <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
@@ -79,9 +71,6 @@ export default function DriverMatchDetailsModal({
                         <span>
                             Match Details: {driver.firstName} {driver.lastName}
                         </span>
-                        <Badge variant={getScoreBadgeVariant(scoreBreakdown.total)}>
-                            Score: {scoreBreakdown.total}
-                        </Badge>
                     </DialogTitle>
                 </DialogHeader>
 
@@ -92,9 +81,12 @@ export default function DriverMatchDetailsModal({
                             <div className="flex items-center gap-3">
                                 <CheckCircle className="h-6 w-6 text-green-600" />
                                 <div className="flex-1">
-                                    <h4 className="font-bold text-green-900 text-lg">Perfect Match!</h4>
+                                    <h4 className="font-bold text-green-900 text-lg">
+                                        Perfect Match!
+                                    </h4>
                                     <p className="text-sm text-green-800">
-                                        This driver meets all requirements with maximum compatibility and no warnings.
+                                        This driver meets all requirements with maximum
+                                        compatibility and no warnings.
                                     </p>
                                 </div>
                             </div>
@@ -105,10 +97,7 @@ export default function DriverMatchDetailsModal({
                     <div>
                         <h3 className="text-sm font-semibold mb-2">Overall Match Score</h3>
                         <div className="flex items-center gap-4">
-                            <Progress
-                                value={(scoreBreakdown.total + 90) / 1.9}
-                                className="flex-1"
-                            />
+                            <Progress value={(scoreBreakdown.total + 100) / 2} className="flex-1" />
                             <span
                                 className={`text-2xl font-bold ${getScoreColor(scoreBreakdown.total)}`}
                             >
@@ -116,7 +105,7 @@ export default function DriverMatchDetailsModal({
                             </span>
                         </div>
                         <p className="text-xs text-muted-foreground mt-1">
-                            Score range: -90 (worst) to +100 (perfect)
+                            Score range: varies by penalties applied (max: 100)
                         </p>
                     </div>
 
@@ -141,7 +130,7 @@ export default function DriverMatchDetailsModal({
                                         )}
                                         {scoreBreakdown.warnings.isOverMaxRides && (
                                             <li>
-                                                • Driver at weekly ride limit (
+                                                • Driver over weekly ride limit (
                                                 {driver.weeklyRideCount}/{driver.maxRidesPerWeek})
                                             </li>
                                         )}
@@ -161,34 +150,30 @@ export default function DriverMatchDetailsModal({
                         <h3 className="text-sm font-semibold mb-3">Score Breakdown</h3>
                         <div className="space-y-3">
                             <ScoreItem
-                                label="Load Balancing"
-                                score={scoreBreakdown.baseScore.loadBalancing}
-                                maxScore={40}
-                                description={`Driver has ${driver.weeklyRideCount} ride(s) this week`}
+                                label="Ride Balancing"
+                                score={scoreBreakdown.baseScore.rideBalancing}
+                                maxScore={50}
+                                description={`Based on standard deviation - Driver has ${driver.weeklyRideCount} ride(s) this week`}
                             />
                             <ScoreItem
                                 label="Vehicle Type Match"
                                 score={scoreBreakdown.baseScore.vehicleMatch}
-                                maxScore={25}
+                                maxScore={30}
                                 description={
-                                    scoreBreakdown.baseScore.vehicleMatch < 0
-                                        ? "Vehicle does not match preference (-15 penalty)"
-                                        : scoreBreakdown.baseScore.vehicleMatch === 25
-                                          ? "Perfect vehicle match"
-                                          : "No vehicle preference specified"
+                                    scoreBreakdown.baseScore.vehicleMatch === 30
+                                        ? "Vehicle matches client preference"
+                                        : "No vehicle type match"
                                 }
                             />
                             <ScoreItem
-                                label="Mobility Equipment"
-                                score={scoreBreakdown.baseScore.mobilityEquipment}
+                                label="Under Max Rides Per Week"
+                                score={scoreBreakdown.baseScore.underMaxRidesPerWeek}
                                 maxScore={20}
-                                description="Can accommodate all required equipment"
-                            />
-                            <ScoreItem
-                                label="Special Accommodations"
-                                score={scoreBreakdown.baseScore.specialAccommodations}
-                                maxScore={15}
-                                description="Oxygen, service animal capabilities"
+                                description={
+                                    driver.maxRidesPerWeek
+                                        ? `${driver.weeklyRideCount}/${driver.maxRidesPerWeek} rides this week`
+                                        : "No weekly limit set"
+                                }
                             />
                         </div>
                     </div>

@@ -12,6 +12,12 @@ export function scoreLoadBalancing(driver: DriverProfile, context: MatchingConte
 
     // Calculate mean ride count
     const allRideCounts = context.allDriversWeekRides.map((d) => d.rideCount);
+
+    // If no ride data exists (all drivers have 0 rides), give everyone equal points
+    if (allRideCounts.length === 0 || allRideCounts.every(count => count === 0)) {
+        return 25;
+    }
+
     const mean = allRideCounts.reduce((sum, count) => sum + count, 0) / allRideCounts.length;
 
     // Calculate standard deviation
@@ -20,7 +26,7 @@ export function scoreLoadBalancing(driver: DriverProfile, context: MatchingConte
     const stdDev = Math.sqrt(variance);
 
     // If everyone has the same rides (stdDev = 0), give everyone equal points
-    if (stdDev === 0) {
+    if (stdDev === 0 || isNaN(stdDev)) {
         return 25;
     }
 

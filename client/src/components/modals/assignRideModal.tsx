@@ -34,10 +34,9 @@ type Driver = {
     scoreBreakdown: {
         total: number;
         baseScore: {
-            loadBalancing: number;
+            rideBalancing: number;
             vehicleMatch: number;
-            mobilityEquipment: number;
-            specialAccommodations: number;
+            underMaxRidesPerWeek: number;
         };
         penalties: {
             unavailable: number;
