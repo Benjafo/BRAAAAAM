@@ -2,9 +2,9 @@ import { useLogout } from "@/hooks/useAuth";
 import { PERMISSIONS } from "@/lib/permissions";
 import { Link, useNavigate, useRouterState, type ToOptions } from "@tanstack/react-router";
 import { LogOut } from "lucide-react";
-import WebsterLogo from "../../public/WebsterBeeLogo.png";
+// import WebsterLogo from "../../public/WebsterBeeLogo.png";
 import { useAuthStore } from "./stores/authStore";
-import { Avatar, AvatarFallback, AvatarImage } from "./ui/avatar";
+import { Avatar, AvatarFallback } from "./ui/avatar";
 import { Button } from "./ui/button";
 
 /**
@@ -53,15 +53,15 @@ interface LoginNavProps {
  * @returns
  */
 export const LoginNavigation = ({
-    logo = { src: WebsterLogo, fallbackText: "RMS" },
+    logo = { fallbackText: "B" },
     showCancelButton = false,
 }: LoginNavProps) => {
     return (
         <NavigationLayout
             leftNavItems={
                 <Avatar className="rounded-md">
-                    <AvatarImage src={logo.src} />
-                    <AvatarFallback>{logo.fallbackText}</AvatarFallback>
+                    {/* <AvatarImage src={logo.src} /> */}
+                    <AvatarFallback className="bg-foreground text-background rounded-md">{logo.fallbackText}</AvatarFallback>
                 </Avatar>
             }
             rightNavItems={
@@ -94,7 +94,7 @@ interface MainNavProps {
  * @returns
  */
 export const MainNavigation = ({
-    logo = { src: WebsterLogo, fallbackText: "RMS" },
+    logo = { fallbackText: "B" },
     // Can probably refactor this to pull from a config file or something
     navItems = [
         {
@@ -243,8 +243,8 @@ export const MainNavigation = ({
             leftNavItems={
                 <>
                     <Avatar className="rounded-md">
-                        <AvatarImage src={logo.src} />
-                        <AvatarFallback>{logo.fallbackText}</AvatarFallback>
+                        {/* <AvatarImage src={logo.src} /> */}
+                        <AvatarFallback className="rounded-md bg-foreground text-background">{logo.fallbackText}</AvatarFallback>
                     </Avatar>
                     {/* AI help on this */}
                     {computedNavItems.map((button, idx) => {

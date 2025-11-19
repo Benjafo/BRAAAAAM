@@ -82,6 +82,7 @@ export function DatePickerInput({
                 placeholder={placeholder}
                 className="bg-background pr-10"
                 disabled={disabled}
+                onClick={() => setOpen(true)}
                 onChange={(e) => {
                     const inputVal = e.target.value;
                     setInputValue(inputVal);

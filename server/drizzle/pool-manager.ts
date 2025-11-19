@@ -51,31 +51,31 @@ export async function preloadOrgPools() {
 
 export async function createOrgDbFromTemplate(
     subdomain: string,
-    name: string,
-    pocName: string,
-    pocEmail: string,
-    addressLine1: string,
-    city: string,
-    state: string,
-    zip: string,
-    country: string,
-    addressLine2?: string,
-    pocPhone?: string
+    // name: string,
+    // pocName: string,
+    // pocEmail: string,
+    // addressLine1: string,
+    // city: string,
+    // state: string,
+    // zip: string,
+    // country: string,
+    // addressLine2?: string,
+    // pocPhone?: string
 ) {
-    const organizationInsertSchema = createInsertSchema(organizations);
-    const parsed = organizationInsertSchema.parse({
-        subdomain,
-        name,
-        pocName,
-        pocEmail,
-        pocPhone,
-        addressLine1,
-        addressLine2,
-        city,
-        state,
-        zip,
-        country,
-    });
+    // const organizationInsertSchema = createInsertSchema(organizations);
+    // const parsed = organizationInsertSchema.parse({
+    //     subdomain,
+    //     name,
+    //     pocName,
+    //     pocEmail,
+    //     pocPhone,
+    //     addressLine1,
+    //     addressLine2,
+    //     city,
+    //     state,
+    //     zip,
+    //     country,
+    // });
 
     const base = process.env.ORG_DATABASE_URL;
     if (!base) throw new Error("Missing ORG_DATABASE_URL");
@@ -99,7 +99,7 @@ export async function createOrgDbFromTemplate(
         }
     }
 
-    await sysDb.insert(organizations).values(parsed).onConflictDoNothing();
+    // await sysDb.insert(organizations).values(parsed).onConflictDoNothing();
 
     return getOrCreateOrgDb(subdomain);
 }

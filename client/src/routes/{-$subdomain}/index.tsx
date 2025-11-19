@@ -8,9 +8,15 @@ export const Route = createFileRoute("/{-$subdomain}/")({
         const s = authStore.getState();
         const isAuthed = Boolean(s.user && s.accessToken);
 
-        if (isAuthed) {
+        console.log("state in /{-$subdomain}/ index route:", s);
+
+        if (isAuthed && s.subdomain !== undefined ) {
             throw redirect({
                 to: "/{-$subdomain}/dashboard",
+            });
+        } else if (isAuthed && (!s.subdomain || s.subdomain === 'sys')) {
+            throw redirect({
+                to: "/{-$subdomain}/organizations",
             });
         } else {
             throw redirect({
