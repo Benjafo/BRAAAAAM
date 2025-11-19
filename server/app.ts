@@ -103,55 +103,55 @@ app.use(cookieParser());
 // Serve static files from frontend build
 app.use(express.static(path.join(__dirname, "..", "public")));
 
-app.get("/test/create-org-db", async (req: Request, res: Response) => {
-    const {
-        subdomain,
-        name,
-        pocName,
-        pocEmail,
-        pocPhone,
-        addressLine1,
-        addressLine2,
-        city,
-        state,
-        zip,
-        country,
-    } = req.query;
+// app.get("/test/create-org-db", async (req: Request, res: Response) => {
+//     const {
+//         subdomain,
+//         name,
+//         pocName,
+//         pocEmail,
+//         pocPhone,
+//         addressLine1,
+//         addressLine2,
+//         city,
+//         state,
+//         zip,
+//         country,
+//     } = req.query;
 
-    if (
-        typeof subdomain !== "string" ||
-        typeof name !== "string" ||
-        typeof pocName !== "string" ||
-        typeof pocEmail !== "string" ||
-        typeof addressLine1 !== "string" ||
-        typeof city !== "string" ||
-        typeof state !== "string" ||
-        typeof zip !== "string" ||
-        typeof country !== "string"
-    ) {
-        return res.status(400).json({ error: "Missing or invalid required query parameters" });
-    }
+//     if (
+//         typeof subdomain !== "string" ||
+//         typeof name !== "string" ||
+//         typeof pocName !== "string" ||
+//         typeof pocEmail !== "string" ||
+//         typeof addressLine1 !== "string" ||
+//         typeof city !== "string" ||
+//         typeof state !== "string" ||
+//         typeof zip !== "string" ||
+//         typeof country !== "string"
+//     ) {
+//         return res.status(400).json({ error: "Missing or invalid required query parameters" });
+//     }
 
-    try {
-        await createOrgDbFromTemplate(
-            subdomain,
-            name,
-            pocName,
-            pocEmail,
-            addressLine1,
-            city,
-            state,
-            zip,
-            country,
-            typeof addressLine2 === "string" ? addressLine2 : undefined,
-            typeof pocPhone === "string" ? pocPhone : undefined
-        );
-        return res.json({ message: `Organization database '${subdomain}' created successfully.` });
-    } catch (error) {
-        console.error("Error creating organization database:", error);
-        return res.status(500).json({ error: "Internal server error" });
-    }
-});
+//     try {
+//         await createOrgDbFromTemplate(
+//             subdomain,
+//             name,
+//             pocName,
+//             pocEmail,
+//             addressLine1,
+//             city,
+//             state,
+//             zip,
+//             country,
+//             typeof addressLine2 === "string" ? addressLine2 : undefined,
+//             typeof pocPhone === "string" ? pocPhone : undefined
+//         );
+//         return res.json({ message: `Organization database '${subdomain}' created successfully.` });
+//     } catch (error) {
+//         console.error("Error creating organization database:", error);
+//         return res.status(500).json({ error: "Internal server error" });
+//     }
+// });
 
 app.get("/test/o/:orgId/users", withOrg, async (req: Request, res: Response) => {
     try {

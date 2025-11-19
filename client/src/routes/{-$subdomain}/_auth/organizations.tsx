@@ -1,28 +1,34 @@
 import { MainNavigation } from "@/components/Navigation";
 import { OrganizationsTable } from "@/components/tables/OrganizationsTable";
 import { authStore } from "@/components/stores/authStore";
-import { PERMISSIONS } from "@/lib/permissions";
+// import { PERMISSIONS } from "@/lib/permissions";
 import { createFileRoute, redirect } from "@tanstack/react-router";
 
 export const Route = createFileRoute("/{-$subdomain}/_auth/organizations")({
     beforeLoad: async ({ location }) => {
         const s = authStore.getState();
-        const isAuthed = Boolean(s.user && s.accessToken);
+        // const isAuthed = Boolean(s.user && s.accessToken);
 
-        if (!isAuthed) {
+        /**@TODO Figure out how to harden security here */
+        if (s.subdomain) {
             throw redirect({
                 to: "/{-$subdomain}/sign-in",
                 search: { redirect: location.pathname },
             });
         }
 
-        if (!s.hasPermission(PERMISSIONS.ORGANIZATIONS_READ)) {
-            throw redirect({
-                to: "/{-$subdomain}/dashboard",
-            });
-        }
+        /**
+         * @TODO REMOVE/REFACTOR
+         * PERMISSIONS ARE NOT USED FOR SYSTEM ADMIN, ONLY FOR ORGANIZATION USERS 
+         * */
 
-        return { user: s.user, isAuthed };
+        // if (!s.hasPermission(PERMISSIONS.ORGANIZATIONS_READ)) {
+        //     throw redirect({
+        //         to: "/{-$subdomain}/dashboard",
+        //     });
+        // }
+
+        return { user: s.user };
     },
     component: RouteComponent,
 });
@@ -31,7 +37,11 @@ function RouteComponent() {
     return (
         <>
             <MainNavigation />
-            <OrganizationsTable />
+            <hr/>
+            <div className="w-full px-2.5 py-6">
+                <h3 className="text-3xl font-medium mb-5">Super Admin Panel</h3>
+                <OrganizationsTable />
+            </div>
         </>
     );
 }

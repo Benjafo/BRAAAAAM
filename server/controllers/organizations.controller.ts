@@ -3,6 +3,9 @@ import { organizations } from "../drizzle/sys/schema.js";
 import { eq, sql } from "drizzle-orm";
 import { getSysDb } from "../drizzle/sys-client.js";
 import { applyQueryFilters } from "../utils/queryParams.js";
+import { createOrgDbFromTemplate } from "../drizzle/pool-manager.js";
+import { roles, users } from "../drizzle/org/schema.js";
+import { hashPassword } from "../utils/password.js";
 
 // interface Organization {
 //     id: string;
@@ -71,6 +74,7 @@ export const createOrganization = async (req: Request, res: Response): Promise<R
             pocName,
             pocEmail,
             pocPhone,
+            attentionLine,
             addressLine1,
             addressLine2,
             city,
@@ -90,6 +94,7 @@ export const createOrganization = async (req: Request, res: Response): Promise<R
                 name,
                 subdomain,
                 logoPath,
+                attentionLine,
                 addressLine1,
                 addressLine2,
                 city,
@@ -103,6 +108,33 @@ export const createOrganization = async (req: Request, res: Response): Promise<R
                 isActive: true,
             })
             .returning();
+
+        const newOrgDb = await createOrgDbFromTemplate(
+            newOrg.subdomain,
+        );
+
+        const [role] = await newOrgDb.select().from(roles).where(eq(roles.roleKey, 'admin')).limit(1);
+
+        /**@TODO REMOVE DO NOT COMMIT DO NOT !!! */
+        const pocInitialPassword = await hashPassword("Password123!");
+
+        const [admin] = await newOrgDb
+            .insert(users)
+            .values({
+                roleId: role.id,
+                firstName: newOrg.pocName.split(" ")[0] || "Admin",
+                lastName: newOrg.pocName.split(" ")[1] || "Admin",
+                email: newOrg.pocEmail,
+                phone: newOrg.pocPhone || null,
+                passwordHash: pocInitialPassword,
+            })
+            .onConflictDoNothing()
+            .returning();
+
+        if(!admin) {
+            console.warn(`Admin user for organization ${newOrg.name} was not created due to conflict.`);
+        }
+            
 
         return res.status(201).json(newOrg);
     } catch (err) {

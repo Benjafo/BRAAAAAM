@@ -1,9 +1,9 @@
 import { DataTable } from "@/components/dataTable";
-import { useAuthStore } from "@/components/stores/authStore";
-import { PERMISSIONS } from "@/lib/permissions";
+// import { useAuthStore } from "@/components/stores/authStore";
+// import { PERMISSIONS } from "@/lib/permissions";
 import { http } from "@/services/auth/serviceResolver";
 import { useState } from "react";
-import type { OrganizationFormValues } from "../form/organizationForm";
+import type { OrganizationValues } from "../form/organizationForm";
 import NewOrganizationModal from "../modals/organizationModal";
 
 type Organization = {
@@ -19,28 +19,28 @@ type Organization = {
 
 const mapOrganizationToFormValues = (
     organization: Organization
-): Partial<OrganizationFormValues> & { id: string } => {
+): Partial<OrganizationValues> & { id: string, status: string, createdAt: Date | string } => {
     return {
         id: organization.id,
-        orgName: organization.name,
+        name: organization.name,
         email: organization.pocEmail,
-        phoneGeneral: organization.pocPhone?.replace(/^\+1/, "") || "",
+        phone: organization.pocPhone?.replace(/^\+1/, "") || "",
         status: organization.isActive ? "Active" : "Inactive",
-        orgCreationDate: organization.createdAt ? new Date(organization.createdAt) : new Date(),
+        createdAt: organization.createdAt,
     };
 };
 
 export function OrganizationsTable() {
     const [isOrganizationModalOpen, setIsOrganizationModalOpen] = useState(false);
     const [selectedOrganizationData, setSelectedOrganizationData] = useState<
-        Partial<OrganizationFormValues> & { id?: string }
+        Partial<OrganizationValues>
     >({});
-    const hasCreatePermission = useAuthStore((s) =>
-        s.hasPermission(PERMISSIONS.ORGANIZATIONS_CREATE)
-    );
-    const hasEditPermission = useAuthStore((s) =>
-        s.hasPermission(PERMISSIONS.ORGANIZATIONS_UPDATE)
-    );
+    // const hasCreatePermission = useAuthStore((s) =>
+    //     s.hasPermission(PERMISSIONS.ORGANIZATIONS_CREATE)
+    // );
+    // const hasEditPermission = useAuthStore((s) =>
+    //     s.hasPermission(PERMISSIONS.ORGANIZATIONS_UPDATE)
+    // );
 
     const fetchOrganizations = async (params: Record<string, unknown>) => {
         console.log("Params: ", params);
@@ -72,6 +72,9 @@ export function OrganizationsTable() {
         <>
             <DataTable
                 fetchData={fetchOrganizations}
+                showSearch={false}
+                showFilters={false}
+                usePagination={false}
                 columns={[
                     {
                         header: "Name",
@@ -95,14 +98,12 @@ export function OrganizationsTable() {
                         id: "status",
                     },
                 ]}
-                onRowClick={hasEditPermission ? handleEditOrganization : undefined}
+                // onRowClick={handleEditOrganization}
                 actionButton={
-                    hasCreatePermission
-                        ? {
-                              label: "Create Organization",
-                              onClick: handleCreateOrganization,
-                          }
-                        : undefined
+                    {
+                        label: "Create Organization",
+                        onClick: handleCreateOrganization,
+                    }
                 }
             />
             <NewOrganizationModal
