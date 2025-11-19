@@ -146,6 +146,14 @@ export const exportClients = async (req: Request, res: Response): Promise<Respon
                 emergencyContactRelationship: clients.emergencyContactRelationship,
                 notes: clients.notes,
                 pickupInstructions: clients.pickupInstructions,
+                mobilityEquipment: clients.mobilityEquipment,
+                mobilityEquipmentOther: clients.mobilityEquipmentOther,
+                vehicleTypes: clients.vehicleTypes,
+                hasOxygen: clients.hasOxygen,
+                hasServiceAnimal: clients.hasServiceAnimal,
+                serviceAnimalDescription: clients.serviceAnimalDescription,
+                otherLimitations: clients.otherLimitations,
+                otherLimitationsOther: clients.otherLimitationsOther,
                 isActive: clients.isActive,
                 createdAt: clients.createdAt,
                 updatedAt: clients.updatedAt,
@@ -253,6 +261,16 @@ export const exportUsers = async (req: Request, res: Response): Promise<Response
                 emergencyContactName: users.emergencyContactName,
                 emergencyContactPhone: users.emergencyContactPhone,
                 emergencyContactRelationship: users.emergencyContactRelationship,
+                vehicleTypes: users.vehicleTypes,
+                vehicleColor: users.vehicleColor,
+                maxRidesPerWeek: users.maxRidesPerWeek,
+                townPreferences: users.townPreferences,
+                destinationLimitations: users.destinationLimitations,
+                lifespanReimbursement: users.lifespanReimbursement,
+                canAccommodateMobilityEquipment: users.canAccommodateMobilityEquipment,
+                canAccommodateOxygen: users.canAccommodateOxygen,
+                canAccommodateServiceAnimal: users.canAccommodateServiceAnimal,
+                canAccommodateAdditionalRider: users.canAccommodateAdditionalRider,
                 isActive: users.isActive,
                 isDriver: users.isDriver,
                 roleId: users.roleId,
@@ -418,7 +436,10 @@ export const exportAppointments = async (req: Request, res: Response): Promise<R
             .leftJoin(users, eq(appointments.dispatcherId, users.id))
             .leftJoin(driverUsers, eq(appointments.driverId, driverUsers.id))
             .leftJoin(pickupLocations, eq(appointments.pickupLocation, pickupLocations.id))
-            .leftJoin(destinationLocations, eq(appointments.destinationLocation, destinationLocations.id))
+            .leftJoin(
+                destinationLocations,
+                eq(appointments.destinationLocation, destinationLocations.id)
+            )
             .where(dateFilter)
             .orderBy(appointments.startDate)
             .limit(pageSize)
@@ -635,9 +656,7 @@ export const createReportTemplate = async (req: Request, res: Response): Promise
 
         // Handle duplicate name error
         if (err.code === "23505") {
-            return res
-                .status(409)
-                .json({ message: "A template with this name already exists" });
+            return res.status(409).json({ message: "A template with this name already exists" });
         }
 
         return res.status(500).json({ error: "Internal server error" });
@@ -693,10 +712,7 @@ export const updateReportTemplate = async (req: Request, res: Response): Promise
             .select()
             .from(reportTemplates)
             .where(
-                and(
-                    eq(reportTemplates.id, templateId),
-                    eq(reportTemplates.createdByUserId, userId)
-                )
+                and(eq(reportTemplates.id, templateId), eq(reportTemplates.createdByUserId, userId))
             );
 
         if (!existing) {
@@ -739,18 +755,13 @@ export const deleteReportTemplate = async (req: Request, res: Response): Promise
             .select()
             .from(reportTemplates)
             .where(
-                and(
-                    eq(reportTemplates.id, templateId),
-                    eq(reportTemplates.createdByUserId, userId)
-                )
+                and(eq(reportTemplates.id, templateId), eq(reportTemplates.createdByUserId, userId))
             );
 
         if (!existing) {
-            return res
-                .status(404)
-                .json({
-                    message: "Template not found or you don't have permission to delete it",
-                });
+            return res.status(404).json({
+                message: "Template not found or you don't have permission to delete it",
+            });
         }
 
         await db.delete(reportTemplates).where(eq(reportTemplates.id, templateId));
