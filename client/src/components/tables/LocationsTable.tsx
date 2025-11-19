@@ -75,6 +75,7 @@ export function LocationsTable() {
                 columns={[
                     { header: "Name", accessorKey: "aliasName" },
                     { header: "Address", accessorKey: "addressLine1" },
+                    { header: "Address 2", accessorKey: "addressLine2" },
                     { header: "City", accessorKey: "city" },
                     { header: "State", accessorKey: "state" },
                     { header: "Zip Code", accessorKey: "zip" },

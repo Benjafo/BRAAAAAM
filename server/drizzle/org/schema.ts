@@ -82,7 +82,12 @@ export const vehicleType = pgEnum("vehicle_type", [
     "small_truck",
     "large_truck",
 ]);
-export const otherLimitation = pgEnum("other_limitation", ["vision", "hearing", "cognitive", "other"]);
+export const otherLimitation = pgEnum("other_limitation", [
+    "vision",
+    "hearing",
+    "cognitive",
+    "other",
+]);
 
 export const roles = pgTable(
     "roles",
@@ -156,7 +161,9 @@ export const users = pgTable(
         emergencyContactPhone: text("emergency_contact_phone"),
         emergencyContactRelationship: varchar("emergency_contact_relationship", { length: 100 }),
         isDriver: boolean("is_driver").default(false),
-        canAccommodateMobilityEquipment: mobilityEquipment("can_accommodate_mobility_equipment").array(),
+        canAccommodateMobilityEquipment: mobilityEquipment(
+            "can_accommodate_mobility_equipment"
+        ).array(),
         vehicleTypes: vehicleType("vehicle_types").array(),
         vehicleColor: text("vehicle_color"),
         canAccommodateOxygen: boolean("can_accommodate_oxygen").default(false),
@@ -733,7 +740,7 @@ export const reportTemplates = pgTable(
         unique("report_templates_name_unique_per_user").on(table.createdByUserId, table.name),
         check(
             "report_templates_entity_type_check",
-            sql`entity_type IN ('clients', 'users', 'appointments')`
+            sql`entity_type IN ('clients', 'users', 'appointments', 'volunteerRecords', 'callLogs')`
         ),
     ]
 );
@@ -808,10 +815,7 @@ export const volunteerRecords = pgTable(
             "btree",
             table.userId.asc().nullsLast().op("uuid_ops")
         ),
-        index("idx_volunteer_records_date").using(
-            "btree",
-            table.date.asc().nullsLast()
-        ),
+        index("idx_volunteer_records_date").using("btree", table.date.asc().nullsLast()),
         index("idx_volunteer_records_user_date").using(
             "btree",
             table.userId.asc().nullsLast().op("uuid_ops"),
