@@ -179,7 +179,7 @@ export function DataTable<T extends Record<string, unknown>>({
                 // Sync search params in the URL
                 navigate({
                     to: ".",
-                    search: (prev) => ({ ...prev, ...params }),
+                    search: (prev: any) => ({ ...prev, ...params }),
                 });
 
                 const result = await fetchData(params);

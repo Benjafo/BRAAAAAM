@@ -80,7 +80,16 @@ const applyTheme = (theme: Theme) => {
  */
 const getStoredTheme = (): Theme => {
     const stored = localStorage.getItem(THEME_STORAGE_KEY);
-    if (stored === THEMES.DARK || stored === THEMES.DARK_AMBER || stored === THEMES.LIGHT) {
+    if (
+        stored === THEMES.DARK ||
+        stored === THEMES.DARK_AMBER ||
+        stored === THEMES.LIGHT ||
+        stored === THEMES.OCEAN_BLUE ||
+        stored === THEMES.FOREST_GREEN ||
+        stored === THEMES.SUNSET_PURPLE ||
+        stored === THEMES.MIDNIGHT_SLATE ||
+        stored === THEMES.CORAL_REEF
+    ) {
         return stored;
     }
     return THEMES.LIGHT;
