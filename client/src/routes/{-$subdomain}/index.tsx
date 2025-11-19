@@ -10,15 +10,20 @@ export const Route = createFileRoute("/{-$subdomain}/")({
 
         console.log("state in /{-$subdomain}/ index route:", s);
 
-        if (isAuthed && s.subdomain !== undefined ) {
-            throw redirect({
-                to: "/{-$subdomain}/dashboard",
-            });
-        } else if (isAuthed && (!s.subdomain || s.subdomain === 'sys')) {
-            throw redirect({
-                to: "/{-$subdomain}/organizations",
-            });
-        } else {
+        // if (isAuthed && s.subdomain !== undefined ) {
+        //     throw redirect({
+        //         to: "/{-$subdomain}/dashboard",
+        //     });
+        // } else if (isAuthed && (!s.subdomain || s.subdomain === 'sys')) {
+        //     throw redirect({
+        //         to: "/{-$subdomain}/organizations",
+        //     });
+        // } else {
+        //     throw redirect({
+        //         to: "/{-$subdomain}/sign-in",
+        //     });
+        // }
+        if (!isAuthed) {
             throw redirect({
                 to: "/{-$subdomain}/sign-in",
             });
