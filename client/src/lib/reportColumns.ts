@@ -222,6 +222,28 @@ export const APPOINTMENT_COLUMNS: ColumnDefinition[] = [
         label: "Destination State",
         group: "Destination Location",
     },
+
+    // Additional Rider Information
+    {
+        key: "hasAdditionalRider",
+        label: "Has Additional Rider",
+        group: "Additional Rider",
+    },
+    {
+        key: "additionalRiderFirstName",
+        label: "Additional Rider First Name",
+        group: "Additional Rider",
+    },
+    {
+        key: "additionalRiderLastName",
+        label: "Additional Rider Last Name",
+        group: "Additional Rider",
+    },
+    {
+        key: "relationshipToClient",
+        label: "Relationship to Client",
+        group: "Additional Rider",
+    },
     { key: "destinationLocation.zip", label: "Destination ZIP", group: "Destination Location" },
     // Financial
     { key: "donationType", label: "Donation Type", group: "Financial" },

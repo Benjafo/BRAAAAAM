@@ -392,6 +392,10 @@ export const exportAppointments = async (req: Request, res: Response): Promise<R
                 notes: appointments.notes,
                 createdAt: appointments.createdAt,
                 updatedAt: appointments.updatedAt,
+                hasAdditionalRider: appointments.hasAdditionalRider,
+                additionalRiderFirstName: appointments.additionalRiderFirstName,
+                additionalRiderLastName: appointments.additionalRiderLastName,
+                relationshipToClient: appointments.relationshipToClient,
                 // Client info
                 client: {
                     id: clients.id,
