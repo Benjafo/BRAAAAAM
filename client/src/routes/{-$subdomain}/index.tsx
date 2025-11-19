@@ -8,11 +8,7 @@ export const Route = createFileRoute("/{-$subdomain}/")({
         const s = authStore.getState();
         const isAuthed = Boolean(s.user && s.accessToken);
 
-        if (isAuthed) {
-            throw redirect({
-                to: "/{-$subdomain}/dashboard",
-            });
-        } else {
+        if (!isAuthed) {
             throw redirect({
                 to: "/{-$subdomain}/sign-in",
             });

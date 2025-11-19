@@ -1,65 +1,82 @@
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { http } from "@/services/auth/serviceResolver";
+import type { DashboardData } from "@/types/org/dashboard";
+import { Link } from "@tanstack/react-router";
+import { useEffect, useState } from "react";
 
 const AdminDashboard = () => {
+    const [data, setData] = useState<DashboardData | null>(null);
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState<string | null>(null);
+
+    useEffect(() => {
+        const fetchDashboardData = async () => {
+            try {
+                setLoading(true);
+                const response = await http.get("o/dashboard").json<DashboardData>();
+                setData(response);
+            } catch (err) {
+                console.error("Error fetching dashboard data:", err);
+                setError("Failed to load dashboard data");
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        fetchDashboardData();
+    }, []);
+
+    if (loading) {
+        return (
+            <div className="min-h-screen bg-background text-foreground flex items-center justify-center">
+                <div className="text-center">
+                    <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto"></div>
+                    <p className="mt-4 text-muted-foreground">Loading dashboard...</p>
+                </div>
+            </div>
+        );
+    }
+
+    if (error || !data) {
+        return (
+            <div className="min-h-screen bg-background text-foreground flex items-center justify-center">
+                <div className="text-center">
+                    <p className="text-destructive">{error || "Failed to load dashboard"}</p>
+                </div>
+            </div>
+        );
+    }
+
     const stats = [
-        { label: "Scheduled Rides", value: "13" },
-        { label: "Unassigned Rides", value: "5" },
-        { label: "Cancelled Rides", value: "7" },
-        { label: "Completed Rides", value: "60" },
+        { label: "Scheduled Rides", value: data.stats.scheduledRides.toString() },
+        { label: "Unassigned Rides", value: data.stats.unassignedRides.toString() },
+        { label: "Cancelled Rides", value: data.stats.cancelledRides.toString() },
+        { label: "Completed Rides", value: data.stats.completedRides.toString() },
     ];
 
-    const recentActivities = [
-        {
-            title: "Created client Timothy Sampson",
-            time: "Aug 25, 2025 - 10:05 AM",
-            user: "Audrey Buck",
-        },
-        {
-            title: "Assigned driver John Camel to ride for client Gerald Hamilton",
-            time: "Aug 26, 2025 - 2:35 PM",
-            user: "Caren Scott",
-        },
-        {
-            title: "Created ride for client Margaret Smith",
-            time: "Aug 27, 2025 - 2:35 PM",
-            user: "Deb Reilly",
-        },
-        {
-            title: "Unassigned driver Bill Beef from ride for client Harold Hammer",
-            time: "Aug 28, 2025 - 2:35 PM",
-            user: "Joan Albany",
-        },
-        {
-            title: "Updated organization settings for Webster Wasps",
-            time: "Aug 29, 2025 - 2:35 PM",
-            user: "Joan Albany",
-        },
-    ];
-
-    const upcomingRides = [
-        { time: "9:00 AM", status: "Unassigned", driver: null, color: "bg-yellow-400" },
-        { time: "9:00 AM", status: "Assigned", driver: "John Doe", color: "bg-green-500" },
-        { time: "10:30 AM", status: "Assigned", driver: "Sarah Smith", color: "bg-green-500" },
-        { time: "11:00 AM", status: "Unassigned", driver: null, color: "bg-yellow-400" },
-        { time: "2:00 PM", status: "Assigned", driver: "Mike Johnson", color: "bg-green-500" },
-    ];
+    const formatActivityTime = (timestamp: string) => {
+        const date = new Date(timestamp);
+        return date.toLocaleString("en-US", {
+            month: "short",
+            day: "numeric",
+            year: "numeric",
+            hour: "numeric",
+            minute: "2-digit",
+            hour12: true,
+        });
+    };
 
     return (
         <div className="min-h-screen bg-background text-foreground">
             <main className="p-[10px] mx-auto">
                 <div className="mb-8">
-                    {/* <h2 className="text-lg font-medium mb-4">
-                        Ride Stats this Month
-                    </h2> */}
+                    <h2 className="text-lg font-medium mb-4">Monthly Ride Stats</h2>
                     <div className="grid grid-cols-4 gap-4">
                         {stats.map((stat, index) => (
                             <Card key={index} className="bg-card text-card-foreground">
                                 <CardContent className="p-6 h-16 flex flex-col justify-center">
                                     <div className="text-sm mb-3">{stat.label}</div>
-                                    <div className="text-4xl font-bold">
-                                        {stat.value}
-                                    </div>
+                                    <div className="text-4xl font-bold">{stat.value}</div>
                                 </CardContent>
                             </Card>
                         ))}
@@ -68,80 +85,102 @@ const AdminDashboard = () => {
 
                 <Card className="bg-card text-card-foreground mb-8">
                     <CardHeader className="">
-                        <CardTitle className="text-lg font-medium">
-                            Recent Activity
-                        </CardTitle>
+                        <CardTitle className="text-lg font-medium">Recent Activity</CardTitle>
                     </CardHeader>
-                    <CardContent className="p-0 border-y">
+                    <CardContent className="p-0 border-t">
                         <div className="divide-y">
-                            {recentActivities.map((activity, index) => (
-                                <div key={index} className="p-4 hover:bg-muted/50 transition-colors">
-                                    <div className="flex items-start justify-between">
-                                        <div className="flex-1">
-                                            <p className="text-sm">
-                                                {activity.title}
-                                            </p>
-                                            <p className="text-xs mt-1">
-                                                {activity.time}
-                                            </p>
+                            {data.recentActivity.length > 0 ? (
+                                data.recentActivity.map((activity) => (
+                                    <div
+                                        key={activity.id}
+                                        className="p-4 hover:bg-muted/50 transition-colors"
+                                    >
+                                        <div className="flex items-start justify-between">
+                                            <div className="flex-1">
+                                                <p className="text-sm">{activity.description}</p>
+                                                <p className="text-xs text-muted-foreground mt-1">
+                                                    {formatActivityTime(activity.timestamp)}
+                                                </p>
+                                            </div>
                                         </div>
-                                        <span className="text-xs">
-                                            {activity.user}
-                                        </span>
                                     </div>
+                                ))
+                            ) : (
+                                <div className="p-4 text-center text-muted-foreground">
+                                    No recent activity
                                 </div>
-                            ))}
+                            )}
                         </div>
                     </CardContent>
-                    <CardFooter className='justify-center'>
-                            <Button variant={'link'}>View All</Button>
-                    </CardFooter>
                 </Card>
 
                 <Card className="">
                     <CardHeader className="">
-                        <CardTitle className="text-lg font-medium">
-                            Upcoming Rides
-                        </CardTitle>
+                        <CardTitle className="text-lg font-medium">Upcoming Rides</CardTitle>
                     </CardHeader>
-                    <CardContent className="p-0 border-y">
+                    <CardContent className="p-0 border-t">
                         <div className="divide-y">
-                            {upcomingRides.map((ride, index) => (
-                                <div key={index} className="p-4 grid grid-cols-3 items-center">
-                                    <div className="flex items-center space-x-3">
-                                        <div className={`w-3 h-3 rounded-full ${ride.color}`}></div>
-                                        <span className="text-sm">{ride.time}</span>
-                                    </div>
-                                    <div className="text-center">
-                                        <span className="text-sm">
-                                            {ride.driver || ride.status}
-                                        </span>
-                                    </div>
-                                    <div className="text-right">
-                                        {ride.status === "Unassigned" ? (
-                                            <Button
-                                                variant="link"
-                                                className="p-0 h-auto text-sm font-normal"
-                                            >
-                                                Assign Driver
-                                            </Button>
-                                        ) : (
-                                            <Button
-                                                variant="link"
-                                                className="p-0 h-auto text-sm font-normal"
-                                                disabled
-                                            >
-                                                Assigned
-                                            </Button>
-                                        )}
-                                    </div>
+                            {data.upcomingRides.length > 0 ? (
+                                data.upcomingRides.map((ride) => {
+                                    const isUnassigned = ride.status === "Unassigned";
+                                    const clientName =
+                                        `${ride.clientFirstName || ""} ${ride.clientLastName || ""}`.trim();
+                                    const driverName =
+                                        ride.driverFirstName && ride.driverLastName
+                                            ? `${ride.driverFirstName} ${ride.driverLastName}`
+                                            : null;
+
+                                    return (
+                                        <div
+                                            key={ride.id}
+                                            className="p-4 grid grid-cols-[auto_1fr_auto] gap-4 items-center"
+                                        >
+                                            <div className="flex items-center space-x-3">
+                                                <div
+                                                    className={`w-3 h-3 rounded-full ${isUnassigned ? "bg-yellow-400" : "bg-green-500"}`}
+                                                ></div>
+                                                <div>
+                                                    <div className="text-sm font-medium">
+                                                        {ride.date}
+                                                    </div>
+                                                    <div className="text-xs text-muted-foreground">
+                                                        {ride.time}
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <div>
+                                                <div className="text-sm">{clientName}</div>
+                                                {ride.destinationAddressLine1 && (
+                                                    <div className="text-xs text-muted-foreground">
+                                                        → {ride.destinationAddressLine1}
+                                                    </div>
+                                                )}
+                                            </div>
+                                            <div className="text-right text-sm">
+                                                {driverName || (
+                                                    <span className="text-muted-foreground">
+                                                        Unassigned
+                                                    </span>
+                                                )}
+                                            </div>
+                                        </div>
+                                    );
+                                })
+                            ) : (
+                                <div className="p-4 text-center text-muted-foreground">
+                                    No upcoming rides
                                 </div>
-                            ))}
+                            )}
+                        </div>
+                        <div className="p-4 text-center border-t">
+                            <Link
+                                to="/{-$subdomain}/schedule"
+                                className="text-sm text-primary hover:underline"
+                            >
+                                View All
+                            </Link>
                         </div>
                     </CardContent>
-                    <CardFooter className='justify-center'>
-                        <Button variant={'link'}>View All</Button>
-                    </CardFooter>
                 </Card>
             </main>
         </div>
