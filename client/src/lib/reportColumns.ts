@@ -49,6 +49,33 @@ export const CLIENT_COLUMNS: ColumnDefinition[] = [
     // Additional
     { key: "notes", label: "Notes", group: "Additional" },
     { key: "pickupInstructions", label: "Pickup Instructions", group: "Additional" },
+    {
+        key: "mobilityEquipment",
+        label: "Mobility Equipment",
+        group: "Accessibility",
+        getValue: (item) => item.mobilityEquipment?.join(", ") || "",
+    },
+    { key: "mobilityEquipmentOther", label: "Mobility Equipment (Other)", group: "Accessibility" },
+    {
+        key: "vehicleTypes",
+        label: "Acceptable Vehicle Types",
+        group: "Accessibility",
+        getValue: (item) => item.vehicleTypes?.join(", ") || "",
+    },
+    { key: "hasOxygen", label: "Has Oxygen", group: "Accessibility" },
+    { key: "hasServiceAnimal", label: "Has Service Animal", group: "Accessibility" },
+    {
+        key: "serviceAnimalDescription",
+        label: "Service Animal Description",
+        group: "Accessibility",
+    },
+    {
+        key: "otherLimitations",
+        label: "Other Limitations",
+        group: "Accessibility",
+        getValue: (item) => item.otherLimitations?.join(", ") || "",
+    },
+    { key: "otherLimitationsOther", label: "Other Limitations (Other)", group: "Accessibility" },
     { key: "isActive", label: "Active Status", group: "Status" },
     { key: "createdAt", label: "Created Date", group: "Metadata" },
     { key: "updatedAt", label: "Updated Date", group: "Metadata" },
@@ -81,6 +108,45 @@ export const USER_COLUMNS: ColumnDefinition[] = [
         key: "emergencyContactPhone",
         label: "Emergency Contact Phone",
         group: "Emergency Contact",
+    },
+
+    // Acessibility
+
+    {
+        key: "vehicleTypes",
+        label: "Vehicle Types",
+        group: "Accessibility",
+        getValue: (item) => item.vehicleTypes?.join(", ") || "",
+    },
+    { key: "vehicleColor", label: "Vehicle Color", group: "Accessibility" },
+    {
+        key: "maxRidesPerWeek",
+        label: "Max Rides per Week",
+        group: "Accessibility",
+    },
+    { key: "townPreferences", label: "Town Preferences", group: "Accessibility" },
+    {
+        key: "destinationLimitations",
+        label: "Destination Limitations",
+        group: "Accessibility",
+    },
+    { key: "lifespanReimbursement", label: "Lifespan Reimbursement", group: "Accessibility" },
+    {
+        key: "canAccommodateMobilityEquipment",
+        label: "Can Accommodate Mobility Equipment",
+        group: "Accessibility",
+        getValue: (item) => item.canAccommodateMobilityEquipment?.join(", ") || "",
+    },
+    { key: "canAccommodateOxygen", label: "Can Accommodate Oxygen", group: "Accessibility" },
+    {
+        key: "canAccommodateServiceAnimal",
+        label: "Can Accommodate Service Animal",
+        group: "Accessibility",
+    },
+    {
+        key: "canAccommodateAdditionalRider",
+        label: "Can Accommodate Additional Rider",
+        group: "Accessibility",
     },
     {
         key: "emergencyContactRelationship",
@@ -131,7 +197,11 @@ export const APPOINTMENT_COLUMNS: ColumnDefinition[] = [
     { key: "dispatcher.lastName", label: "Dispatcher Last Name", group: "Dispatcher" },
     // Pickup Location
     { key: "pickupLocation.addressLine1", label: "Pickup Address", group: "Pickup Location" },
-    { key: "pickupLocation.addressLine2", label: "Pickup Address Line 2", group: "Pickup Location" },
+    {
+        key: "pickupLocation.addressLine2",
+        label: "Pickup Address Line 2",
+        group: "Pickup Location",
+    },
     { key: "pickupLocation.city", label: "Pickup City", group: "Pickup Location" },
     { key: "pickupLocation.state", label: "Pickup State", group: "Pickup Location" },
     { key: "pickupLocation.zip", label: "Pickup ZIP", group: "Pickup Location" },
@@ -182,9 +252,7 @@ export function getColumnsForEntity(
 }
 
 // Helper function to group columns
-export function getGroupedColumns(
-    columns: ColumnDefinition[]
-): Record<string, ColumnDefinition[]> {
+export function getGroupedColumns(columns: ColumnDefinition[]): Record<string, ColumnDefinition[]> {
     return columns.reduce(
         (acc, column) => {
             if (!acc[column.group]) {
