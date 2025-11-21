@@ -39,7 +39,7 @@ function RouteComponent() {
             <MainNavigation />
             <hr/>
             <div className="w-full px-2.5 py-6">
-                <h3 className="text-3xl font-medium mb-5">Super Admin Panel</h3>
+                {/* <h3 className="text-3xl font-bold mb-5">Organizations</h3> */}
                 <OrganizationsTable />
             </div>
         </>

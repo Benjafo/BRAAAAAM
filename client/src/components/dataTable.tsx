@@ -329,7 +329,7 @@ export function DataTable<T extends Record<string, unknown>>({
                 </div>
 
                 {/* Table */}
-                <div className="overflow-hidden rounded-md border">
+                <div className="overflow-hidden rounded-md border m-4">
                     <Table aria-label={ariaLabel} role="table">
                         <TableHeader>
                             {table.getHeaderGroups().map((headerGroup) => (

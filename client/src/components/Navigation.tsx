@@ -23,11 +23,11 @@ interface NavigationLayoutProps {
  */
 const NavigationLayout = ({ leftNavItems, rightNavItems }: NavigationLayoutProps) => {
     return (
-        <div className="flex items-center justify-between p-[10px]">
-            <div className="flex flex-row items-center gap-[10px] justify-start w-full">
+        <div className="flex justify-between p-[10px]">
+            <div className="flex flex-row items-start gap-[10px] justify-start w-full flex-wrap">
                 {leftNavItems}
             </div>
-            <div className="flex flex-row items-center gap-[10px] justify-end w-full">
+            <div className="flex flex-row gap-[10px] justify-end items-start">
                 {rightNavItems}
             </div>
         </div>
@@ -129,12 +129,12 @@ export const MainNavigation = ({
             permission: [PERMISSIONS.OWN_NOTIFICATIONS_READ, PERMISSIONS.ALL_NOTIFICATIONS_READ],
         },
         {
-            text: "Client Management",
+            text: "Clients",
             link: "/{-$subdomain}/clients",
             permission: PERMISSIONS.CLIENTS_READ,
         },
         {
-            text: "User Management",
+            text: "Users",
             link: "/{-$subdomain}/users",
             permission: PERMISSIONS.USERS_READ,
         },

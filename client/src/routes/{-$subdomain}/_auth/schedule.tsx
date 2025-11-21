@@ -7,16 +7,16 @@ import { createFileRoute, redirect } from "@tanstack/react-router";
 import { useCallback, useState } from "react";
 
 export const Route = createFileRoute("/{-$subdomain}/_auth/schedule")({
-    beforeLoad: async ({ location }) => {
+    beforeLoad: async () => {
         const s = authStore.getState();
-        const isAuthed = Boolean(s.user && s.accessToken);
+        // const isAuthed = Boolean(s.user && s.accessToken);
 
-        if (!isAuthed) {
-            throw redirect({
-                to: "/{-$subdomain}/sign-in",
-                search: { redirect: location.pathname },
-            });
-        }
+        // if (!isAuthed) {
+        //     throw redirect({
+        //         to: "/{-$subdomain}/sign-in",
+        //         search: { redirect: location.pathname },
+        //     });
+        // }
 
         if (
             !s.hasPermission(PERMISSIONS.OWN_APPOINTMENTS_READ) &&
@@ -27,7 +27,7 @@ export const Route = createFileRoute("/{-$subdomain}/_auth/schedule")({
             });
         }
 
-        return { user: s.user, isAuthed };
+        return { user: s.user };
     },
     component: RouteComponent,
 });

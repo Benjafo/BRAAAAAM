@@ -39,7 +39,7 @@ export const listOrganizations = async (req: Request, res: Response): Promise<Re
                 id: organizations.id,
                 name: organizations.name,
                 subdomain: organizations.subdomain,
-                logoPath: organizations.logoPath,
+                pocName: organizations.pocName,
                 pocEmail: organizations.pocEmail,
                 pocPhone: organizations.pocPhone,
                 createdAt: organizations.createdAt,
@@ -70,6 +70,8 @@ export const createOrganization = async (req: Request, res: Response): Promise<R
         const {
             name,
             subdomain,
+            phone,
+            website,
             logoPath,
             pocName,
             pocEmail,
@@ -84,9 +86,13 @@ export const createOrganization = async (req: Request, res: Response): Promise<R
             addressValidated,
         } = req.body;
 
-        if (!name || !subdomain || !pocEmail) {
+        if (!name || !subdomain || !pocEmail || !attentionLine || !addressLine1 ||
+            !city || !state || !zip || !country
+        ) {
             return res.status(400).json({ message: "Missing required fields" });
         }
+
+
 
         const [newOrg] = await db
             .insert(organizations)
@@ -94,6 +100,8 @@ export const createOrganization = async (req: Request, res: Response): Promise<R
                 name,
                 subdomain,
                 logoPath,
+                phone: phone ? "+1" + phone : phone, /**@TODO add proper validation here for phone numbers */
+                website,
                 attentionLine,
                 addressLine1,
                 addressLine2,
@@ -104,7 +112,7 @@ export const createOrganization = async (req: Request, res: Response): Promise<R
                 addressValidated /**@TODO check this if this is best way to pass in */,
                 pocName,
                 pocEmail,
-                pocPhone,
+                pocPhone: pocPhone ? "+1" + pocPhone : pocPhone,
                 isActive: true,
             })
             .returning();
@@ -125,7 +133,7 @@ export const createOrganization = async (req: Request, res: Response): Promise<R
                 firstName: newOrg.pocName.split(" ")[0] || "Admin",
                 lastName: newOrg.pocName.split(" ")[1] || "Admin",
                 email: newOrg.pocEmail,
-                phone: newOrg.pocPhone || null,
+                phone: newOrg.pocPhone,
                 passwordHash: pocInitialPassword,
             })
             .onConflictDoNothing()

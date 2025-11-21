@@ -5,12 +5,15 @@ import { http } from "@/services/auth/serviceResolver";
 import { useState } from "react";
 import type { OrganizationValues } from "../form/organizationForm";
 import NewOrganizationModal from "../modals/organizationModal";
+import { useNavigate } from "@tanstack/react-router";
+import { useLogout } from "@/hooks/useAuth";
 
 type Organization = {
     id: string;
     name: string;
     subdomain: string;
-    logoPath: string | null;
+    // logoPath: string | null;
+    pocName: string;
     pocEmail: string;
     pocPhone: string | null;
     createdAt: string;
@@ -29,6 +32,9 @@ export function OrganizationsTable() {
     //     s.hasPermission(PERMISSIONS.ORGANIZATIONS_UPDATE)
     // );
 
+    const navigate = useNavigate();
+    const logout = useLogout();
+
     const fetchOrganizations = async (params: Record<string, unknown>) => {
         console.log("Params: ", params);
 
@@ -37,6 +43,12 @@ export function OrganizationsTable() {
             total: number;
         };
         console.log(response);
+
+        // const organizations = response.results.map((org) => ({
+        //     ...org,
+        //     // Format createdAt date
+        //     link
+        // }));
 
         return {
             data: response.results,
@@ -56,6 +68,7 @@ export function OrganizationsTable() {
                 showSearch={false}
                 showFilters={false}
                 usePagination={false}
+                caption={(<h3 className="text-3xl font-bold mb-5 text-foreground">Organizations</h3>)}
                 columns={[
                     {
                         header: "Name",
@@ -66,12 +79,20 @@ export function OrganizationsTable() {
                         accessorKey: "subdomain",
                     },
                     {
-                        header: "Phone",
+                        header: "Contact Name",
+                        accessorKey: "pocName"
+                    },
+                    {
+                        header: "Contact Phone",
                         accessorKey: "pocPhone",
                     },
                     {
-                        header: "Email",
+                        header: "Contact Email",
                         accessorKey: "pocEmail",
+                    },
+                    {
+                        header: "Created At",
+                        accessorFn: (row) => (new Date(row.createdAt).toLocaleDateString())
                     },
                     {
                         header: "Status",
@@ -79,7 +100,13 @@ export function OrganizationsTable() {
                         id: "status",
                     },
                 ]}
-                // onRowClick={handleEditOrganization}
+                onRowClick={(row) => {
+                    logout.mutate(undefined, {
+                        onSettled: () => {
+                            navigate({ to: "/{-$subdomain}/sign-in", params: { subdomain: row.subdomain }, });
+                        },
+                    });
+                }}
                 actionButton={{
                     label: "Create Organization",
                     onClick: handleCreateOrganization,

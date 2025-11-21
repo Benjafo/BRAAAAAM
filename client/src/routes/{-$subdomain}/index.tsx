@@ -1,4 +1,4 @@
-import { MainNavigation } from "@/components/Navigation";
+// import { MainNavigation } from "@/components/Navigation";
 import { authStore } from "@/components/stores/authStore";
 import { createFileRoute, redirect } from "@tanstack/react-router";
 
@@ -7,8 +7,6 @@ export const Route = createFileRoute("/{-$subdomain}/")({
     beforeLoad: async () => {
         const s = authStore.getState();
         const isAuthed = Boolean(s.user && s.accessToken);
-
-        // console.log("state in /{-$subdomain}/ index route:", s);
 
         if (isAuthed) {
             // Authenticated: if there's a non-system subdomain, go to dashboard; otherwise go to organizations
@@ -32,9 +30,5 @@ export const Route = createFileRoute("/{-$subdomain}/")({
 });
 
 function RouteComponent() {
-    return (
-        <>
-            <MainNavigation />
-        </>
-    );
+    return <div>An error has occured.</div>
 }

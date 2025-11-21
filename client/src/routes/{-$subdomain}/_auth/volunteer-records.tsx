@@ -5,16 +5,16 @@ import { PERMISSIONS } from "@/lib/permissions";
 import { createFileRoute, redirect } from "@tanstack/react-router";
 
 export const Route = createFileRoute("/{-$subdomain}/_auth/volunteer-records")({
-    beforeLoad: async ({ location }) => {
+    beforeLoad: async () => {
         const s = authStore.getState();
-        const isAuthed = Boolean(s.user && s.accessToken);
+        // const isAuthed = Boolean(s.user && s.accessToken);
 
-        if (!isAuthed) {
-            throw redirect({
-                to: "/{-$subdomain}/sign-in",
-                search: { redirect: location.pathname },
-            });
-        }
+        // if (!isAuthed) {
+        //     throw redirect({
+        //         to: "/{-$subdomain}/sign-in",
+        //         search: { redirect: location.pathname },
+        //     });
+        // }
 
         const hasPermission =
             s.hasPermission(PERMISSIONS.OWN_VOLUNTEER_RECORDS_READ) ||
@@ -26,7 +26,7 @@ export const Route = createFileRoute("/{-$subdomain}/_auth/volunteer-records")({
             });
         }
 
-        return { user: s.user, isAuthed };
+        return { user: s.user };
     },
     component: RouteComponent,
 });

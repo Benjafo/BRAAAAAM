@@ -8,8 +8,9 @@
 // You should NOT make any changes in this file as it will be overwritten.
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
+import { createFileRoute } from '@tanstack/react-router'
+
 import { Route as rootRouteImport } from './routes/__root'
-import { Route as Char123SubdomainChar125RouteRouteImport } from './routes/{-$subdomain}/route'
 import { Route as Char123SubdomainChar125IndexRouteImport } from './routes/{-$subdomain}/index'
 import { Route as Char123SubdomainChar125LoginRouteRouteImport } from './routes/{-$subdomain}/_login/route'
 import { Route as Char123SubdomainChar125AuthRouteRouteImport } from './routes/{-$subdomain}/_auth/route'
@@ -30,27 +31,28 @@ import { Route as Char123SubdomainChar125AuthClientsRouteImport } from './routes
 import { Route as Char123SubdomainChar125AuthCallLogsRouteImport } from './routes/{-$subdomain}/_auth/call-logs'
 import { Route as Char123SubdomainChar125AuthAdminSettingsRouteImport } from './routes/{-$subdomain}/_auth/admin-settings'
 
-const Char123SubdomainChar125RouteRoute =
-  Char123SubdomainChar125RouteRouteImport.update({
-    id: '/{-$subdomain}',
-    path: '/{-$subdomain}',
-    getParentRoute: () => rootRouteImport,
-  } as any)
+const Char123SubdomainChar125RouteImport = createFileRoute('/{-$subdomain}')()
+
+const Char123SubdomainChar125Route = Char123SubdomainChar125RouteImport.update({
+  id: '/{-$subdomain}',
+  path: '/{-$subdomain}',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const Char123SubdomainChar125IndexRoute =
   Char123SubdomainChar125IndexRouteImport.update({
     id: '/',
     path: '/',
-    getParentRoute: () => Char123SubdomainChar125RouteRoute,
+    getParentRoute: () => Char123SubdomainChar125Route,
   } as any)
 const Char123SubdomainChar125LoginRouteRoute =
   Char123SubdomainChar125LoginRouteRouteImport.update({
     id: '/_login',
-    getParentRoute: () => Char123SubdomainChar125RouteRoute,
+    getParentRoute: () => Char123SubdomainChar125Route,
   } as any)
 const Char123SubdomainChar125AuthRouteRoute =
   Char123SubdomainChar125AuthRouteRouteImport.update({
     id: '/_auth',
-    getParentRoute: () => Char123SubdomainChar125RouteRoute,
+    getParentRoute: () => Char123SubdomainChar125Route,
   } as any)
 const Char123SubdomainChar125LoginSignInRoute =
   Char123SubdomainChar125LoginSignInRouteImport.update({
@@ -190,7 +192,7 @@ export interface FileRoutesByTo {
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
-  '/{-$subdomain}': typeof Char123SubdomainChar125RouteRouteWithChildren
+  '/{-$subdomain}': typeof Char123SubdomainChar125RouteWithChildren
   '/{-$subdomain}/_auth': typeof Char123SubdomainChar125AuthRouteRouteWithChildren
   '/{-$subdomain}/_login': typeof Char123SubdomainChar125LoginRouteRouteWithChildren
   '/{-$subdomain}/': typeof Char123SubdomainChar125IndexRoute
@@ -276,7 +278,7 @@ export interface FileRouteTypes {
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
-  Char123SubdomainChar125RouteRoute: typeof Char123SubdomainChar125RouteRouteWithChildren
+  Char123SubdomainChar125Route: typeof Char123SubdomainChar125RouteWithChildren
 }
 
 declare module '@tanstack/react-router' {
@@ -285,7 +287,7 @@ declare module '@tanstack/react-router' {
       id: '/{-$subdomain}'
       path: '/{-$subdomain}'
       fullPath: '/{-$subdomain}'
-      preLoaderRoute: typeof Char123SubdomainChar125RouteRouteImport
+      preLoaderRoute: typeof Char123SubdomainChar125RouteImport
       parentRoute: typeof rootRouteImport
     }
     '/{-$subdomain}/': {
@@ -293,21 +295,21 @@ declare module '@tanstack/react-router' {
       path: '/'
       fullPath: '/{-$subdomain}/'
       preLoaderRoute: typeof Char123SubdomainChar125IndexRouteImport
-      parentRoute: typeof Char123SubdomainChar125RouteRoute
+      parentRoute: typeof Char123SubdomainChar125Route
     }
     '/{-$subdomain}/_login': {
       id: '/{-$subdomain}/_login'
       path: ''
       fullPath: '/{-$subdomain}'
       preLoaderRoute: typeof Char123SubdomainChar125LoginRouteRouteImport
-      parentRoute: typeof Char123SubdomainChar125RouteRoute
+      parentRoute: typeof Char123SubdomainChar125Route
     }
     '/{-$subdomain}/_auth': {
       id: '/{-$subdomain}/_auth'
-      path: ''
+      path: '/{-$subdomain}'
       fullPath: '/{-$subdomain}'
       preLoaderRoute: typeof Char123SubdomainChar125AuthRouteRouteImport
-      parentRoute: typeof Char123SubdomainChar125RouteRoute
+      parentRoute: typeof Char123SubdomainChar125Route
     }
     '/{-$subdomain}/_login/sign-in': {
       id: '/{-$subdomain}/_login/sign-in'
@@ -496,13 +498,13 @@ const Char123SubdomainChar125LoginRouteRouteWithChildren =
     Char123SubdomainChar125LoginRouteRouteChildren,
   )
 
-interface Char123SubdomainChar125RouteRouteChildren {
+interface Char123SubdomainChar125RouteChildren {
   Char123SubdomainChar125AuthRouteRoute: typeof Char123SubdomainChar125AuthRouteRouteWithChildren
   Char123SubdomainChar125LoginRouteRoute: typeof Char123SubdomainChar125LoginRouteRouteWithChildren
   Char123SubdomainChar125IndexRoute: typeof Char123SubdomainChar125IndexRoute
 }
 
-const Char123SubdomainChar125RouteRouteChildren: Char123SubdomainChar125RouteRouteChildren =
+const Char123SubdomainChar125RouteChildren: Char123SubdomainChar125RouteChildren =
   {
     Char123SubdomainChar125AuthRouteRoute:
       Char123SubdomainChar125AuthRouteRouteWithChildren,
@@ -511,14 +513,13 @@ const Char123SubdomainChar125RouteRouteChildren: Char123SubdomainChar125RouteRou
     Char123SubdomainChar125IndexRoute: Char123SubdomainChar125IndexRoute,
   }
 
-const Char123SubdomainChar125RouteRouteWithChildren =
-  Char123SubdomainChar125RouteRoute._addFileChildren(
-    Char123SubdomainChar125RouteRouteChildren,
+const Char123SubdomainChar125RouteWithChildren =
+  Char123SubdomainChar125Route._addFileChildren(
+    Char123SubdomainChar125RouteChildren,
   )
 
 const rootRouteChildren: RootRouteChildren = {
-  Char123SubdomainChar125RouteRoute:
-    Char123SubdomainChar125RouteRouteWithChildren,
+  Char123SubdomainChar125Route: Char123SubdomainChar125RouteWithChildren,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

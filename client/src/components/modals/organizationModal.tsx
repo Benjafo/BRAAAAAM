@@ -46,9 +46,11 @@ export default function NewOrganizationModal({
 
         // Trim to 15 characters and remove any leading/trailing hyphens that might result from slicing
         subdomain = subdomain.slice(0, 15).replaceAll(/^-+|-+$/g, '');
-
         console.log(`Subdomain generated: ${subdomain}`);
         console.log("Form Values Submitted: ", values);
+
+        const phone = values.phone ? values.phone.replace("+1", "") : null;
+        const pocPhone = values.pocPhone ? values.pocPhone.replace("+1", "") : null;
         
         // onOpenChange(false);
         // return;
@@ -68,6 +70,8 @@ export default function NewOrganizationModal({
                 .put(`s/organizations/${defaultValues?.id}`, {
                     json: {
                         ...values,
+                       phone,
+                       pocPhone,
                     },
                 })
                 .json();
@@ -78,6 +82,8 @@ export default function NewOrganizationModal({
                     json: {
                         ...values,
                         subdomain: subdomain,
+                        phone,
+                        pocPhone,
                     }
                 })
                 .json();

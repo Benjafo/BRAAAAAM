@@ -5,16 +5,16 @@ import { PERMISSIONS } from "@/lib/permissions";
 import { createFileRoute, redirect } from "@tanstack/react-router";
 
 export const Route = createFileRoute("/{-$subdomain}/_auth/notifications")({
-    beforeLoad: async ({ location }) => {
+    beforeLoad: async () => {
         const s = authStore.getState();
-        const isAuthed = Boolean(s.user && s.accessToken);
+        // const isAuthed = Boolean(s.user && s.accessToken);
 
-        if (!isAuthed) {
-            throw redirect({
-                to: "/{-$subdomain}/sign-in",
-                search: { redirect: location.pathname },
-            });
-        }
+        // if (!isAuthed) {
+        //     throw redirect({
+        //         to: "/{-$subdomain}/sign-in",
+        //         search: { redirect: location.pathname },
+        //     });
+        // }
 
         // Check if user has either own notifications or all notifications permission
         const hasOwnNotifications = s.hasPermission(PERMISSIONS.OWN_NOTIFICATIONS_READ);
@@ -26,7 +26,7 @@ export const Route = createFileRoute("/{-$subdomain}/_auth/notifications")({
             });
         }
 
-        return { user: s.user, isAuthed };
+        return { user: s.user };
     },
     component: RouteComponent,
 });
