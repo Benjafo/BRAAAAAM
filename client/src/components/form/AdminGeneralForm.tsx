@@ -133,10 +133,7 @@ const adminGeneralSchema = z.object({
     // Organization Contacts
     phone: z
         .string()
-        .regex(
-            /^(\+1\s?)?(\([0-9]{3}\)\s?|[0-9]{3}[-.\s]?)[0-9]{3}[-.\s]?[0-9]{4}$/,
-            "Please enter a valid phone number"
-        )
+        .regex(/^[0-9]{10}$/, "Please enter a valid phone number")
         .optional()
         .or(z.literal("")),
     email: z.string().email("Please enter a valid email address").optional().or(z.literal("")),
@@ -238,7 +235,7 @@ export const AdminGeneralForm = forwardRef<AdminGeneralFormRef, AdminGeneralForm
                         name: response.name,
                         organizationDomain: response.subdomain,
                         logoUrl: response.logoPath || "",
-                        phone: response.phone || "",
+                        phone: response.phone?.replace(`+1`, ``) || "",
                         email: response.email || "",
                         AddressLineOne: response.addressLine1,
                         AddressLineTwo: response.addressLine2 || "",
@@ -356,14 +353,14 @@ export const AdminGeneralForm = forwardRef<AdminGeneralFormRef, AdminGeneralForm
                 const requestBody = {
                     name: formData.name,
                     logoPath: formData.logoUrl,
-                    phone: formData.phone,
+                    phone: `+1${formData.phone}`,
                     email: formData.email,
                     addressLine1: formData.AddressLineOne,
                     addressLine2: formData.AddressLineTwo,
                     city: formData.city,
                     state: formData.state,
                     zip: formData.zip,
-                    country: formData.country,
+                    country: "USA", // Hardcoded, removed form field as this wont/shouldnt be changed
                     establishedDate: formData.creationDate.toISOString().split("T")[0], // Convert to YYYY-MM-DD
                 };
 
@@ -770,29 +767,6 @@ export const AdminGeneralForm = forwardRef<AdminGeneralFormRef, AdminGeneralForm
                                 )}
                                 <FormField
                                     control={form.control}
-                                    name="zip"
-                                    render={({ field }) => (
-                                        <FormItem className="grid gap-3">
-                                            <FormLabel className="font-medium">Zip</FormLabel>
-                                            {isEditMode ? (
-                                                <FormControl>
-                                                    <Input
-                                                        placeholder="12345"
-                                                        className="w-80"
-                                                        {...field}
-                                                    />
-                                                </FormControl>
-                                            ) : (
-                                                <p className="text-sm text-muted-foreground">
-                                                    {field.value || "Empty"}
-                                                </p>
-                                            )}
-                                            <FormMessage />
-                                        </FormItem>
-                                    )}
-                                />
-                                <FormField
-                                    control={form.control}
                                     name="city"
                                     render={({ field }) => (
                                         <FormItem className="grid gap-3">
@@ -839,14 +813,14 @@ export const AdminGeneralForm = forwardRef<AdminGeneralFormRef, AdminGeneralForm
                                 />
                                 <FormField
                                     control={form.control}
-                                    name="country"
+                                    name="zip"
                                     render={({ field }) => (
                                         <FormItem className="grid gap-3">
-                                            <FormLabel className="font-medium">Country</FormLabel>
+                                            <FormLabel className="font-medium">Zip</FormLabel>
                                             {isEditMode ? (
                                                 <FormControl>
                                                     <Input
-                                                        placeholder="United States"
+                                                        placeholder="12345"
                                                         className="w-80"
                                                         {...field}
                                                     />
