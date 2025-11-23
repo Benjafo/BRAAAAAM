@@ -1,4 +1,4 @@
-import { MainNavigation } from "@/components/Navigation";
+import { MainNavigation } from "@/components/common/Navigation";
 import { authStore } from "@/components/stores/authStore";
 import { VolunteerRecordsTable } from "@/components/tables/VolunteerRecordsTable";
 import { PERMISSIONS } from "@/lib/permissions";

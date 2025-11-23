@@ -1,5 +1,5 @@
-import AdminDashboard from "@/components/AdminDashboardPage";
-import { MainNavigation } from "@/components/Navigation";
+import AdminDashboard from "@/components/pages/AdminDashboardPage";
+import { MainNavigation } from "@/components/common/Navigation";
 import { authStore } from "@/components/stores/authStore";
 import { PERMISSIONS } from "@/lib/permissions";
 import { createFileRoute } from "@tanstack/react-router";

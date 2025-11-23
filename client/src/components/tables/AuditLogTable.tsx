@@ -1,4 +1,4 @@
-import { DataTable } from "@/components/dataTable";
+import { DataTable } from "@/components/common/dataTable";
 import AuditLogModal from "@/components/modals/auditLogModal";
 import { http } from "@/services/auth/serviceResolver";
 import type { AuditLogEntry, AuditLogModalEntry } from "@/types/org/auditlog";
@@ -19,7 +19,7 @@ export function AuditLogTable() {
         type AuditLogResponse = {
             total: number;
             results: AuditLogEntry[];
-        }
+        };
 
         const response = await http
             .get(`o/audit-logs`, {

@@ -1,4 +1,4 @@
-import { DataTable } from "@/components/dataTable";
+import { DataTable } from "@/components/common/dataTable";
 import LocationModal from "@/components/modals/locationModal";
 import { useAuthStore } from "@/components/stores/authStore";
 import { PERMISSIONS } from "@/lib/permissions";

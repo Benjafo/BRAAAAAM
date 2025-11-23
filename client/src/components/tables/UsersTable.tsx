@@ -1,4 +1,4 @@
-import { DataTable } from "@/components/dataTable";
+import { DataTable } from "@/components/common/dataTable";
 import { useAuthStore } from "@/components/stores/authStore";
 import { PERMISSIONS } from "@/lib/permissions";
 import { parseLocalDate } from "@/lib/utils";
@@ -63,17 +63,17 @@ function mapUserToFormValues(user: TableUser): Partial<UserFormValues> & { id: s
         volunteeringStatus: user.isActive
             ? "Active"
             : user.temporaryInactiveUntil
-                ? "On leave"
-                : (user.awayFrom || user.awayTo)
-                    ? "Away"
-                    : "Inactive",
+              ? "On leave"
+              : user.awayFrom || user.awayTo
+                ? "Away"
+                : "Inactive",
         onLeaveUntil: parseLocalDate(user.temporaryInactiveUntil),
         inactiveSince: parseLocalDate(user.inactiveSince),
         awayFrom: parseLocalDate(user.awayFrom),
         awayTo: parseLocalDate(user.awayTo),
         userRole: user.roleId || "",
-        canAccommodateMobilityEquipment: user.canAccommodateMobilityEquipment as any || [],
-        vehicleTypes: user.vehicleTypes as any || [],
+        canAccommodateMobilityEquipment: (user.canAccommodateMobilityEquipment as any) || [],
+        vehicleTypes: (user.vehicleTypes as any) || [],
         vehicleColor: user.vehicleColor || "",
         townPreferences: user.townPreferences || "",
         destinationLimitations: user.destinationLimitations || "",

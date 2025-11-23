@@ -2,7 +2,7 @@ import type { Location, LocationSelectorProps } from "@/lib/types";
 import { Loader } from "@googlemaps/js-api-loader";
 import { AlertCircle, Loader2, MapPin } from "lucide-react";
 import React, { useCallback, useEffect, useRef, useState } from "react";
-import { Input } from "./ui/input";
+import { Input } from "../ui/input";
 
 const GoogleLocator: React.FC<LocationSelectorProps> = ({
     onLocationSelect,

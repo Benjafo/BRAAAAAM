@@ -24,7 +24,7 @@ import type { ClientProfile } from "@/lib/types";
 import { cn } from "@/lib/utils";
 import { Check, ChevronsUpDown, X } from "lucide-react";
 import { useRef, useState } from "react";
-import { GoogleAddressFields } from "../GoogleAddressFields";
+import { GoogleAddressFields } from "../common/GoogleAddressFields";
 import { Button } from "../ui/button";
 import {
     Command,
@@ -734,7 +734,8 @@ export default function EditRideForm({
                                                 placeholder="Minutes"
                                                 value={minutes || ""}
                                                 onChange={(e) => {
-                                                    const newMinutes = parseInt(e.target.value) || 0;
+                                                    const newMinutes =
+                                                        parseInt(e.target.value) || 0;
                                                     field.onChange(hours + newMinutes / 60);
                                                 }}
                                                 className="w-full"
@@ -996,7 +997,8 @@ export default function EditRideForm({
                                                     placeholder="Hours"
                                                     value={hours || ""}
                                                     onChange={(e) => {
-                                                        const newHours = parseInt(e.target.value) || 0;
+                                                        const newHours =
+                                                            parseInt(e.target.value) || 0;
                                                         field.onChange(newHours + minutes / 60);
                                                     }}
                                                     className="w-full"
@@ -1013,7 +1015,8 @@ export default function EditRideForm({
                                                     placeholder="Minutes"
                                                     value={minutes || ""}
                                                     onChange={(e) => {
-                                                        const newMinutes = parseInt(e.target.value) || 0;
+                                                        const newMinutes =
+                                                            parseInt(e.target.value) || 0;
                                                         field.onChange(hours + newMinutes / 60);
                                                     }}
                                                     className="w-full"

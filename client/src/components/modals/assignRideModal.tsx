@@ -10,12 +10,17 @@ import {
     DialogTitle,
 } from "@/components/ui/dialog";
 import { http } from "@/services/auth/serviceResolver";
+import { ChevronDown } from "lucide-react";
 import * as React from "react";
 import { toast } from "sonner";
-import { DataTable } from "../dataTable";
-import { ChevronDown } from "lucide-react";
+import { DataTable } from "../common/dataTable";
+import {
+    DropdownMenu,
+    DropdownMenuContent,
+    DropdownMenuItem,
+    DropdownMenuTrigger,
+} from "../ui/dropdown-menu";
 import DriverMatchDetailsModal from "./DriverMatchDetailsModal";
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "../ui/dropdown-menu";
 
 type Driver = {
     id: string;
@@ -77,12 +82,13 @@ export default function AssignRideModal({
 }: AssignRideModalProps) {
     const [selectedDrivers, setSelectedDrivers] = React.useState<Driver[]>([]);
     const [isAssigning, setIsAssigning] = React.useState(false);
-    const [selectedDriverForDetails, setSelectedDriverForDetails] = React.useState<Driver | null>(null);
+    const [selectedDriverForDetails, setSelectedDriverForDetails] = React.useState<Driver | null>(
+        null
+    );
     const [matchDetailsOpen, setMatchDetailsOpen] = React.useState(false);
 
     const fetchDrivers = React.useCallback(async () => {
         try {
-
             const response = await http
                 .get(`o/appointments/${appointmentId}/matching-drivers`)
                 .json<{ results: Driver[] }>();
@@ -222,16 +228,24 @@ export default function AssignRideModal({
                             enableSorting: false,
                             cell: ({ row }) => (
                                 <div className="flex items-center gap-2">
-                                    <span className={`font-semibold ${
-                                        row.original.matchScore >= 70 ? "text-green-600" :
-                                        row.original.matchScore >= 40 ? "text-yellow-600" :
-                                        row.original.matchScore >= 0 ? "text-orange-600" :
-                                        "text-red-600"
-                                    }`}>
+                                    <span
+                                        className={`font-semibold ${
+                                            row.original.matchScore >= 70
+                                                ? "text-green-600"
+                                                : row.original.matchScore >= 40
+                                                  ? "text-yellow-600"
+                                                  : row.original.matchScore >= 0
+                                                    ? "text-orange-600"
+                                                    : "text-red-600"
+                                        }`}
+                                    >
                                         {row.original.matchScore}
                                     </span>
                                     {row.original.isPerfectMatch && (
-                                        <Badge variant="default" className="bg-green-600 hover:bg-green-700 text-xs">
+                                        <Badge
+                                            variant="default"
+                                            className="bg-green-600 hover:bg-green-700 text-xs"
+                                        >
                                             Perfect Match
                                         </Badge>
                                     )}

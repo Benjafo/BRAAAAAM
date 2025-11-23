@@ -1,10 +1,11 @@
-import { DataTable } from "@/components/dataTable";
+import { DataTable } from "@/components/common/dataTable";
 import { useAuthStore } from "@/components/stores/authStore";
 import { PERMISSIONS } from "@/lib/permissions";
 import { http } from "@/services/auth/serviceResolver";
 import { MoreHorizontal, Trash2 } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
+import VolunteerRecordModal from "../modals/VolunteerRecordModal";
 import { Button } from "../ui/button";
 import {
     DropdownMenu,
@@ -12,7 +13,6 @@ import {
     DropdownMenuItem,
     DropdownMenuTrigger,
 } from "../ui/dropdown-menu";
-import VolunteerRecordModal from "../modals/VolunteerRecordModal";
 
 type VolunteerRecord = {
     id: string;

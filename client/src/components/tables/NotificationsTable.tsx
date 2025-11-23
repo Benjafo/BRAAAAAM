@@ -1,4 +1,4 @@
-import { DataTable } from "@/components/dataTable";
+import { DataTable } from "@/components/common/dataTable";
 import { useAuthStore } from "@/components/stores/authStore";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";

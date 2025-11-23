@@ -1,5 +1,5 @@
 import UnassignedRides from "@/components/calendar/UnassignedRides";
-import { MainNavigation } from "@/components/Navigation";
+import { MainNavigation } from "@/components/common/Navigation";
 import { RidesTable } from "@/components/tables/RidesTable";
 import { createFileRoute } from "@tanstack/react-router";
 import { useCallback, useState } from "react";

@@ -5,6 +5,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 
+import { GoogleAddressFields } from "@/components/common/GoogleAddressFields";
 import {
     Form,
     FormControl,
@@ -13,7 +14,6 @@ import {
     FormLabel,
     FormMessage,
 } from "@/components/ui/form";
-import { GoogleAddressFields } from "@/components/GoogleAddressFields";
 
 /* --------------------------------- Schema --------------------------------- */
 /* using z.enum for select values that we know are included */
@@ -22,30 +22,12 @@ const locationSchema = z.object({
         .string()
         .min(1, "Please enter the location name.")
         .max(255, "Max characters allowed is 255."),
-    address: z
-        .string()
-        .min(1, "Address is required")
-        .max(255, "Max characters allowed is 255."),
-    address2: z
-        .string()
-        .max(255, "Max characters allowed is 255.")
-        .optional(),
-    city: z
-        .string()
-        .min(1, "City is required")
-        .max(100, "Max characters allowed is 100."),
-    state: z
-        .string()
-        .min(1, "State is required")
-        .max(50, "Max characters allowed is 50."),
-    zip: z
-        .string()
-        .min(1, "ZIP code is required")
-        .max(20, "Max characters allowed is 20."),
-    country: z
-        .string()
-        .min(1, "Country is required")
-        .max(100, "Max characters allowed is 100."),
+    address: z.string().min(1, "Address is required").max(255, "Max characters allowed is 255."),
+    address2: z.string().max(255, "Max characters allowed is 255.").optional(),
+    city: z.string().min(1, "City is required").max(100, "Max characters allowed is 100."),
+    state: z.string().min(1, "State is required").max(50, "Max characters allowed is 50."),
+    zip: z.string().min(1, "ZIP code is required").max(20, "Max characters allowed is 20."),
+    country: z.string().min(1, "Country is required").max(100, "Max characters allowed is 100."),
 });
 
 export type LocationFormValues = z.infer<typeof locationSchema>;

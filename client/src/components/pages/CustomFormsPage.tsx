@@ -35,7 +35,7 @@ const CUSTOM_FORMS: CustomFormConfig[] = [
     },
 ];
 
-export default function CustomForms() {
+export default function CustomFormsPage() {
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [selectedForm, setSelectedForm] = useState<CustomForm | null>(null);
     const [selectedEntityType, setSelectedEntityType] = useState<EntityType>("client");

@@ -1,4 +1,4 @@
-import { DataTable } from "@/components/dataTable";
+import { DataTable } from "@/components/common/dataTable";
 import { useAuthStore } from "@/components/stores/authStore";
 import { PERMISSIONS } from "@/lib/permissions";
 import { parseLocalDate } from "@/lib/utils";
@@ -46,7 +46,18 @@ type Client = {
 
 // Helper function to map API Client to form values
 // ai made this
-function mapClientToFormValues(client: Client & { okToTextPrimary?: boolean, okToTextSecondary?: boolean, secondaryPhone?: string | null, secondaryPhoneIsCell?: boolean, temporaryInactiveUntil?: string | null, inactiveSince?: string | null, awayFrom?: string | null, awayTo?: string | null }): Partial<ClientFormValues> & { id: string } {
+function mapClientToFormValues(
+    client: Client & {
+        okToTextPrimary?: boolean;
+        okToTextSecondary?: boolean;
+        secondaryPhone?: string | null;
+        secondaryPhoneIsCell?: boolean;
+        temporaryInactiveUntil?: string | null;
+        inactiveSince?: string | null;
+        awayFrom?: string | null;
+        awayTo?: string | null;
+    }
+): Partial<ClientFormValues> & { id: string } {
     return {
         id: client.id,
         firstName: client.firstName,
@@ -86,10 +97,10 @@ function mapClientToFormValues(client: Client & { okToTextPrimary?: boolean, okT
         volunteeringStatus: client.isActive
             ? "Active"
             : client.temporaryInactiveUntil
-                ? "On leave"
-                : (client.awayFrom || client.awayTo)
-                    ? "Away"
-                    : "Inactive",
+              ? "On leave"
+              : client.awayFrom || client.awayTo
+                ? "Away"
+                : "Inactive",
         onLeaveUntil: parseLocalDate(client.temporaryInactiveUntil),
         inactiveSince: parseLocalDate(client.inactiveSince),
         awayFrom: parseLocalDate(client.awayFrom),

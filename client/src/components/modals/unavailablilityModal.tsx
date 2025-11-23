@@ -19,7 +19,7 @@ import * as React from "react";
 import { toast } from "sonner";
 import { useAuthStore } from "../stores/authStore";
 import OverlapWarningModal from "./overlapWarningModal";
-import { DriverSelector } from "../driverSelector";
+import { DriverSelector } from "../common/driverSelector";
 import { PERMISSIONS } from "@/lib/permissions";
 
 type Props = {

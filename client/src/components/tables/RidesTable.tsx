@@ -1,4 +1,4 @@
-import { DataTable } from "@/components/dataTable";
+import { DataTable } from "@/components/common/dataTable";
 import { useAuthStore } from "@/components/stores/authStore";
 import { PERMISSIONS } from "@/lib/permissions";
 import { http } from "@/services/auth/serviceResolver";
@@ -190,7 +190,10 @@ export function RidesTable({
                     { header: "Status", accessorKey: "status", id: "status" },
                     {
                         header: "Created At",
-                        accessorFn: (row) => row.createdAt ? new Date(row.createdAt).toISOString().split('T')[0] : "",
+                        accessorFn: (row) =>
+                            row.createdAt
+                                ? new Date(row.createdAt).toISOString().split("T")[0]
+                                : "",
                         id: "createdAt",
                     },
                 ]}

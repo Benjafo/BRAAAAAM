@@ -1,11 +1,5 @@
-import { DataTable } from "@/components/dataTable";
+import { DataTable } from "@/components/common/dataTable";
 import { useAuthStore } from "@/components/stores/authStore";
-import { PERMISSIONS } from "@/lib/permissions";
-import { http } from "@/services/auth/serviceResolver";
-import { useState } from "react";
-import type { RecurringUnavailabilityFormValues } from "../form/recurringUnavailabilityForm";
-import type { TempUnavailabilityFormValues } from "../form/tempUnavailabilityForm";
-import UnavailabilityModal from "../modals/unavailablilityModal";
 import { Button } from "@/components/ui/button";
 import {
     DropdownMenu,
@@ -13,8 +7,14 @@ import {
     DropdownMenuItem,
     DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { PERMISSIONS } from "@/lib/permissions";
+import { http } from "@/services/auth/serviceResolver";
 import { MoreHorizontal } from "lucide-react";
+import { useState } from "react";
 import { toast } from "sonner";
+import type { RecurringUnavailabilityFormValues } from "../form/recurringUnavailabilityForm";
+import type { TempUnavailabilityFormValues } from "../form/tempUnavailabilityForm";
+import UnavailabilityModal from "../modals/unavailablilityModal";
 
 type UnavailabilityBlock = {
     id: string;

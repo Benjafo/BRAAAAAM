@@ -1,9 +1,9 @@
+import CustomFormsPage from "@/components/pages/CustomFormsPage";
 import type { AdminGeneralFormRef } from "@/components/form/AdminGeneralForm";
 import AdminGeneralForm from "@/components/form/AdminGeneralForm";
-import { MainNavigation } from "@/components/Navigation";
+import { MainNavigation } from "@/components/common/Navigation";
 import { authStore } from "@/components/stores/authStore";
 import { AuditLogTable } from "@/components/tables/AuditLogTable";
-import CustomForms from "@/components/CustomForms";
 import { LocationsTable } from "@/components/tables/LocationsTable";
 import { RolesTable } from "@/components/tables/RolesTable";
 import { Button } from "@/components/ui/button";
@@ -129,7 +129,7 @@ function RouteComponent() {
                     </TabsContent>
 
                     <TabsContent value="forms">
-                        <CustomForms />
+                        <CustomFormsPage />
                     </TabsContent>
 
                     <TabsContent value="roles">

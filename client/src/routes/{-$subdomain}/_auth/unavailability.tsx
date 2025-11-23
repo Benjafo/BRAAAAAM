@@ -1,5 +1,5 @@
 import { UnavailabilityTable } from "@/components/tables/UnavailabilityTable";
-import { MainNavigation } from "@/components/Navigation";
+import { MainNavigation } from "@/components/common/Navigation";
 import { authStore } from "@/components/stores/authStore";
 import { PERMISSIONS } from "@/lib/permissions";
 import { createFileRoute, redirect } from "@tanstack/react-router";

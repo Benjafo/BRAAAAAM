@@ -4,8 +4,7 @@ import { http } from "@/services/auth/serviceResolver";
 import { Check, ChevronsUpDown, X } from "lucide-react";
 import { useState } from "react";
 import { type Control, type UseFormSetValue } from "react-hook-form";
-import GoogleLocator from "./googleLocator";
-import { Button } from "./ui/button";
+import { Button } from "../ui/button";
 import {
     Command,
     CommandEmpty,
@@ -13,10 +12,11 @@ import {
     CommandInput,
     CommandItem,
     CommandList,
-} from "./ui/command";
-import { FormControl, FormField, FormItem, FormLabel, FormMessage } from "./ui/form";
-import { Input } from "./ui/input";
-import { Popover, PopoverContent, PopoverTrigger } from "./ui/popover";
+} from "../ui/command";
+import { FormControl, FormField, FormItem, FormLabel, FormMessage } from "../ui/form";
+import { Input } from "../ui/input";
+import { Popover, PopoverContent, PopoverTrigger } from "../ui/popover";
+import GoogleLocator from "./googleLocator";
 
 /**@TODO Fix eslint disable that is caused by the "any". */
 interface GoogleAddressFieldsProps {
@@ -140,7 +140,6 @@ export function GoogleAddressFields({
                 zip: loc.zip,
             }));
 
-            
             setAliasResults(mappedResults);
             setIsSearching(false);
         } catch (err) {

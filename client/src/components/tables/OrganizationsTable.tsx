@@ -1,12 +1,12 @@
-import { DataTable } from "@/components/dataTable";
+import { DataTable } from "@/components/common/dataTable";
 // import { useAuthStore } from "@/components/stores/authStore";
 // import { PERMISSIONS } from "@/lib/permissions";
+import { useLogout } from "@/hooks/useAuth";
 import { http } from "@/services/auth/serviceResolver";
+import { useNavigate } from "@tanstack/react-router";
 import { useState } from "react";
 import type { OrganizationValues } from "../form/organizationForm";
 import NewOrganizationModal from "../modals/organizationModal";
-import { useNavigate } from "@tanstack/react-router";
-import { useLogout } from "@/hooks/useAuth";
 
 type Organization = {
     id: string;
@@ -68,7 +68,7 @@ export function OrganizationsTable() {
                 showSearch={false}
                 showFilters={false}
                 usePagination={false}
-                caption={(<h3 className="text-3xl font-bold mb-5 text-foreground">Organizations</h3>)}
+                caption={<h3 className="text-3xl font-bold mb-5 text-foreground">Organizations</h3>}
                 columns={[
                     {
                         header: "Name",
@@ -80,7 +80,7 @@ export function OrganizationsTable() {
                     },
                     {
                         header: "Contact Name",
-                        accessorKey: "pocName"
+                        accessorKey: "pocName",
                     },
                     {
                         header: "Contact Phone",
@@ -92,7 +92,7 @@ export function OrganizationsTable() {
                     },
                     {
                         header: "Created At",
-                        accessorFn: (row) => (new Date(row.createdAt).toLocaleDateString())
+                        accessorFn: (row) => new Date(row.createdAt).toLocaleDateString(),
                     },
                     {
                         header: "Status",
@@ -103,7 +103,10 @@ export function OrganizationsTable() {
                 onRowClick={(row) => {
                     logout.mutate(undefined, {
                         onSettled: () => {
-                            navigate({ to: "/{-$subdomain}/sign-in", params: { subdomain: row.subdomain }, });
+                            navigate({
+                                to: "/{-$subdomain}/sign-in",
+                                params: { subdomain: row.subdomain },
+                            });
                         },
                     });
                 }}

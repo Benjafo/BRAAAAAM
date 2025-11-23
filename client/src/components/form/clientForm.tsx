@@ -25,7 +25,7 @@ import {
     CommandList,
 } from "@/components/ui/command";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { GoogleAddressFields } from "../GoogleAddressFields";
+import { GoogleAddressFields } from "../common/GoogleAddressFields";
 import { Checkbox } from "../ui/checkbox";
 import { DatePickerInput } from "../ui/datePickerField";
 import { RadioGroup, RadioGroupItem } from "../ui/radio-group";

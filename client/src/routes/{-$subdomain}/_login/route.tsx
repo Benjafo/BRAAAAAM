@@ -1,4 +1,4 @@
-import { LoginNavigation } from "@/components/Navigation";
+import { LoginNavigation } from "@/components/common/Navigation";
 import { createFileRoute, Outlet, useLocation } from "@tanstack/react-router";
 
 export const Route = createFileRoute("/{-$subdomain}/_login")({
@@ -10,9 +10,8 @@ export const Route = createFileRoute("/{-$subdomain}/_login")({
  * @returns JSX.Element
  */
 function RouteComponent() {
-
     const location = useLocation();
-    const showCancelButton = !location.pathname.endsWith('/sign-in');
+    const showCancelButton = !location.pathname.endsWith("/sign-in");
 
     return (
         <div className="h-dvh p-[10px] overflow-hidden box-border flex flex-col gap-[10px]">
@@ -23,5 +22,5 @@ function RouteComponent() {
                 </div>
             </div>
         </div>
-    )
+    );
 }

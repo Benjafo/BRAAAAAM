@@ -1,5 +1,5 @@
 import Schedule from "@/components/calendar/Schedule";
-import { MainNavigation } from "@/components/Navigation";
+import { MainNavigation } from "@/components/common/Navigation";
 import { authStore } from "@/components/stores/authStore";
 import { RidesTable } from "@/components/tables/RidesTable";
 import { PERMISSIONS } from "@/lib/permissions";

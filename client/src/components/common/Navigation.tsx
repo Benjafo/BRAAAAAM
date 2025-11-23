@@ -2,10 +2,9 @@ import { useLogout } from "@/hooks/useAuth";
 import { PERMISSIONS } from "@/lib/permissions";
 import { Link, useNavigate, useRouterState, type ToOptions } from "@tanstack/react-router";
 import { LogOut } from "lucide-react";
-// import WebsterLogo from "../../public/WebsterBeeLogo.png";
-import { useAuthStore } from "./stores/authStore";
-import { Avatar, AvatarFallback } from "./ui/avatar";
-import { Button } from "./ui/button";
+import { useAuthStore } from "../stores/authStore";
+import { Avatar, AvatarFallback } from "../ui/avatar";
+import { Button } from "../ui/button";
 
 /**
  * A generic navigation layout component that can be used to create different types of navigation bars.

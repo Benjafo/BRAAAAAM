@@ -15,8 +15,8 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 // import { toast } from "sonner";
 import { z } from "zod";
+import { GoogleAddressFields } from "../common/GoogleAddressFields";
 import { DatePickerInput } from "../ui/datePickerField";
-import { GoogleAddressFields } from "../GoogleAddressFields";
 import { Label } from "../ui/label";
 // import { Button } from "../ui/button";
 
@@ -132,21 +132,13 @@ import { Label } from "../ui/label";
 
 // export type OrganizationFormValues = z.infer<typeof organizationSchema>;
 
-
-
-
-
-
-
-
-
 /**
- * 
- * 
- * 
- * 
- * 
- * 
+ *
+ *
+ *
+ *
+ *
+ *
  * @TODO REMOVE ABOVE
  */
 
@@ -157,15 +149,20 @@ export const organizationSchema = z.object({
         .string()
         .min(3)
         .max(15)
-        .regex(/^[a-z0-9]([a-z0-9-]{0,13}[a-z0-9])?$/).optional(),
+        .regex(/^[a-z0-9]([a-z0-9-]{0,13}[a-z0-9])?$/)
+        .optional(),
 
     logoPath: z.string().max(255).nullable().optional(),
     website: z.string().max(255).nullable().optional(),
 
     phone: z
         .string()
-        .regex(/^(\+1\s?)?(\([0-9]{3}\)\s?|[0-9]{3}[-.\s]?)[0-9]{3}[-.\s]?[0-9]{4}$/, "Please enter a 10 digit phone number.")
-        .nullable().optional(),
+        .regex(
+            /^(\+1\s?)?(\([0-9]{3}\)\s?|[0-9]{3}[-.\s]?)[0-9]{3}[-.\s]?[0-9]{4}$/,
+            "Please enter a 10 digit phone number."
+        )
+        .nullable()
+        .optional(),
 
     email: z.email().max(255).nullable().optional(),
 
@@ -185,7 +182,10 @@ export const organizationSchema = z.object({
     pocEmail: z.email().max(255),
     pocPhone: z
         .string()
-        .regex(/^(\+1\s?)?(\([0-9]{3}\)\s?|[0-9]{3}[-.\s]?)[0-9]{3}[-.\s]?[0-9]{4}$/, "Please enter a 10 digit phone number.")
+        .regex(
+            /^(\+1\s?)?(\([0-9]{3}\)\s?|[0-9]{3}[-.\s]?)[0-9]{3}[-.\s]?[0-9]{4}$/,
+            "Please enter a 10 digit phone number."
+        )
         .nullable()
         .optional(),
 
@@ -196,16 +196,15 @@ export const organizationSchema = z.object({
 });
 
 export const organizationFormSchema = organizationSchema.partial({
-  id: true,
-  createdAt: true,
-  updatedAt: true,
-  addressValidated: true,
-  isActive: true,
+    id: true,
+    createdAt: true,
+    updatedAt: true,
+    addressValidated: true,
+    isActive: true,
 });
 
 export type OrganizationValues = z.infer<typeof organizationSchema>;
 export type OrganizationFormValues = z.infer<typeof organizationFormSchema>;
-
 
 /* -------------------------------- Props -------------------------------- */
 type Props = {
@@ -274,7 +273,9 @@ export default function OrganizationForm({ defaultValues = {}, onSubmit }: Props
                                     <Input placeholder="Value" {...field} />
                                 </FormControl>
                                 <FormMessage />
-                                <small className="text-muted-foreground">This name will be used to generate the organization url.</small>
+                                <small className="text-muted-foreground">
+                                    This name will be used to generate the organization url.
+                                </small>
                             </FormItem>
                         )}
                     />
@@ -290,7 +291,6 @@ export default function OrganizationForm({ defaultValues = {}, onSubmit }: Props
                                     <DatePickerInput
                                         value={(field.value ?? undefined) as Date | undefined}
                                         onChange={(date) => field.onChange(date)}
-                                        
                                         placeholder="Select date"
                                     />
                                 </FormControl>
@@ -299,7 +299,6 @@ export default function OrganizationForm({ defaultValues = {}, onSubmit }: Props
                         )}
                     />
 
-                    
                     {/** Logo - @TODO DISABLED, POSSIBLY REMOVE THIS, NOT CRITICAL*/}
                     {/* <FormField
                         control={form.control}
@@ -342,12 +341,14 @@ export default function OrganizationForm({ defaultValues = {}, onSubmit }: Props
                             <FormItem>
                                 <FormLabel>Website</FormLabel>
                                 <FormControl>
-                                    <Input 
-                                        placeholder="Value" 
-                                        {...field} 
+                                    <Input
+                                        placeholder="Value"
+                                        {...field}
                                         value={field.value ?? ""}
                                         onChange={(e) =>
-                                            field.onChange(e.target.value === "" ? null : e.target.value)
+                                            field.onChange(
+                                                e.target.value === "" ? null : e.target.value
+                                            )
                                         }
                                     />
                                 </FormControl>
@@ -355,9 +356,8 @@ export default function OrganizationForm({ defaultValues = {}, onSubmit }: Props
                             </FormItem>
                         )}
                     />
-
                 </div>
-                
+
                 <div className="grid grid-cols-1 gap-4 mt-4 mb-2">
                     <Label className="text-md">Organization Contact Information</Label>
                     {/* General Phone */}
@@ -368,12 +368,14 @@ export default function OrganizationForm({ defaultValues = {}, onSubmit }: Props
                             <FormItem>
                                 <FormLabel>Phone Number (General Contact)</FormLabel>
                                 <FormControl>
-                                    <Input 
-                                        placeholder="Value" 
-                                        {...field} 
+                                    <Input
+                                        placeholder="Value"
+                                        {...field}
                                         value={field.value ?? ""}
                                         onChange={(e) =>
-                                            field.onChange(e.target.value === "" ? null : e.target.value)
+                                            field.onChange(
+                                                e.target.value === "" ? null : e.target.value
+                                            )
                                         }
                                     />
                                 </FormControl>
@@ -390,12 +392,14 @@ export default function OrganizationForm({ defaultValues = {}, onSubmit }: Props
                             <FormItem>
                                 <FormLabel>Email Address</FormLabel>
                                 <FormControl>
-                                    <Input 
-                                        placeholder="Value" 
-                                        {...field} 
+                                    <Input
+                                        placeholder="Value"
+                                        {...field}
                                         value={field.value ?? ""}
                                         onChange={(e) =>
-                                            field.onChange(e.target.value === "" ? null : e.target.value)
+                                            field.onChange(
+                                                e.target.value === "" ? null : e.target.value
+                                            )
                                         }
                                     />
                                 </FormControl>
@@ -404,8 +408,6 @@ export default function OrganizationForm({ defaultValues = {}, onSubmit }: Props
                         )}
                     />
                 </div>
-
-
 
                 <div className="grid grid-cols-1 gap-4 mt-4 mb-2">
                     <Label className="text-md">Organization Mailing Address</Label>
@@ -417,12 +419,14 @@ export default function OrganizationForm({ defaultValues = {}, onSubmit }: Props
                             <FormItem>
                                 <FormLabel>Recipient/Attention Line</FormLabel>
                                 <FormControl>
-                                    <Input 
-                                        placeholder="Value" 
-                                        {...field} 
+                                    <Input
+                                        placeholder="Value"
+                                        {...field}
                                         value={field.value ?? ""}
                                         onChange={(e) =>
-                                            field.onChange(e.target.value === "" ? null : e.target.value)
+                                            field.onChange(
+                                                e.target.value === "" ? null : e.target.value
+                                            )
                                         }
                                     />
                                 </FormControl>
@@ -468,12 +472,14 @@ export default function OrganizationForm({ defaultValues = {}, onSubmit }: Props
                             <FormItem>
                                 <FormLabel>Phone Number</FormLabel>
                                 <FormControl>
-                                    <Input 
-                                        placeholder="Value" 
-                                        {...field} 
+                                    <Input
+                                        placeholder="Value"
+                                        {...field}
                                         value={field.value ?? ""}
                                         onChange={(e) =>
-                                            field.onChange(e.target.value === "" ? null : e.target.value)
+                                            field.onChange(
+                                                e.target.value === "" ? null : e.target.value
+                                            )
                                         }
                                     />
                                 </FormControl>
@@ -489,11 +495,14 @@ export default function OrganizationForm({ defaultValues = {}, onSubmit }: Props
                         render={({ field }) => (
                             <FormItem>
                                 <FormLabel>Email Address</FormLabel>
-                                
+
                                 <FormControl>
                                     <Input placeholder="Value" {...field} />
                                 </FormControl>
-                                <small className="text-muted-foreground">This email address will be used to create an initial admin user for this organization.</small>
+                                <small className="text-muted-foreground">
+                                    This email address will be used to create an initial admin user
+                                    for this organization.
+                                </small>
                                 <FormMessage />
                             </FormItem>
                         )}

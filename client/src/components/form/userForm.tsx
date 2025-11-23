@@ -27,7 +27,7 @@ import {
 } from "@/components/ui/form";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import type { Role } from "@/lib/types";
-import { GoogleAddressFields } from "../GoogleAddressFields";
+import { GoogleAddressFields } from "../common/GoogleAddressFields";
 import { Checkbox } from "../ui/checkbox";
 import { DatePickerInput } from "../ui/datePickerField";
 import { RadioGroup, RadioGroupItem } from "../ui/radio-group";
