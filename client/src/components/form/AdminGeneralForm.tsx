@@ -15,6 +15,7 @@ import {
     SelectTrigger,
     SelectValue,
 } from "@/components/ui/select";
+import { http } from "@/services/auth/serviceResolver";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { forwardRef, useCallback, useEffect, useImperativeHandle, useRef, useState } from "react";
 import { useForm } from "react-hook-form";
@@ -115,11 +116,8 @@ const adminGeneralSchema = z.object({
     logoUrl: z.url("Please enter a valid URL").optional().or(z.literal("")),
     organizationDomain: z
         .string()
-        .min(1, "Organization domain is required")
-        .regex(
-            /^(?:[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?\.)+[a-z0-9][a-z0-9-]{0,61}[a-z0-9]$/i,
-            "Please enter a valid domain (e.g., example.com)"
-        ),
+        .min(1, "Organization subdomain is required")
+        .regex(/^[a-z0-9]([a-z0-9-]{0,13}[a-z0-9])?$/, "Please enter a valid subdomain"),
     theme: z.enum([
         THEMES.LIGHT,
         THEMES.DARK,
@@ -135,12 +133,13 @@ const adminGeneralSchema = z.object({
     // Organization Contacts
     phone: z
         .string()
-        .min(1, "Phone number is required")
         .regex(
             /^(\+1\s?)?(\([0-9]{3}\)\s?|[0-9]{3}[-.\s]?)[0-9]{3}[-.\s]?[0-9]{4}$/,
             "Please enter a valid phone number"
-        ),
-    email: z.email("Please enter a valid email address"),
+        )
+        .optional()
+        .or(z.literal("")),
+    email: z.string().email("Please enter a valid email address").optional().or(z.literal("")),
 
     // Organization Mailing Address
     AddressLineOne: z
@@ -158,19 +157,6 @@ const adminGeneralSchema = z.object({
         .string()
         .min(1, "Country is required")
         .max(255, "Country must not exceed 255 characters"),
-
-    // API Keys
-    emailApiKey: z
-        .string()
-        .min(1, "Postmark API Key is required")
-        .max(255, "API Key must not exceed 255 characters"),
-    apiDomain: z
-        .string()
-        .min(1, "API domain is required")
-        .regex(
-            /^(?:[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?\.)+[a-z0-9][a-z0-9-]{0,61}[a-z0-9]$/i,
-            "Please enter a valid domain (e.g., api.example.com)"
-        ),
 });
 
 type AdminGeneralFormData = z.infer<typeof adminGeneralSchema>;
@@ -178,7 +164,7 @@ type AdminGeneralFormData = z.infer<typeof adminGeneralSchema>;
 const testData: AdminGeneralFormData = {
     name: "corporation name",
     logoUrl: "",
-    organizationDomain: "corporation.com",
+    organizationDomain: "corporation",
     theme: THEMES.LIGHT,
     creationDate: new Date("2025-09-10"),
     phone: "(111) 111-1111",
@@ -189,8 +175,6 @@ const testData: AdminGeneralFormData = {
     city: "New York",
     country: "United States",
     state: "NY",
-    emailApiKey: "pm_test_1234567890",
-    apiDomain: "api.google.com",
 };
 
 interface AdminGeneralFormProps {
@@ -240,6 +224,57 @@ export const AdminGeneralForm = forwardRef<AdminGeneralFormRef, AdminGeneralForm
                 }
             };
         }, [serverData.logoUrl]);
+
+        // Fetch organization settings on mount
+        useEffect(() => {
+            const fetchOrgSettings = async () => {
+                try {
+                    const response = await http.get("o/settings").json<{
+                        name: string;
+                        subdomain: string;
+                        logoPath?: string;
+                        phone?: string;
+                        email?: string;
+                        website?: string;
+                        addressLine1: string;
+                        addressLine2?: string;
+                        city: string;
+                        state: string;
+                        zip: string;
+                        country: string;
+                        establishedDate?: string;
+                        createdAt: string;
+                    }>();
+
+                    // Map API response to form data
+                    const mappedData: AdminGeneralFormData = {
+                        name: response.name,
+                        organizationDomain: response.subdomain,
+                        logoUrl: response.logoPath || "",
+                        phone: response.phone || "",
+                        email: response.email || "",
+                        AddressLineOne: response.addressLine1,
+                        AddressLineTwo: response.addressLine2 || "",
+                        city: response.city,
+                        state: response.state,
+                        zip: response.zip,
+                        country: response.country,
+                        creationDate: response.establishedDate
+                            ? new Date(response.establishedDate)
+                            : new Date(response.createdAt),
+                        theme: getStoredTheme(),
+                    };
+
+                    setServerData(mappedData);
+                    form.reset(mappedData);
+                } catch (error) {
+                    console.error("Failed to fetch organization settings:", error);
+                    toast.error("Failed to load organization settings");
+                }
+            };
+
+            fetchOrgSettings();
+        }, [form]);
 
         // Handle theme change in edit mode (preview only, don't save) (AI help)
         const handleThemeChange = useCallback((newTheme: Theme) => {
@@ -322,9 +357,21 @@ export const AdminGeneralForm = forwardRef<AdminGeneralFormRef, AdminGeneralForm
                 }
 
                 // API Call to save data
-                // TODO: Replace with actual API call using ky
-                // await ky.put(...)
-                console.log("Saving data:", formData);
+                const requestBody = {
+                    name: formData.name,
+                    logoPath: formData.logoUrl,
+                    phone: formData.phone,
+                    email: formData.email,
+                    addressLine1: formData.AddressLineOne,
+                    addressLine2: formData.AddressLineTwo,
+                    city: formData.city,
+                    state: formData.state,
+                    zip: formData.zip,
+                    country: formData.country,
+                    establishedDate: formData.creationDate.toISOString().split("T")[0], // Convert to YYYY-MM-DD
+                };
+
+                await http.put("o/settings", { json: requestBody }).json();
 
                 // Update server data state with saved values
                 setServerData(formData);
@@ -368,6 +415,16 @@ export const AdminGeneralForm = forwardRef<AdminGeneralFormRef, AdminGeneralForm
                     return "Dark";
                 case THEMES.DARK_AMBER:
                     return "Dark Amber";
+                case THEMES.OCEAN_BLUE:
+                    return "Ocean Blue";
+                case THEMES.FOREST_GREEN:
+                    return "Forest Green";
+                case THEMES.SUNSET_PURPLE:
+                    return "Sunset Purple";
+                case THEMES.MIDNIGHT_SLATE:
+                    return "Midnight Slate";
+                case THEMES.CORAL_REEF:
+                    return "Coral Reef";
                 default:
                     return theme;
             }
@@ -388,7 +445,7 @@ export const AdminGeneralForm = forwardRef<AdminGeneralFormRef, AdminGeneralForm
                                     name="name"
                                     render={({ field }) => (
                                         <FormItem className="grid gap-3">
-                                            <FormLabel>Name</FormLabel>
+                                            <FormLabel className="font-medium">Name</FormLabel>
                                             {isEditMode ? (
                                                 <FormControl>
                                                     <Input
@@ -398,7 +455,7 @@ export const AdminGeneralForm = forwardRef<AdminGeneralFormRef, AdminGeneralForm
                                                     />
                                                 </FormControl>
                                             ) : (
-                                                <p className="text-sm">{field.value || "Empty"}</p>
+                                                <p className="text-sm text-muted-foreground">{field.value || "Empty"}</p>
                                             )}
                                             <FormMessage />
                                         </FormItem>
@@ -406,7 +463,7 @@ export const AdminGeneralForm = forwardRef<AdminGeneralFormRef, AdminGeneralForm
                                 />
 
                                 <FormItem className="grid gap-3">
-                                    <FormLabel>Logo</FormLabel>
+                                    <FormLabel className="font-medium">Logo</FormLabel>
                                     {isEditMode ? (
                                         <div className="space-y-3">
                                             {serverData.logoUrl && (
@@ -462,7 +519,9 @@ export const AdminGeneralForm = forwardRef<AdminGeneralFormRef, AdminGeneralForm
                                                     )}
                                                 </>
                                             ) : (
-                                                <p className="text-sm">No logo uploaded</p>
+                                                <p className="text-sm text-muted-foreground">
+                                                    No logo uploaded
+                                                </p>
                                             )}
                                         </div>
                                     )}
@@ -473,17 +532,13 @@ export const AdminGeneralForm = forwardRef<AdminGeneralFormRef, AdminGeneralForm
                                     name="organizationDomain"
                                     render={({ field }) => (
                                         <FormItem className="grid gap-3">
-                                            <FormLabel>Organization Domain</FormLabel>
+                                            <FormLabel className="font-medium">Organization Subdomain</FormLabel>
                                             {isEditMode ? (
                                                 <FormControl>
-                                                    <Input
-                                                        placeholder="example.com"
-                                                        className="w-80"
-                                                        {...field}
-                                                    />
+                                                    <Input className="w-80" {...field} />
                                                 </FormControl>
                                             ) : (
-                                                <p className="text-sm">{field.value || "Empty"}</p>
+                                                <p className="text-sm text-muted-foreground">{field.value || "Empty"}</p>
                                             )}
                                             <FormMessage />
                                         </FormItem>
@@ -496,7 +551,7 @@ export const AdminGeneralForm = forwardRef<AdminGeneralFormRef, AdminGeneralForm
                                     name="theme"
                                     render={({ field }) => (
                                         <FormItem className="grid gap-3">
-                                            <FormLabel>Theme</FormLabel>
+                                            <FormLabel className="font-medium">Theme</FormLabel>
                                             {isEditMode ? (
                                                 <>
                                                     <Select
@@ -544,7 +599,7 @@ export const AdminGeneralForm = forwardRef<AdminGeneralFormRef, AdminGeneralForm
                                                     </Select>
                                                 </>
                                             ) : (
-                                                <p className="text-sm">
+                                                <p className="text-sm text-muted-foreground">
                                                     {getThemeLabel(field.value)}
                                                 </p>
                                             )}
@@ -566,7 +621,7 @@ export const AdminGeneralForm = forwardRef<AdminGeneralFormRef, AdminGeneralForm
                                     name="phone"
                                     render={({ field }) => (
                                         <FormItem className="grid gap-3">
-                                            <FormLabel>Phone</FormLabel>
+                                            <FormLabel className="font-medium">Phone</FormLabel>
                                             {isEditMode ? (
                                                 <FormControl>
                                                     <Input
@@ -576,7 +631,7 @@ export const AdminGeneralForm = forwardRef<AdminGeneralFormRef, AdminGeneralForm
                                                     />
                                                 </FormControl>
                                             ) : (
-                                                <p className="text-sm">{field.value || "Empty"}</p>
+                                                <p className="text-sm text-muted-foreground">{field.value || "Empty"}</p>
                                             )}
                                             <FormMessage />
                                         </FormItem>
@@ -588,7 +643,7 @@ export const AdminGeneralForm = forwardRef<AdminGeneralFormRef, AdminGeneralForm
                                     name="email"
                                     render={({ field }) => (
                                         <FormItem className="grid gap-3">
-                                            <FormLabel>Email</FormLabel>
+                                            <FormLabel className="font-medium">Email</FormLabel>
                                             {isEditMode ? (
                                                 <FormControl>
                                                     <Input
@@ -599,7 +654,7 @@ export const AdminGeneralForm = forwardRef<AdminGeneralFormRef, AdminGeneralForm
                                                     />
                                                 </FormControl>
                                             ) : (
-                                                <p className="text-sm">{field.value || "Empty"}</p>
+                                                <p className="text-sm text-muted-foreground">{field.value || "Empty"}</p>
                                             )}
                                             <FormMessage />
                                         </FormItem>
@@ -619,7 +674,7 @@ export const AdminGeneralForm = forwardRef<AdminGeneralFormRef, AdminGeneralForm
                                     name="AddressLineOne"
                                     render={({ field }) => (
                                         <FormItem className="grid gap-3">
-                                            <FormLabel>Address Line One</FormLabel>
+                                            <FormLabel className="font-medium">Address Line One</FormLabel>
                                             {isEditMode ? (
                                                 <FormControl>
                                                     <Input
@@ -629,7 +684,7 @@ export const AdminGeneralForm = forwardRef<AdminGeneralFormRef, AdminGeneralForm
                                                     />
                                                 </FormControl>
                                             ) : (
-                                                <p className="text-sm">{field.value || "Empty"}</p>
+                                                <p className="text-sm text-muted-foreground">{field.value || "Empty"}</p>
                                             )}
                                             <FormMessage />
                                         </FormItem>
@@ -641,7 +696,7 @@ export const AdminGeneralForm = forwardRef<AdminGeneralFormRef, AdminGeneralForm
                                     name="AddressLineTwo"
                                     render={({ field }) => (
                                         <FormItem className="grid gap-3">
-                                            <FormLabel>Address Line Two</FormLabel>
+                                            <FormLabel className="font-medium">Address Line Two</FormLabel>
                                             {isEditMode ? (
                                                 <FormControl>
                                                     <Input
@@ -651,7 +706,7 @@ export const AdminGeneralForm = forwardRef<AdminGeneralFormRef, AdminGeneralForm
                                                     />
                                                 </FormControl>
                                             ) : (
-                                                <p className="text-sm">{field.value}</p>
+                                                <p className="text-sm text-muted-foreground">{field.value}</p>
                                             )}
                                             <FormMessage />
                                         </FormItem>
@@ -662,7 +717,7 @@ export const AdminGeneralForm = forwardRef<AdminGeneralFormRef, AdminGeneralForm
                                     name="zip"
                                     render={({ field }) => (
                                         <FormItem className="grid gap-3">
-                                            <FormLabel>Zip</FormLabel>
+                                            <FormLabel className="font-medium">Zip</FormLabel>
                                             {isEditMode ? (
                                                 <FormControl>
                                                     <Input
@@ -672,7 +727,7 @@ export const AdminGeneralForm = forwardRef<AdminGeneralFormRef, AdminGeneralForm
                                                     />
                                                 </FormControl>
                                             ) : (
-                                                <p className="text-sm">{field.value || "Empty"}</p>
+                                                <p className="text-sm text-muted-foreground">{field.value || "Empty"}</p>
                                             )}
                                             <FormMessage />
                                         </FormItem>
@@ -684,7 +739,7 @@ export const AdminGeneralForm = forwardRef<AdminGeneralFormRef, AdminGeneralForm
                                     name="city"
                                     render={({ field }) => (
                                         <FormItem className="grid gap-3">
-                                            <FormLabel>City</FormLabel>
+                                            <FormLabel className="font-medium">City</FormLabel>
                                             {isEditMode ? (
                                                 <FormControl>
                                                     <Input
@@ -694,7 +749,7 @@ export const AdminGeneralForm = forwardRef<AdminGeneralFormRef, AdminGeneralForm
                                                     />
                                                 </FormControl>
                                             ) : (
-                                                <p className="text-sm">{field.value || "Empty"}</p>
+                                                <p className="text-sm text-muted-foreground">{field.value || "Empty"}</p>
                                             )}
                                             <FormMessage />
                                         </FormItem>
@@ -706,7 +761,7 @@ export const AdminGeneralForm = forwardRef<AdminGeneralFormRef, AdminGeneralForm
                                     name="state"
                                     render={({ field }) => (
                                         <FormItem className="grid gap-3">
-                                            <FormLabel>State</FormLabel>
+                                            <FormLabel className="font-medium">State</FormLabel>
                                             {isEditMode ? (
                                                 <FormControl>
                                                     <Input
@@ -716,7 +771,7 @@ export const AdminGeneralForm = forwardRef<AdminGeneralFormRef, AdminGeneralForm
                                                     />
                                                 </FormControl>
                                             ) : (
-                                                <p className="text-sm">{field.value || "Empty"}</p>
+                                                <p className="text-sm text-muted-foreground">{field.value || "Empty"}</p>
                                             )}
                                             <FormMessage />
                                         </FormItem>
@@ -728,7 +783,7 @@ export const AdminGeneralForm = forwardRef<AdminGeneralFormRef, AdminGeneralForm
                                     name="country"
                                     render={({ field }) => (
                                         <FormItem className="grid gap-3">
-                                            <FormLabel>Country</FormLabel>
+                                            <FormLabel className="font-medium">Country</FormLabel>
                                             {isEditMode ? (
                                                 <FormControl>
                                                     <Input
@@ -738,62 +793,7 @@ export const AdminGeneralForm = forwardRef<AdminGeneralFormRef, AdminGeneralForm
                                                     />
                                                 </FormControl>
                                             ) : (
-                                                <p className="text-sm">{field.value || "Empty"}</p>
-                                            )}
-                                            <FormMessage />
-                                        </FormItem>
-                                    )}
-                                />
-                            </CardContent>
-                        </Card>
-
-                        {/* API Keys Card */}
-                        <Card className="mb-2.5">
-                            <CardHeader>
-                                <CardTitle>API Keys</CardTitle>
-                            </CardHeader>
-                            <CardContent className="grid gap-6">
-                                <FormField
-                                    control={form.control}
-                                    name="emailApiKey"
-                                    render={({ field }) => (
-                                        <FormItem className="grid gap-3">
-                                            <FormLabel>Postmark API Key</FormLabel>
-                                            {isEditMode ? (
-                                                <FormControl>
-                                                    <Input
-                                                        type="password"
-                                                        placeholder="Enter API key"
-                                                        className="w-80"
-                                                        {...field}
-                                                    />
-                                                </FormControl>
-                                            ) : (
-                                                <p className="text-sm">
-                                                    {field.value ? "••••••••••••" : "Empty"}
-                                                </p>
-                                            )}
-                                            <FormMessage />
-                                        </FormItem>
-                                    )}
-                                />
-
-                                <FormField
-                                    control={form.control}
-                                    name="apiDomain"
-                                    render={({ field }) => (
-                                        <FormItem className="grid gap-3">
-                                            <FormLabel>API Domain</FormLabel>
-                                            {isEditMode ? (
-                                                <FormControl>
-                                                    <Input
-                                                        placeholder="api.example.com"
-                                                        className="w-80"
-                                                        {...field}
-                                                    />
-                                                </FormControl>
-                                            ) : (
-                                                <p className="text-sm">{field.value || "Empty"}</p>
+                                                <p className="text-sm text-muted-foreground">{field.value || "Empty"}</p>
                                             )}
                                             <FormMessage />
                                         </FormItem>

@@ -1,75 +1,91 @@
 import { Request, Response } from "express";
+import { getSysDb } from "../drizzle/sys-client.js";
+import { organizations } from "../drizzle/sys/schema.js";
+import { eq } from "drizzle-orm";
 
-// interface HoursOfOperation {
-//     id: string;
-//     dayOfWeek: number; // 0–6
-//     startTime: string;
-//     endTime: string;
-// }
+export const getSettings = async (req: Request, res: Response): Promise<Response> => {
+    try {
+        const db = getSysDb();
+        const subdomain = req.org?.subdomain;
 
-// interface OrgSettings {
-//     id: string;
-//     name?: string;
-//     logo?: string;
-//     domain?: string;
-//     phone?: string;
-//     email?: string;
-//     streetAddress1?: string;
-//     streetAddress2?: string;
-//     city?: string;
-//     state?: string;
-//     zip?: string;
-//     country?: string;
-//     postmarkApiKey?: string;
-//     googleMapsApiKey?: string;
-//     hoursOfOperation?: HoursOfOperation[];
-// }
+        if (!subdomain) {
+            return res.status(400).json({ error: "Organization subdomain not found" });
+        }
 
-// const _orgSettings: OrgSettings[] = [];
+        const [org] = await db
+            .select()
+            .from(organizations)
+            .where(eq(organizations.subdomain, subdomain))
+            .limit(1);
 
-// TODO: For future Controllers, make stubs without logic. Just return res.status(500) for now...
-export const getSettings = (req: Request, res: Response): Response => {
-    return res.status(500).send();
+        if (!org) {
+            return res.status(404).json({ error: "Organization not found" });
+        }
+
+        return res.status(200).json(org);
+    } catch (err) {
+        console.error("Error fetching organization settings:", err);
+        return res.status(500).json({ error: "Internal server error" });
+    }
 };
 
-export const updateSettings = (req: Request, res: Response): Response => {
-    return res.status(500).send();
+export const updateSettings = async (req: Request, res: Response): Promise<Response> => {
+    try {
+        const db = getSysDb();
+        const subdomain = req.org?.subdomain;
+
+        if (!subdomain) {
+            return res.status(400).json({ error: "Organization subdomain not found" });
+        }
+
+        const {
+            name,
+            logoPath,
+            website,
+            phone,
+            email,
+            attentionLine,
+            addressLine1,
+            addressLine2,
+            city,
+            state,
+            zip,
+            country,
+            establishedDate,
+        } = req.body;
+
+        const [updatedOrg] = await db
+            .update(organizations)
+            .set({
+                name,
+                logoPath,
+                website,
+                phone,
+                email,
+                attentionLine,
+                addressLine2,
+                addressLine1,
+                city,
+                state,
+                zip,
+                country,
+                establishedDate,
+                updatedAt: new Date().toISOString(),
+            })
+            .where(eq(organizations.subdomain, subdomain))
+            .returning();
+
+        if (!updatedOrg) {
+            return res.status(404).json({ error: "Organization not found" });
+        }
+
+        return res.status(200).json(updatedOrg);
+    } catch (err) {
+        console.error("Error updating organization settings:", err);
+        return res.status(500).json({ error: "Internal server error" });
+    }
 };
 
 export const getOperationHours = (req: Request, res: Response): Response => {
-    return res.status(500).send();
-};
-
-// TODO: Seperate Forms into its own controller
-
-export const listForms = (req: Request, res: Response): Response => {
-    return res.status(500).send();
-};
-
-export const createForm = (req: Request, res: Response): Response => {
-    return res.status(500).send();
-};
-
-export const getForm = (req: Request, res: Response): Response => {
-    return res.status(500).send();
-};
-
-export const updateForm = (req: Request, res: Response): Response => {
-    return res.status(500).send();
-};
-
-export const listAuditLog = (req: Request, res: Response): Response => {
-    return res.status(500).send();
-};
-
-export const getAuditLogEntry = (req: Request, res: Response): Response => {
-    return res.status(500).send();
-};
-
-export const getPermissions = (req: Request, res: Response): Response => {
-    return res.status(500).send();
-};
-
-export const getCurrentLocation = (req: Request, res: Response): Response => {
     return res.status(500).send();
 };
