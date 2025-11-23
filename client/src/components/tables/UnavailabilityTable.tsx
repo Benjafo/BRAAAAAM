@@ -6,6 +6,15 @@ import { useState } from "react";
 import type { RecurringUnavailabilityFormValues } from "../form/recurringUnavailabilityForm";
 import type { TempUnavailabilityFormValues } from "../form/tempUnavailabilityForm";
 import UnavailabilityModal from "../modals/unavailablilityModal";
+import { Button } from "@/components/ui/button";
+import {
+    DropdownMenu,
+    DropdownMenuContent,
+    DropdownMenuItem,
+    DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { MoreHorizontal } from "lucide-react";
+import { toast } from "sonner";
 
 type UnavailabilityBlock = {
     id: string;
@@ -99,6 +108,8 @@ export function UnavailabilityTable() {
         temp?: Partial<TempUnavailabilityFormValues> & { id?: string };
         recurring?: Partial<RecurringUnavailabilityFormValues> & { id?: string };
         defaultTab?: "temporary" | "recurring";
+        targetUserId?: string;
+        targetUserName?: string;
     }>({});
     const [refreshKey, setRefreshKey] = useState(0);
     const userId = useAuthStore((s) => s.user)?.id;
@@ -108,12 +119,21 @@ export function UnavailabilityTable() {
         s.hasPermission(PERMISSIONS.ALL_UNAVAILABILITY_READ)
     );
     const hasCreatePermission = useAuthStore((s) =>
-        s.hasPermission(PERMISSIONS.OWN_UNAVAILABILITY_CREATE)
+        s.hasAnyPermission([
+            PERMISSIONS.OWN_UNAVAILABILITY_CREATE,
+            PERMISSIONS.ALL_UNAVAILABILITY_CREATE,
+        ])
     );
     const hasUpdatePermission = useAuthStore((s) =>
         s.hasAnyPermission([
             PERMISSIONS.OWN_UNAVAILABILITY_UPDATE,
             PERMISSIONS.ALL_UNAVAILABILITY_UPDATE,
+        ])
+    );
+    const hasDeletePermission = useAuthStore((s) =>
+        s.hasAnyPermission([
+            PERMISSIONS.OWN_UNAVAILABILITY_DELETE,
+            PERMISSIONS.ALL_UNAVAILABILITY_DELETE,
         ])
     );
 
@@ -159,8 +179,34 @@ export function UnavailabilityTable() {
 
     const handleEditUnavailability = (block: UnavailabilityBlock) => {
         const formValues = mapBlockToFormValues(block);
-        setSelectedUnavailability(formValues);
+
+        // Include userId and userName for admin/dispatcher view
+        const userName =
+            block.userFirstName && block.userLastName
+                ? `${block.userFirstName} ${block.userLastName}`
+                : undefined;
+
+        setSelectedUnavailability({
+            ...formValues,
+            targetUserId: block.userId,
+            targetUserName: userName,
+        });
         setIsModalOpen(true);
+    };
+
+    const handleDeleteUnavailability = async (block: UnavailabilityBlock) => {
+        if (!confirm("Are you sure you want to delete this unavailability record?")) {
+            return;
+        }
+
+        try {
+            await http.delete(`o/users/${block.userId}/unavailability/${block.id}`);
+            toast.success("Unavailability deleted successfully");
+            handleRefresh();
+        } catch (error) {
+            console.error("Failed to delete unavailability:", error);
+            toast.error("Failed to delete unavailability");
+        }
     };
 
     // Build columns array dynamically based on permissions
@@ -250,6 +296,31 @@ export function UnavailabilityTable() {
                 fetchData={fetchUnavailability}
                 columns={columns}
                 onRowClick={hasUpdatePermission ? handleEditUnavailability : undefined}
+                rowActions={
+                    hasDeletePermission
+                        ? (block: UnavailabilityBlock) => (
+                              <DropdownMenu>
+                                  <DropdownMenuTrigger asChild>
+                                      <Button variant="ghost" className="h-8 w-8 p-0">
+                                          <span className="sr-only">Open menu</span>
+                                          <MoreHorizontal className="h-4 w-4" />
+                                      </Button>
+                                  </DropdownMenuTrigger>
+                                  <DropdownMenuContent align="end">
+                                      <DropdownMenuItem
+                                          onClick={(e) => {
+                                              e.stopPropagation();
+                                              handleDeleteUnavailability(block);
+                                          }}
+                                          className="text-destructive"
+                                      >
+                                          Delete
+                                      </DropdownMenuItem>
+                                  </DropdownMenuContent>
+                              </DropdownMenu>
+                          )
+                        : undefined
+                }
                 actionButton={
                     hasCreatePermission
                         ? {
@@ -266,6 +337,8 @@ export function UnavailabilityTable() {
                 defaultTab={selectedUnavailability.defaultTab}
                 tempInitial={selectedUnavailability.temp}
                 recurringInitial={selectedUnavailability.recurring}
+                targetUserId={selectedUnavailability.targetUserId}
+                targetUserName={selectedUnavailability.targetUserName}
                 onSuccess={() => {
                     handleRefresh();
                     setIsModalOpen(false);

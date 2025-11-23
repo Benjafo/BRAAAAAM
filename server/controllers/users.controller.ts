@@ -86,6 +86,7 @@ export const listUsers = async (req: Request, res: Response): Promise<Response> 
         const filterableColumns: Record<string, any> = {
             ...sortableColumns,
             name: [users.firstName, users.lastName], // Filter by both firstName and lastName
+            isDriverRole: roles.isDriverRole, // Filter by driver role
         };
 
         const { where, orderBy, limit, offset, page, pageSize } = applyQueryFilters(
@@ -138,6 +139,7 @@ export const listUsers = async (req: Request, res: Response): Promise<Response> 
                 lifespanReimbursement: users.lifespanReimbursement,
                 roleId: users.roleId,
                 roleName: roles.name,
+                isDriverRole: roles.isDriverRole,
                 address: {
                     id: locations.id,
                     addressLine1: locations.addressLine1,
@@ -372,6 +374,7 @@ export const getUser = async (req: Request, res: Response): Promise<Response> =>
                 lifespanReimbursement: users.lifespanReimbursement,
                 roleId: users.roleId,
                 roleName: roles.name,
+                isDriverRole: roles.isDriverRole,
                 address: {
                     id: locations.id,
                     addressLine1: locations.addressLine1,

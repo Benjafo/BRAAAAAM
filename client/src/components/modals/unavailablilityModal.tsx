@@ -19,6 +19,8 @@ import * as React from "react";
 import { toast } from "sonner";
 import { useAuthStore } from "../stores/authStore";
 import OverlapWarningModal from "./overlapWarningModal";
+import { DriverSelector } from "../driverSelector";
+import { PERMISSIONS } from "@/lib/permissions";
 
 type Props = {
     open: boolean;
@@ -26,6 +28,8 @@ type Props = {
     defaultTab?: "temporary" | "recurring";
     tempInitial?: Partial<TempUnavailabilityFormValues> & { id?: string };
     recurringInitial?: Partial<RecurringUnavailabilityFormValues> & { id?: string };
+    targetUserId?: string; // Pre-selected driver ID (when editing or adding for specific driver)
+    targetUserName?: string; // Driver name to display when editing
     onSuccess?: () => void;
 };
 
@@ -35,19 +39,39 @@ export default function UnavailabilityModal({
     defaultTab = "temporary",
     tempInitial,
     recurringInitial,
+    targetUserId,
+    targetUserName,
     onSuccess,
 }: Props) {
     const [activeTab, setActiveTab] = React.useState<"temporary" | "recurring">(defaultTab);
     const [overlapConflicts, setOverlapConflicts] = React.useState<any[]>([]);
     const [lastSubmittedValues, setLastSubmittedValues] = React.useState<any>(null);
     const [isSubmitting, setIsSubmitting] = React.useState(false);
+    const [selectedDriverId, setSelectedDriverId] = React.useState<string | null>(
+        targetUserId || null
+    );
+    const [selectedDriverName, setSelectedDriverName] = React.useState<string | null>(
+        targetUserName || null
+    );
 
-    const userId = useAuthStore((s) => s.user)?.id;
+    const currentUserId = useAuthStore((s) => s.user)?.id;
+    const hasAllUnavailabilityCreate = useAuthStore((s) =>
+        s.hasPermission(PERMISSIONS.ALL_UNAVAILABILITY_CREATE)
+    );
+    const hasAllUnavailabilityRead = useAuthStore((s) =>
+        s.hasPermission(PERMISSIONS.ALL_UNAVAILABILITY_READ)
+    );
 
     const isEditingTemp = Boolean(tempInitial?.id);
     const isEditingRecurring = Boolean(recurringInitial?.id);
     const isEditing = isEditingTemp || isEditingRecurring;
     const modalTitle = isEditing ? "Edit Unavailability" : "Add Unavailability";
+
+    // Determine which userId to use: targetUserId > selectedDriverId > currentUserId
+    const userId = targetUserId || selectedDriverId || currentUserId;
+
+    // Show driver selector if user has permission and not editing and no targetUserId provided
+    const showDriverSelector = hasAllUnavailabilityCreate && !isEditing && !targetUserId;
 
     async function handleTempSubmit(values: TempUnavailabilityFormValues, eventOrIgnoreOverlap?: any) {
         // Check if second param is a boolean (from handleOverlapConfirm) or an event (from form submit)
@@ -55,6 +79,12 @@ export default function UnavailabilityModal({
 
         console.log("handleTempSubmit called with ignoreOverlap:", ignoreOverlap);
         console.log("handleTempSubmit values:", values);
+
+        // Validate driver selection for users with ALL_UNAVAILABILITY_CREATE permission
+        if (showDriverSelector && !selectedDriverId) {
+            toast.error("Please select a driver.");
+            return;
+        }
 
         if (!userId) {
             toast.error("User not authenticated, please log in again.");
@@ -142,6 +172,12 @@ export default function UnavailabilityModal({
     ) {
         // Check if second param is a boolean (from handleOverlapConfirm) or an event (from form submit)
         const ignoreOverlap = typeof eventOrIgnoreOverlap === "boolean" ? eventOrIgnoreOverlap : false;
+
+        // Validate driver selection for users with ALL_UNAVAILABILITY_CREATE permission
+        if (showDriverSelector && !selectedDriverId) {
+            toast.error("Please select a driver.");
+            return;
+        }
 
         if (!userId) {
             toast.error("User not authenticated");
@@ -245,6 +281,28 @@ export default function UnavailabilityModal({
                     <DialogHeader className="pb-2.5">
                         <DialogTitle>{modalTitle}</DialogTitle>
                     </DialogHeader>
+
+                    {/* Show driver selector for admins/dispatchers when creating */}
+                    {showDriverSelector && (
+                        <div className="mb-4">
+                            <DriverSelector
+                                value={selectedDriverId}
+                                onChange={(driverId, driverName) => {
+                                    setSelectedDriverId(driverId);
+                                    setSelectedDriverName(driverName);
+                                }}
+                                required
+                            />
+                        </div>
+                    )}
+
+                    {/* Show driver name when editing (read-only) for admins/dispatchers */}
+                    {isEditing && hasAllUnavailabilityRead && (targetUserName || selectedDriverName) && (
+                        <div className="mb-4 p-3 bg-muted rounded-md">
+                            <p className="text-sm text-muted-foreground">Driver</p>
+                            <p className="font-medium">{targetUserName || selectedDriverName}</p>
+                        </div>
+                    )}
 
                     <Tabs
                         value={activeTab}

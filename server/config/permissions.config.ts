@@ -110,6 +110,13 @@ export const PERMISSIONS: PermissionDefinition[] = [
         description: "View unavailability periods for all users",
     },
     {
+        permKey: "allunavailability.create",
+        resource: "allunavailability",
+        action: "create",
+        name: "Create All Unavailability",
+        description: "Create unavailability periods for all users",
+    },
+    {
         permKey: "allunavailability.update",
         resource: "allunavailability",
         action: "update",

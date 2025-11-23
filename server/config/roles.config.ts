@@ -43,8 +43,9 @@ export const DEFAULT_ROLES: RoleDefinition[] = [
 
             // Unavailability
             "allunavailability.read",
-            // "allunavailability.update",
-            // "allunavailability.delete",
+            "allunavailability.create",
+            "allunavailability.update",
+            "allunavailability.delete",
 
             // Reports
             "reports.export",
@@ -100,6 +101,12 @@ export const DEFAULT_ROLES: RoleDefinition[] = [
             "allappointments.create",
             "allappointments.read",
             "allappointments.update",
+
+            // Unavailability
+            "allunavailability.read",
+            "allunavailability.create",
+            "allunavailability.update",
+            "allunavailability.delete",
 
             // Volunteer Records (own)
             "ownvolunteer-records.read",

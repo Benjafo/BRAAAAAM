@@ -23,6 +23,7 @@ export const PERMISSIONS = {
 
     // Unavailability - All Users
     ALL_UNAVAILABILITY_READ: "allunavailability.read",
+    ALL_UNAVAILABILITY_CREATE: "allunavailability.create",
     ALL_UNAVAILABILITY_UPDATE: "allunavailability.update",
     ALL_UNAVAILABILITY_DELETE: "allunavailability.delete",
 
