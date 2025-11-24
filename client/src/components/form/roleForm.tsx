@@ -70,6 +70,7 @@ function capitalizeResource(resource: string): string {
         settings: "Settings",
         organizations: "Organizations",
         dashboard: "Dashboard",
+        calllogs: "Call Logs",
         // All/Own scoped resources
         allappointments: "Appointments (all)",
         ownappointments: "Appointments (own)",
