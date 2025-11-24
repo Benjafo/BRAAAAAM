@@ -19,7 +19,6 @@ import reportsRouter from "./routes/api.org.reports.js";
 import rolesRouter from "./routes/api.org.roles.js";
 import orgSettingsRouter from "./routes/api.org.settings.js";
 import usersRouter from "./routes/api.org.users.js";
-import volunteerRecordsRouter from "./routes/api.org.volunteer-records.js";
 
 // import orgAuthRouter from "./routes/api.org.auth.js";
 
@@ -500,7 +499,6 @@ app.use("/o/reports", withAuth, withOrg, reportsRouter);
 app.use("/o/settings/roles", withAuth, withOrg, rolesRouter);
 app.use("/o/settings/locations", withAuth, withOrg, locationsRouter);
 app.use("/o/custom-forms", withAuth, withOrg, customFormsRouter);
-app.use("/o/volunteer-records", withAuth, withOrg, volunteerRecordsRouter);
 app.get("/o/audit-logs", withAuth, withOrg, listAuditLogs); //this is not a router
 
 // Protected system-scoped routes with authentication

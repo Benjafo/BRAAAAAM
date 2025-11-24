@@ -294,6 +294,13 @@ export const PERMISSIONS: PermissionDefinition[] = [
         description: "View volunteer hours and miles records for all users",
     },
     {
+        permKey: "allvolunteer-records.create",
+        resource: "allvolunteer-records",
+        action: "create",
+        name: "Create All Volunteer Records",
+        description: "Create volunteer hours and miles records for all users",
+    },
+    {
         permKey: "allvolunteer-records.update",
         resource: "allvolunteer-records",
         action: "update",

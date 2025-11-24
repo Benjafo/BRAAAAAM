@@ -33,11 +33,18 @@ type VolunteerRecord = {
 
 export function VolunteerRecordsTable() {
     const [isModalOpen, setIsModalOpen] = useState(false);
-    const [selectedRecordId, setSelectedRecordId] = useState<string | null>(null);
+    const [selectedRecord, setSelectedRecord] = useState<{
+        id: string | null;
+        targetUserId?: string;
+        targetUserName?: string;
+    }>({ id: null });
     const [refreshKey, setRefreshKey] = useState(0);
 
     const hasCreatePermission = useAuthStore((s) =>
-        s.hasPermission(PERMISSIONS.OWN_VOLUNTEER_RECORDS_CREATE)
+        s.hasAnyPermission([
+            PERMISSIONS.OWN_VOLUNTEER_RECORDS_CREATE,
+            PERMISSIONS.ALL_VOLUNTEER_RECORDS_CREATE,
+        ])
     );
     const hasOwnUpdatePermission = useAuthStore((s) =>
         s.hasPermission(PERMISSIONS.OWN_VOLUNTEER_RECORDS_UPDATE)
@@ -74,8 +81,18 @@ export function VolunteerRecordsTable() {
             }
         });
 
+        // If user has permission to view all records, fetch from /users/volunteer-records
+        // Otherwise, fetch only their own from /users/:userId/volunteer-records
+        const endpoint = hasAllReadPermission
+            ? `o/users/volunteer-records`
+            : `o/users/${currentUserId}/volunteer-records`;
+
+        if (!hasAllReadPermission && !currentUserId) {
+            return { data: [], total: 0 };
+        }
+
         const response = await http
-            .get(`o/volunteer-records?${searchParams}`)
+            .get(`${endpoint}?${searchParams}`)
             .json<{ results: VolunteerRecord[]; total: number }>();
 
         return {
@@ -85,22 +102,30 @@ export function VolunteerRecordsTable() {
     };
 
     const handleCreateRecord = () => {
-        setSelectedRecordId(null);
+        setSelectedRecord({ id: null });
         setIsModalOpen(true);
     };
 
     const handleEditRecord = (record: VolunteerRecord) => {
-        setSelectedRecordId(record.id);
+        const userName = record.volunteer
+            ? `${record.volunteer.firstName} ${record.volunteer.lastName}`
+            : undefined;
+
+        setSelectedRecord({
+            id: record.id,
+            targetUserId: record.userId,
+            targetUserName: userName,
+        });
         setIsModalOpen(true);
     };
 
-    const handleDeleteRecord = async (recordId: string) => {
+    const handleDeleteRecord = async (record: VolunteerRecord) => {
         if (!confirm("Are you sure you want to delete this record?")) {
             return;
         }
 
         try {
-            await http.delete(`o/volunteer-records/${recordId}`);
+            await http.delete(`o/users/${record.userId}/volunteer-records/${record.id}`);
             toast.success("Record deleted successfully");
             handleRefresh();
         } catch (error) {
@@ -131,7 +156,9 @@ export function VolunteerRecordsTable() {
             accessorKey: "date",
             id: "date",
             cell: ({ getValue }: any) => {
-                const date = new Date(getValue() as string);
+                const dateStr = getValue() as string;
+                // Append T00:00:00 to parse as local midnight, not UTC midnight
+                const date = new Date(dateStr + "T00:00:00");
                 return date.toLocaleDateString();
             },
         },
@@ -224,7 +251,7 @@ export function VolunteerRecordsTable() {
                                           <DropdownMenuItem
                                               onClick={(e) => {
                                                   e.stopPropagation();
-                                                  handleDeleteRecord(record.id);
+                                                  handleDeleteRecord(record);
                                               }}
                                               className="text-destructive"
                                           >
@@ -241,7 +268,9 @@ export function VolunteerRecordsTable() {
             <VolunteerRecordModal
                 open={isModalOpen}
                 onOpenChange={setIsModalOpen}
-                recordId={selectedRecordId}
+                recordId={selectedRecord.id}
+                targetUserId={selectedRecord.targetUserId}
+                targetUserName={selectedRecord.targetUserName}
                 onSuccess={handleRefresh}
             />
         </>

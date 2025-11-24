@@ -63,9 +63,9 @@ export const DEFAULT_ROLES: RoleDefinition[] = [
 
             // Volunteer Records
             "allvolunteer-records.read",
+            "allvolunteer-records.create",
             "allvolunteer-records.update",
             "allvolunteer-records.delete",
-            "ownvolunteer-records.create",
 
             // Notifications
             "allnotifications.read",
@@ -125,9 +125,9 @@ export const DEFAULT_ROLES: RoleDefinition[] = [
 
             // Volunteer Records
             "allvolunteer-records.read",
+            "allvolunteer-records.create",
             "allvolunteer-records.update",
             "allvolunteer-records.delete",
-            "ownvolunteer-records.create",
 
             // Notifications
             "allnotifications.read",
@@ -170,11 +170,11 @@ export const DEFAULT_ROLES: RoleDefinition[] = [
             "allunavailability.update",
             "allunavailability.delete",
 
-            // Volunteer Records (own)
-            "ownvolunteer-records.read",
-            "ownvolunteer-records.create",
-            "ownvolunteer-records.update",
-            "ownvolunteer-records.delete",
+            // Volunteer Records (all)
+            "allvolunteer-records.read",
+            "allvolunteer-records.create",
+            "allvolunteer-records.update",
+            "allvolunteer-records.delete",
 
             // Notifications
             "allnotifications.read",
@@ -216,11 +216,11 @@ export const DEFAULT_ROLES: RoleDefinition[] = [
             "allunavailability.update",
             "allunavailability.delete",
 
-            // Volunteer Records (own)
-            "ownvolunteer-records.read",
-            "ownvolunteer-records.create",
-            "ownvolunteer-records.update",
-            "ownvolunteer-records.delete",
+            // Volunteer Records (all)
+            "allvolunteer-records.read",
+            "allvolunteer-records.create",
+            "allvolunteer-records.update",
+            "allvolunteer-records.delete",
 
             // Notifications
             "allnotifications.read",

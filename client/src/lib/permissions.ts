@@ -66,6 +66,7 @@ export const PERMISSIONS = {
 
     // Volunteer Records - All
     ALL_VOLUNTEER_RECORDS_READ: "allvolunteer-records.read",
+    ALL_VOLUNTEER_RECORDS_CREATE: "allvolunteer-records.create",
     ALL_VOLUNTEER_RECORDS_UPDATE: "allvolunteer-records.update",
     ALL_VOLUNTEER_RECORDS_DELETE: "allvolunteer-records.delete",
 
