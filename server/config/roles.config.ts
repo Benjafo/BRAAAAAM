@@ -79,11 +79,119 @@ export const DEFAULT_ROLES: RoleDefinition[] = [
         ],
     },
     {
+        roleKey: "admin-driver",
+        name: "Admin Driver",
+        description: "Administrative access and perform driver actions",
+        isSystem: false,
+        isDriverRole: true,
+        permissions: [
+            // Dashboard
+            "dashboard.read",
+
+            // Users
+            "users.read",
+            "users.create",
+            "users.update",
+
+            // Clients
+            "clients.read",
+            "clients.create",
+            "clients.update",
+
+            // Appointments
+            "allappointments.create",
+            "allappointments.read",
+            "allappointments.update",
+
+            // Unavailability
+            "allunavailability.read",
+            "allunavailability.create",
+            "allunavailability.update",
+            "allunavailability.delete",
+
+            // Reports
+            "reports.export",
+            "reports.read",
+
+            // Roles
+            "roles.read",
+            "roles.create",
+            "roles.update",
+            "roles.delete",
+
+            // Settings
+            "settings.read",
+            "settings.update",
+
+            // Volunteer Records
+            "allvolunteer-records.read",
+            "allvolunteer-records.update",
+            "allvolunteer-records.delete",
+            "ownvolunteer-records.create",
+
+            // Notifications
+            "allnotifications.read",
+            "allnotifications.update",
+
+            // Call Logs
+            "calllogs.read",
+            "calllogs.create",
+            "calllogs.update",
+            "calllogs.delete",
+        ],
+    },
+    {
         roleKey: "dispatcher",
         name: "Dispatcher",
         description: "Manage appointments, clients, and drivers",
         isSystem: false,
         isDriverRole: false,
+        permissions: [
+            // Users
+            "users.read",
+            "users.create",
+            "users.update",
+            "users.delete",
+
+            // Clients
+            "clients.read",
+            "clients.create",
+            "clients.update",
+            "clients.delete",
+
+            // Appointments
+            "allappointments.create",
+            "allappointments.read",
+            "allappointments.update",
+
+            // Unavailability
+            "allunavailability.read",
+            "allunavailability.create",
+            "allunavailability.update",
+            "allunavailability.delete",
+
+            // Volunteer Records (own)
+            "ownvolunteer-records.read",
+            "ownvolunteer-records.create",
+            "ownvolunteer-records.update",
+            "ownvolunteer-records.delete",
+
+            // Notifications
+            "allnotifications.read",
+            "allnotifications.update",
+
+            // Call Logs
+            "calllogs.read",
+            "calllogs.create",
+            "calllogs.update",
+        ],
+    },
+    {
+        roleKey: "dispatcher-driver",
+        name: "Dispatcher Driver",
+        description: "Manage appointments, clients, drivers, and perform driver actions",
+        isSystem: false,
+        isDriverRole: true,
         permissions: [
             // Users
             "users.read",
