@@ -1,10 +1,10 @@
-import { useState, useEffect } from "react";
-import { CalendarIcon } from "lucide-react";
-import { format, parse, isValid } from "date-fns";
 import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
 import { Input } from "@/components/ui/input";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { format, isValid, parse } from "date-fns";
+import { CalendarIcon } from "lucide-react";
+import { useEffect, useState } from "react";
 
 const DATE_FORMAT = "MMMM dd, yyyy";
 
@@ -128,8 +128,8 @@ export function DatePickerInput({
                         mode="single"
                         selected={value}
                         captionLayout="dropdown"
-                        startMonth={new Date(2000, 0, 1)}  // January 2000
-                        endMonth={new Date(2099, 11, 31)}  // December 2099
+                        startMonth={new Date(1900, 0, 1)} // January 1900
+                        endMonth={new Date(2099, 11, 31)} // December 2099
                         month={month}
                         onMonthChange={setMonth}
                         onSelect={(date) => {

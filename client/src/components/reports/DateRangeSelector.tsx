@@ -73,7 +73,7 @@ const PRESET_RANGES: PresetRange[] = [
     {
         label: "All Time",
         getDates: () => ({
-            start: new Date(2000, 0, 1), // Jan 1, 2000
+            start: new Date(1900, 0, 1), // Jan 1, 1900
             end: new Date(),
         }),
     },
@@ -173,7 +173,12 @@ export function DateRangeSelector({
                 <label className="block text-sm font-medium mb-2">Quick Presets</label>
                 <div className="flex flex-wrap gap-2">
                     {PRESET_RANGES.map((preset) => (
-                        <Button variant={"secondary"} key={preset.label} onClick={() => applyPreset(preset)} size="sm">
+                        <Button
+                            variant={"secondary"}
+                            key={preset.label}
+                            onClick={() => applyPreset(preset)}
+                            size="sm"
+                        >
                             {preset.label}
                         </Button>
                     ))}
