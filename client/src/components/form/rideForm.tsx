@@ -251,6 +251,8 @@ export default function EditRideForm({
 }: Props) {
     const dynamicFieldsRef = useRef<DynamicFormFieldsRef>(null);
 
+    console.log("Ride Form default values:", defaultValues);
+
     const form = useForm<RideFormValues>({
         resolver: zodResolver(rideSchema),
         mode: "onBlur",

@@ -101,6 +101,15 @@ export const PERMISSIONS: PermissionDefinition[] = [
         description: "Modify appointments assigned to you",
     },
 
+    // Appointment Clients (Driver access to view client info within appointments)
+    {
+        permKey: "appointmentclients.read",
+        resource: "appointmentclients",
+        action: "read",
+        name: "View Appointment Client Details",
+        description: "View client name and address for assigned appointments only",
+    },
+
     // Unavailability - All Users (Admin)
     {
         permKey: "allunavailability.read",

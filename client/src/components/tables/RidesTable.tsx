@@ -50,15 +50,33 @@ type Ride = {
     createdAt: string;
 };
 
-const mapRideToFormValues = (ride: Ride): Partial<RideFormValues> & { id?: string } => {
+const mapRideToFormValues = (
+    ride: Ride
+): Partial<RideFormValues> & {
+    id?: string;
+    clientFirstName?: string;
+    clientLastName?: string;
+    pickupAddressLine1?: string;
+    pickupAddressLine2?: string;
+    pickupCity?: string;
+    pickupState?: string;
+    pickupZip?: string;
+} => {
     return {
         id: ride.id,
         clientId: ride.clientId,
         clientName: ride.clientId, // the clientName is actually an ID for the select component
+        clientFirstName: ride.clientFirstName || undefined,
+        clientLastName: ride.clientLastName || undefined,
         clientStreetAddress: ride.pickupAddressLine1 || "",
         clientCity: ride.pickupCity || "",
         clientState: ride.pickupState || "",
         clientZip: ride.pickupZip || "",
+        pickupAddressLine1: ride.pickupAddressLine1 || undefined,
+        pickupAddressLine2: ride.pickupAddressLine2 || undefined,
+        pickupCity: ride.pickupCity || undefined,
+        pickupState: ride.pickupState || undefined,
+        pickupZip: ride.pickupZip || undefined,
         dispatcherName: `${ride.dispatcherFirstName} ${ride.dispatcherLastName}`,
         tripDate: new Date(ride.date),
         appointmentTime: ride.time,

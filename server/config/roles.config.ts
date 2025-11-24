@@ -127,13 +127,13 @@ export const DEFAULT_ROLES: RoleDefinition[] = [
     {
         roleKey: "driver",
         name: "Driver",
-        description: "View own appointments, view client information",
+        description: "View own appointments, view client information within appointments",
         isSystem: false,
         isDriverRole: true,
         permissions: [
             "ownappointments.read",
             "ownappointments.update",
-            "clients.read",
+            "appointmentclients.read",
             "ownunavailability.read",
             "ownunavailability.create",
             "ownunavailability.update",

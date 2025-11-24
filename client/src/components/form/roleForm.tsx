@@ -73,6 +73,7 @@ function capitalizeResource(resource: string): string {
         // All/Own scoped resources
         allappointments: "Appointments (all)",
         ownappointments: "Appointments (own)",
+        appointmentclients: "Appointment Clients",
         "allvolunteer-records": "Volunteer Records (all)",
         "ownvolunteer-records": "Volunteer Records (own)",
         allunavailability: "Unavailability (all)",

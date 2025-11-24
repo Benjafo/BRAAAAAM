@@ -1,6 +1,7 @@
 "use client";
 
 import RideForm, { type RideFormValues } from "@/components/form/rideForm";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import {
     Dialog,
@@ -12,6 +13,7 @@ import {
 import { PERMISSIONS } from "@/lib/permissions";
 import { formatLocalDate } from "@/lib/utils";
 import { http } from "@/services/auth/serviceResolver";
+import { AlertCircle } from "lucide-react";
 import * as React from "react";
 import { toast } from "sonner";
 import { useAuthStore } from "../stores/authStore";
@@ -52,7 +54,17 @@ type Client = {
 type RideModalProps = {
     open: boolean;
     onOpenChange: (open: boolean) => void;
-    defaultValues?: Partial<RideFormValues> & { id?: string };
+    defaultValues?: Partial<RideFormValues> & {
+        // hacky fix for displaying client info in view mode
+        id?: string;
+        clientFirstName?: string;
+        clientLastName?: string;
+        pickupAddressLine1?: string;
+        pickupAddressLine2?: string;
+        pickupCity?: string;
+        pickupState?: string;
+        pickupZip?: string;
+    };
     onSuccess?: () => void;
     viewMode?: boolean; // If true, form is read-only
 };
@@ -93,6 +105,10 @@ export default function RideModal({
     const hasOwnUpdatePermission = useAuthStore((s) =>
         s.hasPermission(PERMISSIONS.OWN_APPOINTMENTS_UPDATE)
     );
+    const canViewClientInfo = useAuthStore((s) =>
+        s.hasAnyPermission([PERMISSIONS.APPOINTMENT_CLIENTS_READ, PERMISSIONS.CLIENTS_READ])
+    );
+    const canViewClientList = useAuthStore((s) => s.hasPermission(PERMISSIONS.CLIENTS_READ));
 
     const user = useAuthStore((s) => s.user);
     const userFirstName = user?.firstName;
@@ -109,6 +125,12 @@ export default function RideModal({
         if (!open) return; // Only fetch when modal is open
 
         const fetchClients = async () => {
+            // Only fetch clients if not in view mode and user has clients.read permission
+            if (viewMode || !canViewClientList) {
+                setIsLoadingClients(false);
+                return;
+            }
+
             setIsLoadingClients(true);
             try {
                 const response = await http.get(`o/clients`).json<{ results: Client[] }>();
@@ -141,25 +163,56 @@ export default function RideModal({
 
         fetchClients();
         fetchDrivers();
-    }, [open]);
+    }, [open, viewMode, canViewClientList]);
 
     // Transform clients into format expected by RideForm
-    const clientList = clients.map((client) => ({
-        id: client.id,
-        value: client.id,
-        label: `${client.firstName} ${client.lastName}`,
-        profile: {
-            address: client.address?.addressLine1 ?? "",
-            address2: client.address?.addressLine2 ?? undefined,
-            zip: client.address?.zip ?? "",
-            city: client.address?.city ?? "",
-            state: client.address?.state ?? "",
-            primaryPhone: client.phone,
-            secondaryPhone: client.secondaryPhone ?? undefined,
-            emailAddress: client.email ?? undefined,
-            commentsFromProfile: client.notes ?? undefined,
-        },
-    }));
+    let clientList;
+    if (viewMode && defaultValuesProp.clientId && defaultValuesProp.clientFirstName) {
+        // Create a single client entry from appointment data for view mode
+        clientList = [
+            {
+                id: defaultValuesProp.clientId,
+                value: defaultValuesProp.clientId,
+                label: `${defaultValuesProp.clientFirstName} ${defaultValuesProp.clientLastName}`,
+                profile: {
+                    address: defaultValuesProp.pickupAddressLine1 ?? "",
+                    address2: defaultValuesProp.pickupAddressLine2 ?? undefined,
+                    zip: defaultValuesProp.pickupZip ?? "",
+                    city: defaultValuesProp.pickupCity ?? "",
+                    state: defaultValuesProp.pickupState ?? "",
+                    primaryPhone: "",
+                    secondaryPhone: undefined,
+                    emailAddress: undefined,
+                    commentsFromProfile: undefined,
+                },
+            },
+        ];
+        console.log("Created synthetic client entry:", clientList[0]);
+        console.log("Client ID from appointment:", defaultValuesProp.clientId);
+    } else {
+        clientList = clients.map((client) => ({
+            id: client.id,
+            value: client.id,
+            label: `${client.firstName} ${client.lastName}`,
+            profile: {
+                address: client.address?.addressLine1 ?? "",
+                address2: client.address?.addressLine2 ?? undefined,
+                zip: client.address?.zip ?? "",
+                city: client.address?.city ?? "",
+                state: client.address?.state ?? "",
+                primaryPhone: client.phone,
+                secondaryPhone: client.secondaryPhone ?? undefined,
+                emailAddress: client.email ?? undefined,
+                commentsFromProfile: client.notes ?? undefined,
+            },
+        }));
+    }
+    console.log(
+        "If check:",
+        viewMode,
+        defaultValuesProp.clientId,
+        defaultValuesProp.clientFirstName
+    );
 
     // Transform drivers into format expected by RideForm
     const driverList = drivers.map((driver) => ({
@@ -332,6 +385,16 @@ export default function RideModal({
                     <DialogHeader className="mb-4">
                         <DialogTitle>{modalTitle}</DialogTitle>
                     </DialogHeader>
+
+                    {!canViewClientInfo && (
+                        <Alert variant="destructive" className="mb-4">
+                            <AlertCircle className="h-4 w-4" />
+                            <AlertDescription>
+                                You do not have permission to view client details for this
+                                appointment.
+                            </AlertDescription>
+                        </Alert>
+                    )}
 
                     <RideForm
                         defaultValues={defaultValues}

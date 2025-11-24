@@ -117,7 +117,18 @@ const transformRidesToCalendarEvents = (rides: Ride[]): CalendarEvent[] => {
 };
 
 // Map ride data to form values format
-const mapRideToFormValues = (ride: Ride): Partial<RideFormValues> & { id?: string } => {
+const mapRideToFormValues = (
+    ride: Ride
+): Partial<RideFormValues> & {
+    id?: string;
+    clientFirstName?: string;
+    clientLastName?: string;
+    pickupAddressLine1?: string;
+    pickupAddressLine2?: string;
+    pickupCity?: string;
+    pickupState?: string;
+    pickupZip?: string;
+} => {
     // Build dispatcher name from first and last name
     const dispatcherName = `${ride.dispatcherFirstName || ""} ${ride.dispatcherLastName || ""}`.trim();
 
@@ -125,9 +136,16 @@ const mapRideToFormValues = (ride: Ride): Partial<RideFormValues> & { id?: strin
         id: ride.id,
         clientId: ride.clientId,
         clientName: ride.clientId, // the clientName is actually an ID for the select component
+        clientFirstName: ride.clientFirstName || undefined,
+        clientLastName: ride.clientLastName || undefined,
         clientStreetAddress: ride.pickupAddressLine1 || "",
         clientCity: ride.pickupCity || "",
         clientState: ride.pickupState || "",
+        pickupAddressLine1: ride.pickupAddressLine1 || undefined,
+        pickupAddressLine2: ride.pickupAddressLine2 || undefined,
+        pickupCity: ride.pickupCity || undefined,
+        pickupState: ride.pickupState || undefined,
+        pickupZip: ride.pickupZip || undefined,
         clientZip: ride.pickupZip || "",
         tripDate: parseLocalDate(ride.date) || new Date(),
         appointmentTime: ride.time,
