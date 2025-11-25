@@ -12,6 +12,7 @@ const GoogleLocator: React.FC<LocationSelectorProps> = ({
     // fields in the GoogleAddressFields component
     value,
     onChange,
+    disabled,
 }) => {
     const inputRef = useRef<HTMLInputElement>(null);
     const autocompleteRef = useRef<google.maps.places.Autocomplete | null>(null);
@@ -173,7 +174,7 @@ const GoogleLocator: React.FC<LocationSelectorProps> = ({
                     value={inputValue}
                     onChange={handleInputChange}
                     autoComplete="off"
-                    disabled={!isLoaded || isLoading}
+                    disabled={!isLoaded || isLoading || disabled}
                     className="w-full pr-12 truncate"
                 />
                 {isLoading ? (

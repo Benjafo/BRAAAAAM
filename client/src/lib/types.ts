@@ -154,6 +154,7 @@ export type LocationSelectorProps = {
     className?: string;
     value?: string;
     onChange?: (value: string) => void;
+    disabled?: boolean;
 };
 
 // Custom Forms Types

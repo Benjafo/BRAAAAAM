@@ -107,31 +107,31 @@ const rideSchema = z
             .optional(),
         tripDuration: z
             .number()
-            .min(0.25, "Trip duration must be atleast 0.25 hours.")
+            .min(1 / 60, "Trip duration must be atleast 1 minute.")
             .optional()
             .refine(
                 (val) => {
                     if (val === undefined || val === 0) return true;
 
-                    // Check if multiplying by 4 gives a whole number, uses quarter hour increment
-                    return Number.isInteger(val * 4);
+                    // Check if multiplying by 60 gives a whole number, allows any minute value
+                    return Number.isInteger(Math.round(val * 60));
                 },
                 {
-                    message: "Hours must be in full or quarter-hour increments (e.g., 1.25, 1.5).",
+                    message: "Duration must be in whole minute increments.",
                 }
             ),
         tripDistance: z
             .number()
-            .min(0.1, "Trip distance must be atleast 0.1 miles.")
+            .min(0.01, "Trip distance must be atleast 0.01 miles.")
             .optional()
             .refine(
                 (val) => {
                     if (val === undefined || val === 0) return true;
-                    // Check if multiplying by 10 gives a whole number, gives tenth mile increment
-                    return Number.isInteger(val * 10);
+                    // Check if multiplying by 100 gives a whole number, allows hundredths precision
+                    return Number.isInteger(Math.round(val * 100));
                 },
                 {
-                    message: "Miles must be in full or tenths (e.g., 1.0, 1.1, 1.2).",
+                    message: "Miles must be in hundredths or less (e.g., 1.25, 10.5, 15.75).",
                 }
             ),
         donationType: z.enum(["Check", "Cash", "unopenedEnvelope"]).nullable().optional(),
@@ -413,7 +413,7 @@ export default function EditRideForm({
                                                             {clients.map((client) => (
                                                                 <CommandItem
                                                                     key={client.value}
-                                                                    value={client.label}
+                                                                    value={`${client.label}-${client.id}`}
                                                                     onSelect={() => {
                                                                         field.onChange(
                                                                             client.value
@@ -690,6 +690,7 @@ export default function EditRideForm({
                                                     field.onChange(newHours + minutes / 60);
                                                 }}
                                                 className="w-full"
+                                                disabled={limitedEditMode}
                                             />
                                         </FormControl>
                                     </div>
@@ -708,6 +709,7 @@ export default function EditRideForm({
                                                     field.onChange(hours + newMinutes / 60);
                                                 }}
                                                 className="w-full"
+                                                disabled={limitedEditMode}
                                             />
                                         </FormControl>
                                     </div>
@@ -980,7 +982,7 @@ export default function EditRideForm({
                                                     type="number"
                                                     min="0"
                                                     max="59"
-                                                    step="15"
+                                                    step="1"
                                                     placeholder="Minutes"
                                                     value={minutes || ""}
                                                     onChange={(e) => {

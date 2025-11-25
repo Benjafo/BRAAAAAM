@@ -160,12 +160,12 @@ const mapRideToFormValues = (
         assignedDriver: ride.driverId || undefined,
         rideStatus: ride.status,
         dispatcherName: dispatcherName,
-        estimatedDuration: ride.estimatedDurationMinutes ? ride.estimatedDurationMinutes / 60 : undefined,
+        estimatedDuration: ride.estimatedDurationMinutes ? Number(ride.estimatedDurationMinutes) / 60 : undefined,
         // Completion fields
-        tripDistance: ride.milesDriven ?? undefined,
-        tripDuration: ride.actualDurationMinutes ? ride.actualDurationMinutes / 60 : undefined,
+        tripDistance: ride.milesDriven ? Number(ride.milesDriven) : undefined,
+        tripDuration: ride.actualDurationMinutes ? Number(ride.actualDurationMinutes) / 60 : undefined,
         donationType: ride.donationType && ride.donationType !== "None" ? ride.donationType : undefined,
-        donationAmount: ride.donationAmount ? parseFloat(String(ride.donationAmount)) : undefined,
+        donationAmount: ride.donationAmount ? Number(ride.donationAmount) : undefined,
         // Additional rider fields
         additionalRider: ride.hasAdditionalRider ? "Yes" : "No",
         additionalRiderFirstName: ride.additionalRiderFirstName || "",
@@ -272,9 +272,9 @@ export default function Schedule({ viewToggle }: ScheduleProps) {
                 });
                 setIsAcceptRideModalOpen(true);
             } else if (originalRide.driverId === String(user?.id)) {
-                // Show view-only modal
+                // Show editable modal for driver's own ride (limited edit mode will be applied based on permissions)
                 setSelectedRideData(mapRideToFormValues(originalRide));
-                setIsViewMode(true);
+                setIsViewMode(false);
                 setIsRideModalOpen(true);
             }
         } else {

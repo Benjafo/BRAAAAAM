@@ -278,26 +278,13 @@ export default function RideModal({
             let requestBody: Record<string, unknown>;
 
             if (limitedEditMode) {
-                // Drivers with limited permissions can only update completion fields
+                // Drivers with limited permissions can only update status and completion fields
                 requestBody = {
                     status: values.rideStatus,
                     milesDriven: values.tripDistance,
-                    actualDurationMinutes: values.tripDuration,
-                    estimatedDurationMinutes: values.estimatedDuration
-                        ? values.estimatedDuration * 60
-                        : undefined,
-                    notes: values.tripDistance
-                        ? `Trip completed: ${values.tripDistance} miles`
-                        : undefined,
+                    actualDurationMinutes: values.tripDuration ? values.tripDuration * 60 : undefined,
                     donationType: values.donationType || "None",
                     donationAmount: values.donationAmount,
-                    hasAdditionalRider: values.additionalRider === "Yes",
-                    additionalRiderFirstName:
-                        values.additionalRider === "Yes" ? values.additionalRiderFirstName : null,
-                    additionalRiderLastName:
-                        values.additionalRider === "Yes" ? values.additionalRiderLastName : null,
-                    relationshipToClient:
-                        values.additionalRider === "Yes" ? values.relationshipToClient : null,
                     customFields: values.customFields,
                 };
             } else {

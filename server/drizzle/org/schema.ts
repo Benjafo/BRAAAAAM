@@ -472,7 +472,7 @@ export const appointments = pgTable(
         relationshipToClient: text("relationship_to_client"),
         donationType: donationType("donation_type").default("None").notNull(),
         donationAmount: numeric("donation_amount", { precision: 10, scale: 2 }),
-        milesDriven: integer("miles_driven"),
+        milesDriven: numeric("miles_driven", { precision: 10, scale: 2 }),
         createdAt: timestamp("created_at", { withTimezone: true, mode: "string" })
             .defaultNow()
             .notNull(),

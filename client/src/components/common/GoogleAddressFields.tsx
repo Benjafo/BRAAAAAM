@@ -203,6 +203,7 @@ export function GoogleAddressFields({
                                                     "w-full flex-1 justify-between",
                                                     !selectedAliasDisplay && "text-muted-foreground"
                                                 )}
+                                                disabled={disabled}
                                             >
                                                 {selectedAliasDisplay
                                                     ? selectedAliasDisplay
@@ -311,6 +312,7 @@ export function GoogleAddressFields({
                                 value={field.value}
                                 onChange={field.onChange}
                                 onLocationSelect={handleLocationSelect}
+                                disabled={disabled}
                             />
                         </FormControl>
                         <FormMessage />
@@ -327,7 +329,7 @@ export function GoogleAddressFields({
                         <FormItem>
                             {showLabels && <FormLabel>{address2FieldLabel}</FormLabel>}
                             <FormControl>
-                                <Input {...field} />
+                                <Input {...field} disabled={disabled} />
                             </FormControl>
                             <FormMessage />
                         </FormItem>

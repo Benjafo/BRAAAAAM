@@ -1,9 +1,11 @@
 import { DataTable } from "@/components/common/dataTable";
 import { useAuthStore } from "@/components/stores/authStore";
 import { PERMISSIONS } from "@/lib/permissions";
+import { parseLocalDate } from "@/lib/utils";
 import { http } from "@/services/auth/serviceResolver";
 import { useState } from "react";
 import type { RideFormValues } from "../form/rideForm";
+import AcceptRideModal from "../modals/acceptRideModal";
 import RideModal from "../modals/rideModal";
 
 type Ride = {
@@ -23,6 +25,7 @@ type Ride = {
     tripPurpose: string | null;
     tripType: "roundTrip" | "oneWayFrom" | "oneWayTo";
     // Completion fields
+    estimatedDurationMinutes: number | null;
     milesDriven: number | null;
     actualDurationMinutes: number | null;
     notes: string | null;
@@ -72,14 +75,13 @@ const mapRideToFormValues = (
         clientStreetAddress2: ride.pickupAddressLine2 || "",
         clientCity: ride.pickupCity || "",
         clientState: ride.pickupState || "",
-        clientZip: ride.pickupZip || "",
         pickupAddressLine1: ride.pickupAddressLine1 || undefined,
         pickupAddressLine2: ride.pickupAddressLine2 || undefined,
         pickupCity: ride.pickupCity || undefined,
         pickupState: ride.pickupState || undefined,
         pickupZip: ride.pickupZip || undefined,
-        dispatcherName: `${ride.dispatcherFirstName} ${ride.dispatcherLastName}`,
-        tripDate: new Date(ride.date),
+        clientZip: ride.pickupZip || "",
+        tripDate: parseLocalDate(ride.date) || new Date(),
         appointmentTime: ride.time,
         tripType: ride.tripType,
         destinationAddress: ride.destinationAddressLine1 || "",
@@ -90,11 +92,17 @@ const mapRideToFormValues = (
         purposeOfTrip: ride.tripPurpose || "",
         assignedDriver: ride.driverId || undefined,
         rideStatus: ride.status,
+        dispatcherName: `${ride.dispatcherFirstName || ""} ${ride.dispatcherLastName || ""}`.trim(),
+        estimatedDuration: ride.estimatedDurationMinutes
+            ? Number(ride.estimatedDurationMinutes) / 60
+            : undefined,
         // Completion fields
-        tripDistance: ride.milesDriven ?? undefined,
-        tripDuration: ride.actualDurationMinutes ? ride.actualDurationMinutes / 60 : undefined,
-        donationType: ride.donationType ?? undefined,
-        donationAmount: ride.donationAmount ?? undefined,
+        tripDistance: ride.milesDriven ? Number(ride.milesDriven) : undefined,
+        tripDuration: ride.actualDurationMinutes
+            ? Number(ride.actualDurationMinutes) / 60
+            : undefined,
+        donationType: ride.donationType ? ride.donationType : undefined,
+        donationAmount: ride.donationAmount ? Number(ride.donationAmount) : undefined,
         // Additional rider fields
         additionalRider: ride.hasAdditionalRider ? "Yes" : "No",
         additionalRiderFirstName: ride.additionalRiderFirstName || "",
@@ -121,14 +129,20 @@ export function RidesTable({
         Partial<RideFormValues> & { id?: string }
     >({});
     const [refreshKey, setRefreshKey] = useState(0);
+    const [isAcceptRideModalOpen, setIsAcceptRideModalOpen] = useState(false);
+    const [acceptRideData, setAcceptRideData] = useState<any>(null);
+
+    // const user = useAuthStore((s) => s.user);
     const hasCreatePermission = useAuthStore((s) =>
         s.hasPermission(PERMISSIONS.ALL_APPOINTMENTS_CREATE)
     );
-    const hasEditPermission = useAuthStore(
-        (s) =>
-            s.hasPermission(PERMISSIONS.OWN_APPOINTMENTS_UPDATE) ||
-            s.hasPermission(PERMISSIONS.ALL_APPOINTMENTS_UPDATE)
+    const hasOwnPermission = useAuthStore((s) =>
+        s.hasPermission(PERMISSIONS.OWN_APPOINTMENTS_UPDATE)
     );
+    const hasAllPermission = useAuthStore((s) =>
+        s.hasPermission(PERMISSIONS.ALL_APPOINTMENTS_UPDATE)
+    );
+    const hasEditPermission = hasOwnPermission || hasAllPermission;
 
     // hacky fix to force refresh for the custom fields
     const handleRefresh = () => {
@@ -169,10 +183,36 @@ export function RidesTable({
 
     const handleEditRide = (ride: Ride) => {
         console.log("Ride selected:", ride);
-        const mappedData = mapRideToFormValues(ride);
-        console.log("Mapped form values:", mappedData);
-        setSelectedRideData(mappedData);
-        setIsRideModalOpen(true);
+
+        const handlesOwnRides = hasOwnPermission && !hasAllPermission;
+
+        // If driver clicking unassigned ride, show accept modal
+        if (handlesOwnRides && ride.driverId === null) {
+            setAcceptRideData({
+                id: ride.id,
+                clientName: `${ride.clientFirstName || ""} ${ride.clientLastName || ""}`.trim(),
+                date: ride.date,
+                time: ride.time,
+                pickupAddress: ride.pickupAddressLine1 || "Unknown",
+                pickupAddress2: ride.pickupAddressLine2 || undefined,
+                pickupCity: ride.pickupCity || undefined,
+                pickupState: ride.pickupState || undefined,
+                pickupZip: ride.pickupZip || undefined,
+                destinationAddress: ride.destinationAddressLine1 || "Unknown",
+                destinationAddress2: ride.destinationAddressLine2 || undefined,
+                destinationCity: ride.destinationCity || undefined,
+                destinationState: ride.destinationState || undefined,
+                destinationZip: ride.destinationZip || undefined,
+                tripPurpose: ride.tripPurpose || undefined,
+            });
+            setIsAcceptRideModalOpen(true);
+        } else {
+            // Otherwise show regular edit modal
+            const mappedData = mapRideToFormValues(ride);
+            console.log("Mapped form values:", mappedData);
+            setSelectedRideData(mappedData);
+            setIsRideModalOpen(true);
+        }
     };
 
     return (
@@ -232,6 +272,12 @@ export function RidesTable({
                 onOpenChange={setIsRideModalOpen}
                 defaultValues={selectedRideData}
                 onSuccess={handleRefresh}
+            />
+            <AcceptRideModal
+                open={isAcceptRideModalOpen}
+                onOpenChange={setIsAcceptRideModalOpen}
+                rideData={acceptRideData}
+                onAccept={handleRefresh}
             />
         </>
     );
