@@ -33,15 +33,22 @@ export default function VolunteerRecordModal({
     const [defaultValues, setDefaultValues] = useState<Partial<VolunteerRecordFormValues> | undefined>(undefined);
     const [isLoading, setIsLoading] = useState(false);
     const [isFetchingRecord, setIsFetchingRecord] = useState(false);
-    const [selectedDriverId, setSelectedDriverId] = useState<string | null>(targetUserId || null);
-    const [selectedDriverName, setSelectedDriverName] = useState<string | null>(targetUserName || null);
 
-    const currentUserId = useAuthStore((s) => s.user)?.id;
+    const currentUser = useAuthStore((s) => s.user);
+    const currentUserId = currentUser?.id;
     const hasAllVolunteerCreate = useAuthStore((s) =>
         s.hasPermission(PERMISSIONS.ALL_VOLUNTEER_RECORDS_CREATE)
     );
     const hasAllVolunteerRead = useAuthStore((s) =>
         s.hasPermission(PERMISSIONS.ALL_VOLUNTEER_RECORDS_READ)
+    );
+
+    // Pre-select current user by default when creating new records
+    const [selectedDriverId, setSelectedDriverId] = useState<string | null>(
+        targetUserId || (currentUserId ? String(currentUserId) : null)
+    );
+    const [selectedDriverName, setSelectedDriverName] = useState<string | null>(
+        targetUserName || (currentUser ? `${currentUser.firstName} ${currentUser.lastName}` : null)
     );
 
     const isEditing = Boolean(recordId);
@@ -163,6 +170,17 @@ export default function VolunteerRecordModal({
                                 setSelectedDriverName(driverName);
                             }}
                             required
+                            includeCurrentUser={true}
+                            currentUser={
+                                currentUser
+                                    ? {
+                                          id: String(currentUser.id),
+                                          firstName: currentUser.firstName,
+                                          lastName: currentUser.lastName,
+                                          email: currentUser.email,
+                                      }
+                                    : undefined
+                            }
                         />
                     </div>
                 )}

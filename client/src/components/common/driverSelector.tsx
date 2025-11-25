@@ -29,9 +29,16 @@ type DriverSelectorProps = {
     onChange: (driverId: string, driverName: string) => void;
     disabled?: boolean;
     required?: boolean;
+    includeCurrentUser?: boolean;
+    currentUser?: {
+        id: string;
+        firstName: string;
+        lastName: string;
+        email: string;
+    };
 };
 
-export function DriverSelector({ value, onChange, disabled, required }: DriverSelectorProps) {
+export function DriverSelector({ value, onChange, disabled, required, includeCurrentUser, currentUser }: DriverSelectorProps) {
     const [open, setOpen] = useState(false);
     const [drivers, setDrivers] = useState<Driver[]>([]);
     const [isLoading, setIsLoading] = useState(true);
@@ -51,9 +58,17 @@ export function DriverSelector({ value, onChange, disabled, required }: DriverSe
                 console.log("Fetched users:", response.results);
 
                 // Filter for users with driver roles who are active
-                const driverUsers = response.results.filter(
+                let driverUsers = response.results.filter(
                     (user) => user.isDriverRole === true && user.isActive === true
                 );
+
+                // Add current user if requested and not already in the list
+                if (includeCurrentUser && currentUser) {
+                    const currentUserInList = driverUsers.some((driver) => driver.id === currentUser.id);
+                    if (!currentUserInList) {
+                        driverUsers = [currentUser as Driver, ...driverUsers];
+                    }
+                }
 
                 console.log("Filtered drivers:", driverUsers);
 
@@ -67,7 +82,7 @@ export function DriverSelector({ value, onChange, disabled, required }: DriverSe
         }
 
         fetchDrivers();
-    }, []);
+    }, [includeCurrentUser, currentUser]);
 
     const selectedDriver = drivers.find((driver) => driver.id === value);
     const selectedDriverName = selectedDriver

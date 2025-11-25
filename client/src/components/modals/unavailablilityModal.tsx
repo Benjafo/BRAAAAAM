@@ -47,19 +47,22 @@ export default function UnavailabilityModal({
     const [overlapConflicts, setOverlapConflicts] = React.useState<any[]>([]);
     const [lastSubmittedValues, setLastSubmittedValues] = React.useState<any>(null);
     const [isSubmitting, setIsSubmitting] = React.useState(false);
-    const [selectedDriverId, setSelectedDriverId] = React.useState<string | null>(
-        targetUserId || null
-    );
-    const [selectedDriverName, setSelectedDriverName] = React.useState<string | null>(
-        targetUserName || null
-    );
 
-    const currentUserId = useAuthStore((s) => s.user)?.id;
+    const currentUser = useAuthStore((s) => s.user);
+    const currentUserId = currentUser?.id;
     const hasAllUnavailabilityCreate = useAuthStore((s) =>
         s.hasPermission(PERMISSIONS.ALL_UNAVAILABILITY_CREATE)
     );
     const hasAllUnavailabilityRead = useAuthStore((s) =>
         s.hasPermission(PERMISSIONS.ALL_UNAVAILABILITY_READ)
+    );
+
+    // Pre-select current user by default when creating new records
+    const [selectedDriverId, setSelectedDriverId] = React.useState<string | null>(
+        targetUserId || (currentUserId ? String(currentUserId) : null)
+    );
+    const [selectedDriverName, setSelectedDriverName] = React.useState<string | null>(
+        targetUserName || (currentUser ? `${currentUser.firstName} ${currentUser.lastName}` : null)
     );
 
     const isEditingTemp = Boolean(tempInitial?.id);
@@ -292,6 +295,17 @@ export default function UnavailabilityModal({
                                     setSelectedDriverName(driverName);
                                 }}
                                 required
+                                includeCurrentUser={true}
+                                currentUser={
+                                    currentUser
+                                        ? {
+                                              id: String(currentUser.id),
+                                              firstName: currentUser.firstName,
+                                              lastName: currentUser.lastName,
+                                              email: currentUser.email,
+                                          }
+                                        : undefined
+                                }
                             />
                         </div>
                     )}
