@@ -29,7 +29,7 @@ type Ride = {
     milesDriven: number | null;
     actualDurationMinutes: number | null;
     notes: string | null;
-    donationType: "Check" | "Cash" | "unopenedEnvelope" | null;
+    donationType: "Check" | "Cash" | "unopenedEnvelope" | "None" | null;
     donationAmount: number | null;
     // Additional rider fields
     hasAdditionalRider: boolean | null;
@@ -101,7 +101,7 @@ const mapRideToFormValues = (
         tripDuration: ride.actualDurationMinutes
             ? Number(ride.actualDurationMinutes) / 60
             : undefined,
-        donationType: ride.donationType ? ride.donationType : undefined,
+        donationType: ride.donationType && ride.donationType !== "None" ? ride.donationType : undefined,
         donationAmount: ride.donationAmount ? Number(ride.donationAmount) : undefined,
         // Additional rider fields
         additionalRider: ride.hasAdditionalRider ? "Yes" : "No",
