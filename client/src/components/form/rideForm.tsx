@@ -51,6 +51,7 @@ const rideSchema = z
             .string()
             .min(1, "Must have a pickup address.")
             .max(255, "Max characters allowed is 255."),
+        clientStreetAddress2: z.string().max(255, "Max characters allowed is 255.").optional(),
         clientCity: z
             .string()
             .min(1, "City is required")
@@ -65,6 +66,7 @@ const rideSchema = z
             .max(10, "Max characters allowed is 10.")
             .regex(/^\d{5}(-\d{4})?$/, "Please enter a valid US zip code."),
         dispatcherName: z.string().optional(),
+        pickupAlias: z.string().max(255, "Max characters allowed is 255.").optional(),
         destinationAlias: z.string().max(255, "Max characters allowed is 255.").optional(),
         destinationAddress: z
             .string()
@@ -260,10 +262,12 @@ export default function EditRideForm({
             clientId: defaultValues.clientId,
             clientName: defaultValues.clientName ?? "",
             clientStreetAddress: defaultValues.clientStreetAddress ?? "",
+            clientStreetAddress2: defaultValues.clientStreetAddress2 ?? "",
             clientCity: defaultValues.clientCity ?? "",
             clientState: defaultValues.clientState ?? "",
             clientZip: defaultValues.clientZip ?? "",
             dispatcherName: defaultValues.dispatcherName ?? "",
+            pickupAlias: defaultValues.pickupAlias ?? "",
             destinationAlias: defaultValues.destinationAlias ?? "",
             destinationAddress: defaultValues.destinationAddress ?? "",
             destinationCity: defaultValues.destinationCity ?? "",
@@ -431,6 +435,12 @@ export default function EditRideForm({
                                                                                     .address
                                                                             );
                                                                         }
+                                                                        if (client.profile?.address2) {
+                                                                            form.setValue(
+                                                                                "clientStreetAddress2",
+                                                                                client.profile.address2
+                                                                            );
+                                                                        }
                                                                         if (client.profile?.city) {
                                                                             form.setValue(
                                                                                 "clientCity",
@@ -479,6 +489,7 @@ export default function EditRideForm({
                                                     field.onChange("");
                                                     form.setValue("clientId", "");
                                                     form.setValue("clientStreetAddress", "");
+                                                    form.setValue("clientStreetAddress2", "");
                                                     form.setValue("clientCity", "");
                                                     form.setValue("clientState", "");
                                                     form.setValue("clientZip", "");
@@ -515,69 +526,28 @@ export default function EditRideForm({
                     <h3 className="text-lg font-semibold mt-4">Pickup Details</h3>
                 </div>
 
-                {/* Client Street Address - populated from selected client's profile */}
-                <FormField
-                    control={form.control}
-                    name="clientStreetAddress"
-                    render={({ field }) => (
-                        <div className="md:col-span-2">
-                            <FormItem>
-                                <FormLabel>Client Street Address</FormLabel>
-                                <FormControl>
-                                    <Input {...field} disabled />
-                                </FormControl>
-                                <FormMessage />
-                            </FormItem>
-                        </div>
-                    )}
-                />
-
-                {/* Client City - populated from selected client's profile */}
-                <FormField
-                    control={form.control}
-                    name="clientCity"
-                    render={({ field }) => (
-                        <FormItem>
-                            <FormLabel>Client City</FormLabel>
-                            <FormControl>
-                                <Input {...field} disabled />
-                            </FormControl>
-                            <FormMessage />
-                        </FormItem>
-                    )}
-                />
-
-                {/* Client State - populated from selected client's profile */}
-                <FormField
-                    control={form.control}
-                    name="clientState"
-                    render={({ field }) => (
-                        <FormItem>
-                            <FormLabel>Client State</FormLabel>
-                            <FormControl>
-                                <Input {...field} disabled />
-                            </FormControl>
-                            <FormMessage />
-                        </FormItem>
-                    )}
-                />
-
-                {/* Client ZIP Code - populated from selected client's profile */}
-                <FormField
-                    control={form.control}
-                    name="clientZip"
-                    render={({ field }) => (
-                        <div className="md:col-span-2">
-                            <FormItem>
-                                <FormLabel>Client ZIP Code</FormLabel>
-                                <FormControl>
-                                    <Input {...field} disabled />
-                                </FormControl>
-                                <FormMessage />
-                            </FormItem>
-                        </div>
-                    )}
-                />
+                {/* Pickup Address with Google Autocomplete */}
+                <div className="md:col-span-2">
+                    <GoogleAddressFields
+                        control={form.control}
+                        setValue={form.setValue}
+                        addressFieldLabel="Pickup Street Address"
+                        addressFieldName="clientStreetAddress"
+                        address2FieldLabel="Pickup Street Address 2"
+                        address2FieldName="clientStreetAddress2"
+                        cityFieldLabel="Pickup City"
+                        cityFieldName="clientCity"
+                        stateFieldLabel="Pickup State"
+                        stateFieldName="clientState"
+                        zipFieldLabel="Pickup ZIP Code"
+                        zipFieldName="clientZip"
+                        showAddress2={true}
+                        showAliasField={true}
+                        aliasFieldLabel="Search Saved Locations"
+                        aliasFieldName="pickupAlias"
+                        disabled={limitedEditMode}
+                    />
+                </div>
 
                 {/* Destination Details */}
                 <div className="md:col-span-2">

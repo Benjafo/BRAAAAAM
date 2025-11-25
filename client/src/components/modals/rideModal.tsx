@@ -316,12 +316,12 @@ export default function RideModal({
                     tripPurpose: values.purposeOfTrip || null,
                     tripType: values.tripType,
                     pickupAddress: {
-                        addressLine1: selectedClient!.address!.addressLine1,
-                        addressLine2: selectedClient!.address!.addressLine2 || null,
-                        city: selectedClient!.address!.city,
-                        state: selectedClient!.address!.state,
-                        zip: selectedClient!.address!.zip,
-                        country: selectedClient!.address!.country || "USA",
+                        addressLine1: values.clientStreetAddress,
+                        addressLine2: values.clientStreetAddress2 || null,
+                        city: values.clientCity,
+                        state: values.clientState,
+                        zip: values.clientZip,
+                        country: "USA",
                     },
                     destinationAddress: {
                         addressLine1: values.destinationAddress,

@@ -128,6 +128,7 @@ const mapRideToFormValues = (ride: Ride): Partial<RideFormValues> & { id?: strin
         clientId: ride.clientId,
         clientName: ride.clientId, // the clientName is actually an ID for the select component
         clientStreetAddress: ride.pickupAddressLine1 || "",
+        clientStreetAddress2: ride.pickupAddressLine2 || "",
         clientCity: ride.pickupCity || "",
         clientState: ride.pickupState || "",
         clientZip: ride.pickupZip || "",

@@ -139,6 +139,7 @@ const mapRideToFormValues = (
         clientFirstName: ride.clientFirstName || undefined,
         clientLastName: ride.clientLastName || undefined,
         clientStreetAddress: ride.pickupAddressLine1 || "",
+        clientStreetAddress2: ride.pickupAddressLine2 || "",
         clientCity: ride.pickupCity || "",
         clientState: ride.pickupState || "",
         pickupAddressLine1: ride.pickupAddressLine1 || undefined,
