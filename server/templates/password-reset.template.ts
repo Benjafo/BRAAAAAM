@@ -75,8 +75,9 @@ BRAAAAAM Team`;
             margin: 32px 0;
         }
         .button {
-            background-color: #22C55E;
-            color: white;
+            background-color: #FFFFFF;
+            color: #111827;
+            border: 2px solid #111827;
             padding: 14px 24px;
             text-decoration: none;
             border-radius: 8px;
@@ -85,7 +86,8 @@ BRAAAAAM Team`;
             letter-spacing: 0.2px;
         }
         .button:hover {
-            background-color: #16A34A;
+            background-color: #111827;
+            color: #FFFFFF;
         }
         .warning {
             background-color: #FEF9C3;
