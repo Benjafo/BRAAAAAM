@@ -3,11 +3,16 @@
 import { useAuthStore } from "@/components/stores/authStore";
 import { exportToCSV } from "@/lib/csvExport";
 import { PERMISSIONS } from "@/lib/permissions";
-import { type ColumnDefinition, getColumnsForEntity } from "@/lib/reportColumns";
+import {
+    type ColumnDefinition,
+    type CustomForm,
+    getColumnsForEntity,
+    getCustomFieldColumns,
+} from "@/lib/reportColumns";
 import { type ReportTemplate } from "@/lib/reportTemplates";
 import { http } from "@/services/auth/serviceResolver";
 import { Download, Loader2, Save, Settings } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import { ManageTemplatesModal } from "../modals/ManageTemplatesModal";
 import { SaveTemplateModal } from "../modals/SaveTemplateModal";
@@ -33,6 +38,8 @@ export function ReportBuilder() {
     const [saveTemplateDialogOpen, setSaveTemplateDialogOpen] = useState(false);
     const [manageTemplatesDialogOpen, setManageTemplatesDialogOpen] = useState(false);
     const [selectedTemplate, setSelectedTemplate] = useState<ReportTemplate | null>(null);
+    const [customForms, setCustomForms] = useState<CustomForm[]>([]);
+    const [isLoadingForms, setIsLoadingForms] = useState(false);
 
     // Check if user has export permission
     const hasExportPermission = useAuthStore((s) => s.hasPermission(PERMISSIONS.REPORTS_EXPORT));
@@ -45,9 +52,52 @@ export function ReportBuilder() {
         return selectionMode as "clients" | "users" | "appointments" | "volunteerRecords" | "callLogs";
     };
 
+    // Fetch custom forms when entity type changes
+    useEffect(() => {
+        const fetchCustomForms = async () => {
+            const entityType = getEntityType();
+
+            // Map entity types to custom form target entities
+            const entityMap: Record<string, string> = {
+                clients: "client",
+                users: "user",
+                appointments: "appointment",
+                volunteerRecords: "volunteerRecord",
+                callLogs: "callLog",
+            };
+
+            const targetEntity = entityMap[entityType];
+            if (!targetEntity) return;
+
+            setIsLoadingForms(true);
+            try {
+                const forms = await http
+                    .get(`o/custom-forms`, {
+                        searchParams: { entity: targetEntity },
+                    })
+                    .json<CustomForm[]>();
+
+                setCustomForms(forms);
+            } catch (err) {
+                console.error("Error fetching custom forms:", err);
+                setCustomForms([]);
+            } finally {
+                setIsLoadingForms(false);
+            }
+        };
+
+        fetchCustomForms();
+    }, [selectionMode, selectedTemplate]);
+
     // Get available columns for column selector (when not in templates mode)
+    // Merge static columns with custom field columns
     const availableColumns =
-        selectionMode !== "templates" ? getColumnsForEntity(selectionMode as any) : [];
+        selectionMode !== "templates"
+            ? [
+                  ...getColumnsForEntity(selectionMode as any),
+                  ...getCustomFieldColumns(customForms),
+              ]
+            : [];
 
     /**
      * Handle mode change - reset selected columns and template
@@ -68,7 +118,11 @@ export function ReportBuilder() {
         setSelectedTemplate(template);
 
         // Map column keys to ColumnDefinition objects
-        const allColumns = getColumnsForEntity(template.entityType);
+        // Include both static columns and custom field columns
+        const staticColumns = getColumnsForEntity(template.entityType);
+        const customColumns = getCustomFieldColumns(customForms);
+        const allColumns = [...staticColumns, ...customColumns];
+
         const templateColumns = allColumns.filter((col) =>
             template.selectedColumns.includes(col.key)
         );
@@ -242,6 +296,12 @@ export function ReportBuilder() {
                         <div className="flex items-center justify-between mb-4">
                             <h3 className="text-lg font-semibold  ">
                                 Step 3: Select Columns ({selectedColumns.length} selected)
+                                {isLoadingForms && (
+                                    <span className="ml-2 text-sm text-gray-500">
+                                        <Loader2 className="w-4 h-4 inline animate-spin mr-1" />
+                                        Loading...
+                                    </span>
+                                )}
                             </h3>
                             {canSaveTemplate && (
                                 <Button size="sm" onClick={() => setSaveTemplateDialogOpen(true)}>

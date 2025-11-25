@@ -74,7 +74,7 @@ const PRESET_RANGES: PresetRange[] = [
         label: "All Time",
         getDates: () => ({
             start: new Date(1900, 0, 1), // Jan 1, 1900
-            end: new Date(),
+            end: new Date(2100, 0, 1), // Jan 1, 2100
         }),
     },
 ];

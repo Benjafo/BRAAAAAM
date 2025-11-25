@@ -5,6 +5,25 @@ export type ColumnDefinition = {
     getValue?: (item: any) => string | number | null; // Optional custom accessor
 };
 
+// Type for custom form field
+export type CustomFormField = {
+    id: string;
+    formId: string;
+    fieldKey: string;
+    label: string;
+    fieldType: string;
+    displayOrder: number;
+};
+
+// Type for custom form with fields
+export type CustomForm = {
+    id: string;
+    name: string;
+    description: string | null;
+    targetEntity: string;
+    fields: CustomFormField[];
+};
+
 // Define columns for each entity
 export const CLIENT_COLUMNS: ColumnDefinition[] = [
     // Basic Information
@@ -306,4 +325,41 @@ export function getGroupedColumns(columns: ColumnDefinition[]): Record<string, C
         },
         {} as Record<string, ColumnDefinition[]>
     );
+}
+
+// Generate column definitions from custom forms
+export function getCustomFieldColumns(customForms: CustomForm[]): ColumnDefinition[] {
+    const columns: ColumnDefinition[] = [];
+
+    for (const form of customForms) {
+        for (const field of form.fields) {
+            columns.push({
+                key: `customFields.${field.fieldKey}`,
+                label: field.label,
+                group: "Custom Fields",
+                getValue: (item: any) => {
+                    const value = item.customFields?.[field.fieldKey];
+
+                    // Handle different field types
+                    if (value === null || value === undefined) {
+                        return "";
+                    }
+
+                    // Handle arrays (multi-select fields)
+                    if (Array.isArray(value)) {
+                        return value.join(", ");
+                    }
+
+                    // Handle booleans
+                    if (typeof value === "boolean") {
+                        return value ? "Yes" : "No";
+                    }
+
+                    return String(value);
+                },
+            });
+        }
+    }
+
+    return columns;
 }
