@@ -339,10 +339,8 @@ export const clients = pgTable(
         otherLimitations: otherLimitation("other_limitations").array(),
         otherLimitationsOther: text("other_limitations_other"),
         isActive: boolean("is_active").default(true),
-        temporaryInactiveUntil: date("temporary_inactive_until"),
+        isPermanent: boolean("is_permanent").default(true),
         inactiveSince: date("inactive_since"),
-        awayFrom: date("away_from"),
-        awayTo: date("away_to"),
         createdAt: timestamp("created_at", { withTimezone: true, mode: "string" })
             .defaultNow()
             .notNull(),

@@ -82,13 +82,10 @@ const clientSchema = z
         clientStatus: z.enum(["Permanent client", "Temporary client"], {
             message: "Please specify if the client is a permanent or temporary client",
         }),
-        volunteeringStatus: z.enum(["Active", "On leave", "Inactive", "Away"], {
-            message: "Please specify the volunteering status.",
+        status: z.enum(["Active", "Inactive"], {
+            message: "Please specify the client status.",
         }),
-        onLeaveUntil: z.date().optional(),
         inactiveSince: z.date().optional(),
-        awayFrom: z.date().optional(),
-        awayTo: z.date().optional(),
         clientEmail: z.email("Please enter a valid email address.").optional().or(z.literal("")),
         primaryPhoneNumber: z
             .string()
@@ -99,7 +96,6 @@ const clientSchema = z
             ),
         primaryPhoneIsCellPhone: z.boolean(),
         okToTextPrimaryPhone: z.boolean(),
-        endActiveStatus: z.date().optional(),
         secondaryPhoneNumber: z
             .string()
             .regex(
@@ -167,49 +163,13 @@ const clientSchema = z
     })
     .superRefine((data, ctx) => {
         // AI helped on the super refine
-        // If client status is "Temporary client", endActiveStatus must be provided
-        if (data.clientStatus === "Temporary client" && !data.endActiveStatus) {
-            ctx.addIssue({
-                code: "custom",
-                message: "Please select the date the active status for the client ends.",
-                path: ["endActiveStatus"],
-            });
-        }
-
-        // If volunteering status is "On leave", onLeaveUntil must be provided
-        if (data.volunteeringStatus === "On leave" && !data.onLeaveUntil) {
-            ctx.addIssue({
-                code: "custom",
-                message: "Please select the date when the leave ends.",
-                path: ["onLeaveUntil"],
-            });
-        }
-
-        // If volunteering status is "Inactive", inactiveSince must be provided
-        if (data.volunteeringStatus === "Inactive" && !data.inactiveSince) {
+        // If status is "Inactive", inactiveSince must be provided
+        if (data.status === "Inactive" && !data.inactiveSince) {
             ctx.addIssue({
                 code: "custom",
                 message: "Please select the date when the client became inactive.",
                 path: ["inactiveSince"],
             });
-        }
-
-        // If volunteering status is "Away", both awayFrom and awayTo must be provided
-        if (data.volunteeringStatus === "Away") {
-            if (!data.awayFrom) {
-                ctx.addIssue({
-                    code: "custom",
-                    message: "Please select the start date.",
-                    path: ["awayFrom"],
-                });
-            }
-            if (!data.awayTo) {
-                ctx.addIssue({
-                    code: "custom",
-                    message: "Please select the end date.",
-                    path: ["awayTo"],
-                });
-            }
         }
     });
 
@@ -266,16 +226,12 @@ export default function ClientForm({ defaultValues, onSubmit, viewMode = false }
             homeAddress2: defaultValues.homeAddress2 ?? "",
             clientGender: defaultValues.clientGender ?? "Other",
             clientStatus: defaultValues.clientStatus ?? "Permanent client",
-            volunteeringStatus: defaultValues.volunteeringStatus ?? "Active",
-            onLeaveUntil: defaultValues.onLeaveUntil,
+            status: defaultValues.status ?? "Active",
             inactiveSince: defaultValues.inactiveSince,
-            awayFrom: defaultValues.awayFrom,
-            awayTo: defaultValues.awayTo,
             clientEmail: defaultValues.clientEmail ?? "",
             primaryPhoneNumber: defaultValues.primaryPhoneNumber ?? "",
             primaryPhoneIsCellPhone: defaultValues.primaryPhoneIsCellPhone ?? false,
             okToTextPrimaryPhone: defaultValues.okToTextPrimaryPhone ?? false,
-            endActiveStatus: defaultValues.endActiveStatus,
             secondaryPhoneNumber: defaultValues.secondaryPhoneNumber ?? "",
             secondaryPhoneIsCellPhone: defaultValues.secondaryPhoneIsCellPhone ?? false,
             okToTextSecondaryPhone: defaultValues.okToTextSecondaryPhone ?? false,
@@ -296,8 +252,7 @@ export default function ClientForm({ defaultValues, onSubmit, viewMode = false }
         },
     });
 
-    const clientStatus = form.watch("clientStatus");
-    const volunteeringStatus = form.watch("volunteeringStatus");
+    const status = form.watch("status");
     const primaryPhoneIsCellPhone = form.watch("primaryPhoneIsCellPhone");
     const hasServiceAnimal = form.watch("hasServiceAnimal");
     const mobilityEquipment = form.watch("mobilityEquipment");
@@ -585,7 +540,7 @@ export default function ClientForm({ defaultValues, onSubmit, viewMode = false }
                 <div className="space-y-4">
                     <FormField
                         control={form.control}
-                        name="volunteeringStatus"
+                        name="status"
                         render={({ field }) => (
                             <FormItem className="w-full">
                                 <FormLabel>Status</FormLabel>
@@ -596,9 +551,7 @@ export default function ClientForm({ defaultValues, onSubmit, viewMode = false }
                                         </SelectTrigger>
                                         <SelectContent>
                                             <SelectItem value="Active">Active</SelectItem>
-                                            <SelectItem value="On leave">On Leave</SelectItem>
                                             <SelectItem value="Inactive">Inactive</SelectItem>
-                                            <SelectItem value="Away">Away From</SelectItem>
                                         </SelectContent>
                                     </Select>
                                 </FormControl>
@@ -607,28 +560,8 @@ export default function ClientForm({ defaultValues, onSubmit, viewMode = false }
                         )}
                     />
 
-                    {/* On Leave Until Date Picker - conditionally rendered */}
-                    {volunteeringStatus === "On leave" && (
-                        <FormField
-                            control={form.control}
-                            name="onLeaveUntil"
-                            render={({ field }) => (
-                                <FormItem>
-                                    <FormLabel>On Leave Until</FormLabel>
-                                    <FormControl>
-                                        <DatePickerInput
-                                            value={field.value}
-                                            onChange={field.onChange}
-                                        />
-                                    </FormControl>
-                                    <FormMessage />
-                                </FormItem>
-                            )}
-                        />
-                    )}
-
                     {/* Inactive Since Date Picker - conditionally rendered */}
-                    {volunteeringStatus === "Inactive" && (
+                    {status === "Inactive" && (
                         <FormField
                             control={form.control}
                             name="inactiveSince"
@@ -645,44 +578,6 @@ export default function ClientForm({ defaultValues, onSubmit, viewMode = false }
                                 </FormItem>
                             )}
                         />
-                    )}
-
-                    {/* Away From Date Pickers */}
-                    {volunteeringStatus === "Away" && (
-                        <>
-                            <FormField
-                                control={form.control}
-                                name="awayFrom"
-                                render={({ field }) => (
-                                    <FormItem>
-                                        <FormLabel>Away From</FormLabel>
-                                        <FormControl>
-                                            <DatePickerInput
-                                                value={field.value}
-                                                onChange={field.onChange}
-                                            />
-                                        </FormControl>
-                                        <FormMessage />
-                                    </FormItem>
-                                )}
-                            />
-                            <FormField
-                                control={form.control}
-                                name="awayTo"
-                                render={({ field }) => (
-                                    <FormItem>
-                                        <FormLabel>To</FormLabel>
-                                        <FormControl>
-                                            <DatePickerInput
-                                                value={field.value}
-                                                onChange={field.onChange}
-                                            />
-                                        </FormControl>
-                                        <FormMessage />
-                                    </FormItem>
-                                )}
-                            />
-                        </>
                     )}
                 </div>
 
@@ -730,28 +625,6 @@ export default function ClientForm({ defaultValues, onSubmit, viewMode = false }
                             </FormItem>
                         )}
                     />
-
-                    {/* End date of active status */}
-                    <div>
-                        {clientStatus === "Temporary client" && (
-                            <FormField
-                                control={form.control}
-                                name="endActiveStatus"
-                                render={({ field }) => (
-                                    <FormItem>
-                                        <FormLabel>End Date of Active Status</FormLabel>
-                                        <FormControl>
-                                            <DatePickerInput
-                                                value={field.value}
-                                                onChange={field.onChange}
-                                            />
-                                        </FormControl>
-                                        <FormMessage />
-                                    </FormItem>
-                                )}
-                            />
-                        )}
-                    </div>
                 </div>
 
                 {/* Contact Information Section */}

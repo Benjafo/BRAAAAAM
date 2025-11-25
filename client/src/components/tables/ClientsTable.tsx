@@ -52,10 +52,8 @@ function mapClientToFormValues(
         okToTextSecondary?: boolean;
         secondaryPhone?: string | null;
         secondaryPhoneIsCell?: boolean;
-        temporaryInactiveUntil?: string | null;
+        isPermanent?: boolean;
         inactiveSince?: string | null;
-        awayFrom?: string | null;
-        awayTo?: string | null;
     }
 ): Partial<ClientFormValues> & { id: string } {
     return {
@@ -94,17 +92,9 @@ function mapClientToFormValues(
         state: client.address.state,
         zipCode: client.address.zip,
         customFields: client.customFields || {},
-        volunteeringStatus: client.isActive
-            ? "Active"
-            : client.temporaryInactiveUntil
-              ? "On leave"
-              : client.awayFrom || client.awayTo
-                ? "Away"
-                : "Inactive",
-        onLeaveUntil: parseLocalDate(client.temporaryInactiveUntil),
+        clientStatus: client.isPermanent ? "Permanent client" : "Temporary client",
+        status: client.isActive ? "Active" : "Inactive",
         inactiveSince: parseLocalDate(client.inactiveSince),
-        awayFrom: parseLocalDate(client.awayFrom),
-        awayTo: parseLocalDate(client.awayTo),
     };
 }
 

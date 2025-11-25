@@ -67,18 +67,10 @@ export default function ClientModal({
                 serviceAnimalDescription: values.serviceAnimalDescription || null,
                 otherLimitations: values.otherLimitations || [],
                 otherLimitationsOther: values.otherLimitationsOther || null,
-                isActive: values.volunteeringStatus === "Active",
-                temporaryInactiveUntil: values.volunteeringStatus === "On leave"
-                    ? formatLocalDate(values.onLeaveUntil)
-                    : null,
-                inactiveSince: values.volunteeringStatus === "Inactive"
+                isPermanent: values.clientStatus === "Permanent client",
+                isActive: values.status === "Active",
+                inactiveSince: values.status === "Inactive"
                     ? formatLocalDate(values.inactiveSince)
-                    : null,
-                awayFrom: values.volunteeringStatus === "Away"
-                    ? formatLocalDate(values.awayFrom)
-                    : null,
-                awayTo: values.volunteeringStatus === "Away"
-                    ? formatLocalDate(values.awayTo)
                     : null,
                 customFields: values.customFields,
                 address: {
