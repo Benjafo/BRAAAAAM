@@ -81,7 +81,7 @@ services:
       # Email scheduler configuration
       - EMAIL_JOB_CRON=${EMAIL_JOB_CRON:-*/15 * * * *}
       - CRON_TIMEZONE=${CRON_TIMEZONE:-America/New_York}
-      - DEFAULT_ORG_CLOSE_TIME=${DEFAULT_ORG_CLOSE_TIME:-17:00}
+      - DEFAULT_ORG_CLOSE_TIME=${DEFAULT_ORG_CLOSE_TIME:-17:30}
       - EMAIL_BATCH_SIZE=${EMAIL_BATCH_SIZE:-50}
     depends_on:
       postgres:

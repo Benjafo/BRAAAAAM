@@ -13,6 +13,10 @@ import {
 import { getOrCreateOrgDb } from "../drizzle/pool-manager.js";
 import { getSysDb } from "../drizzle/sys-client.js";
 import { organizations } from "../drizzle/sys/schema.js";
+import { driverNotificationTemplate } from "../templates/driver-notification.template.js";
+import { driverDailyDigestTemplate } from "../templates/driver-daily-digest.template.js";
+import { passwordResetTemplate } from "../templates/password-reset.template.js";
+import { passwordResetConfirmationTemplate } from "../templates/password-reset-confirmation.template.js";
 
 let transporter: Transporter | null = null;
 
@@ -127,59 +131,12 @@ export const sendDriverNotificationEmail = async (
     driverName: string,
     rideDetails: RideDetails
 ): Promise<boolean> => {
-    const subject = "New Ride Notification - Action Required";
-    const text = `Hello ${driverName},
-
-You have been notified about a new ride opportunity!
-
-Ride Details:
-- Pickup: ${rideDetails.pickupAddress}
-- Dropoff: ${rideDetails.dropoffAddress}
-- Pickup Time: ${rideDetails.pickupTime}
-
-Please log in to the system to view more details and accept this ride.
-
-Thank you,
-BRAAAAAM Team`;
-
-    const html = `
-<!DOCTYPE html>
-<html>
-<head>
-    <style>
-        body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
-        .container { max-width: 600px; margin: 0 auto; padding: 20px; }
-        .header { background-color: #4CAF50; color: white; padding: 20px; text-align: center; }
-        .content { background-color: #f9f9f9; padding: 20px; }
-        .details { background-color: white; padding: 15px; margin: 15px 0; border-left: 4px solid #4CAF50; }
-        .footer { text-align: center; padding: 20px; color: #666; font-size: 12px; }
-    </style>
-</head>
-<body>
-    <div class="container">
-        <div class="header">
-            <h2>New Ride Notification</h2>
-        </div>
-        <div class="content">
-            <p>Hello ${driverName},</p>
-            <p>You have been notified about a new ride opportunity!</p>
-
-            <div class="details">
-                <h3>Ride Details:</h3>
-                <p><strong>Pickup:</strong> ${rideDetails.pickupAddress}</p>
-                <p><strong>Dropoff:</strong> ${rideDetails.dropoffAddress}</p>
-                <p><strong>Pickup Time:</strong> ${rideDetails.pickupTime}</p>
-            </div>
-
-            <p>Please log in to the system to view more details and accept this ride.</p>
-            <p>Thank you,<br>BRAAAAAM Team</p>
-        </div>
-        <div class="footer">
-            <p>This is an automated notification. Please do not reply to this email.</p>
-        </div>
-    </div>
-</body>
-</html>`;
+    const { subject, text, html } = driverNotificationTemplate({
+        driverName,
+        pickupAddress: rideDetails.pickupAddress,
+        dropoffAddress: rideDetails.dropoffAddress,
+        pickupTime: rideDetails.pickupTime,
+    });
 
     return sendEmail({
         to: driverEmail,
@@ -385,8 +342,6 @@ async function sendAggregatedDriverEmail(
         dropoffAddress: string;
     }>
 ): Promise<boolean> {
-    const subject = `Daily Ride Notifications - ${rides.length} New Opportunit${rides.length === 1 ? "y" : "ies"}`;
-
     // Build Google Maps links
     const ridesWithLinks = rides.map((ride) => ({
         ...ride,
@@ -394,103 +349,10 @@ async function sendAggregatedDriverEmail(
         dropoffMapsLink: `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(ride.dropoffAddress)}`,
     }));
 
-    const formatDateTime = (input: string) => {
-        const [datePart, timePart] = input.split(" ");
-        const [year, month, day] = datePart.split("-").map(Number);
-        const [hour24, minute] = timePart.split(":").map(Number);
-
-        const ampm = hour24 >= 12 ? "PM" : "AM";
-        const hour12 = hour24 % 12 || 12;
-
-        const date = new Date(year, month - 1, day);
-        const monthName = date.toLocaleString("en-US", { month: "long" });
-
-        return `${monthName} ${day}, ${year} ${hour12}:${String(minute).padStart(2, "0")} ${ampm}`;
-    };
-
-    // Text version
-    const text = `Hello ${name},
-
-You have ${rides.length} new ride notification${rides.length === 1 ? "" : "s"}:
-
-${ridesWithLinks
-    .map(
-        (ride, i) => `${i + 1}. Ride on ${formatDateTime(ride.pickupTime)}
-   Client: ${ride.clientName}
-   Pickup: ${ride.pickupAddress}
-   Pickup Maps: ${ride.pickupMapsLink}
-   Dropoff: ${ride.dropoffAddress}
-   Dropoff Maps: ${ride.dropoffMapsLink}
-
-   [Placeholder: Accept Ride Link]`
-    )
-    .join("\n\n")}
-
-Please log in to the system to view full details and accept rides.
-
-Thank you,
-BRAAAAAM Team`;
-
-    // HTML version
-    const html = `
-<!DOCTYPE html>
-<html>
-<head>
-    <style>
-        body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; margin: 0; padding: 0; }
-        .container { max-width: 600px; margin: 0 auto; padding: 20px; }
-        .header { background-color: #4CAF50; color: white; padding: 20px; text-align: center; border-radius: 5px 5px 0 0; }
-        .content { background-color: #f9f9f9; padding: 20px; }
-        .ride-card { background-color: white; padding: 15px; margin: 15px 0; border-left: 4px solid #4CAF50; border-radius: 4px; }
-        .ride-card h3 { margin-top: 0; color: #4CAF50; }
-        .ride-detail { margin: 8px 0; }
-        .ride-detail strong { display: inline-block; width: 80px; }
-        .maps-link { color: #4CAF50; text-decoration: none; font-size: 0.9em; }
-        .maps-link:hover { text-decoration: underline; }
-        .accept-btn { display: inline-block; background-color: #4CAF50; color: white; padding: 10px 20px; text-decoration: none; border-radius: 4px; margin-top: 10px; }
-        .accept-btn:hover { background-color: #45a049; }
-        .footer { text-align: center; padding: 20px; color: #666; font-size: 12px; }
-    </style>
-</head>
-<body>
-    <div class="container">
-        <div class="header">
-            <h2>Daily Ride Notifications</h2>
-            <p>${rides.length} New Opportunit${rides.length === 1 ? "y" : "ies"}</p>
-        </div>
-        <div class="content">
-            <p>Hello ${name},</p>
-            <p>You have been notified about ${rides.length} ride opportunit${rides.length === 1 ? "y" : "ies"}:</p>
-
-            ${ridesWithLinks
-                .map(
-                    (ride, i) => `
-                <div class="ride-card">
-                    <h3>${formatDateTime(ride.pickupTime)}</h3>
-                    <div class="ride-detail"><strong>Client:</strong> ${ride.clientName}</div>
-                    <div class="ride-detail">
-                        <strong>Pickup:</strong> <a href="${ride.pickupMapsLink}" class="maps-link" target="_blank">${ride.pickupAddress}</a>
-                    </div>
-                    <div class="ride-detail">
-                        <strong>Dropoff:</strong> <a href="${ride.dropoffMapsLink}" class="maps-link" target="_blank">${ride.dropoffAddress}</a>
-                    </div>
-                    <div style="margin-top: 10px; color: #666; font-style: italic;">
-                        [Accept ride button here]
-                    </div>
-                </div>
-            `
-                )
-                .join("")}
-
-            <p style="margin-top: 20px;">Please log in to the system to view full details and accept rides.</p>
-            <p>Thank you,<br>BRAAAAAM Team</p>
-        </div>
-        <div class="footer">
-            <p>This is an automated notification. Please do not reply to this email.</p>
-        </div>
-    </div>
-</body>
-</html>`;
+    const { subject, text, html } = driverDailyDigestTemplate({
+        driverName: name,
+        rides: ridesWithLinks,
+    });
 
     return sendEmail({ to: email, subject, text, html });
 }
@@ -539,69 +401,11 @@ export const sendPasswordResetEmail = async (
     resetLink: string,
     expiresInMinutes: number
 ): Promise<boolean> => {
-    const currentYear = new Date().getFullYear();
-    const subject = "Password Reset Request - BRAAAAAM";
-
-    const text = `Hello ${userName},
-
-We received a request to reset your password for your BRAAAAAM account.
-
-Click the link below to reset your password:
-${resetLink}
-
-This link will expire in ${expiresInMinutes} minutes.
-
-If you didn't request this password reset, you can safely ignore this email. Your password will remain unchanged.
-
-Thank you,
-BRAAAAAM Team`;
-
-    const html = `
-<!DOCTYPE html>
-<html>
-<head>
-    <style>
-        body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; margin: 0; padding: 0; }
-        .container { max-width: 600px; margin: 0 auto; padding: 20px; }
-        .header { background-color: #4CAF50; color: white; padding: 20px; text-align: center; border-radius: 5px 5px 0 0; }
-        .content { background-color: #f9f9f9; padding: 20px; }
-        .button { background-color: #4CAF50; color: white; padding: 12px 24px; text-decoration: none; border-radius: 4px; display: inline-block; }
-        .button:hover { background-color: #45a049; }
-        .warning { background-color: #fff3cd; border-left: 4px solid #ffc107; padding: 12px; margin: 15px 0; }
-        .footer { text-align: center; padding: 20px; color: #666; font-size: 12px; }
-    </style>
-</head>
-<body>
-    <div class="container">
-        <div class="header">
-            <h2>Password Reset Request</h2>
-        </div>
-        <div class="content">
-            <p>Hello ${userName},</p>
-            <p>We received a request to reset your password for your BRAAAAAM account.</p>
-
-            <p style="text-align: center; margin: 30px 0;">
-                <a href="${resetLink}" class="button">Reset Your Password</a>
-            </p>
-
-            <div class="warning">
-                <strong>⚠️ Security Notice:</strong> This link will expire in ${expiresInMinutes} minutes.
-            </div>
-
-            <p><strong>If you didn't request this password reset, you can safely ignore this email.</strong> Your password will remain unchanged.</p>
-
-            <p style="font-size: 12px; color: #666;">
-                If the button doesn't work, copy and paste this link into your browser:<br>
-                ${resetLink}
-            </p>
-        </div>
-        <div class="footer">
-            <p>This is an automated email. Please do not reply.</p>
-            <p>© ${currentYear} BRAAAAAM. All rights reserved.</p>
-        </div>
-    </div>
-</body>
-</html>`;
+    const { subject, text, html } = passwordResetTemplate({
+        userName,
+        resetLink,
+        expiresInMinutes,
+    });
 
     return sendEmail({ to: email, subject, text, html });
 };
@@ -611,65 +415,9 @@ export const sendPasswordResetConfirmationEmail = async (
     email: string,
     userName: string
 ): Promise<boolean> => {
-    const currentYear = new Date().getFullYear();
-    const timestamp = new Date().toLocaleString("en-US", {
-        timeZone: "America/New_York",
-        dateStyle: "long",
-        timeStyle: "short",
+    const { subject, text, html } = passwordResetConfirmationTemplate({
+        userName,
     });
-    const subject = "Password Reset Successful - BRAAAAAM";
-
-    const text = `Hello ${userName},
-
-Your password was successfully reset on ${timestamp}.
-
-If you didn't make this change, please contact your organization administrator immediately.
-
-You can now sign in with your new password.
-
-Thank you,
-BRAAAAAM Team`;
-
-    const html = `
-<!DOCTYPE html>
-<html>
-<head>
-    <style>
-        body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; margin: 0; padding: 0; }
-        .container { max-width: 600px; margin: 0 auto; padding: 20px; }
-        .header { background-color: #4CAF50; color: white; padding: 20px; text-align: center; border-radius: 5px 5px 0 0; }
-        .content { background-color: #f9f9f9; padding: 20px; }
-        .success { background-color: #d4edda; border-left: 4px solid #28a745; padding: 12px; margin: 15px 0; }
-        .warning { background-color: #f8d7da; border-left: 4px solid #dc3545; padding: 12px; margin: 15px 0; }
-        .footer { text-align: center; padding: 20px; color: #666; font-size: 12px; }
-    </style>
-</head>
-<body>
-    <div class="container">
-        <div class="header">
-            <h2>✓ Password Reset Successful</h2>
-        </div>
-        <div class="content">
-            <p>Hello ${userName},</p>
-
-            <div class="success">
-                <p style="margin: 0;"><strong>Your password was successfully reset.</strong></p>
-                <p style="margin: 5px 0 0 0; font-size: 14px;">Changed on ${timestamp}</p>
-            </div>
-
-            <p>You can now sign in to your account with your new password.</p>
-
-            <div class="warning">
-                <strong>⚠️ Security Alert:</strong> If you didn't make this change, please contact your organization administrator immediately.
-            </div>
-        </div>
-        <div class="footer">
-            <p>This is an automated email. Please do not reply.</p>
-            <p>© ${currentYear} BRAAAAAM. All rights reserved.</p>
-        </div>
-    </div>
-</body>
-</html>`;
 
     return sendEmail({ to: email, subject, text, html });
 };
