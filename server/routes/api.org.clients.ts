@@ -5,6 +5,7 @@ import { withPermission } from "../middleware/with-permission.js";
 const router: Router = express.Router({ mergeParams: true });
 
 router.get("/", withPermission({ permissions: "clients.read" }), clients.listClients);
+router.get("/check-duplicates", withPermission({ permissions: "clients.read" }), clients.checkDuplicates);
 router.post("/", withPermission({ permissions: "clients.create" }), clients.createClient);
 
 router.get(

@@ -10,8 +10,10 @@ import {
 import { formatLocalDate } from "@/lib/utils";
 import { http } from "@/services/auth/serviceResolver";
 import { toast } from "sonner";
+import { useState } from "react";
 import type { ClientFormValues } from "../form/clientForm";
 import ClientForm from "../form/clientForm";
+import DuplicateWarningModal from "./duplicateWarningModal";
 
 type NewClientModalProps = {
     defaultValues?: Partial<ClientFormValues> & { id?: string };
@@ -31,12 +33,15 @@ export default function ClientModal({
     const modalTitle = viewMode ? "View Client" : isEditing ? "Edit Client" : "New Client";
     const successMessage = isEditing ? "Client Updated" : "New Client Created";
 
+    const [duplicates, setDuplicates] = useState<any[]>([]);
+    const [showDuplicateWarning, setShowDuplicateWarning] = useState(false);
+    const [pendingRequestBody, setPendingRequestBody] = useState<any>(null);
+
     console.log("Default Values:", defaultValues);
 
     async function handleSubmit(values: ClientFormValues) {
         try {
-
-            // Map form values to API structure
+            // Build request body once
             const requestBody = {
                 firstName: values.firstName,
                 lastName: values.lastName,
@@ -83,7 +88,27 @@ export default function ClientModal({
                 },
             };
 
-            // Make API call based on editing status
+            // Check for duplicates if creating a new client
+            if (!isEditing) {
+                const duplicateCheckResponse = await http
+                    .get(`o/clients/check-duplicates`, {
+                        searchParams: {
+                            firstName: values.firstName,
+                            lastName: values.lastName,
+                        },
+                    })
+                    .json<any[]>();
+
+                if (duplicateCheckResponse.length > 0) {
+                    // Found duplicates - show warning and wait for user decision
+                    setDuplicates(duplicateCheckResponse);
+                    setPendingRequestBody(requestBody);
+                    setShowDuplicateWarning(true);
+                    return; // Don't submit yet
+                }
+            }
+
+            // No duplicates or editing - proceed with submission
             if (isEditing) {
                 await http
                     .put(`o/clients/${defaultValues.id}`, {
@@ -107,6 +132,38 @@ export default function ClientModal({
         }
     }
 
+    async function proceedWithSubmission() {
+        if (!pendingRequestBody) return;
+
+        setShowDuplicateWarning(false);
+
+        try {
+            // Submit the already-built request body
+            await http
+                .post(`o/clients`, {
+                    json: pendingRequestBody,
+                })
+                .json();
+
+            toast.success(successMessage);
+            onSuccess?.();
+            onOpenChange(false);
+
+            // Reset state
+            setPendingRequestBody(null);
+            setDuplicates([]);
+        } catch (error) {
+            console.error("Failed to save client:", error);
+            toast.error("Failed to save client. Please try again.");
+        }
+    }
+
+    function cancelDuplicateWarning() {
+        setShowDuplicateWarning(false);
+        setPendingRequestBody(null);
+        setDuplicates([]);
+    }
+
     return (
         <Dialog open={open} onOpenChange={onOpenChange}>
             <DialogContent className="!max-w-[692px] max-h-[90vh] overflow-y-auto scroll-smooth p-6">
@@ -126,6 +183,13 @@ export default function ClientModal({
                     )}
                 </DialogFooter>
             </DialogContent>
+
+            <DuplicateWarningModal
+                open={showDuplicateWarning}
+                duplicates={duplicates}
+                onProceed={proceedWithSubmission}
+                onCancel={cancelDuplicateWarning}
+            />
         </Dialog>
     );
 }

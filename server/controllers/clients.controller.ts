@@ -1,4 +1,4 @@
-import { and, eq, inArray, sql } from "drizzle-orm";
+import { and, eq, ilike, inArray, sql } from "drizzle-orm";
 import { Request, Response } from "express";
 import { clients, customFormResponses, customForms, locations } from "../drizzle/org/schema.js";
 import { findOrCreateLocation } from "../utils/locations.js";
@@ -174,6 +174,56 @@ export const listClients = async (req: Request, res: Response): Promise<Response
         });
     } catch (err) {
         console.error("Error listing clients:", err);
+        return res.status(500).json({ error: "Internal server error" });
+    }
+};
+
+export const checkDuplicates = async (req: Request, res: Response): Promise<Response> => {
+    try {
+        const db = req.org?.db;
+        if (!db) return res.status(500).json({ error: "Database not initialized" });
+
+        const { firstName, lastName } = req.query;
+
+        // Validate required parameters
+        if (!firstName || !lastName) {
+            return res.status(400).json({ error: "firstName and lastName are required" });
+        }
+
+        // Query for case-insensitive exact match on first and last name
+        const duplicates = await db
+            .select({
+                id: clients.id,
+                firstName: clients.firstName,
+                lastName: clients.lastName,
+                phone: clients.phone,
+                secondaryPhone: clients.secondaryPhone,
+                email: clients.email,
+                birthMonth: clients.birthMonth,
+                birthYear: clients.birthYear,
+                isActive: clients.isActive,
+                notes: clients.notes,
+                address: {
+                    id: locations.id,
+                    addressLine1: locations.addressLine1,
+                    addressLine2: locations.addressLine2,
+                    city: locations.city,
+                    state: locations.state,
+                    zip: locations.zip,
+                },
+            })
+            .from(clients)
+            .leftJoin(locations, eq(clients.addressLocation, locations.id))
+            .where(
+                and(
+                    ilike(clients.firstName, firstName as string),
+                    ilike(clients.lastName, lastName as string)
+                )
+            );
+
+        return res.status(200).json(duplicates);
+    } catch (err) {
+        console.error("Error checking duplicates:", err);
         return res.status(500).json({ error: "Internal server error" });
     }
 };
